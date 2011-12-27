@@ -24,6 +24,9 @@ namespace CloudAE.App
 		private const int VERTEX_COUNT_FAST = 400 * 400;
 		private const int VERTEX_COUNT_LARGE = 1000 * 1000;
 		
+		private const bool USE_HIGH_RES_TEXTURE = true;
+		private const bool USE_LOW_RES_TEXTURE = true;
+		
 		private ProgressManager m_progressManager;
 		private BackgroundWorker m_backgroundWorker;
 
@@ -43,6 +46,9 @@ namespace CloudAE.App
 
 		private ushort m_gridDimensionLowRes;
 		private ushort m_gridDimensionHighRes;
+
+		private PointCollection m_gridTextureCoordsLowRes;
+		private PointCollection m_gridTextureCoordsHighRes;
 
 		public PointCloudTileSource CurrentTileSource
 		{
@@ -123,25 +129,35 @@ namespace CloudAE.App
 				m_gridHighRes = gridsHighRes.Value;
 				m_quantizedGridHighRes = gridsHighRes.Key;
 
-				//Model3D[] validTiles = new Model3D[tileSource.TileSet.ValidTileCount];
 				int validTileIndex = 0;
 				foreach (PointCloudTile tile in tileSource)
 				{
 					tileSource.LoadTileGrid(tile, m_buffer, m_gridLowRes, m_quantizedGridLowRes);
 					CloudAE.Core.Geometry.Extent3D tileExtent = tile.Extent;
 					MeshGeometry3D mesh = tileSource.GenerateMesh(m_gridLowRes, tileExtent);
-					BitmapSource meshTexture = tileSource.GeneratePreviewImage(m_gridLowRes);
-					mesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(mesh, MathUtils.ZAxis);
 
-					ImageBrush imageBrush = new ImageBrush(meshTexture);
-					imageBrush.Freeze();
-					Material material = new DiffuseMaterial(imageBrush);
+					DiffuseMaterial material = new DiffuseMaterial();
+					if (USE_LOW_RES_TEXTURE)
+					{
+						BitmapSource meshTexture = tileSource.GeneratePreviewImage(m_gridLowRes);
+						ImageBrush imageBrush = new ImageBrush(meshTexture);
+						imageBrush.Freeze();
+						material.Brush = imageBrush;
+						
+						if (m_gridTextureCoordsLowRes == null)
+							m_gridTextureCoordsLowRes = MeshUtils.GeneratePlanarTextureCoordinates(mesh, MathUtils.ZAxis);
+						mesh.TextureCoordinates = m_gridTextureCoordsLowRes;
+					}
+					else
+					{
+						SolidColorBrush solidBrush = new SolidColorBrush(Colors.DarkKhaki);
+						solidBrush.Freeze();
+						material.Brush = solidBrush;
+					}
+
 					material.Freeze();
-
 					GeometryModel3D geometryModel = new GeometryModel3D(mesh, material);
 					geometryModel.Freeze();
-					//modelGroup.Children.Add(geometryModel);
-					//validTiles[validTileIndex] = geometryModel;
 
 					// add mappings
 					m_meshTileMap.Add(geometryModel, tile);
@@ -152,8 +168,6 @@ namespace CloudAE.App
 
 					++validTileIndex;
 				}
-
-				//e.Result = validTiles;
 			}
 		}
 
@@ -167,51 +181,6 @@ namespace CloudAE.App
 			}
 			else
 			{
-				//// success
-				//Model3D[] modelComponents = e.Result as Model3D[];
-				//if (modelComponents != null)
-				//{
-				//    Model3DGroup modelGroup = new Model3DGroup();
-
-				//    foreach (Model3D model3D in modelComponents)
-				//        modelGroup.Children.Add(model3D);
-
-				//    PointCloudTileSource tileSource = CurrentTileSource;
-				//    CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
-
-				//    DirectionalLight lightSource = new DirectionalLight(System.Windows.Media.Colors.White, new Vector3D(-1, -1, -1));
-				//    modelGroup.Children.Add(lightSource);
-				//    //modelGroup.Freeze();
-
-				//    ModelVisual3D model = new ModelVisual3D();
-				//    model.Content = modelGroup;
-
-				//    //Point3D lookatPoint = new Point3D(extent.MidpointX, extent.MidpointY, extent.MidpointZ);
-				//    //Point3D cameraPoint = new Point3D(extent.MidpointX, extent.MinY, extent.MinZ + extent.RangeX);
-				//    Point3D lookatPoint = new Point3D(0, 0, 0);
-				//    Point3D cameraPoint = new Point3D(0, extent.MinY - extent.MidpointY, extent.MinZ - extent.MidpointZ + extent.RangeX);
-				//    Vector3D lookDirection = Point3D.Subtract(cameraPoint, lookatPoint);
-				//    lookDirection.Negate();
-
-				//    Trackball trackball = new Trackball();
-				//    trackball.EventSource = previewImageGrid;
-
-				//    PerspectiveCamera camera = new PerspectiveCamera();
-				//    camera.Position = cameraPoint;
-				//    camera.LookDirection = lookDirection;
-				//    camera.UpDirection = new Vector3D(0, 0, 1);
-				//    camera.FieldOfView = 70;
-				//    camera.Transform = trackball.Transform;
-
-				//    RenderOptions.SetEdgeMode(viewport, EdgeMode.Aliased);
-
-				//    viewport.Camera = camera;
-				//    //viewport.ClipToBounds = false;
-				//    //viewport.IsHitTestVisible = false;
-				//    viewport.Children.Clear();
-				//    viewport.Children.Add(model);
-				//}
-
 				Trackball trackball = new Trackball();
 				trackball.EventSource = previewImageGrid;
 
@@ -223,28 +192,6 @@ namespace CloudAE.App
 
 		private void OnBackgroundProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			//PointCloudTile tile = (PointCloudTile)e.UserState;
-			//CloudAE.Core.Geometry.Extent3D tileExtent = tile.Extent;
-			//CloudAE.Core.Geometry.Extent3D extent = tile.TileSource.Extent;
-
-			//Model3DGroup modelGroup = ((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup);
-
-			//MeshGeometry3D mesh = new MeshGeometry3D();
-			//mesh.Positions.Add(new Point3D(tileExtent.MinX - extent.MidpointX, tileExtent.MinY - extent.MidpointY, 0));
-			//mesh.Positions.Add(new Point3D(tileExtent.MinX - extent.MidpointX, tileExtent.MaxY - extent.MidpointY, 0));
-			//mesh.Positions.Add(new Point3D(tileExtent.MaxX - extent.MidpointX, tileExtent.MaxY - extent.MidpointY, 0));
-			//mesh.Positions.Add(new Point3D(tileExtent.MaxX - extent.MidpointX, tileExtent.MinY - extent.MidpointY, 0));
-			//mesh.TriangleIndices.Add(0);
-			//mesh.TriangleIndices.Add(2);
-			//mesh.TriangleIndices.Add(1);
-			//mesh.TriangleIndices.Add(0);
-			//mesh.TriangleIndices.Add(3);
-			//mesh.TriangleIndices.Add(2);
-
-			//Material material = new DiffuseMaterial(new SolidColorBrush(Colors.DarkKhaki));
-			//GeometryModel3D model3D = new GeometryModel3D(mesh, material);
-			//modelGroup.Children.Add(model3D);
-
 			GeometryModel3D model3D = e.UserState as GeometryModel3D;
 			if (viewport.Children.Count > 0)
 			{
@@ -264,22 +211,6 @@ namespace CloudAE.App
 
 			PointCloudTileSource tileSource = CurrentTileSource;
 			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
-
-			//MeshGeometry3D mesh = new MeshGeometry3D();
-			//mesh.Positions.Add(new Point3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, 0));
-			//mesh.Positions.Add(new Point3D(extent.MinX - extent.MidpointX, extent.MaxY - extent.MidpointY, 0));
-			//mesh.Positions.Add(new Point3D(extent.MaxX - extent.MidpointX, extent.MaxY - extent.MidpointY, 0));
-			//mesh.Positions.Add(new Point3D(extent.MaxX - extent.MidpointX, extent.MinY - extent.MidpointY, 0));
-			//mesh.TriangleIndices.Add(0);
-			//mesh.TriangleIndices.Add(2);
-			//mesh.TriangleIndices.Add(1);
-			//mesh.TriangleIndices.Add(0);
-			//mesh.TriangleIndices.Add(3);
-			//mesh.TriangleIndices.Add(2);
-
-			//Material material = new DiffuseMaterial(new SolidColorBrush(Colors.DarkKhaki));
-			//GeometryModel3D model3D = new GeometryModel3D(mesh, material);
-			//modelGroup.Children.Add(model3D);
 
 			DirectionalLight lightSource = new DirectionalLight(System.Windows.Media.Colors.White, new Vector3D(-1, -1, -1));
 			modelGroup.Children.Add(lightSource);
@@ -379,14 +310,27 @@ namespace CloudAE.App
 				CurrentTileSource.LoadTileGrid(currentTile, m_buffer, m_gridHighRes, m_quantizedGridHighRes);
 				CloudAE.Core.Geometry.Extent3D tileExtent = currentTile.Extent;
 				MeshGeometry3D mesh = CurrentTileSource.GenerateMesh(m_gridHighRes, tileExtent);
-				BitmapSource meshTexture = CurrentTileSource.GeneratePreviewImage(m_gridHighRes);
-				mesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(mesh, MathUtils.ZAxis);
 
-				ImageBrush imageBrush = new ImageBrush(meshTexture);
-				imageBrush.Freeze();
-				Material material = new DiffuseMaterial(imageBrush);
+				DiffuseMaterial material = new DiffuseMaterial();
+				if (USE_LOW_RES_TEXTURE)
+				{
+					BitmapSource meshTexture = CurrentTileSource.GeneratePreviewImage(m_gridHighRes);
+					ImageBrush imageBrush = new ImageBrush(meshTexture);
+					imageBrush.Freeze();
+					material.Brush = imageBrush;
+
+					if(m_gridTextureCoordsHighRes == null)
+						m_gridTextureCoordsHighRes = MeshUtils.GeneratePlanarTextureCoordinates(mesh, MathUtils.ZAxis);
+					mesh.TextureCoordinates = m_gridTextureCoordsHighRes;
+				}
+				else
+				{
+					SolidColorBrush solidBrush = new SolidColorBrush(Colors.DarkKhaki);
+					solidBrush.Freeze();
+					material.Brush = solidBrush;
+				}
+
 				material.Freeze();
-
 				GeometryModel3D geometryModel = new GeometryModel3D(mesh, material);
 				geometryModel.Freeze();
 
