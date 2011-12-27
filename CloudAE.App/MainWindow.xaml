@@ -1,0 +1,96 @@
+﻿<Window x:Class="CloudAE.App.MainWindow"
+        x:Name="MainConsole"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:CloudAE.App"
+        Title="CloudAE Console" Height="423" Width="682" Closed="OnWindowClosed">
+    <Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto" MinWidth="120" />
+			<ColumnDefinition Width="Auto" />
+			<ColumnDefinition Width="*" />
+			<ColumnDefinition Width="Auto" />
+			<ColumnDefinition Width="Auto" MinWidth="120" />
+		</Grid.ColumnDefinitions>
+
+		<StackPanel Grid.Row="0" Grid.ColumnSpan="5">
+			<Menu IsMainMenu="True">
+				<MenuItem Header="_File">
+					<MenuItem Header="Open ..." Click="OnBrowseButtonClick" />
+					<MenuItem Header="Show Performance" Click="OnPerformanceButtonClick" />
+					<MenuItem Header="Recent Files" x:Name="recentFilesMenuItem" />
+				</MenuItem>
+			</Menu>
+		</StackPanel>
+
+		<ProgressBar Grid.Row="2" Grid.ColumnSpan="5" HorizontalAlignment="Stretch" Height="14" x:Name="progressBar" />
+
+        <Grid Grid.Row="1" Grid.Column="0">
+            <TreeView HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="treeView" AllowDrop="True" Drop="OnTreeViewDrop" DragEnter="OnTreeViewDragEnter">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <EventSetter Event="MouseDoubleClick" Handler="OnTreeViewDoubleClick" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="16" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="{Binding Name}" FontWeight="Bold" />
+                            <Image Grid.Row="1" Stretch="Uniform" Source="{Binding Preview}" HorizontalAlignment="Left" MaxWidth="100" MaxHeight="100" />
+                        </Grid>
+                    </DataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </Grid>
+
+        <GridSplitter Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Width="4"/>
+		<GridSplitter Grid.Row="1" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Width="4"/>
+
+		<Grid Grid.Row="1" Grid.Column="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+			<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="tabControl2" SelectionChanged="OnTabControlSelectionChanged">
+				<TabItem Header="Properties" x:Name="tabItemPreview">
+					<Grid>
+						<TextBlock Grid.Row="0" x:Name="textBlockPreview" />
+					</Grid>
+				</TabItem>
+				<TabItem Header="Info" x:Name="tabItemInfo">
+					<Grid>
+						
+					</Grid>
+				</TabItem>
+			</TabControl>
+		</Grid>
+
+        <Grid Grid.Row="1" Grid.Column="2" x:Name="viewportBackground">
+			<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="tabControl" SelectionChanged="OnTabControlSelectionChanged">
+				<TabItem Header="Log" x:Name="tabItemLog">
+					<Grid>
+                        <ScrollViewer>
+                            <TextBlock x:Name="textBlockLog" />
+                        </ScrollViewer>
+                    </Grid>
+				</TabItem>
+				<TabItem Header="2D" x:Name="tabItem2D">
+					<Grid>
+						<local:Preview2D x:Name="preview2D" />
+					</Grid>
+				</TabItem>
+				<TabItem Header="3D" x:Name="tabItem3D">
+					<Grid>
+                        <local:Preview3D x:Name="preview3D" />
+                    </Grid>
+				</TabItem>
+			</TabControl>
+		</Grid>
+	</Grid>
+</Window>
