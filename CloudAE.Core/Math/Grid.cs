@@ -45,7 +45,7 @@ namespace CloudAE.Core
 			Data = new T[SizeX + edgeBufferSize, SizeY + edgeBufferSize];
 		}
 
-		public Grid(Extent2D extent, ushort maxDimension, T fillVal, bool bufferEdge)
+		public Grid(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal, bool bufferEdge)
 		{
 			FillVal = fillVal;
 
@@ -55,14 +55,19 @@ namespace CloudAE.Core
 			m_extent = extent;
 			double aspect = m_extent.Aspect;
 			if (aspect > 1)
-				SizeY = (ushort)((double)SizeX / aspect);
+				SizeY = (ushort)Math.Max((double)SizeX / aspect, minDimension);
 			else
-				SizeX = (ushort)(SizeX * aspect);
+				SizeX = (ushort)Math.Max(SizeX * aspect, minDimension);
 
 			int edgeBufferSize = bufferEdge ? 1 : 0;
 
 			Data = new T[SizeX + edgeBufferSize, SizeY + edgeBufferSize];
 			Reset();
+		}
+
+		public Grid(Extent2D extent, ushort maxDimension, T fillVal, bool bufferEdge)
+			: this(extent, 0, maxDimension, fillVal, bufferEdge)
+		{
 		}
 
 		public void Reset()

@@ -211,7 +211,7 @@ namespace CloudAE.Core
 			UQuantizedExtent2D quantizedExtent = template.QuantizedExtent;
 
 			float fillVal = (float)extent.MinZ - 1;
-			Grid<float> grid = new Grid<float>(extent, maxDimension, fillVal, true);
+			Grid<float> grid = new Grid<float>(extent, 2, maxDimension, fillVal, true);
 			Grid<uint> quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, extent, true);
 
 			return new KeyValuePair<Grid<uint>, Grid<float>>(quantizedGrid, grid);
@@ -287,7 +287,8 @@ namespace CloudAE.Core
 			// subtract midpoint to center around (0,0,0)
 			Extent3D centeringExtent = Extent;
 
-			System.Windows.Media.Media3D.MeshGeometry3D geometry = new System.Windows.Media.Media3D.MeshGeometry3D();
+			System.Windows.Media.Media3D.Point3DCollection positions = new System.Windows.Media.Media3D.Point3DCollection(grid.CellCount);
+			System.Windows.Media.Int32Collection indices = new System.Windows.Media.Int32Collection(2 * (grid.SizeX - 1) * (grid.SizeY - 1));
 
 			float fillVal = grid.FillVal;
 
@@ -304,7 +305,7 @@ namespace CloudAE.Core
 					yCoord += (distributionExtent.MidpointY - centeringExtent.MidpointY);
 
 					System.Windows.Media.Media3D.Point3D point = new System.Windows.Media.Media3D.Point3D(xCoord, yCoord, value);
-					geometry.Positions.Add(point);
+					positions.Add(point);
 
 					if (x > 0 && y > 0)
 					{
@@ -323,21 +324,26 @@ namespace CloudAE.Core
 						{
 							if (grid.Data[x, y] != fillVal)
 							{
-								geometry.TriangleIndices.Add(leftPosition);
-								geometry.TriangleIndices.Add(topPosition);
-								geometry.TriangleIndices.Add(currentPosition);
+								indices.Add(leftPosition);
+								indices.Add(topPosition);
+								indices.Add(currentPosition);
 							}
 
 							if (grid.Data[x - 1, y - 1] != fillVal)
 							{
-								geometry.TriangleIndices.Add(topleftPosition);
-								geometry.TriangleIndices.Add(topPosition);
-								geometry.TriangleIndices.Add(leftPosition);
+								indices.Add(topleftPosition);
+								indices.Add(topPosition);
+								indices.Add(leftPosition);
 							}
 						}
 					}
 				}
 			}
+
+			System.Windows.Media.Media3D.MeshGeometry3D geometry = new System.Windows.Media.Media3D.MeshGeometry3D();
+			geometry.Positions = positions;
+			geometry.TriangleIndices = indices;
+
 			return geometry;
 		}
 
