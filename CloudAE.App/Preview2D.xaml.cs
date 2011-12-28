@@ -22,7 +22,7 @@ namespace CloudAE.App
 	/// </summary>
 	public partial class Preview2D : UserControl
 	{
-		private const int MAX_BUFFER_SIZE_BYTES = 1 << 26; // 29->512MB
+		private const int MAX_BUFFER_SIZE_BYTES = 1 << 27; // 29->512MB
 
 		private PointCloudTileSource m_currentTileSource;
 
@@ -158,6 +158,10 @@ namespace CloudAE.App
 					System.Windows.Shapes.Rectangle rect = m_loadedTiles[currentTile];
 					m_loadedTiles.Remove(currentTile);
 					m_loadedTileBuffers.Remove(currentTile);
+
+					// I don't know why I need to do this, but I can occasionally get a duplicate add below if I don't
+					tilesToLoad.Remove(currentTile);
+
 					previewImageGraphicsGrid.Children.Remove(rect);
 					pointsToDrop -= currentTile.PointCount;
 					++i;
