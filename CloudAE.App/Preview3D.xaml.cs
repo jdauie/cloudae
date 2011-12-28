@@ -50,6 +50,8 @@ namespace CloudAE.App
 		private PointCollection m_gridTextureCoordsLowRes;
 		private PointCollection m_gridTextureCoordsHighRes;
 
+		private SolidColorBrush m_solidBrush;
+
 		public PointCloudTileSource CurrentTileSource
 		{
 			get
@@ -95,6 +97,9 @@ namespace CloudAE.App
 			m_loadedTiles = new Dictionary<PointCloudTile, GeometryModel3D>();
 			m_loadedTileBuffers = new Dictionary<PointCloudTile, byte[]>();
 
+			m_solidBrush = new SolidColorBrush(Colors.Khaki);
+			m_solidBrush.Freeze();
+
 			m_backgroundWorker = new BackgroundWorker();
 			m_backgroundWorker.WorkerReportsProgress = true;
 			m_backgroundWorker.WorkerSupportsCancellation = true;
@@ -114,10 +119,10 @@ namespace CloudAE.App
 				Action<string> logAction = new Action<string>(delegate(string value) { Console.WriteLine(value); });
 				m_progressManager = new ProgressManager(m_backgroundWorker, e, logAction);
 
-				//m_gridDimensionLowRes = (ushort)Math.Sqrt(VERTEX_COUNT_FAST / tileSource.TileSet.ValidTileCount);
-				//m_gridDimensionHighRes = (ushort)Math.Sqrt(VERTEX_COUNT_LARGE / tileSource.TileSet.ValidTileCount);
-				m_gridDimensionLowRes = (ushort)20;
-				m_gridDimensionHighRes = (ushort)40;
+				m_gridDimensionLowRes = (ushort)Math.Sqrt(VERTEX_COUNT_FAST / tileSource.TileSet.ValidTileCount);
+				m_gridDimensionHighRes = (ushort)Math.Sqrt(VERTEX_COUNT_LARGE / tileSource.TileSet.ValidTileCount);
+				//m_gridDimensionLowRes = (ushort)20;
+				//m_gridDimensionHighRes = (ushort)40;
 
 				// load tiles
 				m_buffer = new byte[tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes];
@@ -150,9 +155,7 @@ namespace CloudAE.App
 					}
 					else
 					{
-						SolidColorBrush solidBrush = new SolidColorBrush(Colors.DarkKhaki);
-						solidBrush.Freeze();
-						material.Brush = solidBrush;
+						material.Brush = m_solidBrush;
 					}
 
 					material.Freeze();
@@ -230,6 +233,8 @@ namespace CloudAE.App
 			camera.FieldOfView = 70;
 
 			RenderOptions.SetEdgeMode(viewport, EdgeMode.Aliased);
+			//viewport.ClipToBounds = false;
+			//viewport.IsHitTestVisible = false;
 
 			viewport.Camera = camera;
 			viewport.Children.Add(model);
@@ -325,9 +330,7 @@ namespace CloudAE.App
 				}
 				else
 				{
-					SolidColorBrush solidBrush = new SolidColorBrush(Colors.DarkKhaki);
-					solidBrush.Freeze();
-					material.Brush = solidBrush;
+					material.Brush = m_solidBrush;
 				}
 
 				material.Freeze();
