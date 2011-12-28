@@ -25,6 +25,11 @@ namespace CloudAE.Core
 			return Update(progressRatio, null);
 		}
 
+		public bool Update(int progressPercent)
+		{
+			return Update((float)progressPercent / 100.0f, null);
+		}
+
 		public bool Update(float progressRatio, object userState)
 		{
 			if ((m_worker.CancellationPending == true))
