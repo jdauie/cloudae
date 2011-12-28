@@ -45,6 +45,7 @@ namespace CloudAE.Core
 					progressManager.Log("Loading from Cache: {0}", Path.GetFileNameWithoutExtension(m_tiledPath));
 					try
 					{
+						// I should update the header reader/writer to have a dirty flag (to make sure the file wasn't partially written)
 						m_tileSource = PointCloudTileSource.Open(m_tiledPath);
 					}
 					catch
@@ -59,6 +60,25 @@ namespace CloudAE.Core
 			{
 				Stopwatch stopwatchTotal = new Stopwatch();
 				stopwatchTotal.Start();
+
+				// step 0
+				if (!m_isInputPathLocal)
+				{
+					// if this is a network file, copy it to the local machine
+					Stopwatch stopwatch = new Stopwatch();
+					stopwatch.Start();
+
+					string dstPath = GetInputHandlerTempPath(m_inputHandler.FilePath);
+
+					XCopy.Copy(m_inputHandler.FilePath, dstPath, true, true, (o, pce) =>
+					{
+						progressManager.Update(pce.ProgressPercentage);
+					});
+
+					m_inputHandler.FilePath = dstPath;
+
+					progressManager.Log(stopwatch, "Copied Remote File");
+				}
 
 				// step 1
 				m_binarySource = m_inputHandler.GenerateBinarySource(progressManager);
@@ -121,8 +141,10 @@ namespace CloudAE.Core
 					GC.Collect();
 				}
 
-				if (m_binarySource.FilePath != m_inputHandler.FilePath)
+				if (m_binarySource.FilePath != m_inputHandler.FilePath || !m_isInputPathLocal)
+				{
 					File.Delete(m_binarySource.FilePath);
+				}
 
 				// step 3
 				if (tiledSegments != null)
@@ -228,6 +250,13 @@ namespace CloudAE.Core
 		public static string GetBinarySourceName(FileHandlerBase handler)
 		{
 			return handler.FilePath + ".bin";
+		}
+
+		public string GetInputHandlerTempPath(string path)
+		{
+			string fileName = String.Format("{0}", Path.GetFileName(m_inputHandler.FilePath));
+			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
+			return tilePath;
 		}
 
 		public string GetTileSourcePath(string path, int segmentIndex)
