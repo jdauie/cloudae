@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace CloudAE.Core
 {
@@ -12,6 +13,13 @@ namespace CloudAE.Core
 		public string FilePath
 		{
 			get { return m_path; }
+			set
+			{
+				if (!File.Exists(value))
+					throw new InvalidOperationException("FilePath cannot be set to a non-existent file.");
+
+				m_path = value;
+			}
 		}
 
 		public abstract string[] SupportedExtensions
