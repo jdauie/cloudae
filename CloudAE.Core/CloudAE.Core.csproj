@@ -134,6 +134,7 @@
     <Compile Include="Tools3D\ScreenSpaceLines3D.cs" />
     <Compile Include="Tools3D\Trackball.cs" />
     <Compile Include="Util.cs" />
+    <Compile Include="XCopy.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
