@@ -20,7 +20,7 @@ namespace CloudAE.App
 	/// </summary>
 	public partial class Preview3D : UserControl
 	{
-		private const int MAX_BUFFER_SIZE_BYTES = 1 << 26; // 26->64MB
+		private const int MAX_BUFFER_SIZE_BYTES = 1 << 27; // 26->64MB
 		private const int VERTEX_COUNT_FAST = 400 * 400;
 		private const int VERTEX_COUNT_LARGE = 1000 * 1000;
 		
