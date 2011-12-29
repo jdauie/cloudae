@@ -771,8 +771,6 @@ namespace CloudAE.Core
 						if (!progressManager.Update((float)inputStream.Position / inputLength))
 							break;
 					}
-
-					progressManager.Update(1);
 				}
 			}
 

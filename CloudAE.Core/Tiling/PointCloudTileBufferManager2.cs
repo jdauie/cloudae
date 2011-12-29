@@ -88,7 +88,6 @@ namespace CloudAE.Core
 
 				++validTileIndex;
 			}
-			progressManager.Update(1);
 
 			List<UQuantizedExtent3D> debugExtents = new List<UQuantizedExtent3D>(m_tileSet.Select(t => t.QuantizedExtent));
 

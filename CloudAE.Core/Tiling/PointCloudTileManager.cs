@@ -191,8 +191,6 @@ namespace CloudAE.Core
 					if (!progressManager.Update(chunk.EnumeratorProgress))
 						break;
 				}
-
-				progressManager.Update(1);
 			}
 
 			BufferManager.ReleaseBuffer(buffer);
@@ -297,8 +295,6 @@ namespace CloudAE.Core
 					if (!progressManager.Update(chunk.EnumeratorProgress))
 						break;
 				}
-
-				progressManager.Update(1);
 			}
 
 			BufferManager.ReleaseBuffer(buffer);
@@ -497,8 +493,6 @@ namespace CloudAE.Core
 					if (!progressManager.Update(chunk.EnumeratorProgress))
 						break;
 				}
-
-				progressManager.Update(1);
 			}
 
 			BufferManager.ReleaseBuffer(buffer);
@@ -556,8 +550,6 @@ namespace CloudAE.Core
 					if (!progressManager.Update(chunk.EnumeratorProgress))
 						break;
 				}
-
-				progressManager.Update(1);
 			}
 
 			BufferManager.ReleaseBuffer(buffer);

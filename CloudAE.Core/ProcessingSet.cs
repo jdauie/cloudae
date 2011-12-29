@@ -183,7 +183,6 @@ namespace CloudAE.Core
 							if (!progressManager.Update((float)tile.Index / tileSource.TileSet.TileCount))
 								break;
 						}
-						progressManager.Update(1);
 					}
 
 					for (int i = 0; i < tiledSegments.Length; i++)
