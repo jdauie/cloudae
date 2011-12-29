@@ -124,6 +124,9 @@ namespace CloudAE.App
 				//m_gridDimensionLowRes = (ushort)20;
 				//m_gridDimensionHighRes = (ushort)40;
 
+				m_gridTextureCoordsLowRes = null;
+				m_gridTextureCoordsHighRes = null;
+
 				// load tiles
 				m_buffer = new byte[tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes];
 				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.First(), m_gridDimensionLowRes);
