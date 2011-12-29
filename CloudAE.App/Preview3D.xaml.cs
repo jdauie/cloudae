@@ -186,6 +186,9 @@ namespace CloudAE.App
 					++validTileIndex;
 				}
 
+				DiffuseMaterial stitchingMaterial = new DiffuseMaterial(m_overviewTextureBrush);
+				stitchingMaterial.Freeze();
+
 				// stitching
 				foreach (PointCloudTile tile in tileSource.Where(t => t.Col > 0 || t.Row > 0))
 				{
@@ -234,7 +237,6 @@ namespace CloudAE.App
 
 							stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, overallCenteredExtent, MathUtils.ZAxis);
 
-							DiffuseMaterial stitchingMaterial = new DiffuseMaterial(m_overviewTextureBrush);
 							GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, stitchingMaterial);
 							stitchingModel.Freeze();
 							stitchingGroup.Children.Add(stitchingModel);
@@ -279,7 +281,6 @@ namespace CloudAE.App
 
 							stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, overallCenteredExtent, MathUtils.ZAxis);
 
-							DiffuseMaterial stitchingMaterial = new DiffuseMaterial(m_overviewTextureBrush);
 							GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, stitchingMaterial);
 							stitchingModel.Freeze();
 							stitchingGroup.Children.Add(stitchingModel);
@@ -308,7 +309,6 @@ namespace CloudAE.App
 							indices.Add(0);
 							indices.Add(1);
 							indices.Add(2);
-
 							indices.Add(2);
 							indices.Add(1);
 							indices.Add(3);
@@ -316,7 +316,6 @@ namespace CloudAE.App
 
 							stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, overallCenteredExtent, MathUtils.ZAxis);
 
-							DiffuseMaterial stitchingMaterial = new DiffuseMaterial(m_overviewTextureBrush);
 							GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, stitchingMaterial);
 							stitchingModel.Freeze();
 							stitchingGroup.Children.Add(stitchingModel);
