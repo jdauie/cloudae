@@ -35,7 +35,7 @@ namespace CloudAE.App
 		private Dictionary<PointCloudTile, GeometryModel3D> m_loadedTiles;
 		private Dictionary<PointCloudTile, byte[]> m_loadedTileBuffers;
 
-		private Dictionary<PointCloudTile, GeometryModel3D> m_lowResMap;
+		private Dictionary<PointCloudTile, Model3D> m_lowResMap;
 		private Dictionary<GeometryModel3D, PointCloudTile> m_meshTileMap;
 
 		private byte[] m_buffer;
@@ -51,6 +51,7 @@ namespace CloudAE.App
 		private PointCollection m_gridTextureCoordsHighRes;
 
 		private SolidColorBrush m_solidBrush;
+		private ImageBrush m_overviewTextureBrush;
 
 		public PointCloudTileSource CurrentTileSource
 		{
@@ -92,12 +93,12 @@ namespace CloudAE.App
 		{
 			InitializeComponent();
 
-			m_lowResMap = new Dictionary<PointCloudTile, GeometryModel3D>();
+			m_lowResMap = new Dictionary<PointCloudTile, Model3D>();
 			m_meshTileMap = new Dictionary<GeometryModel3D, PointCloudTile>();
 			m_loadedTiles = new Dictionary<PointCloudTile, GeometryModel3D>();
 			m_loadedTileBuffers = new Dictionary<PointCloudTile, byte[]>();
 
-			m_solidBrush = new SolidColorBrush(Colors.Khaki);
+			m_solidBrush = new SolidColorBrush(Colors.DarkKhaki);
 			m_solidBrush.Freeze();
 
 			m_backgroundWorker = new BackgroundWorker();
@@ -111,6 +112,11 @@ namespace CloudAE.App
 		private void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
 		{
 			PointCloudTileSource tileSource = e.Argument as PointCloudTileSource;
+			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
+
+			m_overviewTextureBrush = new ImageBrush(tileSource.Preview);
+			m_overviewTextureBrush.ViewportUnits = BrushMappingMode.Absolute;
+			m_overviewTextureBrush.Freeze();
 
 			if (tileSource != null)
 			{
@@ -126,6 +132,8 @@ namespace CloudAE.App
 
 				m_gridTextureCoordsLowRes = null;
 				m_gridTextureCoordsHighRes = null;
+
+				Rect3D overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - extent.MidpointZ, extent.RangeX, extent.RangeY, extent.RangeZ);
 
 				// load tiles
 				m_buffer = new byte[tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes];
@@ -147,14 +155,17 @@ namespace CloudAE.App
 					DiffuseMaterial material = new DiffuseMaterial();
 					if (USE_LOW_RES_TEXTURE)
 					{
-						BitmapSource meshTexture = tileSource.GeneratePreviewImage(m_gridLowRes);
-						ImageBrush imageBrush = new ImageBrush(meshTexture);
-						imageBrush.Freeze();
-						material.Brush = imageBrush;
+						//BitmapSource meshTexture = tileSource.GeneratePreviewImage(m_gridLowRes);
+						//ImageBrush imageBrush = new ImageBrush(meshTexture);
+						//imageBrush.Freeze();
+						//material.Brush = imageBrush;
 						
-						if (m_gridTextureCoordsLowRes == null)
-							m_gridTextureCoordsLowRes = MeshUtils.GeneratePlanarTextureCoordinates(mesh, MathUtils.ZAxis);
-						mesh.TextureCoordinates = m_gridTextureCoordsLowRes;
+						//if (m_gridTextureCoordsLowRes == null)
+						//    m_gridTextureCoordsLowRes = MeshUtils.GeneratePlanarTextureCoordinates(mesh, MathUtils.ZAxis);
+						//mesh.TextureCoordinates = m_gridTextureCoordsLowRes;
+
+						material.Brush = m_overviewTextureBrush;
+						mesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(mesh, overallCenteredExtent, MathUtils.ZAxis);
 					}
 					else
 					{
@@ -173,6 +184,148 @@ namespace CloudAE.App
 					    break;
 
 					++validTileIndex;
+				}
+
+				// stitching
+				foreach (PointCloudTile tile in tileSource.Where(t => t.Col > 0 || t.Row > 0))
+				{
+					MeshGeometry3D mesh = (m_lowResMap[tile] as GeometryModel3D).Geometry as MeshGeometry3D;
+
+					Model3DGroup stitchingGroup = new Model3DGroup();
+
+					Point3D topCornerPoint = default(Point3D);
+					Point3D leftCornerPoint = default(Point3D);
+
+					// connect to left tile (if available)
+					if (tile.Col > 0)
+					{
+						PointCloudTile leftTile = tileSource.TileSet.Tiles[tile.Col - 1, tile.Row];
+						if (m_lowResMap.ContainsKey(leftTile))
+						{
+							GeometryModel3D leftGeometryModel = m_lowResMap[leftTile] as GeometryModel3D;
+							MeshGeometry3D leftMesh = leftGeometryModel.Geometry as MeshGeometry3D;
+
+							MeshGeometry3D stitchingMesh = new MeshGeometry3D();
+
+							Point3DCollection positions = new Point3DCollection(m_gridLowRes.SizeY * 2);
+							int leftPositionsStart = leftMesh.Positions.Count - m_gridLowRes.SizeY;
+							for (int edgePosition = 0; edgePosition < m_gridLowRes.SizeY; edgePosition++)
+							{
+								positions.Add(leftMesh.Positions[leftPositionsStart + edgePosition]);
+								positions.Add(mesh.Positions[edgePosition]);
+							}
+							stitchingMesh.Positions = positions;
+
+							leftCornerPoint = positions[0];
+
+							Int32Collection indices = new Int32Collection((m_gridLowRes.SizeY - 1) * 6);
+							for (int i = 0; i < m_gridLowRes.SizeY - 1; i++)
+							{
+								int j = 2 * i;
+								indices.Add(j);
+								indices.Add(j + 1);
+								indices.Add(j + 2);
+
+								indices.Add(j + 2);
+								indices.Add(j + 1);
+								indices.Add(j + 3);
+							}
+							stitchingMesh.TriangleIndices = indices;
+
+							stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, overallCenteredExtent, MathUtils.ZAxis);
+
+							DiffuseMaterial stitchingMaterial = new DiffuseMaterial(m_overviewTextureBrush);
+							GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, stitchingMaterial);
+							stitchingModel.Freeze();
+							stitchingGroup.Children.Add(stitchingModel);
+						}
+					}
+
+					// connect to top tile (if available)
+					if (tile.Row > 0)
+					{
+						PointCloudTile topTile = tileSource.TileSet.Tiles[tile.Col, tile.Row - 1];
+						if (m_lowResMap.ContainsKey(topTile))
+						{
+							GeometryModel3D topGeometryModel = m_lowResMap[topTile] as GeometryModel3D;
+							MeshGeometry3D topMesh = topGeometryModel.Geometry as MeshGeometry3D;
+
+							MeshGeometry3D stitchingMesh = new MeshGeometry3D();
+
+							Point3DCollection positions = new Point3DCollection(m_gridLowRes.SizeX * 2);
+							for (int edgePosition = 0; edgePosition < mesh.Positions.Count; edgePosition += m_gridLowRes.SizeY)
+							{
+								positions.Add(topMesh.Positions[edgePosition + m_gridLowRes.SizeY - 1]);
+								positions.Add(mesh.Positions[edgePosition]);
+							}
+							stitchingMesh.Positions = positions;
+
+							topCornerPoint = positions[0];
+
+							Int32Collection indices = new Int32Collection((m_gridLowRes.SizeX - 1) * 6);
+							for (int i = 0; i < m_gridLowRes.SizeX - 1; i++)
+							{
+								int j = 2 * i;
+
+								indices.Add(j);
+								indices.Add(j + 2);
+								indices.Add(j + 1);
+
+								indices.Add(j + 2);
+								indices.Add(j + 3);
+								indices.Add(j + 1);
+							}
+							stitchingMesh.TriangleIndices = indices;
+
+							stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, overallCenteredExtent, MathUtils.ZAxis);
+
+							DiffuseMaterial stitchingMaterial = new DiffuseMaterial(m_overviewTextureBrush);
+							GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, stitchingMaterial);
+							stitchingModel.Freeze();
+							stitchingGroup.Children.Add(stitchingModel);
+						}
+					}
+
+					// connect to top left tile (if available)
+					if (tile.Col > 0 && tile.Row > 0)
+					{
+						PointCloudTile topleftTile = tileSource.TileSet.Tiles[tile.Col - 1, tile.Row - 1];
+						if (m_lowResMap.ContainsKey(topleftTile))
+						{
+							GeometryModel3D topleftGeometryModel = m_lowResMap[topleftTile] as GeometryModel3D;
+							MeshGeometry3D topleftMesh = topleftGeometryModel.Geometry as MeshGeometry3D;
+
+							MeshGeometry3D stitchingMesh = new MeshGeometry3D();
+
+							Point3DCollection positions = new Point3DCollection(4);
+							positions.Add(topleftMesh.Positions[topleftMesh.Positions.Count - 1]);
+							positions.Add(topCornerPoint);
+							positions.Add(leftCornerPoint);
+							positions.Add(mesh.Positions[0]);
+							stitchingMesh.Positions = positions;
+
+							Int32Collection indices = new Int32Collection(6);
+							indices.Add(0);
+							indices.Add(1);
+							indices.Add(2);
+
+							indices.Add(2);
+							indices.Add(1);
+							indices.Add(3);
+							stitchingMesh.TriangleIndices = indices;
+
+							stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, overallCenteredExtent, MathUtils.ZAxis);
+
+							DiffuseMaterial stitchingMaterial = new DiffuseMaterial(m_overviewTextureBrush);
+							GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, stitchingMaterial);
+							stitchingModel.Freeze();
+							stitchingGroup.Children.Add(stitchingModel);
+						}
+					}
+
+					stitchingGroup.Freeze();
+					if (!m_progressManager.Update(1.0f, stitchingGroup))
+						break;
 				}
 			}
 		}
@@ -198,7 +351,7 @@ namespace CloudAE.App
 
 		private void OnBackgroundProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			GeometryModel3D model3D = e.UserState as GeometryModel3D;
+			Model3D child = e.UserState as Model3D;
 			if (viewport.Children.Count > 0)
 			{
 				ModelVisual3D model = viewport.Children[0] as ModelVisual3D;
@@ -206,18 +359,18 @@ namespace CloudAE.App
 				{
 					Model3DGroup modelGroup = model.Content as Model3DGroup;
 					if (modelGroup != null)
-						modelGroup.Children.Add(model3D);
+						modelGroup.Children.Add(child);
 				}
 			}
 		}
 
 		public void LoadPreview3D()
 		{
-			Model3DGroup modelGroup = new Model3DGroup();
-
 			PointCloudTileSource tileSource = CurrentTileSource;
 			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
 
+			Model3DGroup modelGroup = new Model3DGroup();
+			
 			DirectionalLight lightSource = new DirectionalLight(System.Windows.Media.Colors.White, new Vector3D(-1, -1, -1));
 			modelGroup.Children.Add(lightSource);
 
@@ -303,7 +456,7 @@ namespace CloudAE.App
 					((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children.Remove(model);
 
 					// replace high-res tile with low-res geometry
-					GeometryModel3D lowResModel = m_lowResMap[currentTile];
+					Model3D lowResModel = m_lowResMap[currentTile];
 					((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children.Add(lowResModel);
 
 					pointsToDrop -= currentTile.PointCount;
@@ -320,7 +473,7 @@ namespace CloudAE.App
 				MeshGeometry3D mesh = CurrentTileSource.GenerateMesh(m_gridHighRes, tileExtent);
 
 				DiffuseMaterial material = new DiffuseMaterial();
-				if (USE_LOW_RES_TEXTURE)
+				if (USE_HIGH_RES_TEXTURE)
 				{
 					BitmapSource meshTexture = CurrentTileSource.GeneratePreviewImage(m_gridHighRes);
 					ImageBrush imageBrush = new ImageBrush(meshTexture);
@@ -341,7 +494,7 @@ namespace CloudAE.App
 				geometryModel.Freeze();
 
 				// replace low-res tile with high-res geometry
-				GeometryModel3D lowResModel = m_lowResMap[currentTile];
+				Model3D lowResModel = m_lowResMap[currentTile];
 				((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children.Remove(lowResModel);
 				((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children.Add(geometryModel);
 
