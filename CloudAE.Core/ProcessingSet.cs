@@ -73,7 +73,7 @@ namespace CloudAE.Core
 					// apparently, I cannot disable buffering for network paths
 					XCopy.Copy(m_inputHandler.FilePath, dstPath, true, false, (o, pce) =>
 					{
-						progressManager.Update(pce.ProgressPercentage);
+						progressManager.Update((float)pce.ProgressPercentage / 1.0f);
 					});
 
 					m_inputHandler.FilePath = dstPath;
