@@ -14,11 +14,19 @@ namespace CloudAE.Core.Tools3D
 		public static PointCollection GeneratePlanarTextureCoordinates(MeshGeometry3D mesh, Vector3D dir)
 		{
 			if (mesh == null)
-			{
 				return null;
-			}
 
-			Rect3D bounds = mesh.Bounds;
+			return GeneratePlanarTextureCoordinates(mesh, mesh.Bounds, dir);
+		}
+
+		public static PointCollection GeneratePlanarTextureCoordinates(MeshGeometry3D mesh, Rect3D bounds, Vector3D dir)
+		{
+			if (mesh == null)
+				return null;
+
+			//if (!bounds.Contains(mesh.Bounds))
+			//    throw new ArgumentException("bounds must fully contain mesh.Bounds", "bounds");
+
 			int count = mesh.Positions.Count;
 			PointCollection texcoords = new PointCollection(count);
 			IEnumerable<Point3D> positions = TransformPoints(ref bounds, mesh.Positions, ref dir);
