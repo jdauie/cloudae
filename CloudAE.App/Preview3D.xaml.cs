@@ -12,6 +12,8 @@ using CloudAE.Core;
 using CloudAE.Core.Tools3D;
 using System.Diagnostics;
 using System.ComponentModel;
+using System.Timers;
+using System.Windows.Threading;
 
 namespace CloudAE.App
 {
@@ -26,6 +28,8 @@ namespace CloudAE.App
 		
 		private const bool USE_HIGH_RES_TEXTURE = true;
 		private const bool USE_LOW_RES_TEXTURE = true;
+
+		private const bool START_ORBIT = false;
 		
 		private ProgressManager m_progressManager;
 		private BackgroundWorker m_backgroundWorker;
@@ -52,6 +56,8 @@ namespace CloudAE.App
 
 		private SolidColorBrush m_solidBrush;
 		private ImageBrush m_overviewTextureBrush;
+
+		private Timer m_timer;
 
 		public PointCloudTileSource CurrentTileSource
 		{
@@ -107,6 +113,36 @@ namespace CloudAE.App
 			m_backgroundWorker.DoWork += OnBackgroundDoWork;
 			m_backgroundWorker.ProgressChanged += OnBackgroundProgressChanged;
 			m_backgroundWorker.RunWorkerCompleted += OnBackgroundRunWorkerCompleted;
+
+			m_timer = new Timer();
+			m_timer.Interval = 10;
+			m_timer.Elapsed += OnTimerElapsed;
+		}
+
+		private void OnTimerElapsed(object sender, ElapsedEventArgs e)
+		{
+			Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate()
+			{
+				PerspectiveCamera camera = viewport.Camera as PerspectiveCamera;
+				Point3D cameraPoint = camera.Position;
+
+				// orbit
+				Vector3D rotAxis = MathUtils.ZAxis;
+				double rotAngle = 1;
+				Quaternion q = new Quaternion(rotAxis, rotAngle);
+
+				Matrix3D t = Matrix3D.Identity;
+				t.Rotate(q);
+
+				cameraPoint = t.Transform(cameraPoint);
+
+				Point3D lookatPoint = new Point3D(0, 0, 0);
+				Vector3D lookDirection = lookatPoint - cameraPoint;
+				lookDirection.Normalize();
+
+				camera.Position = cameraPoint;
+				camera.LookDirection = lookDirection;
+			}));
 		}
 
 		private void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
@@ -190,7 +226,7 @@ namespace CloudAE.App
 				stitchingMaterial.Freeze();
 
 				// stitching
-				foreach (PointCloudTile tile in tileSource.Where(t => t.Col > 0 || t.Row > 0))
+				foreach (PointCloudTile tile in tileSource)
 				{
 					MeshGeometry3D mesh = (m_lowResMap[tile] as GeometryModel3D).Geometry as MeshGeometry3D;
 
@@ -198,6 +234,9 @@ namespace CloudAE.App
 
 					Point3D topCornerPoint = default(Point3D);
 					Point3D leftCornerPoint = default(Point3D);
+
+					Vector3D topCornerNormal = default(Vector3D);
+					Vector3D leftCornerNormal = default(Vector3D);
 
 					// connect to left tile (if available)
 					if (tile.Col > 0)
@@ -210,16 +249,24 @@ namespace CloudAE.App
 
 							MeshGeometry3D stitchingMesh = new MeshGeometry3D();
 
-							Point3DCollection positions = new Point3DCollection(m_gridLowRes.SizeY * 2);
+							int positionCount = m_gridLowRes.SizeY * 2;
+							Point3DCollection positions = new Point3DCollection(positionCount);
+							Vector3DCollection normals = new Vector3DCollection(positionCount);
+							
 							int leftPositionsStart = leftMesh.Positions.Count - m_gridLowRes.SizeY;
 							for (int edgePosition = 0; edgePosition < m_gridLowRes.SizeY; edgePosition++)
 							{
 								positions.Add(leftMesh.Positions[leftPositionsStart + edgePosition]);
+								normals.Add(leftMesh.Normals[leftPositionsStart + edgePosition]);
+
 								positions.Add(mesh.Positions[edgePosition]);
+								normals.Add(mesh.Normals[edgePosition]);
 							}
 							stitchingMesh.Positions = positions;
+							stitchingMesh.Normals = normals;
 
 							leftCornerPoint = positions[0];
+							leftCornerNormal = normals[0];
 
 							Int32Collection indices = new Int32Collection((m_gridLowRes.SizeY - 1) * 6);
 							for (int i = 0; i < m_gridLowRes.SizeY - 1; i++)
@@ -254,15 +301,23 @@ namespace CloudAE.App
 
 							MeshGeometry3D stitchingMesh = new MeshGeometry3D();
 
-							Point3DCollection positions = new Point3DCollection(m_gridLowRes.SizeX * 2);
+							int positionCount = m_gridLowRes.SizeX * 2;
+							Point3DCollection positions = new Point3DCollection(positionCount);
+							Vector3DCollection normals = new Vector3DCollection(positionCount);
+							
 							for (int edgePosition = 0; edgePosition < mesh.Positions.Count; edgePosition += m_gridLowRes.SizeY)
 							{
 								positions.Add(topMesh.Positions[edgePosition + m_gridLowRes.SizeY - 1]);
+								normals.Add(topMesh.Normals[edgePosition + m_gridLowRes.SizeY - 1]);
+
 								positions.Add(mesh.Positions[edgePosition]);
+								normals.Add(mesh.Normals[edgePosition]);
 							}
 							stitchingMesh.Positions = positions;
+							stitchingMesh.Normals = normals;
 
 							topCornerPoint = positions[0];
+							topCornerNormal = normals[0];
 
 							Int32Collection indices = new Int32Collection((m_gridLowRes.SizeX - 1) * 6);
 							for (int i = 0; i < m_gridLowRes.SizeX - 1; i++)
@@ -299,11 +354,22 @@ namespace CloudAE.App
 							MeshGeometry3D stitchingMesh = new MeshGeometry3D();
 
 							Point3DCollection positions = new Point3DCollection(4);
-							positions.Add(topleftMesh.Positions[topleftMesh.Positions.Count - 1]);
-							positions.Add(topCornerPoint);
-							positions.Add(leftCornerPoint);
-							positions.Add(mesh.Positions[0]);
+							Vector3DCollection normals = new Vector3DCollection(4);
+							{
+								positions.Add(topleftMesh.Positions[topleftMesh.Positions.Count - 1]);
+								normals.Add(topleftMesh.Normals[topleftMesh.Positions.Count - 1]);
+
+								positions.Add(topCornerPoint);
+								normals.Add(topCornerNormal);
+
+								positions.Add(leftCornerPoint);
+								normals.Add(leftCornerNormal);
+
+								positions.Add(mesh.Positions[0]);
+								normals.Add(mesh.Normals[0]);
+							}
 							stitchingMesh.Positions = positions;
+							stitchingMesh.Normals = normals;
 
 							Int32Collection indices = new Int32Collection(6);
 							indices.Add(0);
@@ -345,6 +411,9 @@ namespace CloudAE.App
 				viewport.Camera.Transform = trackball.Transform;
 
 				previewImageGrid.MouseMove += OnViewportGridMouseMove;
+
+				if (START_ORBIT)
+					m_timer.Start();
 			}
 		}
 
@@ -358,7 +427,11 @@ namespace CloudAE.App
 				{
 					Model3DGroup modelGroup = model.Content as Model3DGroup;
 					if (modelGroup != null)
-						modelGroup.Children.Add(child);
+					{
+						Model3DGroup modelSubGroup = modelGroup.Children[0] as Model3DGroup;
+						if (modelSubGroup != null)
+							modelSubGroup.Children.Add(child);
+					}
 				}
 			}
 		}
@@ -369,7 +442,10 @@ namespace CloudAE.App
 			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
 
 			Model3DGroup modelGroup = new Model3DGroup();
-			
+
+			Model3DGroup modelSubGroup = new Model3DGroup();
+			modelGroup.Children.Add(modelSubGroup);
+
 			DirectionalLight lightSource = new DirectionalLight(System.Windows.Media.Colors.White, new Vector3D(-1, -1, -1));
 			modelGroup.Children.Add(lightSource);
 
@@ -378,8 +454,9 @@ namespace CloudAE.App
 
 			Point3D lookatPoint = new Point3D(0, 0, 0);
 			Point3D cameraPoint = new Point3D(0, extent.MinY - extent.MidpointY, extent.MidpointZ - extent.MinZ + extent.RangeX);
-			Vector3D lookDirection = Point3D.Subtract(cameraPoint, lookatPoint);
-			lookDirection.Negate();
+			Vector3D lookDirection = lookatPoint - cameraPoint;
+			lookDirection.Normalize();
+			//lookDirection.Negate();
 
 			PerspectiveCamera camera = new PerspectiveCamera();
 			camera.Position = cameraPoint;
@@ -401,6 +478,8 @@ namespace CloudAE.App
 		{
 			if (tile.PointCount == 0)
 				return;
+
+			Model3DCollection modelCollection = (((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children[0] as Model3DGroup).Children;
 
 			List<PointCloudTile> tilesToLoad = new List<PointCloudTile>();
 			int pointsToLoad = 0;
@@ -452,11 +531,11 @@ namespace CloudAE.App
 					m_meshTileMap.Remove(model);
 					m_loadedTiles.Remove(currentTile);
 					m_loadedTileBuffers.Remove(currentTile);
-					((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children.Remove(model);
 
 					// replace high-res tile with low-res geometry
 					Model3D lowResModel = m_lowResMap[currentTile];
-					((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children.Add(lowResModel);
+					int modelIndex = modelCollection.IndexOf(model);
+					modelCollection[modelIndex] = lowResModel;
 
 					pointsToDrop -= currentTile.PointCount;
 					++i;
@@ -494,8 +573,9 @@ namespace CloudAE.App
 
 				// replace low-res tile with high-res geometry
 				Model3D lowResModel = m_lowResMap[currentTile];
-				((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children.Remove(lowResModel);
-				((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children.Add(geometryModel);
+				int modelIndex = modelCollection.IndexOf(lowResModel);
+				modelCollection[modelIndex] = geometryModel;
+				modelCollection[modelCollection.Count / 2 + modelIndex] = new GeometryModel3D();
 
 				m_meshTileMap.Add(geometryModel, currentTile);
 				m_loadedTiles.Add(currentTile, geometryModel);
