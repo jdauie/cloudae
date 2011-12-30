@@ -289,7 +289,7 @@ namespace CloudAE.Core
 
 			System.Windows.Media.Media3D.Point3DCollection positions = new System.Windows.Media.Media3D.Point3DCollection(grid.CellCount);
 			System.Windows.Media.Int32Collection indices = new System.Windows.Media.Int32Collection(2 * (grid.SizeX - 1) * (grid.SizeY - 1));
-
+			
 			float fillVal = grid.FillVal;
 
 			for (int x = 0; x < grid.SizeX; x++)
@@ -340,9 +340,45 @@ namespace CloudAE.Core
 				}
 			}
 
+			System.Windows.Media.Media3D.Vector3DCollection normals = new System.Windows.Media.Media3D.Vector3DCollection(positions.Count);
+
+			for (int i = 0; i < positions.Count; i++)
+				normals.Add(new System.Windows.Media.Media3D.Vector3D(0, 0, 0));
+
+			for (int i = 0; i < indices.Count; i += 3)
+			{
+				int index1 = indices[i];
+				int index2 = indices[i + 1];
+				int index3 = indices[i + 2];
+
+				System.Windows.Media.Media3D.Vector3D side1 = positions[index1] - positions[index3];
+				System.Windows.Media.Media3D.Vector3D side2 = positions[index1] - positions[index2];
+				System.Windows.Media.Media3D.Vector3D normal = System.Windows.Media.Media3D.Vector3D.CrossProduct(side1, side2);
+
+				normals[index1] += normal;
+				normals[index2] += normal;
+				normals[index3] += normal;
+			}
+
+			for (int i = 0; i < normals.Count; i++)
+			{
+				if (normals[i].Length > 0)
+				{
+					System.Windows.Media.Media3D.Vector3D normal = normals[i];
+					normal.Normalize();
+
+					// the fact that this is necessary means I am doing something wrong
+					if (normal.Z < 0)
+						normal.Negate();
+
+					normals[i] = normal;
+				}
+			}
+			
 			System.Windows.Media.Media3D.MeshGeometry3D geometry = new System.Windows.Media.Media3D.MeshGeometry3D();
 			geometry.Positions = positions;
 			geometry.TriangleIndices = indices;
+			geometry.Normals = normals;
 
 			return geometry;
 		}
