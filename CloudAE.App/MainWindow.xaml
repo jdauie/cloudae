@@ -27,9 +27,19 @@
 					<MenuItem Header="Recent Files" x:Name="recentFilesMenuItem" />
 				</MenuItem>
 			</Menu>
-		</StackPanel>
-
-		<ProgressBar Grid.Row="2" Grid.ColumnSpan="5" HorizontalAlignment="Stretch" Height="14" x:Name="progressBar" />
+            <ToolBarTray>
+                <ToolBar Name="ToolBarCommon">
+                    <Button>
+                        <Image Source="/CloudAE.App;component/Icons/folder.png" Height="16" Width="16" />
+                    </Button>
+                </ToolBar>
+                <ToolBar Name="ToolBar3D">
+                    <ToggleButton>Trackball</ToggleButton>
+                    <ToggleButton>Orbit</ToggleButton>
+                    <ToggleButton>Fly</ToggleButton>
+                </ToolBar>
+            </ToolBarTray>
+        </StackPanel>
 
         <Grid Grid.Row="1" Grid.Column="0">
             <TreeView HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="treeView" AllowDrop="True" Drop="OnTreeViewDrop" DragEnter="OnTreeViewDragEnter">
@@ -91,6 +101,8 @@
                     </Grid>
 				</TabItem>
 			</TabControl>
-		</Grid>
-	</Grid>
+        </Grid>
+
+        <ProgressBar Grid.Row="2" Grid.ColumnSpan="5" HorizontalAlignment="Stretch" Height="14" x:Name="progressBar" />
+    </Grid>
 </Window>
