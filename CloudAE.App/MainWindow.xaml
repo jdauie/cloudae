@@ -67,7 +67,7 @@
 		<GridSplitter Grid.Row="1" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Width="4"/>
 
 		<Grid Grid.Row="1" Grid.Column="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-			<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="tabControl2" SelectionChanged="OnTabControlSelectionChanged">
+			<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="tabControl2">
 				<TabItem Header="Properties" x:Name="tabItemPreview">
 					<Grid>
 						<TextBlock Grid.Row="0" x:Name="textBlockPreview" />
