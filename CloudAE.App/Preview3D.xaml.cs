@@ -617,7 +617,7 @@ namespace CloudAE.App
 				for (int i = 0; i < tileModelCount; i++)
 				{
 					Model3DGroup stitchingGroup = modelCollection[tileModelCount + i] as Model3DGroup;
-					if (stitchingGroup.Children.Count == 0)
+					if (stitchingGroup.Children.Count < 3)
 					{
 						GeometryModel3D geometryModel = modelCollection[i] as GeometryModel3D;
 						PointCloudTile currentTile = m_meshTileMap[geometryModel];
