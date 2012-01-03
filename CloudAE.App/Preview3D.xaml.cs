@@ -17,6 +17,115 @@ using System.Windows.Threading;
 
 namespace CloudAE.App
 {
+	public enum TileStitchingEdge
+	{
+		Top = 0,
+		Left,
+		TopLeft
+	}
+
+	public class TileInfo3D
+	{
+		public readonly PointCloudTile Tile;
+		public readonly int ValidTileIndex;
+
+		public readonly GeometryModel3D LowResGeometry;
+		public readonly Grid<float> LowResGrid;
+
+		private GeometryModel3D m_currentGeometry;
+		private Grid<float> m_currentGrid;
+
+		private GeometryModel3D[] m_stitchingGeometry;
+		private Grid<float>[] m_stitchingGrid;
+
+		private bool m_stitchingHasChanged;
+
+		public bool StitchingHasChanged
+		{
+			get { return m_stitchingHasChanged; }
+		}
+
+		public GeometryModel3D CurrentGeometry
+		{
+			get { return m_currentGeometry; }
+		}
+
+		public Grid<float> CurrentGrid
+		{
+			get { return m_currentGrid; }
+		}
+
+		public TileInfo3D(PointCloudTile tile, int validTileIndex, GeometryModel3D lowResGeometry, Grid<float> lowResGrid)
+		{
+			Tile = tile;
+			ValidTileIndex = validTileIndex;
+
+			LowResGeometry = lowResGeometry;
+			LowResGrid = lowResGrid;
+
+			m_currentGeometry = LowResGeometry;
+			m_currentGrid = LowResGrid;
+
+			m_stitchingHasChanged = false;
+
+			m_stitchingGeometry = new GeometryModel3D[3];
+			m_stitchingGrid = new Grid<float>[3];
+		}
+
+		public void UpdateGeometry(GeometryModel3D geometry, Grid<float> grid)
+		{
+			m_currentGeometry = geometry;
+			m_currentGrid = grid;
+
+			for (int i = 0; i < 3; i++)
+			{
+				m_stitchingGeometry[i] = null;
+				m_stitchingGrid[i] = null;
+			}
+
+			m_stitchingHasChanged = true;
+		}
+
+		public void ClearGeometry()
+		{
+			UpdateGeometry(LowResGeometry, LowResGrid);
+		}
+
+		public void UpdateStitching(GeometryModel3D stitchingGeometry, Grid<float> stitchingGrid, TileStitchingEdge edge)
+		{
+			int edgeIndex = (int)edge;
+			m_stitchingGeometry[edgeIndex] = stitchingGeometry;
+			m_stitchingGrid[edgeIndex] = stitchingGrid;
+
+			m_stitchingHasChanged = true;
+		}
+
+		public bool HasStitching(TileStitchingEdge edge)
+		{
+			int edgeIndex = (int)edge;
+			return (m_stitchingGeometry[edgeIndex] != null);
+		}
+
+		public Model3DGroup GetNewStitching()
+		{
+			//if (!m_stitchingHasChanged || !m_hasStitching)
+			//    return null;
+
+			m_stitchingHasChanged = false;
+
+			Model3DGroup model = new Model3DGroup();
+
+			for (int i = 0; i < 3; i++)
+			{
+				if (m_stitchingGeometry[i] != null)
+					model.Children.Add(m_stitchingGeometry[i]);
+			}
+			model.Freeze();
+
+			return model;
+		}
+	}
+
 	/// <summary>
 	/// Interaction logic for Preview3D.xaml
 	/// </summary>
@@ -36,11 +145,15 @@ namespace CloudAE.App
 
 		private PointCloudTileSource m_currentTileSource;
 
+		private Dictionary<PointCloudTile, TileInfo3D> m_tileInfo;
 		private Dictionary<PointCloudTile, GeometryModel3D> m_loadedTiles;
 		private Dictionary<PointCloudTile, byte[]> m_loadedTileBuffers;
 
-		private Dictionary<PointCloudTile, Model3D> m_lowResMap;
+		//private Dictionary<PointCloudTile, Model3D> m_lowResMap;
 		private Dictionary<GeometryModel3D, PointCloudTile> m_meshTileMap;
+
+		private Model3DCollection m_tileModelCollection;
+		private Model3DCollection m_stitchingModelCollection;
 
 		private byte[] m_buffer;
 		private Grid<uint> m_quantizedGridLowRes;
@@ -76,7 +189,8 @@ namespace CloudAE.App
 					m_backgroundWorker.CancelAsync();
 				}
 
-				m_lowResMap.Clear();
+				m_tileInfo.Clear();
+				//m_lowResMap.Clear();
 				m_meshTileMap.Clear();
 				m_loadedTiles.Clear();
 				m_loadedTileBuffers.Clear();
@@ -101,7 +215,8 @@ namespace CloudAE.App
 		{
 			InitializeComponent();
 
-			m_lowResMap = new Dictionary<PointCloudTile, Model3D>();
+			m_tileInfo = new Dictionary<PointCloudTile, TileInfo3D>();
+			//m_lowResMap = new Dictionary<PointCloudTile, Model3D>();
 			m_meshTileMap = new Dictionary<GeometryModel3D, PointCloudTile>();
 			m_loadedTiles = new Dictionary<PointCloudTile, GeometryModel3D>();
 			m_loadedTileBuffers = new Dictionary<PointCloudTile, byte[]>();
@@ -123,22 +238,23 @@ namespace CloudAE.App
 
 		private void OnTimerElapsed(object sender, ElapsedEventArgs e)
 		{
+			// orbit
+			Vector3D rotAxis = MathUtils.ZAxis;
+			double rotAngle = 1;
+			Quaternion q = new Quaternion(rotAxis, rotAngle);
+
+			Matrix3D t = Matrix3D.Identity;
+			t.Rotate(q);
+
+			Point3D lookatPoint = new Point3D(0, 0, 0);
+			
 			Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate()
 			{
 				PerspectiveCamera camera = viewport.Camera as PerspectiveCamera;
 				Point3D cameraPoint = camera.Position;
 
-				// orbit
-				Vector3D rotAxis = MathUtils.ZAxis;
-				double rotAngle = 1;
-				Quaternion q = new Quaternion(rotAxis, rotAngle);
-
-				Matrix3D t = Matrix3D.Identity;
-				t.Rotate(q);
-
 				cameraPoint = t.Transform(cameraPoint);
 
-				Point3D lookatPoint = new Point3D(0, 0, 0);
 				Vector3D lookDirection = lookatPoint - cameraPoint;
 				lookDirection.Normalize();
 
@@ -208,39 +324,42 @@ namespace CloudAE.App
 					GeometryModel3D geometryModel = new GeometryModel3D(mesh, material);
 					geometryModel.Freeze();
 
+
+					TileInfo3D tileInfo = new TileInfo3D(tile, validTileIndex, geometryModel, m_gridLowRes);
+					m_tileInfo.Add(tile, tileInfo);
+
 					// add mappings
 					m_meshTileMap.Add(geometryModel, tile);
-					m_lowResMap.Add(tile, geometryModel);
+					//m_lowResMap.Add(tile, geometryModel);
 
 					if (!m_progressManager.Update((float)validTileIndex / tileSource.TileSet.ValidTileCount, geometryModel))
 					    break;
 
 					++validTileIndex;
 				}
-				
+
+				int validStitchingIndex = 0;
 				foreach (PointCloudTile tile in tileSource)
 				{
-					Model3DGroup stitchingGroup = GenerateTileStitching(tileSource, tile);
-					
+					TileInfo3D tileInfo = m_tileInfo[tile];
+					Model3DGroup stitchingGroup = GenerateTileStitching(tileSource, tileInfo);
+
+					if (stitchingGroup != null)
+						++validStitchingIndex;
+
 					if (!m_progressManager.Update(1.0f, stitchingGroup))
 						break;
 				}
 			}
 		}
 
-		private Model3DGroup GenerateTileStitching(PointCloudTileSource tileSource, PointCloudTile tile)
+		private Model3DGroup GenerateTileStitching(PointCloudTileSource tileSource, TileInfo3D tileInfo)
 		{
-			MeshGeometry3D mesh = GetTileMeshGeometry(tile);
-			Grid<float> gridRep = (m_gridLowRes.CellCount == mesh.Positions.Count) ? m_gridLowRes : m_gridHighRes;
+			PointCloudTile tile = tileInfo.Tile;
+			MeshGeometry3D mesh = GetTileMeshGeometry(tileInfo.CurrentGeometry);
+			Grid<float> grid = tileInfo.CurrentGrid;
 
-			Model3DGroup stitchingGroup = new Model3DGroup();
-
-			//// test only low-res for now
-			//if (m_gridLowRes.CellCount != mesh.Positions.Count)
-			//{
-			//    stitchingGroup.Freeze();
-			//    return stitchingGroup;
-			//}
+			//Model3DGroup stitchingGroup = new Model3DGroup();
 
 			bool hasTop = false;
 			bool hasLeft = false;
@@ -252,175 +371,166 @@ namespace CloudAE.App
 			Vector3D leftCornerNormal = default(Vector3D);
 
 			// connect to left tile (if available)
-			if (tile.Col > 0)
+			if (tile.Col > 0 && !tileInfo.HasStitching(TileStitchingEdge.Left))
 			{
 				PointCloudTile leftTile = tileSource.TileSet.Tiles[tile.Col - 1, tile.Row];
-				if (m_lowResMap.ContainsKey(leftTile))
+				TileInfo3D leftTileInfo = null;
+				if (m_tileInfo.TryGetValue(leftTile, out leftTileInfo) && leftTileInfo.CurrentGrid == grid)
 				{
-					MeshGeometry3D leftMesh = GetTileMeshGeometry(leftTile);
+					MeshGeometry3D leftMesh = GetTileMeshGeometry(leftTileInfo.CurrentGeometry);
+					MeshGeometry3D stitchingMesh = new MeshGeometry3D();
 
-					if (mesh.Positions.Count == leftMesh.Positions.Count)
+					int positionCount = grid.SizeY * 2;
+					Point3DCollection positions = new Point3DCollection(positionCount);
+					Vector3DCollection normals = new Vector3DCollection(positionCount);
+
+					int leftPositionsStart = leftMesh.Positions.Count - grid.SizeY;
+					for (int edgePosition = 0; edgePosition < grid.SizeY; edgePosition++)
 					{
-						MeshGeometry3D stitchingMesh = new MeshGeometry3D();
+						positions.Add(leftMesh.Positions[leftPositionsStart + edgePosition]);
+						normals.Add(leftMesh.Normals[leftPositionsStart + edgePosition]);
 
-						int positionCount = gridRep.SizeY * 2;
-						Point3DCollection positions = new Point3DCollection(positionCount);
-						Vector3DCollection normals = new Vector3DCollection(positionCount);
-
-						int leftPositionsStart = leftMesh.Positions.Count - gridRep.SizeY;
-						for (int edgePosition = 0; edgePosition < gridRep.SizeY; edgePosition++)
-						{
-							positions.Add(leftMesh.Positions[leftPositionsStart + edgePosition]);
-							normals.Add(leftMesh.Normals[leftPositionsStart + edgePosition]);
-
-							positions.Add(mesh.Positions[edgePosition]);
-							normals.Add(mesh.Normals[edgePosition]);
-						}
-						stitchingMesh.Positions = positions;
-						stitchingMesh.Normals = normals;
-
-						hasLeft = true;
-						leftCornerPoint = positions[0];
-						leftCornerNormal = normals[0];
-
-						Int32Collection indices = new Int32Collection((gridRep.SizeY - 1) * 6);
-						for (int i = 0; i < gridRep.SizeY - 1; i++)
-						{
-							int j = 2 * i;
-							indices.Add(j);
-							indices.Add(j + 1);
-							indices.Add(j + 2);
-
-							indices.Add(j + 2);
-							indices.Add(j + 1);
-							indices.Add(j + 3);
-						}
-						stitchingMesh.TriangleIndices = indices;
-
-						stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, m_overallCenteredExtent, MathUtils.ZAxis);
-
-						GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, m_overviewMaterial);
-						stitchingModel.Freeze();
-						stitchingGroup.Children.Add(stitchingModel);
+						positions.Add(mesh.Positions[edgePosition]);
+						normals.Add(mesh.Normals[edgePosition]);
 					}
+					stitchingMesh.Positions = positions;
+					stitchingMesh.Normals = normals;
+
+					hasLeft = true;
+					leftCornerPoint = positions[0];
+					leftCornerNormal = normals[0];
+
+					Int32Collection indices = new Int32Collection((grid.SizeY - 1) * 6);
+					for (int i = 0; i < grid.SizeY - 1; i++)
+					{
+						int j = 2 * i;
+						indices.Add(j);
+						indices.Add(j + 1);
+						indices.Add(j + 2);
+
+						indices.Add(j + 2);
+						indices.Add(j + 1);
+						indices.Add(j + 3);
+					}
+					stitchingMesh.TriangleIndices = indices;
+
+					stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, m_overallCenteredExtent, MathUtils.ZAxis);
+
+					GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, m_overviewMaterial);
+					stitchingModel.Freeze();
+
+					tileInfo.UpdateStitching(stitchingModel, leftTileInfo.CurrentGrid, TileStitchingEdge.Left);
+					//stitchingGroup.Children.Add(stitchingModel);
 				}
 			}
 
 			// connect to top tile (if available)
-			if (tile.Row > 0)
+			if (tile.Row > 0 && !tileInfo.HasStitching(TileStitchingEdge.Top))
 			{
 				PointCloudTile topTile = tileSource.TileSet.Tiles[tile.Col, tile.Row - 1];
-				if (m_lowResMap.ContainsKey(topTile))
+				TileInfo3D topTileInfo = null;
+				if (m_tileInfo.TryGetValue(topTile, out topTileInfo) && topTileInfo.CurrentGrid == grid)
 				{
-					MeshGeometry3D topMesh = GetTileMeshGeometry(topTile);
+					MeshGeometry3D topMesh = GetTileMeshGeometry(topTileInfo.CurrentGeometry);
+					MeshGeometry3D stitchingMesh = new MeshGeometry3D();
 
-					if (mesh.Positions.Count == topMesh.Positions.Count)
+					int positionCount = grid.SizeX * 2;
+					Point3DCollection positions = new Point3DCollection(positionCount);
+					Vector3DCollection normals = new Vector3DCollection(positionCount);
+
+					for (int edgePosition = 0; edgePosition < mesh.Positions.Count; edgePosition += grid.SizeY)
 					{
-						MeshGeometry3D stitchingMesh = new MeshGeometry3D();
+						positions.Add(topMesh.Positions[edgePosition + grid.SizeY - 1]);
+						normals.Add(topMesh.Normals[edgePosition + grid.SizeY - 1]);
 
-						int positionCount = gridRep.SizeX * 2;
-						Point3DCollection positions = new Point3DCollection(positionCount);
-						Vector3DCollection normals = new Vector3DCollection(positionCount);
-
-						for (int edgePosition = 0; edgePosition < mesh.Positions.Count; edgePosition += gridRep.SizeY)
-						{
-							positions.Add(topMesh.Positions[edgePosition + gridRep.SizeY - 1]);
-							normals.Add(topMesh.Normals[edgePosition + gridRep.SizeY - 1]);
-
-							positions.Add(mesh.Positions[edgePosition]);
-							normals.Add(mesh.Normals[edgePosition]);
-						}
-						stitchingMesh.Positions = positions;
-						stitchingMesh.Normals = normals;
-
-						hasTop = true;
-						topCornerPoint = positions[0];
-						topCornerNormal = normals[0];
-
-						Int32Collection indices = new Int32Collection((gridRep.SizeX - 1) * 6);
-						for (int i = 0; i < gridRep.SizeX - 1; i++)
-						{
-							int j = 2 * i;
-
-							indices.Add(j);
-							indices.Add(j + 2);
-							indices.Add(j + 1);
-
-							indices.Add(j + 2);
-							indices.Add(j + 3);
-							indices.Add(j + 1);
-						}
-						stitchingMesh.TriangleIndices = indices;
-
-						stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, m_overallCenteredExtent, MathUtils.ZAxis);
-
-						GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, m_overviewMaterial);
-						stitchingModel.Freeze();
-						stitchingGroup.Children.Add(stitchingModel);
+						positions.Add(mesh.Positions[edgePosition]);
+						normals.Add(mesh.Normals[edgePosition]);
 					}
+					stitchingMesh.Positions = positions;
+					stitchingMesh.Normals = normals;
+
+					hasTop = true;
+					topCornerPoint = positions[0];
+					topCornerNormal = normals[0];
+
+					Int32Collection indices = new Int32Collection((grid.SizeX - 1) * 6);
+					for (int i = 0; i < grid.SizeX - 1; i++)
+					{
+						int j = 2 * i;
+
+						indices.Add(j);
+						indices.Add(j + 2);
+						indices.Add(j + 1);
+
+						indices.Add(j + 2);
+						indices.Add(j + 3);
+						indices.Add(j + 1);
+					}
+					stitchingMesh.TriangleIndices = indices;
+
+					stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, m_overallCenteredExtent, MathUtils.ZAxis);
+
+					GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, m_overviewMaterial);
+					stitchingModel.Freeze();
+
+					tileInfo.UpdateStitching(stitchingModel, topTileInfo.CurrentGrid, TileStitchingEdge.Top);
+					//stitchingGroup.Children.Add(stitchingModel);
 				}
 			}
 
 			// connect to top left tile (if available)
-			if (hasTop && hasLeft)
+			if (hasTop && hasLeft && !tileInfo.HasStitching(TileStitchingEdge.TopLeft))
 			{
 				PointCloudTile topleftTile = tileSource.TileSet.Tiles[tile.Col - 1, tile.Row - 1];
-				if (m_lowResMap.ContainsKey(topleftTile))
+				TileInfo3D topleftTileInfo = null;
+				if (m_tileInfo.TryGetValue(topleftTile, out topleftTileInfo) && topleftTileInfo.CurrentGrid == grid)
 				{
-					MeshGeometry3D topleftMesh = GetTileMeshGeometry(topleftTile);
+					MeshGeometry3D topleftMesh = GetTileMeshGeometry(topleftTileInfo.CurrentGeometry);
+					MeshGeometry3D stitchingMesh = new MeshGeometry3D();
 
-					if (mesh.Positions.Count == topleftMesh.Positions.Count)
+					Point3DCollection positions = new Point3DCollection(4);
+					Vector3DCollection normals = new Vector3DCollection(4);
 					{
-						MeshGeometry3D stitchingMesh = new MeshGeometry3D();
+						positions.Add(topleftMesh.Positions[topleftMesh.Positions.Count - 1]);
+						normals.Add(topleftMesh.Normals[topleftMesh.Positions.Count - 1]);
 
-						Point3DCollection positions = new Point3DCollection(4);
-						Vector3DCollection normals = new Vector3DCollection(4);
-						{
-							positions.Add(topleftMesh.Positions[topleftMesh.Positions.Count - 1]);
-							normals.Add(topleftMesh.Normals[topleftMesh.Positions.Count - 1]);
+						positions.Add(topCornerPoint);
+						normals.Add(topCornerNormal);
 
-							positions.Add(topCornerPoint);
-							normals.Add(topCornerNormal);
+						positions.Add(leftCornerPoint);
+						normals.Add(leftCornerNormal);
 
-							positions.Add(leftCornerPoint);
-							normals.Add(leftCornerNormal);
-
-							positions.Add(mesh.Positions[0]);
-							normals.Add(mesh.Normals[0]);
-						}
-						stitchingMesh.Positions = positions;
-						stitchingMesh.Normals = normals;
-
-						Int32Collection indices = new Int32Collection(6);
-						indices.Add(0);
-						indices.Add(1);
-						indices.Add(2);
-						indices.Add(2);
-						indices.Add(1);
-						indices.Add(3);
-						stitchingMesh.TriangleIndices = indices;
-
-						stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, m_overallCenteredExtent, MathUtils.ZAxis);
-
-						GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, m_overviewMaterial);
-						stitchingModel.Freeze();
-						stitchingGroup.Children.Add(stitchingModel);
+						positions.Add(mesh.Positions[0]);
+						normals.Add(mesh.Normals[0]);
 					}
+					stitchingMesh.Positions = positions;
+					stitchingMesh.Normals = normals;
+
+					Int32Collection indices = new Int32Collection(6);
+					indices.Add(0);
+					indices.Add(1);
+					indices.Add(2);
+					indices.Add(2);
+					indices.Add(1);
+					indices.Add(3);
+					stitchingMesh.TriangleIndices = indices;
+
+					stitchingMesh.TextureCoordinates = MeshUtils.GeneratePlanarTextureCoordinates(stitchingMesh, m_overallCenteredExtent, MathUtils.ZAxis);
+
+					GeometryModel3D stitchingModel = new GeometryModel3D(stitchingMesh, m_overviewMaterial);
+					stitchingModel.Freeze();
+
+					tileInfo.UpdateStitching(stitchingModel, topleftTileInfo.CurrentGrid, TileStitchingEdge.TopLeft);
+					//stitchingGroup.Children.Add(stitchingModel);
 				}
 			}
 
-			stitchingGroup.Freeze();
-
-			// this group may have nothing in it, but that's okay
-			return stitchingGroup;
+			return tileInfo.GetNewStitching();
 		}
 
-		private MeshGeometry3D GetTileMeshGeometry(PointCloudTile tile)
+		private MeshGeometry3D GetTileMeshGeometry(GeometryModel3D geometryModel)
 		{
-			if (m_loadedTiles.ContainsKey(tile))
-				return m_loadedTiles[tile].Geometry as MeshGeometry3D;
-			
-			return (m_lowResMap[tile] as GeometryModel3D).Geometry as MeshGeometry3D;
+			return geometryModel.Geometry as MeshGeometry3D;
 		}
 
 		private void OnBackgroundRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -448,7 +558,7 @@ namespace CloudAE.App
 		private void OnBackgroundProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
 			Model3D child = e.UserState as Model3D;
-			if (viewport.Children.Count > 0)
+			if (child != null && viewport.Children.Count > 0)
 			{
 				ModelVisual3D model = viewport.Children[0] as ModelVisual3D;
 				if (model != null)
@@ -457,8 +567,15 @@ namespace CloudAE.App
 					if (modelGroup != null)
 					{
 						Model3DGroup modelSubGroup = modelGroup.Children[0] as Model3DGroup;
-						if (modelSubGroup != null)
+						if (modelSubGroup.Children.Count == CurrentTileSource.TileSet.ValidTileCount)
+						{
+							Model3DGroup modelStitchingGroup = modelGroup.Children[1] as Model3DGroup;
+							modelStitchingGroup.Children.Add(child);
+						}
+						else
+						{
 							modelSubGroup.Children.Add(child);
+						}
 					}
 				}
 			}
@@ -473,6 +590,9 @@ namespace CloudAE.App
 
 			Model3DGroup modelSubGroup = new Model3DGroup();
 			modelGroup.Children.Add(modelSubGroup);
+
+			Model3DGroup modelStitchingGroup = new Model3DGroup();
+			modelGroup.Children.Add(modelStitchingGroup);
 
 			DirectionalLight lightSource = new DirectionalLight(System.Windows.Media.Colors.White, new Vector3D(-1, -1, -1));
 			modelGroup.Children.Add(lightSource);
@@ -498,6 +618,9 @@ namespace CloudAE.App
 			viewport.Camera = camera;
 			viewport.Children.Add(model);
 
+			m_tileModelCollection = modelSubGroup.Children;
+			m_stitchingModelCollection = modelStitchingGroup.Children;
+
 			m_backgroundWorker.RunWorkerAsync(CurrentTileSource);
 		}
 
@@ -506,11 +629,11 @@ namespace CloudAE.App
 			if (tile.PointCount == 0)
 				return;
 
-			Model3DCollection modelCollection = (((viewport.Children[0] as ModelVisual3D).Content as Model3DGroup).Children[0] as Model3DGroup).Children;
-			int tileModelCount = modelCollection.Count / 2;
-
 			List<PointCloudTile> tilesToLoad = new List<PointCloudTile>();
 			int pointsToLoad = 0;
+
+			Model3DGroup emptyModelGroup = new Model3DGroup();
+			emptyModelGroup.Freeze();
 
 			bool isDirty = false;
 
@@ -558,6 +681,7 @@ namespace CloudAE.App
 				while (pointsToDrop > 0)
 				{
 					PointCloudTile currentTile = loadedTiles[i];
+					TileInfo3D tileInfo = m_tileInfo[currentTile];
 					GeometryModel3D model = m_loadedTiles[currentTile];
 
 					m_meshTileMap.Remove(model);
@@ -565,11 +689,11 @@ namespace CloudAE.App
 					//m_loadedTileBuffers.Remove(currentTile);
 
 					// replace high-res tile with low-res geometry
-					Model3D lowResModel = m_lowResMap[currentTile];
-					int modelIndex = modelCollection.IndexOf(model);
-					modelCollection[modelIndex] = lowResModel;
+					int modelIndex = tileInfo.ValidTileIndex;
+					m_tileModelCollection[modelIndex] = tileInfo.LowResGeometry;
 					// clear stitching
-					modelCollection[tileModelCount + modelIndex] = new Model3DGroup();
+					m_stitchingModelCollection[modelIndex] = emptyModelGroup;
+					tileInfo.ClearGeometry();
 
 					pointsToDrop -= currentTile.PointCount;
 					++i;
@@ -580,6 +704,7 @@ namespace CloudAE.App
 			SortByDistanceFromTile(tilesToLoadArray, tile);
 			foreach (PointCloudTile currentTile in tilesToLoadArray)
 			{
+				TileInfo3D tileInfo = m_tileInfo[currentTile];
 				CurrentTileSource.LoadTileGrid(currentTile, m_buffer, m_gridHighRes, m_quantizedGridHighRes);
 				CloudAE.Core.Geometry.Extent3D tileExtent = currentTile.Extent;
 				MeshGeometry3D mesh = CurrentTileSource.GenerateMesh(m_gridHighRes, tileExtent);
@@ -600,30 +725,35 @@ namespace CloudAE.App
 				geometryModel.Freeze();
 
 				// replace low-res tile with high-res geometry
-				Model3D lowResModel = m_lowResMap[currentTile];
-				int modelIndex = modelCollection.IndexOf(lowResModel);
-				modelCollection[modelIndex] = geometryModel;
+				int modelIndex = tileInfo.ValidTileIndex;
+				m_tileModelCollection[modelIndex] = geometryModel;
 				// clear stitching
-				modelCollection[tileModelCount + modelIndex] = new Model3DGroup();
+				m_stitchingModelCollection[modelIndex] = emptyModelGroup;
+				tileInfo.UpdateGeometry(geometryModel, m_gridHighRes);
 
 				m_meshTileMap.Add(geometryModel, currentTile);
 				m_loadedTiles.Add(currentTile, geometryModel);
 				//m_loadedTileBuffers.Add(currentTile, inputBuffer);
 			}
 
+			// in the future, I could have a list of which tiles need to be checked for stitching updates
+
+
 			// go through the stitching groups and replace any empty ones with the appropriate stitching
 			if (isDirty)
 			{
-				for (int i = 0; i < tileModelCount; i++)
+				for (int i = 0; i < m_stitchingModelCollection.Count; i++)
 				{
-					Model3DGroup stitchingGroup = modelCollection[tileModelCount + i] as Model3DGroup;
+					Model3DGroup stitchingGroup = m_stitchingModelCollection[i] as Model3DGroup;
+					// this is an incorrect condition, but it won't be apparent until I get multi-res stitching
 					if (stitchingGroup.Children.Count < 3)
 					{
-						GeometryModel3D geometryModel = modelCollection[i] as GeometryModel3D;
+						GeometryModel3D geometryModel = m_tileModelCollection[i] as GeometryModel3D;
 						PointCloudTile currentTile = m_meshTileMap[geometryModel];
-						Model3DGroup newStitchingGroup = GenerateTileStitching(CurrentTileSource, currentTile);
+						TileInfo3D currentTileInfo = m_tileInfo[currentTile];
+						Model3DGroup newStitchingGroup = GenerateTileStitching(CurrentTileSource, currentTileInfo);
 						if (newStitchingGroup.Children.Count > 0)
-							modelCollection[tileModelCount + i] = newStitchingGroup;
+							m_stitchingModelCollection[i] = newStitchingGroup;
 					}
 				}
 			}
