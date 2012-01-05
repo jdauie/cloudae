@@ -114,6 +114,7 @@
     <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="ProcessingSet.cs" />
     <Compile Include="Segmentation.cs" />
+    <Compile Include="Tiling\PointCloudTileBufferManagerOptions.cs" />
     <Compile Include="Tiling\GridTileSource.cs" />
     <Compile Include="Tiling\IPointCloudTileBufferManager.cs" />
     <Compile Include="Tiling\PointCloudTileBufferManager2.cs" />
