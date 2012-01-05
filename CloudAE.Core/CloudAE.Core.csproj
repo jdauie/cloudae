@@ -96,6 +96,7 @@
     <Compile Include="Geometry\IQuantizedPoint3D.cs" />
     <Compile Include="Math\Grid.cs" />
     <Compile Include="Math\Statistics.cs" />
+    <Compile Include="MotionControllers\FlyMotionController.cs" />
     <Compile Include="PathUtil.cs" />
     <Compile Include="PerformanceManager.cs" />
     <Compile Include="Geometry\UQuantizedExtent3D.cs" />
