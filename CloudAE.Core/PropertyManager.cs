@@ -41,6 +41,8 @@ namespace CloudAE.Core
 			return new PropertyName(subKeyPath, valueName);
 		}
 
+		#region ISerializeStateBinary Handlers
+
 		public static bool SetProperty(string name, ISerializeStateBinary value)
 		{
 			if (value == null)
@@ -106,6 +108,68 @@ namespace CloudAE.Core
 
 			return success;
 		}
+
+		#endregion
+
+		#region IPropertyState Handlers
+
+		public static bool SetProperty(IPropertyState state)
+		{
+			if (state == null)
+				throw new ArgumentNullException("state");
+
+			bool success = false;
+
+			try
+			{
+				using (RegistryKey hiveKey = Registry.CurrentUser)
+				{
+					using (RegistryKey subKey = hiveKey.CreateSubKey(state.Property.Path))
+					{
+						if (subKey != null)
+						{
+							subKey.SetValue(state.Property.Name, state.GetValue(), state.ValueKind);
+							success = true;
+						}
+					}
+				}
+			}
+			catch { }
+
+			return success;
+		}
+
+		public static bool GetProperty(IPropertyState state)
+		{
+			if (state == null)
+				throw new ArgumentNullException("state");
+
+			bool success = false;
+
+			try
+			{
+				using (RegistryKey hiveKey = Registry.CurrentUser)
+				{
+					using (RegistryKey subKey = hiveKey.OpenSubKey(state.Property.Path))
+					{
+						if (subKey != null)
+						{
+							object value = subKey.GetValue(state.Property.Name);
+							if (value != null)
+							{
+								state.SetValue(value);
+								success = true;
+							}
+						}
+					}
+				}
+			}
+			catch { }
+
+			return success;
+		}
+
+		#endregion
 	}
 
 	public class PropertyName
@@ -117,6 +181,86 @@ namespace CloudAE.Core
 		{
 			Path = path;
 			Name = name;
+		}
+	}
+
+	public interface IPropertyState
+	{
+		PropertyName Property { get; }
+		RegistryValueKind ValueKind { get; }
+
+		object GetValue();
+		void SetValue(object value);
+	}
+
+	public class PropertyState<T> : IPropertyState
+	{
+		private readonly PropertyName m_propertyName;
+		private readonly RegistryValueKind m_valueKind;
+		private readonly Func<object, object> m_readConversion;
+		private readonly Func<object, object> m_writeConversion;
+		private readonly T m_default;
+
+		private T m_value;
+
+		public PropertyName Property
+		{
+			get { return m_propertyName; }
+		}
+
+		public RegistryValueKind ValueKind
+		{
+			get { return m_valueKind; }
+		}
+
+		public T Value
+		{
+			get
+			{
+				PropertyManager.GetProperty(this);
+				return m_value;
+			}
+			set
+			{
+				SetValue(value);
+				PropertyManager.SetProperty(this);
+			}
+		}
+
+		public PropertyState(string name, RegistryValueKind valueKind, T defaultValue, Func<object, object> write, Func<object, object> read)
+		{
+			m_propertyName = PropertyManager.ParsePropertyName(name);
+			m_valueKind = valueKind;
+			m_default = defaultValue;
+			m_value = m_default;
+
+			m_readConversion = read;
+			m_writeConversion = write;
+		}
+
+		public object GetValue()
+		{
+			if (m_writeConversion != null)
+			{
+				return m_writeConversion(m_value);
+			}
+			else
+			{
+				return m_value;
+			}
+		}
+
+		public void SetValue(object value)
+		{
+			if (m_readConversion != null)
+			{
+				object convert = m_readConversion(value);
+				m_value = (T)Convert.ChangeType(convert, typeof(T));
+			}
+			else
+			{
+				m_value = (T)value;
+			}
 		}
 	}
 }

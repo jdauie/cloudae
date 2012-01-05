@@ -7,7 +7,7 @@ using System.IO;
 
 namespace CloudAE.Core
 {
-	public enum PointCloudTileBufferManagerMode
+	public enum PointCloudTileBufferManagerMode : ushort
 	{
 		None,
 		OptimizeForLargeFile

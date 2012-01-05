@@ -10,8 +10,19 @@ namespace CloudAE.Core
 {
 	public class ProcessingSet
 	{
-		private const PointCloudTileBufferManagerMode TILE_MODE = PointCloudTileBufferManagerMode.OptimizeForLargeFile;
-		private const long MAX_FILE_SEGMENT_BYTES = (long)1 << 31;//25->32MB, 30->1GB (this could be based on output-size instead)
+		private static readonly PropertyState<PointCloudTileBufferManagerMode> PROPERTY_TILE_MODE;
+		private static readonly PropertyState<long> PROPERTY_SEGMENT_SIZE;
+
+		static ProcessingSet()
+		{
+			PROPERTY_TILE_MODE = Context.RegisterOption<PointCloudTileBufferManagerMode>(Context.OptionCategory.Tiling, "Mode", PointCloudTileBufferManagerMode.OptimizeForLargeFile);
+
+			//25->32MB, 30->1GB (this could be based on output-size instead)
+			PROPERTY_SEGMENT_SIZE = Context.RegisterOption<long>(Context.OptionCategory.Tiling, "MaxSegmentSize", (long)1 << 31);
+		}
+
+		//private const PointCloudTileBufferManagerMode TILE_MODE = PointCloudTileBufferManagerMode.OptimizeForLargeFile;
+		//private const long MAX_FILE_SEGMENT_BYTES = (long)1 << 31;//25->32MB, 30->1GB (this could be based on output-size instead)
 		
 		private const bool REUSE_EXISTING_TILING = true;
 
@@ -84,7 +95,7 @@ namespace CloudAE.Core
 				// step 1
 				m_binarySource = m_inputHandler.GenerateBinarySource(progressManager);
 
-				PointCloudTileBufferManagerOptions tileOptions = new PointCloudTileBufferManagerOptions(TILE_MODE);
+				PointCloudTileBufferManagerOptions tileOptions = new PointCloudTileBufferManagerOptions(PROPERTY_TILE_MODE.Value);
 
 				// check if the problem need to be split up
 				PointCloudBinarySource[] segments = null;
@@ -94,14 +105,15 @@ namespace CloudAE.Core
 				{
 					// check total point data size; try to keep it within windows file cache
 					long pointDataSize = (long)m_binarySource.Count * m_binarySource.PointSizeBytes;
-					if (pointDataSize > MAX_FILE_SEGMENT_BYTES)
+					long maxSegmentBytes = PROPERTY_SEGMENT_SIZE.Value;
+					if (pointDataSize > maxSegmentBytes)
 					{
 						// determine density (for consistent tile size across chunks)
 						statsGenerator = new StatisticsGenerator(m_binarySource.Count);
 						PointCloudTileManager tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
 						estimatedDensity = tileManager.AnalyzePointFile(statsGenerator, progressManager);
 
-						int chunks = (int)Math.Ceiling((double)pointDataSize / MAX_FILE_SEGMENT_BYTES);
+						int chunks = (int)Math.Ceiling((double)pointDataSize / maxSegmentBytes);
 						long pointsPerChunk = m_binarySource.Count / chunks;
 						long pointsRemaining = m_binarySource.Count;
 
