@@ -2,12 +2,7 @@
 //using System.Collections.Generic;
 //using System.Text;
 
-//using OWG.Core;
-//using OWG.Core.DataSource;
-//using OWG.Math;
-//using OWG.Images;
-
-//namespace OWG.LidarAnalyst.Algorithms.FastClassification
+//namespace CloudAE.Core
 //{
 //    /// <summary>
 //    /// Region growing segmentation algorithm.
