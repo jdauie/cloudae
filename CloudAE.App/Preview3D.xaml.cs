@@ -764,34 +764,43 @@ namespace CloudAE.App
 					if (currentTile.Col < CurrentTileSource.TileSet.Cols - 1)
 					{
 						PointCloudTile adjacentTile = CurrentTileSource.TileSet.Tiles[currentTile.Col + 1, currentTile.Row];
-						TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
-						if (!alteredTiles.ContainsKey(adjacentTile))
-							alteredTiles.Add(adjacentTile, adjacentTileInfo);
+						if (m_tileInfo.ContainsKey(adjacentTile))
+						{
+							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
+							if (!alteredTiles.ContainsKey(adjacentTile))
+								alteredTiles.Add(adjacentTile, adjacentTileInfo);
 
-						m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
-						adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.Left);
+							m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
+							adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.Left);
+						}
 					}
 
 					if (currentTile.Row < CurrentTileSource.TileSet.Rows - 1)
 					{
 						PointCloudTile adjacentTile = CurrentTileSource.TileSet.Tiles[currentTile.Col, currentTile.Row + 1];
-						TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
-						if (!alteredTiles.ContainsKey(adjacentTile))
-							alteredTiles.Add(adjacentTile, adjacentTileInfo);
+						if (m_tileInfo.ContainsKey(adjacentTile))
+						{
+							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
+							if (!alteredTiles.ContainsKey(adjacentTile))
+								alteredTiles.Add(adjacentTile, adjacentTileInfo);
 
-						m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
-						adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.Top);
+							m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
+							adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.Top);
+						}
 					}
 
 					if (currentTile.Col < CurrentTileSource.TileSet.Cols - 1 && currentTile.Row < CurrentTileSource.TileSet.Rows - 1)
 					{
 						PointCloudTile adjacentTile = CurrentTileSource.TileSet.Tiles[currentTile.Col + 1, currentTile.Row + 1];
-						TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
-						if (!alteredTiles.ContainsKey(adjacentTile))
-							alteredTiles.Add(adjacentTile, adjacentTileInfo);
+						if (m_tileInfo.ContainsKey(adjacentTile))
+						{
+							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
+							if (!alteredTiles.ContainsKey(adjacentTile))
+								alteredTiles.Add(adjacentTile, adjacentTileInfo);
 
-						m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
-						adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.TopLeft);
+							m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
+							adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.TopLeft);
+						}
 					}
 				}
 
