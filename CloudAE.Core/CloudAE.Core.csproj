@@ -106,6 +106,7 @@
     <Compile Include="Geometry\Point3D.cs" />
     <Compile Include="Handlers\FileHandlerBase.cs" />
     <Compile Include="Handlers\LASFile.cs" />
+    <Compile Include="Points\LASPointFormat0.cs" />
     <Compile Include="PropertyManager.cs" />
     <Compile Include="SegmentationOriginal.cs" />
     <Compile Include="Sources\PointCloudBinarySourceSegment.cs" />

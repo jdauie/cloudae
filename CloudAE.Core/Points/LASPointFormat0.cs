@@ -7,30 +7,24 @@ using System.Runtime.InteropServices;
 namespace CloudAE.Core.Geometry
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct SQuantizedPoint3D : IComparable<SQuantizedPoint3D>, IQuantizedPoint3D
+	public struct LASPointFormat0 : IQuantizedPoint3D
 	{
 		public int X;
 		public int Y;
 		public int Z;
+		public ushort Intensity;
+		public byte Options;
+		public byte Classifications;
+		public sbyte ScanAngleRank;
+		public byte UserData;
+		public ushort PointSourceID;
 
-		public SQuantizedPoint3D(int x, int y, int z)
-		{
-			X = x;
-			Y = y;
-			Z = z;
-		}
-
-		public int CompareTo(SQuantizedPoint3D other)
-		{
-			int cmp = X.CompareTo(other.X);
-			if (cmp == 0)
-			{
-				cmp = Y.CompareTo(other.Y);
-				if (cmp == 0)
-					cmp = Z.CompareTo(other.Z);
-			}
-			return cmp;
-		}
+		//public LASPointFormat0(int x, int y, int z)
+		//{
+		//    X = x;
+		//    Y = y;
+		//    Z = z;
+		//}
 
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
