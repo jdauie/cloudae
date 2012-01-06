@@ -7,9 +7,7 @@ namespace CloudAE.Core
 {
 	class BufferManager
 	{
-		/// <summary>
-		/// 1MB
-		/// </summary>
+		/// <summary>1MB</summary>
 		public const int BUFFER_SIZE_BYTES = 2 << 19;
 
 		public const int POINT_SIZE_BYTES = 3 * sizeof(double);
