@@ -7,17 +7,23 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
+	enum PointCloudTileBufferSizeMode : ushort
+	{
+		Median = 1,
+		P1000
+	}
+
 	/// <summary>
 	/// The performance penalty of this mechanism is due to the random write operations.
 	/// Sequential should be much faster.
 	/// </summary>
 	class PointCloudTileBufferManager : IPointCloudTileBufferManager
 	{
-		/// <summary>
-		/// This has a substantial performance impact.
-		/// The choice of individual buffer size has a larger impact than max buffer size (above a reasonable size).
-		/// </summary>
-		private const int MAX_BUFFER_SIZE_BYTES = 1 << 29; // 29->512MB
+		private const int DEFAULT_MAX_BUFFER_SIZE = 1 << 29; // 29->512MB
+		private const PointCloudTileBufferSizeMode DEFAULT_BUFFER_SIZE_MODE = PointCloudTileBufferSizeMode.Median;
+
+		private static readonly PropertyState<int> PROPERTY_MAX_BUFFER_SIZE;
+		private static readonly PropertyState<PointCloudTileBufferSizeMode> PROPERTY_BUFFER_SIZE_MODE;
 
 		private readonly PointCloudTileSource m_tileSource;
 
@@ -33,6 +39,12 @@ namespace CloudAE.Core
 		public PointCloudTileSource TileSource
 		{
 			get { return m_tileSource; }
+		}
+
+		static PointCloudTileBufferManager()
+		{
+			PROPERTY_MAX_BUFFER_SIZE = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "BufferManagerMaxBufferSize", DEFAULT_MAX_BUFFER_SIZE);
+			PROPERTY_BUFFER_SIZE_MODE = Context.RegisterOption<PointCloudTileBufferSizeMode>(Context.OptionCategory.Tiling, "BufferManagerSizeMode", DEFAULT_BUFFER_SIZE_MODE);
 		}
 
 		public PointCloudTileBufferManager(PointCloudTileSource tileSource, FileStream outputStream)
@@ -52,9 +64,20 @@ namespace CloudAE.Core
 					m_createdBuffers[x, y] = new PointCloudTileBuffer(m_tileSet.Tiles[x, y], this);
 			
 			// allocate buffers
-			int maxIndividualBufferSize = m_tileSet.Density.MedianTileCount * m_tileSource.PointSizeBytes;
-			//int maxIndividualBufferSize = 1000 * TileSource.PointSizeBytes;
-			int maxBuffersToAllocate = Math.Min(MAX_BUFFER_SIZE_BYTES / maxIndividualBufferSize, m_tileSet.TileCount);
+			int maxIndividualBufferSize = m_tileSource.PointSizeBytes;
+
+			switch (PROPERTY_BUFFER_SIZE_MODE.Value)
+			{
+				case PointCloudTileBufferSizeMode.P1000:
+					maxIndividualBufferSize *= 1000;
+					break;
+				case PointCloudTileBufferSizeMode.Median:
+				default:
+					maxIndividualBufferSize *= m_tileSet.Density.MedianTileCount;
+					break;
+			}
+
+			int maxBuffersToAllocate = Math.Min(PROPERTY_MAX_BUFFER_SIZE.Value / maxIndividualBufferSize, m_tileSet.TileCount);
 
 			Console.WriteLine(String.Format("Tiles:   {0}", m_tileSet.TileCount));
 			Console.WriteLine(String.Format("Buffers: {0}", maxBuffersToAllocate));

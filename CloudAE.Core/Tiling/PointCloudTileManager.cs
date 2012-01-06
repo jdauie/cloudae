@@ -12,16 +12,21 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileManager
 	{
-		/// <summary>
-		/// Desired number of points per tile.
-		/// </summary>
-		private const int MAX_TILE_POINTS = 40000;
+		private const int DEFAULT_DESIRED_TILE_COUNT = 40000;
+		private const int DEFAULT_MAX_TILES_FOR_ESTIMATION = 10000;
 
-		private const int MAX_TILES_FOR_ESTIMATION = 10000;
+		private static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
+		private static readonly PropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;
 
 		private PointCloudBinarySource m_source;
 		private PointCloudTileBufferManagerOptions m_options;
 
+		static PointCloudTileManager()
+		{
+			PROPERTY_DESIRED_TILE_COUNT = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "DesiredTileCount", DEFAULT_DESIRED_TILE_COUNT);
+			PROPERTY_MAX_TILES_FOR_ESTIMATION = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "EstimationTilesMax", DEFAULT_MAX_TILES_FOR_ESTIMATION);
+		}
+		
 		public PointCloudTileManager(PointCloudBinarySource source, PointCloudTileBufferManagerOptions options)
 		{
 			m_source = source;
@@ -422,8 +427,8 @@ namespace CloudAE.Core
 			long count = source.Count;
 			Extent3D extent = source.Extent;
 
-			int tileCountForUniformData = (int)(count / MAX_TILE_POINTS);
-			int tileCount = Math.Min(tileCountForUniformData, MAX_TILES_FOR_ESTIMATION);
+			int tileCountForUniformData = (int)(count / PROPERTY_DESIRED_TILE_COUNT.Value);
+			int tileCount = Math.Min(tileCountForUniformData, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
 
 			double tileArea = extent.Area / tileCount;
 			double tileSide = Math.Sqrt(tileArea);
@@ -440,7 +445,7 @@ namespace CloudAE.Core
 
 			// median works better usually, but max is safer for substantially varying density
 			//double tileArea = MAX_TILE_POINTS / density.MaxTileDensity;
-			double tileArea = MAX_TILE_POINTS / density.MedianTileDensity;
+			double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MedianTileDensity;
 			double tileSide = Math.Sqrt(tileArea);
 
 			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);

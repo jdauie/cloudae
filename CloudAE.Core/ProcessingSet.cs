@@ -10,21 +10,13 @@ namespace CloudAE.Core
 {
 	public class ProcessingSet
 	{
+		private const PointCloudTileBufferManagerMode DEFAULT_TILE_MODE = PointCloudTileBufferManagerMode.OptimizeForLargeFile;
+		private const long DEFAULT_SEGMENT_SIZE = (long)1 << 31;//25->32MB, 30->1GB (this could be based on output-size instead)
+		private const bool DEFAULT_REUSE_EXISTING_TILING = true;
+
 		private static readonly PropertyState<PointCloudTileBufferManagerMode> PROPERTY_TILE_MODE;
 		private static readonly PropertyState<long> PROPERTY_SEGMENT_SIZE;
-
-		static ProcessingSet()
-		{
-			PROPERTY_TILE_MODE = Context.RegisterOption<PointCloudTileBufferManagerMode>(Context.OptionCategory.Tiling, "Mode", PointCloudTileBufferManagerMode.OptimizeForLargeFile);
-
-			//25->32MB, 30->1GB (this could be based on output-size instead)
-			PROPERTY_SEGMENT_SIZE = Context.RegisterOption<long>(Context.OptionCategory.Tiling, "MaxSegmentSize", (long)1 << 31);
-		}
-
-		//private const PointCloudTileBufferManagerMode TILE_MODE = PointCloudTileBufferManagerMode.OptimizeForLargeFile;
-		//private const long MAX_FILE_SEGMENT_BYTES = (long)1 << 31;//25->32MB, 30->1GB (this could be based on output-size instead)
-		
-		private const bool REUSE_EXISTING_TILING = true;
+		private static readonly PropertyState<bool> PROPERTY_REUSE_TILING;
 
 		private readonly FileHandlerBase m_inputHandler;
 		private PointCloudBinarySource m_binarySource;
@@ -32,6 +24,13 @@ namespace CloudAE.Core
 
 		private readonly bool m_isInputPathLocal;
 		private readonly string m_tiledPath;
+
+		static ProcessingSet()
+		{
+			PROPERTY_TILE_MODE    = Context.RegisterOption<PointCloudTileBufferManagerMode>(Context.OptionCategory.Tiling, "Mode", DEFAULT_TILE_MODE);
+			PROPERTY_SEGMENT_SIZE = Context.RegisterOption<long>(Context.OptionCategory.Tiling, "MaxSegmentSize", DEFAULT_SEGMENT_SIZE);
+			PROPERTY_REUSE_TILING = Context.RegisterOption<bool>(Context.OptionCategory.Tiling, "UseCache", DEFAULT_REUSE_EXISTING_TILING);
+		}
 
 		public ProcessingSet(FileHandlerBase inputFile)
 		{
@@ -49,7 +48,7 @@ namespace CloudAE.Core
 			progressManager.Log("<= {0}", m_inputHandler.FilePath);
 
 			// check for existing tile source
-			if (REUSE_EXISTING_TILING)
+			if (PROPERTY_REUSE_TILING.Value)
 			{
 				if (File.Exists(m_tiledPath))
 				{

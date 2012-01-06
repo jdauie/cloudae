@@ -12,12 +12,6 @@ namespace CloudAE.Core
 	/// </summary>
 	class PointCloudTileBufferManager2 : IPointCloudTileBufferManager
 	{
-		/// <summary>
-		/// This has a substantial performance impact.
-		/// The choice of individual buffer size has a larger impact than max buffer size (above a reasonable size).
-		/// </summary>
-		private const int MAX_BUFFER_SIZE_BYTES = 1 << 29; // 29->512MB
-
 		private readonly PointCloudTileSource m_tileSource;
 
 		private PointCloudTileSet m_tileSet;

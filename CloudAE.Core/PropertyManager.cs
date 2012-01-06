@@ -38,7 +38,9 @@ namespace CloudAE.Core
 			for (int i = 0; i < names.Length - 1; i++)
 				subKeyPath += @"\" + names[i];
 
-			return new PropertyName(subKeyPath, valueName);
+			string identifier = String.Join<string>(@"\", names);
+
+			return new PropertyName(identifier, subKeyPath, valueName);
 		}
 
 		#region ISerializeStateBinary Handlers
@@ -128,7 +130,7 @@ namespace CloudAE.Core
 					{
 						if (subKey != null)
 						{
-							subKey.SetValue(state.Property.Name, state.GetValue(), state.ValueKind);
+							subKey.SetValue(state.Property.Name, state.GetConvertedValue(), state.ValueKind);
 							success = true;
 						}
 					}
@@ -157,7 +159,7 @@ namespace CloudAE.Core
 							object value = subKey.GetValue(state.Property.Name);
 							if (value != null)
 							{
-								state.SetValue(value);
+								state.SetConvertedValue(value);
 								success = true;
 							}
 						}
@@ -172,15 +174,37 @@ namespace CloudAE.Core
 		#endregion
 	}
 
-	public class PropertyName
+	public class PropertyName : IEquatable<PropertyName>
 	{
+		public readonly string ID;
 		public readonly string Path;
 		public readonly string Name;
 
-		public PropertyName(string path, string name)
+		public PropertyName(string id, string path, string name)
 		{
+			ID  = id;
 			Path = path;
 			Name = name;
+		}
+
+		public override int GetHashCode()
+		{
+			return ID.GetHashCode();
+		}
+
+		public override bool Equals(object obj)
+		{
+			return Equals(obj as PropertyName);
+		}
+
+		public bool Equals(PropertyName other)
+		{
+			return (other != null && ID.Equals(other.ID, StringComparison.OrdinalIgnoreCase));
+		}
+
+		public override string ToString()
+		{
+			return ID;
 		}
 	}
 
@@ -189,8 +213,8 @@ namespace CloudAE.Core
 		PropertyName Property { get; }
 		RegistryValueKind ValueKind { get; }
 
-		object GetValue();
-		void SetValue(object value);
+		object GetConvertedValue();
+		void SetConvertedValue(object value);
 	}
 
 	public class PropertyState<T> : IPropertyState
@@ -222,14 +246,14 @@ namespace CloudAE.Core
 			}
 			set
 			{
-				SetValue(value);
+				m_value = value;
 				PropertyManager.SetProperty(this);
 			}
 		}
 
-		public PropertyState(string name, RegistryValueKind valueKind, T defaultValue, Func<object, object> write, Func<object, object> read)
+		public PropertyState(PropertyName propertyName, RegistryValueKind valueKind, T defaultValue, Func<object, object> write, Func<object, object> read)
 		{
-			m_propertyName = PropertyManager.ParsePropertyName(name);
+			m_propertyName = propertyName;
 			m_valueKind = valueKind;
 			m_default = defaultValue;
 			m_value = m_default;
@@ -238,7 +262,7 @@ namespace CloudAE.Core
 			m_writeConversion = write;
 		}
 
-		public object GetValue()
+		public object GetConvertedValue()
 		{
 			if (m_writeConversion != null)
 			{
@@ -250,7 +274,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public void SetValue(object value)
+		public void SetConvertedValue(object value)
 		{
 			if (m_readConversion != null)
 			{

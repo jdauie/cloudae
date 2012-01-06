@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using Microsoft.Win32;
+using System.Diagnostics;
 
 namespace CloudAE.Core
 {
@@ -37,8 +38,11 @@ namespace CloudAE.Core
 
 		private const string SETTINGS_TYPE_WINDOWS = "Windows";
 
+		private static readonly Dictionary<PropertyName, IPropertyState> c_registeredProperties;
+
 		static Context()
 		{
+			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 		}
 
 		public static PropertyState<T> RegisterOption<T>(OptionCategory category, string name, T defaultValue)
@@ -49,65 +53,80 @@ namespace CloudAE.Core
 			if (string.IsNullOrWhiteSpace(name))
 				throw new ArgumentException("Option registration is empty.", "name");
 
-			if (name.IndexOfAny(new char[] { '.', '\\' }) > 0)
+			if (name.IndexOfAny(new char[] { '.', '\\', ' ' }) > 0)
 				throw new ArgumentException("Option registration contains invalid characters.", "name");
 
 			string categoryName = Enum.GetName(typeof(OptionCategory), category);
 			string optionName = String.Format("{0}.{1}", categoryName, name);
 
-			TypeCode typeCode = Type.GetTypeCode(typeof(T));
-			RegistryValueKind valueKind = RegistryValueKind.None;
-			Func<object, object> writeConversion = null;
-			Func<object, object> readConversion = null;
-			switch (typeCode)
+			PropertyState<T> state = null;
+			PropertyName propertyName = PropertyManager.ParsePropertyName(optionName);
+			if (c_registeredProperties.ContainsKey(propertyName))
 			{
-				case TypeCode.Boolean:
-				case TypeCode.Byte:
-				case TypeCode.SByte:
-				case TypeCode.Int16:
-				case TypeCode.UInt16:
-				case TypeCode.Int32:
-				case TypeCode.UInt32:
-				case TypeCode.Single:
-					valueKind = RegistryValueKind.DWord;
-					break;
-				case TypeCode.Int64:
-				case TypeCode.UInt64:
-				case TypeCode.Double:
-					valueKind = RegistryValueKind.QWord;
-					break;
-				case TypeCode.String:
-					valueKind = RegistryValueKind.String;
-					break;
-				default:
-					throw new InvalidOperationException("Unsupported property type.");
-			}
+				state = c_registeredProperties[propertyName] as PropertyState<T>;
+				if (state == null)
+					throw new Exception("Duplicate property registration with a different type for {0}.");
 
-			switch (typeCode)
+				Debug.Assert(false, "");
+				Console.WriteLine("Duplicate Property Registration: ", propertyName);
+			}
+			else
 			{
-				case TypeCode.Boolean:
-					writeConversion = new Func<object, object>(delegate(object value) { return (int)((bool)value ? 0 : 1); });
-					readConversion = new Func<object, object>(delegate(object value) { return ((int)value == 1); });
-					break;
-				case TypeCode.Byte:
-				case TypeCode.SByte:
-				case TypeCode.Int16:
-				case TypeCode.UInt16:
-				case TypeCode.UInt32:
-					writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt32(value); });
-					break;
-				case TypeCode.UInt64:
-					writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt64(value); });
-					break;
-				case TypeCode.Single:
-					readConversion = new Func<object, object>(delegate(object value) { return BitConverter.ToSingle(BitConverter.GetBytes((int)value), 0); });
-					break;
-				case TypeCode.Double:
-					readConversion = new Func<object, object>(delegate(object value) { return BitConverter.ToDouble(BitConverter.GetBytes((long)value), 0); });
-					break;
-			}
+				TypeCode typeCode = Type.GetTypeCode(typeof(T));
+				RegistryValueKind valueKind = RegistryValueKind.None;
+				Func<object, object> writeConversion = null;
+				Func<object, object> readConversion = null;
+				switch (typeCode)
+				{
+					case TypeCode.Boolean:
+					case TypeCode.Byte:
+					case TypeCode.SByte:
+					case TypeCode.Int16:
+					case TypeCode.UInt16:
+					case TypeCode.Int32:
+					case TypeCode.UInt32:
+					case TypeCode.Single:
+						valueKind = RegistryValueKind.DWord;
+						break;
+					case TypeCode.Int64:
+					case TypeCode.UInt64:
+					case TypeCode.Double:
+						valueKind = RegistryValueKind.QWord;
+						break;
+					case TypeCode.String:
+						valueKind = RegistryValueKind.String;
+						break;
+					default:
+						throw new InvalidOperationException("Unsupported property type.");
+				}
 
-			PropertyState<T> state = new PropertyState<T>(optionName, valueKind, defaultValue, writeConversion, readConversion);
+				switch (typeCode)
+				{
+					case TypeCode.Boolean:
+						writeConversion = new Func<object, object>(delegate(object value) { return (int)((bool)value ? 0 : 1); });
+						readConversion = new Func<object, object>(delegate(object value) { return ((int)value == 1); });
+						break;
+					case TypeCode.Byte:
+					case TypeCode.SByte:
+					case TypeCode.Int16:
+					case TypeCode.UInt16:
+					case TypeCode.UInt32:
+						writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt32(value); });
+						break;
+					case TypeCode.UInt64:
+						writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt64(value); });
+						break;
+					case TypeCode.Single:
+						readConversion = new Func<object, object>(delegate(object value) { return BitConverter.ToSingle(BitConverter.GetBytes((int)value), 0); });
+						break;
+					case TypeCode.Double:
+						readConversion = new Func<object, object>(delegate(object value) { return BitConverter.ToDouble(BitConverter.GetBytes((long)value), 0); });
+						break;
+				}
+
+				state = new PropertyState<T>(propertyName, valueKind, defaultValue, writeConversion, readConversion);
+				c_registeredProperties.Add(propertyName, state);
+			}
 
 			return state;
 		}
