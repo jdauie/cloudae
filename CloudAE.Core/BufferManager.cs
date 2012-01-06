@@ -5,10 +5,26 @@ using System.Text;
 
 namespace CloudAE.Core
 {
-	class BufferManager
+	public static class BufferManager
 	{
+		public static class Sizes
+		{
+			public const int  MB_1   = 1 << 20;
+			public const int  MB_2   = 1 << 21;
+			public const int  MB_4   = 1 << 22;
+			public const int  MB_8   = 1 << 23;
+			public const int  MB_16  = 1 << 24;
+			public const int  MB_32  = 1 << 25;
+			public const int  MB_64  = 1 << 26;
+			public const int  MB_128 = 1 << 27;
+			public const int  MB_256 = 1 << 28;
+			public const int  MB_512 = 1 << 29;
+			public const int  GB_1   = 1 << 30;
+			public const long GB_2   = 1 << 31;
+		}
+
 		/// <summary>1MB</summary>
-		public const int BUFFER_SIZE_BYTES = 2 << 19;
+		public const int BUFFER_SIZE_BYTES = Sizes.MB_1;
 
 		public const int POINT_SIZE_BYTES = 3 * sizeof(double);
 

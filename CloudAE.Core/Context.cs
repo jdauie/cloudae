@@ -28,11 +28,15 @@ namespace CloudAE.Core
 	{
 		public enum OptionCategory
 		{
-			Tiling = 1
+			Tiling = 1,
+			Preview2D,
+			Preview3D
 		}
 
 		// options registration?
 		// convert/remove deprecated options
+
+		// add property validators and descriptions
 
 		// cache options
 

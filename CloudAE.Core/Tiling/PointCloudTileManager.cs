@@ -12,9 +12,6 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileManager
 	{
-		private const int DEFAULT_DESIRED_TILE_COUNT = 40000;
-		private const int DEFAULT_MAX_TILES_FOR_ESTIMATION = 10000;
-
 		private static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
 		private static readonly PropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;
 
@@ -23,8 +20,8 @@ namespace CloudAE.Core
 
 		static PointCloudTileManager()
 		{
-			PROPERTY_DESIRED_TILE_COUNT = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "DesiredTileCount", DEFAULT_DESIRED_TILE_COUNT);
-			PROPERTY_MAX_TILES_FOR_ESTIMATION = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "EstimationTilesMax", DEFAULT_MAX_TILES_FOR_ESTIMATION);
+			PROPERTY_DESIRED_TILE_COUNT       = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "DesiredTileCount", 40000);
+			PROPERTY_MAX_TILES_FOR_ESTIMATION = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "EstimationTilesMax", 10000);
 		}
 		
 		public PointCloudTileManager(PointCloudBinarySource source, PointCloudTileBufferManagerOptions options)

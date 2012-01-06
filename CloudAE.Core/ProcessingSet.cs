@@ -10,10 +10,6 @@ namespace CloudAE.Core
 {
 	public class ProcessingSet
 	{
-		private const PointCloudTileBufferManagerMode DEFAULT_TILE_MODE = PointCloudTileBufferManagerMode.OptimizeForLargeFile;
-		private const long DEFAULT_SEGMENT_SIZE = (long)1 << 31;//25->32MB, 30->1GB (this could be based on output-size instead)
-		private const bool DEFAULT_REUSE_EXISTING_TILING = true;
-
 		private static readonly PropertyState<PointCloudTileBufferManagerMode> PROPERTY_TILE_MODE;
 		private static readonly PropertyState<long> PROPERTY_SEGMENT_SIZE;
 		private static readonly PropertyState<bool> PROPERTY_REUSE_TILING;
@@ -27,9 +23,9 @@ namespace CloudAE.Core
 
 		static ProcessingSet()
 		{
-			PROPERTY_TILE_MODE    = Context.RegisterOption<PointCloudTileBufferManagerMode>(Context.OptionCategory.Tiling, "Mode", DEFAULT_TILE_MODE);
-			PROPERTY_SEGMENT_SIZE = Context.RegisterOption<long>(Context.OptionCategory.Tiling, "MaxSegmentSize", DEFAULT_SEGMENT_SIZE);
-			PROPERTY_REUSE_TILING = Context.RegisterOption<bool>(Context.OptionCategory.Tiling, "UseCache", DEFAULT_REUSE_EXISTING_TILING);
+			PROPERTY_TILE_MODE = Context.RegisterOption<PointCloudTileBufferManagerMode>(Context.OptionCategory.Tiling, "Mode", PointCloudTileBufferManagerMode.OptimizeForLargeFile);
+			PROPERTY_SEGMENT_SIZE = Context.RegisterOption<long>(Context.OptionCategory.Tiling, "MaxSegmentSize", BufferManager.Sizes.GB_2);
+			PROPERTY_REUSE_TILING = Context.RegisterOption<bool>(Context.OptionCategory.Tiling, "UseCache", true);
 		}
 
 		public ProcessingSet(FileHandlerBase inputFile)
