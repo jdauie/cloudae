@@ -283,7 +283,10 @@ namespace CloudAE.App
 				m_progressManager = new ProgressManager(m_backgroundWorker, e, logAction);
 
 				m_gridDimensionLowRes = (ushort)Math.Sqrt(VERTEX_COUNT_FAST / tileSource.TileSet.ValidTileCount);
-				m_gridDimensionHighRes = (ushort)Math.Sqrt(VERTEX_COUNT_LARGE / tileSource.TileSet.ValidTileCount);
+				//m_gridDimensionHighRes = (ushort)Math.Sqrt(VERTEX_COUNT_LARGE / tileSource.TileSet.ValidTileCount);
+
+				m_gridDimensionHighRes = (ushort)(Math.Sqrt(tileSource.TileSet.Density.MedianTileCount) / 3);
+
 				//m_gridDimensionLowRes = (ushort)20;
 				//m_gridDimensionHighRes = (ushort)40;
 
