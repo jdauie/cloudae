@@ -20,7 +20,7 @@ namespace CloudAE.Core
 
 		static PointCloudTileManager()
 		{
-			PROPERTY_DESIRED_TILE_COUNT       = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "DesiredTileCount", 40000);
+			PROPERTY_DESIRED_TILE_COUNT       = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "DesiredTilePoints", 40000);
 			PROPERTY_MAX_TILES_FOR_ESTIMATION = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "EstimationTilesMax", 10000);
 		}
 		
