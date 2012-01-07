@@ -24,7 +24,7 @@ namespace CloudAE.App
 		{
 			InitializeComponent();
 
-			propertyGrid.ItemsSource = Context.RegisteredProperties;
+			//propertyGrid.ItemsSource = Context.RegisteredProperties;
 		}
 	}
 }
