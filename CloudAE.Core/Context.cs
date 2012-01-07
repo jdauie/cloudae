@@ -33,6 +33,8 @@ namespace CloudAE.Core
 			Preview3D
 		}
 
+		public const bool STORE_PROPERTY_REGISTRATION = true;
+
 		// options registration?
 		// convert/remove deprecated options
 
@@ -43,10 +45,17 @@ namespace CloudAE.Core
 		private const string SETTINGS_TYPE_WINDOWS = "Windows";
 
 		private static readonly Dictionary<PropertyName, IPropertyState> c_registeredProperties;
+		private static readonly List<IPropertyState> c_registeredPropertiesList;
 
 		static Context()
 		{
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
+			c_registeredPropertiesList = new List<IPropertyState>();
+		}
+
+		public static List<IPropertyState> RegisteredProperties
+		{
+			get { return c_registeredPropertiesList; }
 		}
 
 		public static PropertyState<T> RegisterOption<T>(OptionCategory category, string name, T defaultValue)
@@ -76,7 +85,11 @@ namespace CloudAE.Core
 			}
 			else
 			{
-				TypeCode typeCode = Type.GetTypeCode(typeof(T));
+				Type actualType = typeof(T);
+				Type type = actualType.IsEnum ? type = Enum.GetUnderlyingType(actualType) : actualType;
+
+				TypeCode typeCode = Type.GetTypeCode(type);
+
 				RegistryValueKind valueKind = RegistryValueKind.None;
 				Func<object, object> writeConversion = null;
 				Func<object, object> readConversion = null;
@@ -107,7 +120,7 @@ namespace CloudAE.Core
 				switch (typeCode)
 				{
 					case TypeCode.Boolean:
-						writeConversion = new Func<object, object>(delegate(object value) { return (int)((bool)value ? 0 : 1); });
+						writeConversion = new Func<object, object>(delegate(object value) { return (int)((bool)value ? 1 : 0); });
 						readConversion = new Func<object, object>(delegate(object value) { return ((int)value == 1); });
 						break;
 					case TypeCode.Byte:
@@ -115,11 +128,19 @@ namespace CloudAE.Core
 					case TypeCode.Int16:
 					case TypeCode.UInt16:
 					case TypeCode.UInt32:
+						readConversion = new Func<object, object>(delegate(object value) { return (int)value; });
 						writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt32(value); });
 						break;
+					//case TypeCode.Int32:
+					//    readConversion = new Func<object, object>(delegate(object value) { return (int)value; });
+					//    break;
 					case TypeCode.UInt64:
+						readConversion = new Func<object, object>(delegate(object value) { return (long)value; });
 						writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt64(value); });
 						break;
+					//case TypeCode.Int64:
+					//    readConversion = new Func<object, object>(delegate(object value) { return (long)value; });
+					//    break;
 					case TypeCode.Single:
 						readConversion = new Func<object, object>(delegate(object value) { return BitConverter.ToSingle(BitConverter.GetBytes((int)value), 0); });
 						break;
@@ -130,14 +151,18 @@ namespace CloudAE.Core
 
 				state = new PropertyState<T>(propertyName, valueKind, defaultValue, writeConversion, readConversion);
 				c_registeredProperties.Add(propertyName, state);
+				c_registeredPropertiesList.Add(state);
 			}
 
 			return state;
 		}
 
-		public static void GetOptionValue(OptionCategory category, string name)
+		public static void Startup()
 		{
+		}
 
+		public static void Shutdown()
+		{
 		}
 
 		

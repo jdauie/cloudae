@@ -75,8 +75,8 @@
 				</TabItem>
 				<TabItem Header="Info" x:Name="tabItemInfo">
 					<Grid>
-						
-					</Grid>
+                        <local:PropertyEditor x:Name="propertyEditor" />
+                    </Grid>
 				</TabItem>
 			</TabControl>
 		</Grid>

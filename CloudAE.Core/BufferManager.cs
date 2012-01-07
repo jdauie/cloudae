@@ -20,7 +20,7 @@ namespace CloudAE.Core
 			public const int  MB_256 = 1 << 28;
 			public const int  MB_512 = 1 << 29;
 			public const int  GB_1   = 1 << 30;
-			public const long GB_2   = 1 << 31;
+			public const long GB_2   = (long)1 << 31;
 		}
 
 		/// <summary>1MB</summary>

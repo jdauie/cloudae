@@ -224,7 +224,9 @@ namespace CloudAE.Core
 		private readonly Func<object, object> m_readConversion;
 		private readonly Func<object, object> m_writeConversion;
 		private readonly T m_default;
+		private readonly Type m_type;
 
+		private bool m_hasValue;
 		private T m_value;
 
 		public PropertyName Property
@@ -237,16 +239,29 @@ namespace CloudAE.Core
 			get { return m_valueKind; }
 		}
 
+		public Type Type
+		{
+			get { return m_type; }
+		}
+
+		public bool IsDefault
+		{
+			get { return m_default.Equals(m_value); }
+		}
+
 		public T Value
 		{
 			get
 			{
-				PropertyManager.GetProperty(this);
+				if (PropertyManager.GetProperty(this))
+					m_hasValue = true;
+
 				return m_value;
 			}
 			set
 			{
 				m_value = value;
+				m_hasValue = true;
 				PropertyManager.SetProperty(this);
 			}
 		}
@@ -260,6 +275,15 @@ namespace CloudAE.Core
 
 			m_readConversion = read;
 			m_writeConversion = write;
+
+			m_type = typeof(T);
+
+			if (Context.STORE_PROPERTY_REGISTRATION)
+			{
+				T storedValue = Value;
+				if (!m_hasValue)
+					Value = storedValue;
+			}
 		}
 
 		public object GetConvertedValue()
@@ -274,17 +298,28 @@ namespace CloudAE.Core
 			}
 		}
 
+		// this should eventually return false for invalid values (once I have delegates for that)
 		public void SetConvertedValue(object value)
 		{
 			if (m_readConversion != null)
 			{
 				object convert = m_readConversion(value);
-				m_value = (T)Convert.ChangeType(convert, typeof(T));
+
+				if (m_type.IsEnum)
+					m_value = (T)Enum.ToObject(m_type, convert);
+				else
+					m_value = (T)Convert.ChangeType(convert, m_type);
 			}
 			else
 			{
 				m_value = (T)value;
 			}
+		}
+
+		public override string ToString()
+		{
+			// this hits the registry at present
+			return String.Format("{0} = {1}", m_propertyName, Value);
 		}
 	}
 }

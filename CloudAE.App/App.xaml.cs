@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Windows;
+using CloudAE.Core;
 
 namespace CloudAE.App
 {
@@ -16,8 +17,17 @@ namespace CloudAE.App
 		{
 			base.OnStartup(e);
 
+			Context.Startup();
+
 			MainWindow window = new MainWindow();
 			window.Show();
+		}
+
+		protected override void OnExit(ExitEventArgs e)
+		{
+			base.OnExit(e);
+
+			Context.Shutdown();
 		}
 	}
 }

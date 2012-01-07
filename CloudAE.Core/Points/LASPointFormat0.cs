@@ -19,13 +19,6 @@ namespace CloudAE.Core.Geometry
 		public byte UserData;
 		public ushort PointSourceID;
 
-		//public LASPointFormat0(int x, int y, int z)
-		//{
-		//    X = x;
-		//    Y = y;
-		//    Z = z;
-		//}
-
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
 		/// </summary>
