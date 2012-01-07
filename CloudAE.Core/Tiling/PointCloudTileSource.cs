@@ -583,17 +583,17 @@ namespace CloudAE.Core
 
 						switch (compressionMethod)
 						{
-							case CompressionMethod.QuickLZ:
-								compressedSize = QuickLZ.compress(inputBuffer, bytesRead, outputBuffer, 1);
-								break;
+							//case CompressionMethod.QuickLZ:
+							//    compressedSize = QuickLZ.compress(inputBuffer, bytesRead, outputBuffer, 1);
+							//    break;
 
-							case CompressionMethod.DotNetZip:
-								compressedSize = SevenZipSharp.Compress(inputBuffer, bytesRead, outputBuffer);
-								break;
+							//case CompressionMethod.DotNetZip:
+							//    compressedSize = SevenZipSharp.Compress(inputBuffer, bytesRead, outputBuffer);
+							//    break;
 
-							case CompressionMethod.SevenZipSharp:
-								compressedSize = DotNetZip.Compress(inputBuffer, bytesRead, outputBuffer);
-								break;
+							//case CompressionMethod.SevenZipSharp:
+							//    compressedSize = DotNetZip.Compress(inputBuffer, bytesRead, outputBuffer);
+							//    break;
 
 							case CompressionMethod.Default:
 								break;
