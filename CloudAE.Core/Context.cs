@@ -131,16 +131,10 @@ namespace CloudAE.Core
 						readConversion = new Func<object, object>(delegate(object value) { return (int)value; });
 						writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt32(value); });
 						break;
-					//case TypeCode.Int32:
-					//    readConversion = new Func<object, object>(delegate(object value) { return (int)value; });
-					//    break;
 					case TypeCode.UInt64:
 						readConversion = new Func<object, object>(delegate(object value) { return (long)value; });
 						writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt64(value); });
 						break;
-					//case TypeCode.Int64:
-					//    readConversion = new Func<object, object>(delegate(object value) { return (long)value; });
-					//    break;
 					case TypeCode.Single:
 						readConversion = new Func<object, object>(delegate(object value) { return BitConverter.ToSingle(BitConverter.GetBytes((int)value), 0); });
 						break;
