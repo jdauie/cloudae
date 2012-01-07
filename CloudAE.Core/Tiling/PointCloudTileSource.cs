@@ -54,6 +54,14 @@ namespace CloudAE.Core
 				Extent = Quantization.Convert(m_quantizedExtent);
 			}
 		}
+
+		public Point3D CenterOfMass
+		{
+			get
+			{
+				return new Point3D(Extent.MidpointX, Extent.MidpointY, StatisticsZ.ModeApproximate);
+			}
+		}
 		
 		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, Statistics zStats, CompressionMethod compression)
 			: this(file, tileSet, quantization, 0, zStats, compression)
@@ -290,8 +298,14 @@ namespace CloudAE.Core
 
 		public System.Windows.Media.Media3D.MeshGeometry3D GenerateMesh(Grid<float> grid, Extent3D distributionExtent)
 		{
+			return GenerateMesh(grid, distributionExtent, false);
+		}
+
+		public System.Windows.Media.Media3D.MeshGeometry3D GenerateMesh(Grid<float> grid, Extent3D distributionExtent, bool showBackFaces)
+		{
 			// subtract midpoint to center around (0,0,0)
 			Extent3D centeringExtent = Extent;
+			Point3D centerOfMass = CenterOfMass;
 
 			System.Windows.Media.Media3D.Point3DCollection positions = new System.Windows.Media.Media3D.Point3DCollection(grid.CellCount);
 			System.Windows.Media.Int32Collection indices = new System.Windows.Media.Int32Collection(2 * (grid.SizeX - 1) * (grid.SizeY - 1));
@@ -302,7 +316,7 @@ namespace CloudAE.Core
 			{
 				for (int y = 0; y < grid.SizeY; y++)
 				{
-					double value = grid.Data[x, y] + centeringExtent.MinZ - centeringExtent.MidpointZ;
+					double value = grid.Data[x, y] - centerOfMass.Z;
 
 					double xCoord = ((double)x / grid.SizeX) * distributionExtent.RangeX + distributionExtent.MinX - distributionExtent.MidpointX;
 					double yCoord = ((double)y / grid.SizeY) * distributionExtent.RangeY + distributionExtent.MinY - distributionExtent.MidpointY;
@@ -333,6 +347,13 @@ namespace CloudAE.Core
 								indices.Add(leftPosition);
 								indices.Add(topPosition);
 								indices.Add(currentPosition);
+
+								if (showBackFaces)
+								{
+									indices.Add(leftPosition);
+									indices.Add(currentPosition);
+									indices.Add(topPosition);
+								}
 							}
 
 							if (grid.Data[x - 1, y - 1] != fillVal)
@@ -340,6 +361,13 @@ namespace CloudAE.Core
 								indices.Add(topleftPosition);
 								indices.Add(topPosition);
 								indices.Add(leftPosition);
+
+								if (showBackFaces)
+								{
+									indices.Add(topleftPosition);
+									indices.Add(leftPosition);
+									indices.Add(topPosition);
+								}
 							}
 						}
 					}

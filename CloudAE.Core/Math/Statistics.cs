@@ -9,9 +9,11 @@ namespace CloudAE.Core
 {
 	public class Statistics : ISerializeBinary
 	{
-		public double Mean;
-		public double StdDev;
-		public double Variance;
+		public readonly double Mean;
+		public readonly double StdDev;
+		public readonly double Variance;
+
+		public readonly double ModeApproximate;
 
 		public Statistics(IEnumerable<float> values, float nodata)
 		{
@@ -19,13 +21,15 @@ namespace CloudAE.Core
 			Mean = validValues.Average();
 			Variance = validValues.Average(v => Math.Pow(v - Mean, 2));
 			StdDev = Math.Sqrt(Variance);
+			//ModeApproximate
 		}
 
-		public Statistics(double mean, double variance)
+		public Statistics(double mean, double variance, double mode)
 		{
 			Mean = mean;
 			Variance = variance;
 			StdDev = Math.Sqrt(Variance);
+			ModeApproximate = mode;
 		}
 
 		public Statistics(IEnumerable<Statistics> statsCollection)
@@ -34,6 +38,7 @@ namespace CloudAE.Core
 			Mean = statsCollection.Average(s => s.Mean);
 			Variance = statsCollection.Average(s => s.Variance);
 			StdDev = Math.Sqrt(Variance);
+			ModeApproximate = statsCollection.Average(s => s.ModeApproximate);
 		}
 
 		public Statistics(BinaryReader reader)
@@ -41,12 +46,14 @@ namespace CloudAE.Core
 			Mean = reader.ReadDouble();
 			Variance = reader.ReadDouble();
 			StdDev = Math.Sqrt(Variance);
+			ModeApproximate = reader.ReadDouble();
 		}
 
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(Mean);
 			writer.Write(Variance);
+			writer.Write(ModeApproximate);
 		}
 	}
 
@@ -55,6 +62,7 @@ namespace CloudAE.Core
 		private long m_count;
 		private double? m_mean;
 		private double? m_variance;
+		private double? m_modeApprox;
 
 		public double Mean
 		{
@@ -79,9 +87,10 @@ namespace CloudAE.Core
 			m_count = sampleCount;
 		}
 
-		public void SetMean(double mean)
+		public void SetMean(double mean, double mode)
 		{
 			m_mean = mean;
+			m_modeApprox = mode;
 		}
 
 		public void SetVariance(double variance)
@@ -100,7 +109,7 @@ namespace CloudAE.Core
 			if (!HasVariance)
 				throw new InvalidOperationException("Statistics cannot be created without sample data.");
 
-			return new Statistics(m_mean.Value, m_variance.Value);
+			return new Statistics(m_mean.Value, m_variance.Value, m_modeApprox.Value);
 		}
 	}
 }

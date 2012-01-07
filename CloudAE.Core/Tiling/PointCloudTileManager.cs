@@ -156,6 +156,10 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tilesX / extent.RangeX;
 			double tilesOverRangeY = (double)tilesY / extent.RangeY;
 
+			int verticalValueIntervals = 256;
+			long[] verticalValueCounts = new long[verticalValueIntervals + 1];
+			float intervalsOverRangeZ = (float)(verticalValueIntervals / extent.RangeZ);
+
 			byte[] buffer = BufferManager.AcquireBuffer();
 
 			fixed (byte* inputBufferPtr = buffer)
@@ -187,6 +191,8 @@ namespace CloudAE.Core
 						{
 							Point3D* p = (Point3D*)(inputBufferPtr + i);
 							sum += (*p).Z;
+
+							++verticalValueCounts[(int)(((long)(*p).Z - extent.MinZ) * intervalsOverRangeZ)];
 						}
 					}
 
@@ -211,9 +217,18 @@ namespace CloudAE.Core
 
 			// update stats
 			if (hasMean)
+			{
 				statsGenerator.SetVariance(sum / source.Count);
+			}
 			else
-				statsGenerator.SetMean(sum / source.Count);
+			{
+				double mean = (sum / source.Count);
+				verticalValueCounts[verticalValueIntervals - 2] += verticalValueCounts[verticalValueIntervals - 1];
+				verticalValueCounts[verticalValueIntervals - 1] = 0;
+				int interval = verticalValueCounts.MaxIndex<long>();
+				double mode = extent.MinZ + (double)interval / intervalsOverRangeZ;
+				statsGenerator.SetMean(mean, mode);
+			}
 
 			PointCloudTileDensity density = new PointCloudTileDensity(tileCounts, extent);
 			return density;
@@ -230,6 +245,10 @@ namespace CloudAE.Core
 
 			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
+
+			int verticalValueIntervals = 256;
+			long[] verticalValueCounts = new long[verticalValueIntervals + 1];
+			float intervalsOverRangeZ = (float)verticalValueIntervals / quantizedExtent.RangeZ;
 
 			//// test precision
 			//int maxBytesForPrecisionTest = 1 << 24; // 26->64MB
@@ -291,6 +310,8 @@ namespace CloudAE.Core
 						{
 							SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
 							sum += (*p).Z;
+
+							++verticalValueCounts[(int)(((long)(*p).Z - quantizedExtent.MinZ) * intervalsOverRangeZ)];
 						}
 					}
 
@@ -321,7 +342,11 @@ namespace CloudAE.Core
 			else
 			{
 				double mean = (sum / source.Count) * inputQuantization.ScaleFactorZ + inputQuantization.OffsetZ;
-				statsGenerator.SetMean(mean);
+				verticalValueCounts[verticalValueIntervals - 2] += verticalValueCounts[verticalValueIntervals - 1];
+				verticalValueCounts[verticalValueIntervals - 1] = 0;
+				int interval = verticalValueCounts.MaxIndex<long>();
+				double mode = extent.MinZ + extent.RangeZ * interval / verticalValueIntervals;
+				statsGenerator.SetMean(mean, mode);
 			}
 
 			//SortedList<uint, int>[] testValueDifferenceCounts = new SortedList<uint, int>[3];

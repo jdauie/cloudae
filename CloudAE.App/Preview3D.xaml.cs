@@ -293,8 +293,9 @@ namespace CloudAE.App
 				m_gridTextureCoordsLowRes = null;
 				m_gridTextureCoordsHighRes = null;
 
-				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - extent.MidpointZ, extent.RangeX, extent.RangeY, extent.RangeZ);
-
+				CloudAE.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
+				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
+				
 				// load tiles
 				m_buffer = new byte[tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes];
 				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.First(), m_gridDimensionLowRes);
@@ -340,6 +341,23 @@ namespace CloudAE.App
 
 					++validTileIndex;
 				}
+
+
+				//// test
+				//foreach (double level in new double[] { centerOfMass.Z })
+				//{
+				//    Grid<float> grid0 = new Grid<float>(20, 20, extent, false);
+				//    grid0.FillVal = (float)level;
+				//    grid0.Reset();
+				//    grid0.FillVal = float.MinValue;
+				//    MeshGeometry3D mesh0 = tileSource.GenerateMesh(grid0, extent);
+				//    DiffuseMaterial material0 = new DiffuseMaterial(m_solidBrush);
+				//    material0.Freeze();
+				//    GeometryModel3D geometryModel0 = new GeometryModel3D(mesh0, material0);
+				//    geometryModel0.Freeze();
+				//    m_progressManager.Update(1.0f, geometryModel0);
+				//}
+
 
 				int validStitchingIndex = 0;
 				foreach (PointCloudTile tile in tileSource)
@@ -611,8 +629,9 @@ namespace CloudAE.App
 			ModelVisual3D model = new ModelVisual3D();
 			model.Content = modelGroup;
 
+			CloudAE.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
 			Point3D lookatPoint = new Point3D(0, 0, 0);
-			Point3D cameraPoint = new Point3D(0, extent.MinY - extent.MidpointY, extent.MidpointZ - extent.MinZ + extent.RangeX);
+			Point3D cameraPoint = new Point3D(0, extent.MinY - centerOfMass.Y, centerOfMass.Z - extent.MinZ + extent.RangeX);
 			Vector3D lookDirection = lookatPoint - cameraPoint;
 			lookDirection.Normalize();
 
