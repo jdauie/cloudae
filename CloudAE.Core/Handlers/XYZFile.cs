@@ -14,7 +14,12 @@ namespace CloudAE.Core
 	{
 		public override string[] SupportedExtensions
 		{
-			get { return new string[] { "txt", "xyz*" }; }
+			get { return new string[] { "txt", "csv", "xyz*" }; }
+		}
+
+		public override string HandlerName
+		{
+			get { return "XYZ"; }
 		}
 
 		public XYZFile(string path)

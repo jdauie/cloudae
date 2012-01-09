@@ -22,6 +22,11 @@ namespace CloudAE.Core
 			}
 		}
 
+		public abstract string HandlerName
+		{
+			get;
+		}
+
 		public abstract string[] SupportedExtensions
 		{
 			get;

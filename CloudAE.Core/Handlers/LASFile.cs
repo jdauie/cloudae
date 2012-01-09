@@ -39,6 +39,11 @@ namespace CloudAE.Core
 			get { return new string[] { "las" }; }
 		}
 
+		public override string HandlerName
+		{
+			get { return "LAS"; }
+		}
+
 		public unsafe LASFile(string path)
 			: base(path)
 		{
