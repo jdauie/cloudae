@@ -21,6 +21,7 @@ using System.Text;
 using System.Windows;
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace CloudAE.Core
 {
@@ -51,11 +52,43 @@ namespace CloudAE.Core
 		{
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 			c_registeredPropertiesList = new List<IPropertyState>();
+
+			RegisterProperties();
 		}
 
 		public static List<IPropertyState> RegisteredProperties
 		{
 			get { return c_registeredPropertiesList; }
+		}
+
+		private static void RegisterProperties()
+		{
+			Console.WriteLine("Registering Properties...");
+
+			Type baseType = typeof(IPropertyContainer);
+			AppDomain app = AppDomain.CurrentDomain;
+			Assembly[] assemblies = app.GetAssemblies();
+			var containerTypes = assemblies
+				.SelectMany(a => a.GetTypes())
+				.Where(t => baseType.IsAssignableFrom(t) && !t.IsInterface);
+
+			foreach (Type type in containerTypes)
+			{
+				char result = '-';
+				if (!type.IsAbstract)
+				{
+					try
+					{
+						System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+						result = '+';
+					}
+					catch (Exception)
+					{
+						result = 'x';
+					}
+				}
+				Console.WriteLine(" {0} {1}", result, type.Name);
+			}
 		}
 
 		public static PropertyState<T> RegisterOption<T>(OptionCategory category, string name, T defaultValue)

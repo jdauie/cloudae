@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace CloudAE.Core
 {
-	public class ProcessingSet
+	public class ProcessingSet : IPropertyContainer
 	{
 		private static readonly PropertyState<PointCloudTileBufferManagerMode> PROPERTY_TILE_MODE;
 		private static readonly PropertyState<long> PROPERTY_SEGMENT_SIZE;

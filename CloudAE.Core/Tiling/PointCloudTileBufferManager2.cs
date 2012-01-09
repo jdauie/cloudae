@@ -10,7 +10,7 @@ namespace CloudAE.Core
 	/// <summary>
 	/// This is intended to test sequential output by not flushing until the end.
 	/// </summary>
-	class PointCloudTileBufferManager2 : IPointCloudTileBufferManager
+	class PointCloudTileBufferManager2 : IPointCloudTileBufferManager, IPropertyContainer
 	{
 		private readonly PointCloudTileSource m_tileSource;
 

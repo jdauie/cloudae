@@ -10,7 +10,7 @@ using CloudAE.Core.Compression;
 
 namespace CloudAE.Core
 {
-	public class PointCloudTileManager
+	public class PointCloudTileManager : IPropertyContainer
 	{
 		private static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
 		private static readonly PropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;

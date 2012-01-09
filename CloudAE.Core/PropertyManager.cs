@@ -322,4 +322,8 @@ namespace CloudAE.Core
 			return String.Format("{0} = {1}", m_propertyName, Value);
 		}
 	}
+
+	public interface IPropertyContainer
+	{
+	}
 }
