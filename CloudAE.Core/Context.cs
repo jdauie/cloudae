@@ -105,8 +105,8 @@ namespace CloudAE.Core
 		{
 			Console.WriteLine("[Extensions]");
 
-			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-			var assemblyLookup = assemblies
+			var assemblyLookup = AppDomain.CurrentDomain
+				.GetAssemblies()
 				.Where(a => !String.IsNullOrEmpty(a.Location))
 				.Distinct(a => a.Location, StringComparer.OrdinalIgnoreCase)
 				.ToDictionary(a => a.Location, a => a, StringComparer.OrdinalIgnoreCase);
