@@ -65,30 +65,31 @@ namespace CloudAE.Core
 				throw new NotSupportedException();
 			}
 
-			c_writeLineAction = Console.WriteLine;
-
 			AppDomain appDomain = AppDomain.CurrentDomain;
-			c_baseDirectory = appDomain.BaseDirectory;
+
+			{
+				c_baseDirectory = appDomain.BaseDirectory;
+				c_writeLineAction = Console.WriteLine;
+
+				c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
+				c_registeredPropertiesList = new List<IPropertyState>();
+			}
 
 			RegisterExtensions();
-
 			c_loadedTypes = appDomain.GetNestedTypes().ToArray();
-
-			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
-			c_registeredPropertiesList = new List<IPropertyState>();
-
 			RegisterFactories();
-
 			RegisterProperties();
 
-			Context.WriteLine("[{0}]", typeof(Context).FullName);
-			Context.WriteLine("Base:    {0}", c_baseDirectory);
-			Context.WriteLine("Types:   {0}", c_loadedTypes.Length);
-			Context.WriteLine("Options: {0}", c_registeredPropertiesList.Count);
+			{
+				Context.WriteLine("[{0}]", typeof(Context).FullName);
+				Context.WriteLine("Base:    {0}", c_baseDirectory);
+				Context.WriteLine("Types:   {0}", c_loadedTypes.Length);
+				Context.WriteLine("Options: {0}", c_registeredPropertiesList.Count);
 
-			Context.WriteLine("[Options]");
-			foreach (IPropertyState property in c_registeredPropertiesList)
-				Context.WriteLine("{0}", property.ToString());
+				Context.WriteLine("[Options]");
+				foreach (IPropertyState property in c_registeredPropertiesList)
+					Context.WriteLine("{0}", property.ToString());
+			}
 		}
 
 		public static List<IPropertyState> RegisteredProperties
