@@ -76,8 +76,8 @@ namespace CloudAE.Core
 
 			int maxBuffersToAllocate = Math.Min(PROPERTY_MAX_BUFFER_SIZE.Value / maxIndividualBufferSize, m_tileSet.TileCount);
 
-			Console.WriteLine(String.Format("Tiles:   {0}", m_tileSet.TileCount));
-			Console.WriteLine(String.Format("Buffers: {0}", maxBuffersToAllocate));
+			Context.WriteLine("Tiles:   {0}", m_tileSet.TileCount);
+			Context.WriteLine("Buffers: {0}", maxBuffersToAllocate);
 
 			if (maxBuffersToAllocate == 0)
 				throw new Exception("One of the tiles is huge");

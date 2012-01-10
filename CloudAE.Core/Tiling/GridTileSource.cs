@@ -94,7 +94,7 @@ namespace CloudAE.Core
 				m_fileStream.Seek(position, SeekOrigin.Begin);
 
 				if (position < m_fileStream.Position)
-					Console.WriteLine("bad seek");
+					Context.WriteLine("bad seek");
 			}
 		}
 

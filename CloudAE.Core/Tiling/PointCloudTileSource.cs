@@ -189,7 +189,7 @@ namespace CloudAE.Core
 
 				stopwatch.Stop();
 
-				Console.WriteLine("Allocated {1}MB in {0}ms", stopwatch.ElapsedMilliseconds, outputLength / BufferManager.Sizes.MB_1);
+				Context.WriteLine("Allocated {1}MB in {0}ms", stopwatch.ElapsedMilliseconds, outputLength / BufferManager.Sizes.MB_1);
 			}
 		}
 

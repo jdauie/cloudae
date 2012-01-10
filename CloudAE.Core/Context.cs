@@ -54,6 +54,8 @@ namespace CloudAE.Core
 		private static readonly string c_baseDirectory;
 		private static readonly Type[] c_loadedTypes;
 
+		private static Action<string, object[]> c_writeLineAction;
+
 		static Context()
 		{
 			// this should go somewhere on startup
@@ -63,17 +65,14 @@ namespace CloudAE.Core
 				throw new NotSupportedException();
 			}
 
+			c_writeLineAction = Console.WriteLine;
+
 			AppDomain appDomain = AppDomain.CurrentDomain;
 			c_baseDirectory = appDomain.BaseDirectory;
 
 			RegisterExtensions();
 
-			c_loadedTypes = appDomain
-				.GetAssemblies()
-				.Where(a => !string.IsNullOrEmpty(a.Location) && a.Location.StartsWith(c_baseDirectory, StringComparison.OrdinalIgnoreCase))
-				.SelectMany(a => a.GetTypes())
-				.OrderBy(t => t.FullName)
-				.ToArray();
+			c_loadedTypes = appDomain.GetNestedTypes().ToArray();
 
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 			c_registeredPropertiesList = new List<IPropertyState>();
@@ -82,15 +81,24 @@ namespace CloudAE.Core
 
 			RegisterProperties();
 
-			Console.WriteLine("[{0}]", typeof(Context).FullName);
-			Console.WriteLine("Base: {0}", c_baseDirectory);
-			//Console.WriteLine("Types: {0}", c_loadedTypes.Length);
-			//Console.WriteLine("Properties: {0}", c_registeredPropertiesList.Count);
+			Context.WriteLine("[{0}]", typeof(Context).FullName);
+			Context.WriteLine("Base:    {0}", c_baseDirectory);
+			Context.WriteLine("Types:   {0}", c_loadedTypes.Length);
+			Context.WriteLine("Options: {0}", c_registeredPropertiesList.Count);
+
+			Context.WriteLine("[Options]");
+			foreach (IPropertyState property in c_registeredPropertiesList)
+				Context.WriteLine("{0}", property.ToString());
 		}
 
 		public static List<IPropertyState> RegisteredProperties
 		{
 			get { return c_registeredPropertiesList; }
+		}
+
+		public static void WriteLine(string value, params object[] args)
+		{
+			c_writeLineAction(value, args);
 		}
 
 		public static IEnumerable<Type> GetLoadedTypes(Func<Type, bool> predicate)
@@ -103,13 +111,9 @@ namespace CloudAE.Core
 		/// </summary>
 		private static void RegisterExtensions()
 		{
-			Console.WriteLine("[Extensions]");
+			Context.WriteLine("[Extensions]");
 
-			var assemblyLookup = AppDomain.CurrentDomain
-				.GetAssemblies()
-				.Where(a => !String.IsNullOrEmpty(a.Location))
-				.Distinct(a => a.Location, StringComparer.OrdinalIgnoreCase)
-				.ToDictionary(a => a.Location, a => a, StringComparer.OrdinalIgnoreCase);
+			var assemblyLookup = AppDomain.CurrentDomain.GetAssemblyLocationLookup();
 
 			String path = c_baseDirectory;
 			if (Directory.Exists(path))
@@ -121,39 +125,38 @@ namespace CloudAE.Core
 
 				foreach (String assemblyPath in newAssemblyPaths)
 				{
-					char result = 'x';
+					char result = '-';
 					try
 					{
-						Assembly assembly = Assembly.LoadFrom(assemblyPath);
+						AssemblyName assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
+						Assembly assembly = Assembly.Load(assemblyName);
 						assemblyLookup.Add(assemblyPath, assembly);
 						result = '+';
 					}
-					catch (Exception) { }
-					Console.WriteLine(" {0} {1}", result, assemblyPath);
+					catch (Exception)
+					{
+						result = 'x';
+					}
+					Context.WriteLine(" {0} {1}", result, assemblyPath);
 				}
 			}
 		}
 
 		private static void RegisterFactories()
 		{
-			Type baseType = typeof(IFactory);
-
-			ProcessLoadedTypes(
-				0,
-				"Factories",
-				t => baseType.IsAssignableFrom(t),
-				t => !t.IsAbstract,
-				t => System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle)
-			);
+			ProcessLoadedTypesInitialize("Factories", typeof(IFactory));
 		}
 
 		private static void RegisterProperties()
 		{
-			Type baseType = typeof(IPropertyContainer);
+			ProcessLoadedTypesInitialize("Properties", typeof(IPropertyContainer));
+		}
 
+		private static void ProcessLoadedTypesInitialize(string processName, Type baseType)
+		{
 			ProcessLoadedTypes(
 				0,
-				"Properties",
+				processName,
 				t => baseType.IsAssignableFrom(t),
 				t => !t.IsAbstract,
 				t => System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle)
@@ -164,7 +167,7 @@ namespace CloudAE.Core
 		{
 			string padding = "".PadRight(level * 2);
 
-			Console.WriteLine("{0}[{1}]", padding, processName);
+			Context.WriteLine("{0}[{1}]", padding, processName);
 
 			var types = GetLoadedTypes(consider);
 			foreach (Type type in types)
@@ -182,7 +185,7 @@ namespace CloudAE.Core
 						result = 'x';
 					}
 				}
-				Console.WriteLine("{0} {1} {2}", padding, result, type.Name);
+				Context.WriteLine("{0} {1} {2}", padding, result, type.Name);
 			}
 		}
 
@@ -209,7 +212,7 @@ namespace CloudAE.Core
 					throw new Exception("Duplicate option registration with a different type for {0}.");
 
 				Debug.Assert(false, "Duplicate option registration");
-				Console.WriteLine("Duplicate option registration: ", propertyName);
+				Context.WriteLine("Duplicate option registration: ", propertyName);
 			}
 			else
 			{
