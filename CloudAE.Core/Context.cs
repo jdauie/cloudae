@@ -56,6 +56,13 @@ namespace CloudAE.Core
 
 		static Context()
 		{
+			// this should go somewhere on startup
+			// also, verify any other platform specs
+			if (!BitConverter.IsLittleEndian)
+			{
+				throw new NotSupportedException();
+			}
+
 			AppDomain appDomain = AppDomain.CurrentDomain;
 			c_baseDirectory = appDomain.BaseDirectory;
 
@@ -70,6 +77,8 @@ namespace CloudAE.Core
 
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 			c_registeredPropertiesList = new List<IPropertyState>();
+
+			RegisterFactories();
 
 			RegisterProperties();
 
@@ -125,21 +134,37 @@ namespace CloudAE.Core
 			}
 		}
 
+		private static void RegisterFactories()
+		{
+			Type baseType = typeof(IFactory);
+
+			ProcessLoadedTypes(
+				0,
+				"Factories",
+				t => baseType.IsAssignableFrom(t),
+				t => !t.IsAbstract,
+				t => System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle)
+			);
+		}
+
 		private static void RegisterProperties()
 		{
 			Type baseType = typeof(IPropertyContainer);
 
 			ProcessLoadedTypes(
+				0,
 				"Properties",
-				t => baseType.IsAssignableFrom(t), 
-				t => !t.IsAbstract, 
+				t => baseType.IsAssignableFrom(t),
+				t => !t.IsAbstract,
 				t => System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle)
 			);
 		}
 
-		public static void ProcessLoadedTypes(string processName, Func<Type, bool> consider, Func<Type, bool> attempt, Action<Type> action)
+		public static void ProcessLoadedTypes(int level, string processName, Func<Type, bool> consider, Func<Type, bool> attempt, Action<Type> action)
 		{
-			Console.WriteLine("[{0}]", processName);
+			string padding = "".PadRight(level * 2);
+
+			Console.WriteLine("{0}[{1}]", padding, processName);
 
 			var types = GetLoadedTypes(consider);
 			foreach (Type type in types)
@@ -157,7 +182,7 @@ namespace CloudAE.Core
 						result = 'x';
 					}
 				}
-				Console.WriteLine(" {0} {1}", result, type.Name);
+				Console.WriteLine("{0} {1} {2}", padding, result, type.Name);
 			}
 		}
 

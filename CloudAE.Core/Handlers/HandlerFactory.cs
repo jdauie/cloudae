@@ -9,19 +9,13 @@ using Microsoft.Win32;
 
 namespace CloudAE.Core
 {
-	public class HandlerFactory
+	public class HandlerFactory : IFactory
 	{
 		private static readonly List<IHandlerCreator> c_creators;
 		private static readonly string c_filter;
 
 		static HandlerFactory()
 		{
-			// this should go somewhere on startup
-			if (!BitConverter.IsLittleEndian)
-			{
-				throw new NotSupportedException();
-			}
-
 			c_creators = RegisterCreators();
 			c_filter = GetFilterString();
 		}
@@ -59,13 +53,11 @@ namespace CloudAE.Core
 
 		private static List<IHandlerCreator> RegisterCreators()
 		{
-			Console.WriteLine("Registering Handler Creators...");
-
 			List<IHandlerCreator> creators = new List<IHandlerCreator>();
-
 			Type baseType = typeof(IHandlerCreator);
 
 			Context.ProcessLoadedTypes(
+				1,
 				"Handlers",
 				t => baseType.IsAssignableFrom(t),
 				t => !t.IsAbstract,
