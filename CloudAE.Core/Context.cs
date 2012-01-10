@@ -22,6 +22,7 @@ using System.Windows;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Reflection;
+using System.IO;
 
 namespace CloudAE.Core
 {
@@ -48,12 +49,34 @@ namespace CloudAE.Core
 		private static readonly Dictionary<PropertyName, IPropertyState> c_registeredProperties;
 		private static readonly List<IPropertyState> c_registeredPropertiesList;
 
+		//private static readonly List<IFactory> c_factoryList;
+
+		private static readonly string c_baseDirectory;
+		private static readonly Type[] c_loadedTypes;
+
 		static Context()
 		{
+			AppDomain appDomain = AppDomain.CurrentDomain;
+			c_baseDirectory = appDomain.BaseDirectory;
+
+			RegisterExtensions();
+
+			c_loadedTypes = appDomain
+				.GetAssemblies()
+				.Where(a => !string.IsNullOrEmpty(a.Location) && a.Location.StartsWith(c_baseDirectory, StringComparison.OrdinalIgnoreCase))
+				.SelectMany(a => a.GetTypes())
+				.OrderBy(t => t.FullName)
+				.ToArray();
+
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 			c_registeredPropertiesList = new List<IPropertyState>();
 
 			RegisterProperties();
+
+			Console.WriteLine("[{0}]", typeof(Context).FullName);
+			Console.WriteLine("Base: {0}", c_baseDirectory);
+			//Console.WriteLine("Types: {0}", c_loadedTypes.Length);
+			//Console.WriteLine("Properties: {0}", c_registeredPropertiesList.Count);
 		}
 
 		public static List<IPropertyState> RegisteredProperties
@@ -61,25 +84,72 @@ namespace CloudAE.Core
 			get { return c_registeredPropertiesList; }
 		}
 
+		public static IEnumerable<Type> GetLoadedTypes(Func<Type, bool> predicate)
+		{
+			return c_loadedTypes.Where(predicate);
+		}
+
+		/// <summary>
+		/// Currently, this looks at all directories below the current domain base, recursively.
+		/// </summary>
+		private static void RegisterExtensions()
+		{
+			Console.WriteLine("[Extensions]");
+
+			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+			var assemblyLookup = assemblies
+				.Where(a => !String.IsNullOrEmpty(a.Location))
+				.Distinct(a => a.Location, StringComparer.OrdinalIgnoreCase)
+				.ToDictionary(a => a.Location, a => a, StringComparer.OrdinalIgnoreCase);
+
+			String path = c_baseDirectory;
+			if (Directory.Exists(path))
+			{
+				var files = Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories);
+				var newAssemblyPaths = files
+					.Distinct(StringComparer.OrdinalIgnoreCase)
+					.Where(f => !assemblyLookup.ContainsKey(f));
+
+				foreach (String assemblyPath in newAssemblyPaths)
+				{
+					char result = 'x';
+					try
+					{
+						Assembly assembly = Assembly.LoadFrom(assemblyPath);
+						assemblyLookup.Add(assemblyPath, assembly);
+						result = '+';
+					}
+					catch (Exception) { }
+					Console.WriteLine(" {0} {1}", result, assemblyPath);
+				}
+			}
+		}
+
 		private static void RegisterProperties()
 		{
-			Console.WriteLine("Registering Properties...");
-
 			Type baseType = typeof(IPropertyContainer);
-			AppDomain app = AppDomain.CurrentDomain;
-			Assembly[] assemblies = app.GetAssemblies();
-			var containerTypes = assemblies
-				.SelectMany(a => a.GetTypes())
-				.Where(t => baseType.IsAssignableFrom(t) && !t.IsInterface);
 
-			foreach (Type type in containerTypes)
+			ProcessLoadedTypes(
+				"Properties",
+				t => baseType.IsAssignableFrom(t), 
+				t => !t.IsAbstract, 
+				t => System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle)
+			);
+		}
+
+		public static void ProcessLoadedTypes(string processName, Func<Type, bool> consider, Func<Type, bool> attempt, Action<Type> action)
+		{
+			Console.WriteLine("[{0}]", processName);
+
+			var types = GetLoadedTypes(consider);
+			foreach (Type type in types)
 			{
 				char result = '-';
-				if (!type.IsAbstract)
+				if (attempt(type))
 				{
 					try
 					{
-						System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+						action(type);
 						result = '+';
 					}
 					catch (Exception)
@@ -111,10 +181,10 @@ namespace CloudAE.Core
 			{
 				state = c_registeredProperties[propertyName] as PropertyState<T>;
 				if (state == null)
-					throw new Exception("Duplicate property registration with a different type for {0}.");
+					throw new Exception("Duplicate option registration with a different type for {0}.");
 
-				Debug.Assert(false, "");
-				Console.WriteLine("Duplicate Property Registration: ", propertyName);
+				Debug.Assert(false, "Duplicate option registration");
+				Console.WriteLine("Duplicate option registration: ", propertyName);
 			}
 			else
 			{
@@ -153,26 +223,28 @@ namespace CloudAE.Core
 				switch (typeCode)
 				{
 					case TypeCode.Boolean:
-						writeConversion = new Func<object, object>(delegate(object value) { return (int)((bool)value ? 1 : 0); });
-						readConversion = new Func<object, object>(delegate(object value) { return ((int)value == 1); });
+						writeConversion = (value => (int)((bool)value ? 1 : 0));
+						readConversion  = (value => ((int)value == 1));
 						break;
 					case TypeCode.Byte:
 					case TypeCode.SByte:
 					case TypeCode.Int16:
 					case TypeCode.UInt16:
 					case TypeCode.UInt32:
-						readConversion = new Func<object, object>(delegate(object value) { return (int)value; });
-						writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt32(value); });
+						readConversion  = (value => (int)value);
+						writeConversion = (value => Convert.ToInt32(value));
 						break;
 					case TypeCode.UInt64:
-						readConversion = new Func<object, object>(delegate(object value) { return (long)value; });
-						writeConversion = new Func<object, object>(delegate(object value) { return Convert.ToInt64(value); });
+						readConversion  = (value => (long)value);
+						writeConversion = (value => Convert.ToInt64(value));
 						break;
 					case TypeCode.Single:
-						readConversion = new Func<object, object>(delegate(object value) { return BitConverter.ToSingle(BitConverter.GetBytes((int)value), 0); });
+						writeConversion = (value => BitConverter.ToInt32(BitConverter.GetBytes((float)value), 0));
+						readConversion  = (value => BitConverter.ToSingle(BitConverter.GetBytes((int)value), 0));
 						break;
 					case TypeCode.Double:
-						readConversion = new Func<object, object>(delegate(object value) { return BitConverter.ToDouble(BitConverter.GetBytes((long)value), 0); });
+						writeConversion = (value => BitConverter.ToInt64(BitConverter.GetBytes((double)value), 0));
+						readConversion  = (value => BitConverter.ToDouble(BitConverter.GetBytes((long)value), 0));
 						break;
 				}
 
@@ -191,8 +263,6 @@ namespace CloudAE.Core
 		public static void Shutdown()
 		{
 		}
-
-		
 
 		#region Windows
 

@@ -34,16 +34,6 @@ namespace CloudAE.Core
 		// not to be trusted
 		private Extent3D m_headerExtent;
 
-		public override string[] SupportedExtensions
-		{
-			get { return new string[] { "las" }; }
-		}
-
-		public override string HandlerName
-		{
-			get { return "LAS"; }
-		}
-
 		public unsafe LASFile(string path)
 			: base(path)
 		{

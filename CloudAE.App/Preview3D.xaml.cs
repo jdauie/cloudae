@@ -138,7 +138,7 @@ namespace CloudAE.App
 		private const bool USE_HIGH_RES_TEXTURE = true;
 		private const bool USE_LOW_RES_TEXTURE = true;
 
-		private const bool START_ORBIT = false;
+		private const bool START_ORBIT = true;
 		
 		private ProgressManager m_progressManager;
 		private BackgroundWorker m_backgroundWorker;

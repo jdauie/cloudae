@@ -58,32 +58,25 @@ namespace CloudAE.App
 
 		private void OnBrowseButtonClick(object sender, RoutedEventArgs e)
 		{
-			OpenFileDialog dialog = new OpenFileDialog();
-			dialog.Filter = "LAS files (*.las)|*.las|XYZ files (*.xyz;*.txt)|*.xyz;*.txt|All files (*.*)|*.*";
-			dialog.Multiselect = true;
-
-			//if (m_inputHandler != null)
-			//	dialog.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(m_inputHandler.FilePath));
+			OpenFileDialog dialog = HandlerFactory.GetOpenDialog();
 
 			if (dialog.ShowDialog(this) == true)
 			{
-				HandlerFactory factory = new HandlerFactory();
-				
 				string[] inputFiles = dialog.FileNames;
 				foreach (string inputFile in inputFiles)
 				{
-					AddToQueue(factory, inputFile);
+					AddToQueue(inputFile);
 				}
 
 				LoadNextInput();
 			}
 		}
 
-		private void AddToQueue(HandlerFactory factory, string inputFile)
+		private void AddToQueue(string inputFile)
 		{
 			if (File.Exists(inputFile))
 			{
-				FileHandlerBase inputHandler = factory.GetInputHandler(inputFile);
+				FileHandlerBase inputHandler = HandlerFactory.GetInputHandler(inputFile);
 				if (inputHandler != null)
 				{
 					m_inputQueue.Enqueue(inputHandler);
@@ -218,12 +211,10 @@ namespace CloudAE.App
 
 		private void OnTreeViewDrop(object sender, DragEventArgs e)
 		{
-			HandlerFactory factory = new HandlerFactory();
-
 			string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 			foreach (string file in files)
 			{
-				AddToQueue(factory, file);
+				AddToQueue(file);
 			}
 			LoadNextInput();
 		}

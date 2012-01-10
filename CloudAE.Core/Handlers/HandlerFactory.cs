@@ -4,19 +4,17 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using Microsoft.Win32;
 
 namespace CloudAE.Core
 {
 	public class HandlerFactory
 	{
-		private static List<FileHandlerBase> c_handlers;
+		private static readonly List<IHandlerCreator> c_creators;
+		private static readonly string c_filter;
 
 		static HandlerFactory()
-		{
-			RegisterFactories();
-		}
-
-		public FileHandlerBase GetInputHandler(string path)
 		{
 			// this should go somewhere on startup
 			if (!BitConverter.IsLittleEndian)
@@ -24,56 +22,66 @@ namespace CloudAE.Core
 				throw new NotSupportedException();
 			}
 
-			FileHandlerBase inputHandler = null;
-			string extension = Path.GetExtension(path).ToLower();
+			c_creators = RegisterCreators();
+			c_filter = GetFilterString();
+		}
 
-			switch (extension)
+		private static string GetFilterString()
+		{
+			List<string> filters = new List<string>();
+
+			foreach (IHandlerCreator creator in c_creators)
 			{
-				case ".las":
-					inputHandler = new LASFile(path);
-					break;
+				string extensions = string.Join<string>(";", creator.SupportedExtensions.Select(e => string.Format("*.{0}", e)));
+				filters.Add(string.Format("{0} files ({1})|{1}", creator.HandlerName, extensions));
+			}
 
-				case ".xyz":
-				case ".txt":
-					inputHandler = new XYZFile(path);
-					break;
+			filters.Add("All files (*.*)|*.*");
+
+			return String.Join<string>("|", filters);
+		}
+
+		public static FileHandlerBase GetInputHandler(string path)
+		{
+			FileHandlerBase inputHandler = null;
+			string extension = Path.GetExtension(path);
+			
+			foreach (IHandlerCreator creator in c_creators)
+			{
+				if (creator.IsSupportedExtension(extension))
+				{
+					inputHandler = creator.Create(path);
+				}
 			}
 
 			return inputHandler;
 		}
 
-		private static void RegisterFactories()
+		private static List<IHandlerCreator> RegisterCreators()
 		{
-			Console.WriteLine("Registering Handlers...");
+			Console.WriteLine("Registering Handler Creators...");
 
-			c_handlers = new List<FileHandlerBase>();
+			List<IHandlerCreator> creators = new List<IHandlerCreator>();
 
-			Type baseType = typeof(FileHandlerBase);
-			AppDomain app = AppDomain.CurrentDomain;
-			var assemblies = app.GetAssemblies();
-			var factoryTypes = assemblies
-				.SelectMany(a => a.GetTypes())
-				.Where(t => baseType.IsAssignableFrom(t));
+			Type baseType = typeof(IHandlerCreator);
 
-			foreach (Type type in factoryTypes)
-			{
-				char result = '-';
-				if (!type.IsAbstract)
-				{
-					try
-					{
-						//ISourceFactory factory = Activator.CreateInstance(type, this) as ISourceFactory;
-						//factory.Init();
-						//m_factories.Add(factory);
-						result = '+';
-					}
-					catch (Exception)
-					{
-						result = 'x';
-					}
-				}
-				Console.WriteLine(" {0} {1}", result, type.Name);
-			}
+			Context.ProcessLoadedTypes(
+				"Handlers",
+				t => baseType.IsAssignableFrom(t),
+				t => !t.IsAbstract,
+				t => creators.Add(Activator.CreateInstance(t) as IHandlerCreator)
+			);
+
+			return creators;
+		}
+
+		public static OpenFileDialog GetOpenDialog()
+		{
+			OpenFileDialog dialog = new OpenFileDialog();
+			dialog.Filter = c_filter;
+			dialog.Multiselect = true;
+
+			return dialog;
 		}
 	}
 }

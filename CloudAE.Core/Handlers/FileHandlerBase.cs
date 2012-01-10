@@ -22,16 +22,6 @@ namespace CloudAE.Core
 			}
 		}
 
-		public abstract string HandlerName
-		{
-			get;
-		}
-
-		public abstract string[] SupportedExtensions
-		{
-			get;
-		}
-
 		protected FileHandlerBase(string path)
 		{
 			m_path = path;

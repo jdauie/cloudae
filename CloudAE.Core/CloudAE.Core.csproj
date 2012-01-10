@@ -51,8 +51,16 @@
   <ItemGroup>
     <Compile Include="BufferManager.cs" />
     <Compile Include="Cache.cs" />
+    <Compile Include="Exceptions\IgnorableException.cs" />
+    <Compile Include="Exceptions\OpenFailedException.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Geometry\Plane.cs" />
+    <Compile Include="Handlers\IFactory.cs" />
+    <Compile Include="Handlers\XYZCreator.cs" />
+    <Compile Include="Handlers\HandlerCreatorBase.cs" />
+    <Compile Include="Handlers\IHandlerCreator.cs" />
+    <Compile Include="Handlers\LASCreator.cs" />
     <Compile Include="ISerializeBinary.cs" />
     <Compile Include="Media\ColorMap.cs" />
     <Compile Include="Media\ColorRamp.cs" />

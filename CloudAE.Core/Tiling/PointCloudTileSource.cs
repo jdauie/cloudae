@@ -23,7 +23,7 @@ namespace CloudAE.Core
 		// change this to TPBF?
 		private const string FILE_IDENTIFIER = "TPBF";
 		private const int FILE_VERSION_MAJOR = 1;
-		private const int FILE_VERSION_MINOR = 7;
+		private const int FILE_VERSION_MINOR = 8;
 
 		public readonly PointCloudTileSet TileSet;
 		public readonly Statistics StatisticsZ;
@@ -93,10 +93,13 @@ namespace CloudAE.Core
 			using (BinaryReader reader = new BinaryReader(File.OpenRead(file)))
 			{
 				if (ASCIIEncoding.ASCII.GetString(reader.ReadBytes(FILE_IDENTIFIER.Length)) != FILE_IDENTIFIER)
-					throw new Exception("File identifier does not match.");
+					throw new OpenFailedException(file, "File identifier does not match.");
 
-				reader.ReadInt32(); // major version
-				reader.ReadInt32(); // minor version
+				int versionMajor = reader.ReadInt32();
+				int versionMinor = reader.ReadInt32();
+
+				if (versionMajor != FILE_VERSION_MAJOR || versionMinor != FILE_VERSION_MINOR)
+					throw new OpenFailedException(file, "File version does not match.");
 
 				pointDataOffset = reader.ReadInt64();
 				compression = (CompressionMethod)reader.ReadInt32();

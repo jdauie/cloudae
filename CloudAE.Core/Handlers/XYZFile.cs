@@ -12,16 +12,6 @@ namespace CloudAE.Core
 {
 	class XYZFile : FileHandlerBase
 	{
-		public override string[] SupportedExtensions
-		{
-			get { return new string[] { "txt", "csv", "xyz*" }; }
-		}
-
-		public override string HandlerName
-		{
-			get { return "XYZ"; }
-		}
-
 		public XYZFile(string path)
 			: base(path)
 		{
