@@ -58,6 +58,9 @@ namespace CloudAE.Core
 
 		static Context()
 		{
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
+
 			// this should go somewhere on startup
 			// also, verify any other platform specs
 			if (!BitConverter.IsLittleEndian)
@@ -76,15 +79,18 @@ namespace CloudAE.Core
 			}
 
 			RegisterExtensions();
-			c_loadedTypes = appDomain.GetNestedTypes().ToArray();
+			c_loadedTypes = appDomain.GetExtensionTypes(PropertyManager.PRODUCT_NAME).ToArray();
 			RegisterFactories();
 			RegisterProperties();
+
+			stopwatch.Stop();
 
 			{
 				Context.WriteLine("[{0}]", typeof(Context).FullName);
 				Context.WriteLine("Base:    {0}", c_baseDirectory);
 				Context.WriteLine("Types:   {0}", c_loadedTypes.Length);
 				Context.WriteLine("Options: {0}", c_registeredPropertiesList.Count);
+				Context.WriteLine("Time:    {0}ms", stopwatch.ElapsedMilliseconds);
 
 				Context.WriteLine("[Options]");
 				foreach (IPropertyState property in c_registeredPropertiesList)

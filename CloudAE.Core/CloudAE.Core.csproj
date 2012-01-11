@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="BufferManager.cs" />
     <Compile Include="Cache.cs" />
+    <Compile Include="Attributes\ProductExtensionAttribute.cs" />
     <Compile Include="Exceptions\IgnorableException.cs" />
     <Compile Include="Exceptions\OpenFailedException.cs" />
     <Compile Include="Extensions\ReflectionExtensions.cs" />
