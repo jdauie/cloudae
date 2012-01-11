@@ -35,8 +35,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		///     A transform to move the camera or scene to the trackball's
-		///     current orientation and scale.
+		/// A transform to move the camera or scene to the current orientation and scale.
 		/// </summary>
 		public Transform3D Transform
 		{
@@ -46,7 +45,7 @@ namespace CloudAE.Core
 		#region Event Handling
 
 		/// <summary>
-		///     The FrameworkElement we listen to for mouse events.
+		/// The FrameworkElement source for mouse and keyboard events.
 		/// </summary>
 		public FrameworkElement EventSource
 		{
@@ -119,7 +118,21 @@ namespace CloudAE.Core
 
 		private void OnTimerElapsed(object sender, ElapsedEventArgs e)
 		{
-			throw new NotImplementedException();
+			if (m_activeZoomKey != Key.None)
+			{
+				double delta = 1.0;
+				if (m_activeZoomKey == Key.Up)
+					delta *= -1;
+
+				_scale.Dispatcher.Invoke(
+					System.Windows.Threading.DispatcherPriority.Normal,
+					new Action(
+					delegate()
+					{
+						Zoom(delta);
+					}
+				));
+			}
 		}
 
 		#endregion
@@ -161,11 +174,11 @@ namespace CloudAE.Core
 		//    return new Vector3D(x, y, z);
 		//}
 
-		private void Zoom(Point currentPosition)
+		private void Zoom(double delta)
 		{
-			double yDelta = currentPosition.Y - m_previousPosition2D.Y;
+			//double yDelta = currentPosition.Y - m_previousPosition2D.Y;
 
-			double scale = Math.Exp(yDelta / 100);    // e^(yDelta/100) is fairly arbitrary.
+			double scale = Math.Exp(delta / 100);    // e^(yDelta/100) is fairly arbitrary.
 
 			_scale.ScaleX *= scale;
 			_scale.ScaleY *= scale;

@@ -577,6 +577,12 @@ namespace CloudAE.App
 
 				viewport.Camera.Transform = trackball.Transform;
 
+				//FlyMotionController flyMotionController = new FlyMotionController();
+				//flyMotionController.EventSource = previewImageGrid;
+
+				//viewport.Camera.Transform = flyMotionController.Transform;
+
+
 				previewImageGrid.MouseMove += OnViewportGridMouseMove;
 
 				if (START_ORBIT)

@@ -6,6 +6,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid x:Name="previewImageGrid">
-        <Viewport3D x:Name="viewport" />
+        <Viewport3D x:Name="viewport" Focusable="True" />
     </Grid>
 </UserControl>
