@@ -192,7 +192,7 @@ namespace CloudAE.Core
 							Point3D* p = (Point3D*)(inputBufferPtr + i);
 							sum += (*p).Z;
 
-							++verticalValueCounts[(int)(((long)(*p).Z - extent.MinZ) * intervalsOverRangeZ)];
+							++verticalValueCounts[(int)(((*p).Z - extent.MinZ) * intervalsOverRangeZ)];
 						}
 					}
 

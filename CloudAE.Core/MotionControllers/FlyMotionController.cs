@@ -16,8 +16,8 @@ namespace CloudAE.Core
 		private Vector3D _previousPosition3D = new Vector3D(0, 0, 1);
 
 		private Transform3DGroup m_transform;
-		private ScaleTransform3D _scale = new ScaleTransform3D();
-		private AxisAngleRotation3D _rotation = new AxisAngleRotation3D();
+		private ScaleTransform3D m_scale = new ScaleTransform3D();
+		private AxisAngleRotation3D m_rotation = new AxisAngleRotation3D();
 
 		private Key m_activeZoomKey;
 		private Key m_activePanKey;
@@ -30,8 +30,8 @@ namespace CloudAE.Core
 			m_timer.Elapsed += new ElapsedEventHandler(OnTimerElapsed);
 
 			m_transform = new Transform3DGroup();
-			m_transform.Children.Add(_scale);
-			m_transform.Children.Add(new RotateTransform3D(_rotation));
+			m_transform.Children.Add(m_scale);
+			m_transform.Children.Add(new RotateTransform3D(m_rotation));
 		}
 
 		/// <summary>
@@ -118,21 +118,31 @@ namespace CloudAE.Core
 
 		private void OnTimerElapsed(object sender, ElapsedEventArgs e)
 		{
-			if (m_activeZoomKey != Key.None)
-			{
-				double delta = 1.0;
-				if (m_activeZoomKey == Key.Up)
-					delta *= -1;
+			Point center = new Point(m_eventSource.ActualWidth / 2, m_eventSource.ActualHeight / 2);
+			Vector centerToCurrent = m_previousPosition2D - center;
 
-				_scale.Dispatcher.Invoke(
-					System.Windows.Threading.DispatcherPriority.Normal,
-					new Action(
-					delegate()
+			// direction for rotation
+			// distance for speed
+
+			//Point3D pseudoCamera = new Point3D();
+
+
+			m_scale.Dispatcher.Invoke(
+				System.Windows.Threading.DispatcherPriority.Normal,
+				new Action(
+				delegate()
+				{
+
+					if (m_activeZoomKey != Key.None)
 					{
+						double delta = 1.0;
+						if (m_activeZoomKey == Key.Up)
+							delta *= -1;
+
 						Zoom(delta);
 					}
-				));
-			}
+				}
+			));
 		}
 
 		#endregion
@@ -147,15 +157,15 @@ namespace CloudAE.Core
 		//    Quaternion delta = new Quaternion(axis, -angle);
 
 		//    // Get the current orientantion from the RotateTransform3D
-		//    AxisAngleRotation3D r = _rotation;
-		//    Quaternion q = new Quaternion(_rotation.Axis, _rotation.Angle);
+		//    AxisAngleRotation3D r = m_rotation;
+		//    Quaternion q = new Quaternion(m_rotation.Axis, m_rotation.Angle);
 
 		//    // Compose the delta with the previous orientation
 		//    q *= delta;
 
 		//    // Write the new orientation back to the Rotation3D
-		//    _rotation.Axis = q.Axis;
-		//    _rotation.Angle = q.Angle;
+		//    m_rotation.Axis = q.Axis;
+		//    m_rotation.Angle = q.Angle;
 
 		//    _previousPosition3D = currentPosition3D;
 		//}
@@ -180,9 +190,9 @@ namespace CloudAE.Core
 
 			double scale = Math.Exp(delta / 100);    // e^(yDelta/100) is fairly arbitrary.
 
-			_scale.ScaleX *= scale;
-			_scale.ScaleY *= scale;
-			_scale.ScaleZ *= scale;
+			m_scale.ScaleX *= scale;
+			m_scale.ScaleY *= scale;
+			m_scale.ScaleZ *= scale;
 		}
 	}
 }

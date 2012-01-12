@@ -233,9 +233,7 @@ namespace CloudAE.Core
 			Open();
 
 			UQuantizedExtent2D quantizedExtent = tile.QuantizedExtent;
-			//float pixelsOverRangeX = (float)grid.SizeX / quantizedExtent.RangeX;
-			//float pixelsOverRangeY = (float)grid.SizeY / quantizedExtent.RangeY;
-			// approximate, but probably good enough
+
 			uint cellSizeX = quantizedExtent.RangeX / grid.SizeX;
 			uint cellSizeY = quantizedExtent.RangeY / grid.SizeY;
 
@@ -251,9 +249,6 @@ namespace CloudAE.Core
 
 				for (int i = 0; i < tile.PointCount; i++)
 				{
-					//int pixelX = (int)((p[i].X - quantizedExtent.MinX) * pixelsOverRangeX);
-					//int pixelY = (int)((p[i].Y - quantizedExtent.MinY) * pixelsOverRangeY);
-
 					uint pixelX = (p[i].X - quantizedExtent.MinX) / cellSizeX;
 					uint pixelY = (p[i].Y - quantizedExtent.MinY) / cellSizeY;
 
@@ -746,6 +741,19 @@ namespace CloudAE.Core
 		{
 			float[,] gridValues = new float[grid.SizeX, grid.SizeY];
 
+			ComputeGridSlopeSurfaceComponent(grid, gridValues);
+
+			for (int x = 0; x < grid.SizeX; x++)
+				for (int y = 0; y < grid.SizeY; y++)
+					grid.Data[x, y] = gridValues[x, y];
+
+			Bitmap bmp = CreateBitmap(grid, 1.0, false, null);
+
+			return bmp;
+		}
+
+		private static void ComputeGridSlopeSurfaceComponent(Grid<float> grid, float[,] gridValues)
+		{
 			float xMultiplier = (float)(grid.Extent.RangeX / grid.SizeX);
 			float yMultiplier = (float)(grid.Extent.RangeY / grid.SizeY);
 
@@ -771,14 +779,6 @@ namespace CloudAE.Core
 					}
 				}
 			}
-
-			for (int x = 0; x < grid.SizeX; x++)
-				for (int y = 0; y < grid.SizeY; y++)
-					grid.Data[x, y] = gridValues[x, y];
-
-			Bitmap bmp = CreateBitmap(grid, 1.0, false, null);
-
-			return bmp;
 		}
 
 		private Bitmap CreateSegmentationBitmap(Grid<float> grid)
