@@ -280,7 +280,7 @@ namespace CloudAE.Core
 			//    // while the gap is small, keep climbing
 			//    float diff = values[i] - groundVal;
 
-			//    if (diff < 1.0f)
+			//    if (diff < 20.0f)
 			//        groundVal = values[i];
 			//}
 
@@ -544,6 +544,8 @@ namespace CloudAE.Core
 			byte[] inputBuffer = BufferManager.AcquireBuffer();
 			byte[] outputBuffer = BufferManager.AcquireBuffer();
 
+			ICompressor compressor = CompressionFactory.GetCompressor(compressionMethod);
+
 			//long[] byteProbabilityCounts = new long[256];
 
 			using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
@@ -579,23 +581,7 @@ namespace CloudAE.Core
 
 						int compressedSize = bytesRead;
 
-						switch (compressionMethod)
-						{
-							//case CompressionMethod.QuickLZ:
-							//    compressedSize = QuickLZ.compress(inputBuffer, bytesRead, outputBuffer, 1);
-							//    break;
-
-							//case CompressionMethod.DotNetZip:
-							//    compressedSize = SevenZipSharp.Compress(inputBuffer, bytesRead, outputBuffer);
-							//    break;
-
-							//case CompressionMethod.SevenZipSharp:
-							//    compressedSize = DotNetZip.Compress(inputBuffer, bytesRead, outputBuffer);
-							//    break;
-
-							case CompressionMethod.Default:
-								break;
-						}
+						compressedSize = compressor.Compress(tile, inputBuffer, bytesRead, outputBuffer);
 
 						byte[] bufferToWrite = outputBuffer;
 						int bytesToWrite = compressedSize;

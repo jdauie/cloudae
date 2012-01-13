@@ -14,6 +14,7 @@ namespace CloudAE.Core
 		public readonly long Count;
 		public readonly Quantization3D Quantization;
 		public readonly CompressionMethod Compression;
+		public readonly ICompressor Compressor;
 		public readonly short PointSizeBytes;
 		public readonly int UsableBytesPerBuffer;
 
@@ -39,6 +40,7 @@ namespace CloudAE.Core
 			Extent = extent;
 			Quantization = quantization;
 			Compression = compression;
+			Compressor = CompressionFactory.GetCompressor(Compression);
 			PointDataOffset = dataOffset;
 			PointSizeBytes = pointSizeBytes;
 			int pointsPerInputBuffer = BufferManager.BUFFER_SIZE_BYTES / pointSizeBytes;

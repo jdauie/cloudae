@@ -155,21 +155,7 @@ namespace CloudAE.Core
 			{
 				if (actuallyCompressed)
 				{
-					// this should be done with discovery/factory
-					switch (TileSource.Compression)
-					{
-						//case CompressionMethod.QuickLZ:
-						//    bytesRead = QuickLZ.Decompress(tempBuffer, bytesRead, inputBuffer);
-						//    break;
-
-						//case CompressionMethod.DotNetZip:
-						//    bytesRead = DotNetZip.Decompress(tempBuffer, bytesRead, inputBuffer);
-						//    break;
-
-						//case CompressionMethod.SevenZipSharp:
-						//    bytesRead = SevenZipSharp.Decompress(tempBuffer, bytesRead, inputBuffer);
-						//    break;
-					}
+					bytesRead = TileSource.Compressor.Decompress(this, tempBuffer, bytesRead, inputBuffer);
 
 					BufferManager.ReleaseBuffer(tempBuffer);
 					tempBuffer = null;
