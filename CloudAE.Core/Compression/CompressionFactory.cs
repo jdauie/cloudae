@@ -20,7 +20,7 @@ namespace CloudAE.Core.Compression
 				return null;
 
 			if (!c_compressors.ContainsKey(method))
-				throw new InvalidOperationException("Unavailable compression method.");
+				throw new InvalidOperationException("Compression method unavailable.");
 
 			return c_compressors[method];
 		}

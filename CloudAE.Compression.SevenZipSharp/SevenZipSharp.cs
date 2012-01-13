@@ -14,8 +14,8 @@ namespace CloudAE.Compression.SevenZipSharp
 
 		static SevenZipSharp()
 		{
-			// make a lookup for sub-files
-			SevenZipCompressor.SetLibraryPath(@"..\lib\x64\7z64.dll");
+			string libraryPath = Context.GetFilePath("7z64.dll");
+			SevenZipCompressor.SetLibraryPath(libraryPath);
 		}
 
 		public SevenZipSharp()

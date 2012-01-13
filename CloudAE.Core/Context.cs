@@ -49,7 +49,7 @@ namespace CloudAE.Core
 		private static readonly Dictionary<PropertyName, IPropertyState> c_registeredProperties;
 		private static readonly List<IPropertyState> c_registeredPropertiesList;
 
-		//private static readonly List<IFactory> c_factoryList;
+		private static readonly Dictionary<string, string> c_fileIndex;
 
 		private static readonly string c_baseDirectory;
 		private static readonly Type[] c_loadedTypes;
@@ -76,6 +76,8 @@ namespace CloudAE.Core
 
 				c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 				c_registeredPropertiesList = new List<IPropertyState>();
+
+				c_fileIndex = new Dictionary<string, string>();
 			}
 
 			RegisterExtensions();
@@ -90,7 +92,7 @@ namespace CloudAE.Core
 				Context.WriteLine("Base:    {0}", c_baseDirectory);
 				Context.WriteLine("Types:   {0}", c_loadedTypes.Length);
 				Context.WriteLine("Options: {0}", c_registeredPropertiesList.Count);
-				Context.WriteLine("Time:    {0}ms", stopwatch.ElapsedMilliseconds);
+				Context.WriteLine("Startup: {0}ms", stopwatch.ElapsedMilliseconds);
 
 				Context.WriteLine("[Options]");
 				foreach (IPropertyState property in c_registeredPropertiesList)
@@ -113,6 +115,13 @@ namespace CloudAE.Core
 			return c_loadedTypes.Where(predicate);
 		}
 
+		public static string GetFilePath(string file)
+		{
+			if (c_fileIndex.ContainsKey(file))
+				return c_fileIndex[file];
+			return null;
+		}
+
 		/// <summary>
 		/// Currently, this looks at all directories below the current domain base, recursively.
 		/// </summary>
@@ -125,10 +134,17 @@ namespace CloudAE.Core
 			String path = c_baseDirectory;
 			if (Directory.Exists(path))
 			{
-				var files = Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories);
+				string[] files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+
+				foreach (string file in files)
+				{
+					string key = Path.GetFileName(file);
+					if (!c_fileIndex.ContainsKey(key))
+						c_fileIndex.Add(key, file);
+				}
+
 				var newAssemblyPaths = files
-					.Distinct(StringComparer.OrdinalIgnoreCase)
-					.Where(f => !assemblyLookup.ContainsKey(f));
+					.Where(f => Path.GetExtension(f) == ".dll" && !assemblyLookup.ContainsKey(f));
 
 				foreach (String assemblyPath in newAssemblyPaths)
 				{
@@ -144,7 +160,7 @@ namespace CloudAE.Core
 					{
 						result = 'x';
 					}
-					Context.WriteLine(" {0} {1}", result, assemblyPath);
+					Context.WriteLine(" {0} {1}", result, Path.GetFileNameWithoutExtension(assemblyPath));
 				}
 			}
 		}

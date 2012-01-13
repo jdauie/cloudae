@@ -207,7 +207,7 @@ namespace CloudAE.Core
 
 				// step 4
 				// this is broken right now
-				//CompressTileSource(progressManager);
+				CompressTileSource(progressManager);
 
 				progressManager.Log(stopwatchTotal, "=> Processing Completed");
 			}
@@ -249,7 +249,7 @@ namespace CloudAE.Core
 
 		private PointCloudTileSource CompressTileSource(ProgressManager progressManager)
 		{
-			m_tileSource = m_tileSource.CompressTileSource(CompressionMethod.Default, progressManager);
+			m_tileSource = m_tileSource.CompressTileSource(CompressionMethod.SevenZipSharp, progressManager);
 
 			return m_tileSource;
 		}
