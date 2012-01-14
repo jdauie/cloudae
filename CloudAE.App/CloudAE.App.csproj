@@ -75,6 +75,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="LogViewer.xaml.cs">
+      <DependentUpon>LogViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ITileSourceControl.cs" />
     <Compile Include="Profile2D.xaml.cs">
       <DependentUpon>Profile2D.xaml</DependentUpon>
@@ -89,6 +92,10 @@
     <Compile Include="PropertyEditor.xaml.cs">
       <DependentUpon>PropertyEditor.xaml</DependentUpon>
     </Compile>
+    <Page Include="LogViewer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Profile2D.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

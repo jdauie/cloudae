@@ -174,11 +174,6 @@ namespace CloudAE.App
 
 		private Timer m_timer;
 
-		public bool IsDefaultSelectionControl
-		{
-			get { return false; }
-		}
-
 		public string DisplayName
 		{
 			get { return "3D"; }

@@ -25,11 +25,6 @@ namespace CloudAE.App
 	{
 		private PointCloudTileSource m_currentTileSource;
 
-		public bool IsDefaultSelectionControl
-		{
-			get { return false; }
-		}
-
 		public string DisplayName
 		{
 			get { return "Profile"; }

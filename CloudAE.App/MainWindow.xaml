@@ -85,10 +85,8 @@
 			<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="tabControl" SelectionChanged="OnTabControlSelectionChanged">
 				<TabItem Header="Log" x:Name="tabItemLog">
 					<Grid>
-                        <ScrollViewer>
-                            <TextBlock x:Name="textBlockLog" />
-                        </ScrollViewer>
-                    </Grid>
+						<local:LogViewer x:Name="logViewer" />
+					</Grid>
 				</TabItem>
 			</TabControl>
         </Grid>

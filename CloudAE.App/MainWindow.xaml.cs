@@ -48,10 +48,6 @@ namespace CloudAE.App
 		static MainWindow()
 		{
 			List<ITileSourceControl> controls = RegisterControls();
-
-			if (controls.Where(c => c.IsDefaultSelectionControl).Count() != 1)
-				throw new Exception("There must be exactly one default control.");
-
 			c_controls = controls.ToArray();
 		}
 
@@ -72,8 +68,6 @@ namespace CloudAE.App
 
 			Context.LoadWindowState(this);
 
-			m_tabItemOnStarted = tabItemLog;
-
 			foreach (ITileSourceControl control in c_controls)
 			{
 				Grid grid = new Grid();
@@ -83,10 +77,11 @@ namespace CloudAE.App
 				tabItem.Content = grid;
 				tabItem.Tag = control;
 				tabControl.Items.Add(tabItem);
-
-				if (control.IsDefaultSelectionControl)
-					m_tabItemOnSelection = tabItem;
 			}
+
+			m_tabItemOnStarted = tabItemLog;
+			m_tabItemOnSelection = tabControl.Items.OfType<TabItem>()
+				.Where(t => t.Tag != null && typeof(Preview2D).IsAssignableFrom(t.Tag.GetType())).First();
 		}
 
 		private static List<ITileSourceControl> RegisterControls()
@@ -154,7 +149,7 @@ namespace CloudAE.App
 		{
 			Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate()
 			{
-				textBlockLog.Text += String.Format("{0:yyyy-MM-dd HH:mm:ss}\t{1}\n", DateTime.Now, value);
+				logViewer.AppendLine(value);
 			}));
 		}
 

@@ -9,11 +9,6 @@ namespace CloudAE.App
 {
 	interface ITileSourceControl
 	{
-		bool IsDefaultSelectionControl
-		{
-			get;
-		}
-
 		string DisplayName
 		{
 			get;
