@@ -20,7 +20,7 @@ namespace CloudAE.App
 	/// <summary>
 	/// Interaction logic for Preview2D.xaml
 	/// </summary>
-	public partial class Preview2D : UserControl
+	public partial class Preview2D : UserControl, ITileSourceControl
 	{
 		private const int MAX_BUFFER_SIZE_BYTES = (int)ByteSizesSmall.MB_128;
 
@@ -28,6 +28,16 @@ namespace CloudAE.App
 
 		private Dictionary<PointCloudTile, System.Windows.Shapes.Rectangle> m_loadedTiles;
 		private Dictionary<PointCloudTile, byte[]> m_loadedTileBuffers;
+
+		public bool IsDefaultSelectionControl
+		{
+			get { return true; }
+		}
+
+		public string DisplayName
+		{
+			get { return "2D"; }
+		}
 
 		public PointCloudTileSource CurrentTileSource
 		{

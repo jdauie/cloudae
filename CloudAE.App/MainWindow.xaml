@@ -90,16 +90,6 @@
                         </ScrollViewer>
                     </Grid>
 				</TabItem>
-				<TabItem Header="2D" x:Name="tabItem2D">
-					<Grid>
-						<local:Preview2D x:Name="preview2D" />
-					</Grid>
-				</TabItem>
-				<TabItem Header="3D" x:Name="tabItem3D">
-					<Grid>
-                        <local:Preview3D x:Name="preview3D" />
-                    </Grid>
-				</TabItem>
 			</TabControl>
         </Grid>
 

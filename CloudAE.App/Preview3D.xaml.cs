@@ -129,7 +129,7 @@ namespace CloudAE.App
 	/// <summary>
 	/// Interaction logic for Preview3D.xaml
 	/// </summary>
-	public partial class Preview3D : UserControl
+	public partial class Preview3D : UserControl, ITileSourceControl
 	{
 		private const int MAX_BUFFER_SIZE_BYTES = (int)ByteSizesSmall.MB_128;
 		private const int VERTEX_COUNT_FAST = 400 * 400;
@@ -174,6 +174,16 @@ namespace CloudAE.App
 
 		private Timer m_timer;
 
+		public bool IsDefaultSelectionControl
+		{
+			get { return false; }
+		}
+
+		public string DisplayName
+		{
+			get { return "3D"; }
+		}
+
 		public PointCloudTileSource CurrentTileSource
 		{
 			get
@@ -184,9 +194,12 @@ namespace CloudAE.App
 			{
 				if (m_backgroundWorker.IsBusy)
 				{
-					// this is cancelling fairly quickly
-					// so I will leave it this way for now
 					m_backgroundWorker.CancelAsync();
+
+					while (m_backgroundWorker.IsBusy)
+					{
+						System.Windows.Forms.Application.DoEvents();
+					}
 				}
 
 				m_tileInfo.Clear();

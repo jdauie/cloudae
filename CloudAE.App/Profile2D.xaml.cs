@@ -19,11 +19,21 @@ using CloudAE.Core.Delaunay;
 namespace CloudAE.App
 {
 	/// <summary>
-	/// Interaction logic for Preview2D.xaml
+	/// Interaction logic for Profile2D.xaml
 	/// </summary>
-	public partial class Profile2D : UserControl
+	public partial class Profile2D : UserControl, ITileSourceControl
 	{
 		private PointCloudTileSource m_currentTileSource;
+
+		public bool IsDefaultSelectionControl
+		{
+			get { return false; }
+		}
+
+		public string DisplayName
+		{
+			get { return "Profile"; }
+		}
 
 		public PointCloudTileSource CurrentTileSource
 		{

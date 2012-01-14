@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CloudAE.Core
 {
-	interface IFactory
+	public interface IFactory
 	{
 	}
 }

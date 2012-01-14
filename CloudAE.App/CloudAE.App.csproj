@@ -75,6 +75,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ITileSourceControl.cs" />
     <Compile Include="Profile2D.xaml.cs">
       <DependentUpon>Profile2D.xaml</DependentUpon>
     </Compile>

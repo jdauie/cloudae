@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -7,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Reflection;
 using Microsoft.Win32;
 
 using CloudAE.Core;
@@ -16,8 +18,10 @@ namespace CloudAE.App
 	/// <summary>
 	/// Interaction logic for MainWindow2.xaml
 	/// </summary>
-	public partial class MainWindow : Window, ISerializeStateBinary
+	public partial class MainWindow : Window, ISerializeStateBinary, IFactory
 	{
+		private static readonly ITileSourceControl[] c_controls;
+
 		private Dictionary<string, PointCloudTileSource> m_sources;
 		private PointCloudTileSource m_currentTileSource;
 
@@ -25,6 +29,9 @@ namespace CloudAE.App
 		private BackgroundWorker m_backgroundWorker;
 
 		private Queue<FileHandlerBase> m_inputQueue;
+
+		private TabItem m_tabItemOnStarted;
+		private TabItem m_tabItemOnSelection;
 
 		public PointCloudTileSource CurrentTileSource
 		{
@@ -36,6 +43,16 @@ namespace CloudAE.App
 			{
 				m_currentTileSource = value;
 			}
+		}
+
+		static MainWindow()
+		{
+			List<ITileSourceControl> controls = RegisterControls();
+
+			if (controls.Where(c => c.IsDefaultSelectionControl).Count() != 1)
+				throw new Exception("There must be exactly one default control.");
+
+			c_controls = controls.ToArray();
 		}
 
 		public MainWindow()
@@ -54,6 +71,39 @@ namespace CloudAE.App
 			m_backgroundWorker.RunWorkerCompleted += OnBackgroundRunWorkerCompleted;
 
 			Context.LoadWindowState(this);
+
+			m_tabItemOnStarted = tabItemLog;
+
+			foreach (ITileSourceControl control in c_controls)
+			{
+				Grid grid = new Grid();
+				grid.Children.Add(control as UserControl);
+				TabItem tabItem = new TabItem();
+				tabItem.Header = control.DisplayName;
+				tabItem.Content = grid;
+				tabItem.Tag = control;
+				tabControl.Items.Add(tabItem);
+
+				if (control.IsDefaultSelectionControl)
+					m_tabItemOnSelection = tabItem;
+			}
+		}
+
+		private static List<ITileSourceControl> RegisterControls()
+		{
+			List<ITileSourceControl> controls = new List<ITileSourceControl>();
+			Type baseType0 = typeof(ITileSourceControl);
+			Type baseType1 = typeof(UserControl);
+
+			Context.ProcessLoadedTypes(
+				1,
+				"Controls",
+				t => baseType0.IsAssignableFrom(t) && baseType1.IsAssignableFrom(t),
+				t => !t.IsAbstract,
+				t => controls.Add(Activator.CreateInstance(t) as ITileSourceControl)
+			);
+
+			return controls;
 		}
 
 		private void OnBrowseButtonClick(object sender, RoutedEventArgs e)
@@ -94,7 +144,7 @@ namespace CloudAE.App
 
 					textBlockPreview.Text = inputHandler.GetPreview();
 
-					tabItemLog.IsSelected = true;
+					m_tabItemOnStarted.IsSelected = true;
 					m_backgroundWorker.RunWorkerAsync(inputHandler);
 				}
 			}
@@ -121,8 +171,6 @@ namespace CloudAE.App
 			if (tileSource != null)
 			{
 				tileSource.GeneratePreview(1000, m_progressManager);
-
-				//tileSource.GeneratePreviewGrid(700, m_progressManager);
 
 				e.Result = tileSource;
 			}
@@ -164,7 +212,7 @@ namespace CloudAE.App
 		private void UpdateSelection(PointCloudTileSource tileSource)
 		{
 			CurrentTileSource = tileSource;
-			tabItem2D.IsSelected = true;
+			m_tabItemOnSelection.IsSelected = true;
 			UpdateTabSelection();
 		}
 
@@ -182,8 +230,9 @@ namespace CloudAE.App
 		{
 			if (e.Source is TabControl)
 			{
-				preview3D.CurrentTileSource = null;
-				preview2D.CurrentTileSource = null;
+				foreach (ITileSourceControl control in c_controls)
+					control.CurrentTileSource = null;
+				
 				GC.Collect();
 
 				UpdateTabSelection();
@@ -192,13 +241,14 @@ namespace CloudAE.App
 
 		private void UpdateTabSelection()
 		{
-			if (tabItem3D.IsSelected)
+			TabItem tabItem = tabControl.SelectedItem as TabItem;
+			if (tabItem != null)
 			{
-				preview3D.CurrentTileSource = m_currentTileSource;
-			}
-			else if (tabItem2D.IsSelected)
-			{
-				preview2D.CurrentTileSource = m_currentTileSource;
+				ITileSourceControl control = tabItem.Tag as ITileSourceControl;
+				if (control != null)
+				{
+					control.CurrentTileSource = CurrentTileSource;
+				}
 			}
 		}
 
