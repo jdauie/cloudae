@@ -84,35 +84,35 @@ namespace CloudAE.Core
 				progressManager.Log(stopwatchTotal, "=> Processing Completed");
 			}
 
-			{
-				// test
-				Stopwatch stopwatch = new Stopwatch();
-				stopwatch.Start();
+			//{
+			//    // test
+			//    Stopwatch stopwatch = new Stopwatch();
+			//    stopwatch.Start();
 
-				PointCloudTile tempTile = m_tileSource.TileSet.Tiles[0, 0];
-				Grid<float> grid = new Grid<float>(tempTile.Extent, 540, (float)m_tileSource.Extent.MinZ - 1.0f, true);
-				Grid<uint> quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, m_tileSource.Extent, true);
+			//    PointCloudTile tempTile = m_tileSource.TileSet.Tiles[0, 0];
+			//    Grid<float> grid = new Grid<float>(tempTile.Extent, 540, (float)m_tileSource.Extent.MinZ - 1.0f, true);
+			//    Grid<uint> quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, m_tileSource.Extent, true);
 
-				using (GridTileSource<float> gridSource = new GridTileSource<float>(m_tiledPath + ".grid", grid.SizeX, grid.SizeY, m_tileSource.TileSet.Cols, m_tileSource.TileSet.Rows))
-				{
-					int tempBufferSize = (int)(m_tileSource.TileSet.Max(t => t.PointCount));
-					byte[] tempBuffer = new byte[tempBufferSize * m_tileSource.PointSizeBytes];
+			//    using (GridTileSource<float> gridSource = new GridTileSource<float>(m_tiledPath + ".grid", grid.SizeX, grid.SizeY, m_tileSource.TileSet.Cols, m_tileSource.TileSet.Rows))
+			//    {
+			//        int tempBufferSize = (int)(m_tileSource.TileSet.Max(t => t.PointCount));
+			//        byte[] tempBuffer = new byte[tempBufferSize * m_tileSource.PointSizeBytes];
 
-					foreach (PointCloudTile tile in m_tileSource)
-					{
-						m_tileSource.LoadTileGrid(tile, tempBuffer, grid, quantizedGrid);
-						gridSource.WriteTile(tile.Col, tile.Row, grid.Data);
+			//        foreach (PointCloudTile tile in m_tileSource)
+			//        {
+			//            m_tileSource.LoadTileGrid(tile, tempBuffer, grid, quantizedGrid);
+			//            gridSource.WriteTile(tile.Col, tile.Row, grid.Data);
 
-						if (!progressManager.Update((float)tile.Index / m_tileSource.TileSet.TileCount))
-							break;
-					}
+			//            if (!progressManager.Update((float)tile.Index / m_tileSource.TileSet.TileCount))
+			//                break;
+			//        }
 
-					//gridSource.ReadTile(tempTile.Col, tempTile.Row, grid.Data);
-				}
-				m_tileSource.Close();
+			//        //gridSource.ReadTile(tempTile.Col, tempTile.Row, grid.Data);
+			//    }
+			//    m_tileSource.Close();
 
-				progressManager.Log(stopwatch, "Generated GRID");
-			}
+			//    progressManager.Log(stopwatch, "Generated GRID");
+			//}
 
 			return m_tileSource;
 		}
