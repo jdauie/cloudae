@@ -22,7 +22,7 @@ namespace CloudAE.App
 	/// </summary>
 	public partial class Preview2D : UserControl
 	{
-		private const int MAX_BUFFER_SIZE_BYTES = BufferManager.Sizes.MB_128;
+		private const int MAX_BUFFER_SIZE_BYTES = (int)ByteSizesSmall.MB_128;
 
 		private PointCloudTileSource m_currentTileSource;
 

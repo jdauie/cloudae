@@ -19,7 +19,7 @@ namespace CloudAE.Core
 	/// </summary>
 	class PointCloudTileBufferManager : IPointCloudTileBufferManager, IPropertyContainer
 	{
-		private static readonly PropertyState<int> PROPERTY_MAX_BUFFER_SIZE;
+		private static readonly PropertyState<ByteSizesSmall> PROPERTY_MAX_BUFFER_SIZE;
 		private static readonly PropertyState<PointCloudTileBufferSizeMode> PROPERTY_BUFFER_SIZE_MODE;
 
 		private readonly PointCloudTileSource m_tileSource;
@@ -40,7 +40,7 @@ namespace CloudAE.Core
 
 		static PointCloudTileBufferManager()
 		{
-			PROPERTY_MAX_BUFFER_SIZE = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "BufferManagerMaxBufferSize", BufferManager.Sizes.MB_512);
+			PROPERTY_MAX_BUFFER_SIZE = Context.RegisterOption<ByteSizesSmall>(Context.OptionCategory.Tiling, "BufferManagerMaxBufferSize", ByteSizesSmall.MB_512);
 			PROPERTY_BUFFER_SIZE_MODE = Context.RegisterOption<PointCloudTileBufferSizeMode>(Context.OptionCategory.Tiling, "BufferManagerSizeMode", PointCloudTileBufferSizeMode.Median);
 		}
 
@@ -74,7 +74,7 @@ namespace CloudAE.Core
 					break;
 			}
 
-			int maxBuffersToAllocate = Math.Min(PROPERTY_MAX_BUFFER_SIZE.Value / maxIndividualBufferSize, m_tileSet.TileCount);
+			int maxBuffersToAllocate = Math.Min((int)PROPERTY_MAX_BUFFER_SIZE.Value / maxIndividualBufferSize, m_tileSet.TileCount);
 
 			Context.WriteLine("Tiles:   {0}", m_tileSet.TileCount);
 			Context.WriteLine("Buffers: {0}", maxBuffersToAllocate);
