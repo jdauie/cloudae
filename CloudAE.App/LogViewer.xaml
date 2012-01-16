@@ -6,15 +6,12 @@
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="300">
 	<Grid>
-		<!--
-		<ScrollViewer>
-			<TextBlock x:Name="textBlockLog" />
+		<ScrollViewer x:Name="scrollViewer">
+			<RichTextBox x:Name="richTextBox">
+				<FlowDocument>
+					<Paragraph x:Name="richTextBoxParagraph" />
+				</FlowDocument>
+			</RichTextBox>
 		</ScrollViewer>
-		-->
-		<RichTextBox x:Name="richTextBox">
-			<FlowDocument>
-				<Paragraph x:Name="richTextBoxParagraph" />
-			</FlowDocument>
-		</RichTextBox>
 	</Grid>
 </UserControl>

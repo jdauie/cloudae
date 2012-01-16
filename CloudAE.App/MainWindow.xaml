@@ -68,12 +68,12 @@
 
 		<Grid Grid.Row="1" Grid.Column="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 			<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="tabControl2">
-				<TabItem Header="Properties" x:Name="tabItemPreview">
+				<TabItem Header="Queue" x:Name="tabItemPreview">
 					<Grid>
 						<TextBlock Grid.Row="0" x:Name="textBlockPreview" />
 					</Grid>
 				</TabItem>
-				<TabItem Header="Info" x:Name="tabItemInfo">
+				<TabItem Header="Options" x:Name="tabItemInfo">
 					<Grid>
                         <local:PropertyEditor x:Name="propertyEditor" />
                     </Grid>

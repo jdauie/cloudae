@@ -39,8 +39,6 @@ namespace CloudAE.App
 
 		public void AppendLine(string line)
 		{
-			//textBlockLog.Text += String.Format("{0:yyyy-MM-dd HH:mm:ss}\t{1}\n", DateTime.Now, line);
-
 			int i = 0;
 			while (i < line.Length)
 			{
@@ -49,8 +47,9 @@ namespace CloudAE.App
 				++i;
 			}
 
-			Run run0 = new Run(String.Format("{0:yyyy-MM-dd HH:mm:ss}\t", DateTime.Now));
+			Run run0 = new Run(String.Format("{0:yyyy-MM-dd HH:mm:ss}  ", DateTime.Now));
 			run0.Foreground = m_foregroundBrushTime;
+			run0.FontFamily = new System.Windows.Media.FontFamily("Consolas");
 
 			Run run1 = new Run(line.Substring(0, i));
 			run1.Foreground = m_foregroundBrushHighlight;
@@ -61,6 +60,8 @@ namespace CloudAE.App
 			richTextBoxParagraph.Inlines.Add(run1);
 			richTextBoxParagraph.Inlines.Add(run2);
 			richTextBoxParagraph.Inlines.Add(new LineBreak());
+
+			scrollViewer.ScrollToBottom();
 		}
 	}
 }
