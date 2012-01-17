@@ -249,7 +249,7 @@ namespace CloudAE.Core
 			{
 				for (int tileY = 0; tileY < Rows; tileY++)
 				{
-					if (m_tiles[tileX, tileY].IsValid)
+					//if (m_tiles[tileX, tileY].IsValid)
 						yield return m_tiles[tileX, tileY];
 				}
 			}
