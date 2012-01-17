@@ -10,7 +10,10 @@ using CloudAE.Core.Compression;
 
 namespace CloudAE.Core
 {
-	public struct PointCloudTile
+	/// <summary>
+	/// This used to be a struct, but it is too large now -- performance was getting degraded.
+	/// </summary>
+	public class PointCloudTile
 	{
 		public readonly PointCloudTileSource TileSource;
 
