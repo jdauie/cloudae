@@ -39,7 +39,7 @@ namespace CloudAE.Core
 		{
 			m_path = path;
 
-			using (FileStream inputStream = new FileStream(m_path, FileMode.Open, FileAccess.Read, FileShare.None, minimumSizeOfHeader))
+			using (FileStream inputStream = new FileStream(m_path, FileMode.Open, FileAccess.Read, FileShare.Read, minimumSizeOfHeader))
 			{
 				long inputLength = inputStream.Length;
 
@@ -133,7 +133,7 @@ namespace CloudAE.Core
 
 				Point3D[] pointBuffer = new Point3D[pointsPerInputBuffer];
 
-				using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
+				using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
 				{
 					long inputLength = inputStream.Length;
 

@@ -93,6 +93,7 @@ namespace CloudAE.Core
 				Context.WriteLine("Base:    {0}", c_baseDirectory);
 				Context.WriteLine("Types:   {0}", c_loadedTypes.Length);
 				Context.WriteLine("Options: {0}", c_registeredPropertiesList.Count);
+				Context.WriteLine("Cache:   {0}", Cache.CacheSize.ToSize());
 				Context.WriteLine("Startup: {0}ms", stopwatch.ElapsedMilliseconds);
 
 				Context.WriteLine("[Options]");

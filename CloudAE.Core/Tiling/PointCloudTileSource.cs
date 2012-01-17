@@ -150,7 +150,7 @@ namespace CloudAE.Core
 		{
 			if (m_inputStream == null)
 			{
-				m_inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.RandomAccess);
+				m_inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.RandomAccess);
 			}
 		}
 
@@ -548,7 +548,7 @@ namespace CloudAE.Core
 
 			//long[] byteProbabilityCounts = new long[256];
 
-			using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
+			using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
 			using (FileStream outputStream = new FileStream(outputTempFile, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
 			{
 				long inputLength = inputStream.Length;
@@ -806,30 +806,23 @@ namespace CloudAE.Core
 			uint minX = QuantizedExtent.MinX;
 			uint minY = QuantizedExtent.MinY;
 
-			using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES))
+			byte[] inputBuffer = new byte[TileSet.Density.MaxTileCount * PointSizeBytes];
+
+			fixed (byte* inputBufferPtr = inputBuffer)
 			{
-				long inputLength = inputStream.Length;
-
-				byte[] inputBuffer = new byte[TileSet.Density.MaxTileCount * PointSizeBytes];
-
-				fixed (byte* inputBufferPtr = inputBuffer)
+				foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(inputBuffer))
 				{
-					foreach (PointCloudTile tile in TileSet)
+					for (UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr, end = p + chunk.Tile.PointCount; p < end; ++p)
 					{
-						int bytesRead = tile.ReadTile(inputStream, inputBuffer);
+						int pixelX = (int)(((*p).X - minX) * pixelsOverRangeX);
+						int pixelY = (int)(((*p).Y - minY) * pixelsOverRangeY);
 
-						for (UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr, end = p + tile.PointCount; p < end; ++p)
-						{
-							int pixelX = (int)(((*p).X - minX) * pixelsOverRangeX);
-							int pixelY = (int)(((*p).Y - minY) * pixelsOverRangeY);
-
-							if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
-								quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
-						}
-
-						if (!progressManager.Update((float)inputStream.Position / inputLength))
-							break;
+						if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
+							quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
 					}
+
+					if (!progressManager.Update(chunk.EnumeratorProgress))
+						break;
 				}
 			}
 
@@ -913,6 +906,11 @@ namespace CloudAE.Core
 			bmp.UnlockBits(bmpWrite);
 
 			return bmp;
+		}
+
+		public PointCloudTileSourceEnumerator GetTileEnumerator(byte[] buffer)
+		{
+			return new PointCloudTileSourceEnumerator(this, buffer);
 		}
 
 		#region IEnumerable Members

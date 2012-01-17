@@ -55,6 +55,7 @@
     <Compile Include="Compression\ICompressor.cs" />
     <Compile Include="Exceptions\IgnorableException.cs" />
     <Compile Include="Exceptions\OpenFailedException.cs" />
+    <Compile Include="Extensions\LongToSizeExtension.cs" />
     <Compile Include="Extensions\ReflectionExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
@@ -118,6 +119,8 @@
     <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="ProcessingSet.cs" />
     <Compile Include="Segmentation.cs" />
+    <Compile Include="Tiling\PointCloudTilesourceEnumeratorChunk.cs" />
+    <Compile Include="Tiling\PointCloudTileSourceEnumerator.cs" />
     <Compile Include="Tiling\PointCloudTileBufferManagerOptions.cs" />
     <Compile Include="Tiling\GridTileSource.cs" />
     <Compile Include="Tiling\IPointCloudTileBufferManager.cs" />

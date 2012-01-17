@@ -18,7 +18,7 @@ namespace CloudAE.Core
 		{
 			m_source = source;
 			m_buffer = buffer;
-			m_stream = new FileStream(m_source.FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+			m_stream = new FileStream(m_source.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
 
 			m_endPosition = m_source.PointDataOffset + (long)m_source.Count * m_source.PointSizeBytes;
 

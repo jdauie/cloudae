@@ -164,7 +164,7 @@ namespace CloudAE.Core
 
 			fixed (byte* inputBufferPtr = buffer)
 			{
-				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetEnumerator(buffer))
+				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
 				{
 					for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
 					{
@@ -265,7 +265,7 @@ namespace CloudAE.Core
 
 			fixed (byte* inputBufferPtr = buffer)
 			{
-				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetEnumerator(buffer))
+				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
 				{
 					for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
 					{
@@ -496,7 +496,7 @@ namespace CloudAE.Core
 
 			fixed (byte* inputBufferPtr = buffer)
 			{
-				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetEnumerator(buffer))
+				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
 				{
 					for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
 					{
@@ -553,7 +553,7 @@ namespace CloudAE.Core
 			fixed (byte* inputBufferPtr = buffer)
 			{
 				UQuantizedPoint3D point;
-				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetEnumerator(buffer))
+				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
 				{
 					for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
 					{

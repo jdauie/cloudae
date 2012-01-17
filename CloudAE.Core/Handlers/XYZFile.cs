@@ -46,7 +46,7 @@ namespace CloudAE.Core
 			{
 				using (FileStream outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES))
 				{
-					FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES);
+					FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES);
 					long inputLength = inputStream.Length;
 
 					long estimatedOutputLength = (long)(0.5 * inputLength);
