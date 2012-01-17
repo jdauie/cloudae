@@ -56,9 +56,8 @@ namespace CloudAE.Core
 			m_createdBuffers = new PointCloudTileBuffer[m_tileSet.Cols, m_tileSet.Rows];
 			m_activeBuffers = new LinkedListNode<PointCloudTileBuffer>[m_tileSet.Cols, m_tileSet.Rows];
 
-			for (int x = 0; x < m_tileSet.Cols; x++)
-				for (int y = 0; y < m_tileSet.Rows; y++)
-					m_createdBuffers[x, y] = new PointCloudTileBuffer(m_tileSet[x, y], this);
+			foreach (PointCloudTile tile in m_tileSet.ValidTiles)
+				m_createdBuffers[tile.Col, tile.Row] = new PointCloudTileBuffer(tile, this);
 			
 			// allocate buffers
 			int maxIndividualBufferSize = m_tileSource.PointSizeBytes;
@@ -150,17 +149,13 @@ namespace CloudAE.Core
 
 		public UQuantizedExtent3D FinalizeTiles(ProgressManager progressManager)
 		{
-			for (int x = 0; x < m_tileSet.Cols; x++)
+			foreach (PointCloudTile tile in m_tileSet)
 			{
-				for (int y = 0; y < m_tileSet.Rows; y++)
-				{
-					PointCloudTile tile = m_tileSet[x, y];
-					UQuantizedExtent3D quantizedExtent = m_tileSet.ComputeTileExtent(tile, m_tileSource.QuantizedExtent);
-					if (tile.PointCount > 0)
-						quantizedExtent = m_createdBuffers[x, y].GetExtent().Union2D(quantizedExtent);
+				UQuantizedExtent3D quantizedExtent = m_tileSet.ComputeTileExtent(tile, m_tileSource.QuantizedExtent);
+				if (tile.IsValid)
+					quantizedExtent = m_createdBuffers[tile.Col, tile.Row].GetExtent().Union2D(quantizedExtent);
 
-					m_tileSet[x, y] = new PointCloudTile(tile, quantizedExtent);
-				}
+				m_tileSet[tile.Col, tile.Row] = new PointCloudTile(tile, quantizedExtent);
 			}
 
 			UQuantizedExtent3D newQuantizedExtent = m_tileSet.Select(t => t.QuantizedExtent).Union();

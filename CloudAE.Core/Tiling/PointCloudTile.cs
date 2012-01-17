@@ -25,34 +25,45 @@ namespace CloudAE.Core
 		public readonly long StorageOffset;
 		public readonly int StorageSize;
 
-		private uint m_minX;
-		private uint m_minY;
-		private uint m_minZ;
-		private uint m_maxX;
-		private uint m_maxY;
-		private uint m_maxZ;
+		public readonly int Index;
+		public readonly int ValidIndex;
+
+		private readonly UQuantizedExtent3D m_quantizedExtent;
+		private Extent3D m_extent;
 
 		public Extent3D Extent
 		{
-			get { return TileSource.Quantization.Convert(QuantizedExtent); }
+			get
+			{
+				if(m_extent == null)
+					m_extent = TileSource.Quantization.Convert(QuantizedExtent);
+
+				return m_extent;
+			}
 		}
 
 		public UQuantizedExtent3D QuantizedExtent
 		{
-			get { return new UQuantizedExtent3D(m_minX, m_minY, m_minZ, m_maxX, m_maxY, m_maxZ); }
+			get
+			{
+				if (m_quantizedExtent != null)
+					return m_quantizedExtent;
+
+				return new UQuantizedExtent3D(0, 0, 0, 0, 0, 0);
+			}
 		}
 
-		public int Index
-		{
-			get { return Col * TileSource.TileSet.Rows + Row; }
-		}
+		//public int Index
+		//{
+		//    get { return Col * TileSource.TileSet.Rows + Row; }
+		//}
 
 		public bool IsValid
 		{
 			get { return PointCount > 0; }
 		}
 
-		public PointCloudTile(ushort col, ushort row, int offset, int count, long storageOffset, int storageSize, UQuantizedExtent3D extent, PointCloudTileSource tileSource)
+		public PointCloudTile(ushort col, ushort row, int validIndex, int offset, int count, long storageOffset, int storageSize, UQuantizedExtent3D extent, PointCloudTileSource tileSource)
 		{
 			TileSource = tileSource;
 
@@ -64,24 +75,10 @@ namespace CloudAE.Core
 			StorageOffset = storageOffset;
 			StorageSize = storageSize;
 
-			if (extent != null)
-			{
-				m_minX = extent.MinX;
-				m_minY = extent.MinY;
-				m_minZ = extent.MinZ;
-				m_maxX = extent.MaxX;
-				m_maxY = extent.MaxY;
-				m_maxZ = extent.MaxZ;
-			}
-			else
-			{
-				m_minX = 0;
-				m_minY = 0;
-				m_minZ = 0;
-				m_maxX = 0;
-				m_maxY = 0;
-				m_maxZ = 0;
-			}
+			Index = (Col << 16) | Row;
+			ValidIndex = validIndex;
+
+			m_quantizedExtent = extent;
 		}
 
 		public PointCloudTile(PointCloudTile tile, PointCloudTileSource tileSource)
@@ -96,12 +93,10 @@ namespace CloudAE.Core
 			StorageOffset = tile.StorageOffset;
 			StorageSize = tile.StorageSize;
 
-			m_minX = tile.m_minX;
-			m_minY = tile.m_minY;
-			m_minZ = tile.m_minZ;
-			m_maxX = tile.m_maxX;
-			m_maxY = tile.m_maxY;
-			m_maxZ = tile.m_maxZ;
+			Index = tile.Index;
+			ValidIndex = tile.ValidIndex;
+
+			m_quantizedExtent = tile.m_quantizedExtent;
 		}
 
 		public PointCloudTile(PointCloudTile tile)
@@ -119,12 +114,7 @@ namespace CloudAE.Core
 		public PointCloudTile(PointCloudTile tile, UQuantizedExtent3D extent)
 			: this(tile)
 		{
-			m_minX = extent.MinX;
-			m_minY = extent.MinY;
-			m_minZ = extent.MinZ;
-			m_maxX = extent.MaxX;
-			m_maxY = extent.MaxY;
-			m_maxZ = extent.MaxZ;
+			m_quantizedExtent = extent;
 		}
 
 		public unsafe int ReadTile(FileStream inputStream, byte[] inputBuffer)
@@ -169,14 +159,14 @@ namespace CloudAE.Core
 				{
 					UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
 
-					p[0].X += m_minX;
-					p[0].Y += m_minY;
-					p[0].Z += m_minZ;
+					p[0].X += m_quantizedExtent.MinX;
+					p[0].Y += m_quantizedExtent.MinY;
+					p[0].Z += m_quantizedExtent.MinZ;
 
 					for (int i = 1; i < PointCount; i++)
 					{
-						p[i].X += m_minX;
-						p[i].Y += m_minY;
+						p[i].X += m_quantizedExtent.MinX;
+						p[i].Y += m_quantizedExtent.MinZ;
 						p[i].Z += p[i - 1].Z;
 					}
 				}

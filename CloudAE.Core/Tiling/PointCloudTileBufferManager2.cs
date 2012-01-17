@@ -33,17 +33,10 @@ namespace CloudAE.Core
 			
 			m_createdBuffers = new PointCloudTileBuffer[m_tileSet.Cols, m_tileSet.Rows];
 
-			for (int x = 0; x < m_tileSet.Cols; x++)
+			foreach (PointCloudTile tile in m_tileSet.ValidTiles)
 			{
-				for (int y = 0; y < m_tileSet.Rows; y++)
-				{
-					PointCloudTile tile = m_tileSet[x, y];
-					if (tile.IsValid)
-					{
-						m_createdBuffers[x, y] = new PointCloudTileBuffer(tile, this);
-						m_createdBuffers[x, y].ActivateBuffer(new byte[tile.StorageSize]);
-					}
-				}
+				m_createdBuffers[tile.Col, tile.Row] = new PointCloudTileBuffer(tile, this);
+				m_createdBuffers[tile.Col, tile.Row].ActivateBuffer(new byte[tile.StorageSize]);
 			}
 		}
 
@@ -54,33 +47,24 @@ namespace CloudAE.Core
 
 		public UQuantizedExtent3D FinalizeTiles(ProgressManager progressManager)
 		{
-			for (int x = 0; x < m_tileSet.Cols; x++)
-			{
-				for (int y = 0; y < m_tileSet.Rows; y++)
-				{
-					PointCloudTile tile = m_tileSet[x, y];
-					UQuantizedExtent3D quantizedExtent = m_tileSet.ComputeTileExtent(tile, m_tileSource.QuantizedExtent);
-					if (tile.PointCount > 0)
-						quantizedExtent = m_createdBuffers[x, y].GetExtent().Union2D(quantizedExtent);
-
-					m_tileSet[x, y] = new PointCloudTile(tile, quantizedExtent);
-				}
-			}
-
-			int validTileIndex = 0;
 			foreach (PointCloudTile tile in m_tileSet)
 			{
+				UQuantizedExtent3D quantizedExtent = m_tileSet.ComputeTileExtent(tile, m_tileSource.QuantizedExtent);
+				if (tile.IsValid)
+					quantizedExtent = m_createdBuffers[tile.Col, tile.Row].GetExtent().Union2D(quantizedExtent);
+
+				m_tileSet[tile.Col, tile.Row] = new PointCloudTile(tile, quantizedExtent);
+			}
+
+			foreach (PointCloudTile tile in m_tileSet.ValidTiles)
+			{
 				PointCloudTileBuffer tileBuffer = m_createdBuffers[tile.Col, tile.Row];
-				if (tileBuffer != null)
-				{
-					tileBuffer.Flush(m_outputStream);
-					tileBuffer.DeactivateBuffer();
-				}
+				
+				tileBuffer.Flush(m_outputStream);
+				tileBuffer.DeactivateBuffer();
 
-				if (!progressManager.Update((float)validTileIndex / m_tileSet.ValidTileCount))
+				if (!progressManager.Update((float)tile.ValidIndex / m_tileSet.ValidTileCount))
 					break;
-
-				++validTileIndex;
 			}
 
 			List<UQuantizedExtent3D> debugExtents = new List<UQuantizedExtent3D>(m_tileSet.Select(t => t.QuantizedExtent));

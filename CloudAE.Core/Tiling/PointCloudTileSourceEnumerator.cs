@@ -14,7 +14,6 @@ namespace CloudAE.Core
 
 		private IEnumerator<PointCloudTile> m_tileEnumerator;
 		private FileStream m_stream;
-		private int m_validTileIndex;
 
 		public PointCloudTileSourceEnumerator(PointCloudTileSource source, byte[] buffer)
 		{
@@ -31,7 +30,8 @@ namespace CloudAE.Core
 		{
 			get
 			{
-				return new PointCloudTileSourceEnumeratorChunk(m_tileEnumerator.Current, (float)m_validTileIndex / m_validTileCount);
+				PointCloudTile tile = m_tileEnumerator.Current;
+				return new PointCloudTileSourceEnumeratorChunk(tile, (float)tile.ValidIndex / m_validTileCount);
 			}
 		}
 
@@ -44,8 +44,6 @@ namespace CloudAE.Core
 		{
 			if (m_tileEnumerator.MoveNext())
 			{
-				++m_validTileIndex;
-
 				PointCloudTile tile = m_tileEnumerator.Current;
 				tile.ReadTile(m_stream, m_buffer);
 
@@ -56,8 +54,7 @@ namespace CloudAE.Core
 
 		public void Reset()
 		{
-			m_validTileIndex = 0;
-			m_tileEnumerator = m_source.GetEnumerator();
+			m_tileEnumerator = m_source.TileSet.ValidTiles.GetEnumerator();
 		}
 
 		public void Dispose()

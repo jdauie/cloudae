@@ -16,7 +16,7 @@ using CloudAE.Core.DelaunayIncremental;
 
 namespace CloudAE.Core
 {
-	public class PointCloudTileSource : PointCloudBinarySource, IEnumerable<PointCloudTile>, ISerializeBinary
+	public class PointCloudTileSource : PointCloudBinarySource, ISerializeBinary //, IEnumerable<PointCloudTile>
 	{
 		private const int MAX_PREVIEW_DIMENSION = 1000;
 
@@ -558,7 +558,7 @@ namespace CloudAE.Core
 				{
 					UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
 
-					foreach (PointCloudTile tile in this)
+					foreach (PointCloudTile tile in this.TileSet.ValidTiles)
 					{
 						int bytesRead = tile.ReadTile(inputStream, inputBuffer);
 
@@ -600,7 +600,7 @@ namespace CloudAE.Core
 
 						compressedCount += bytesToWrite;
 
-						if (!progressManager.Update((float)tile.Index / TileSet.TileCount))
+						if (!progressManager.Update((float)tile.ValidIndex / TileSet.ValidTileCount))
 							break;
 					}
 				}
@@ -614,9 +614,9 @@ namespace CloudAE.Core
 			BufferManager.ReleaseBuffer(outputBuffer);
 			BufferManager.ReleaseBuffer(inputBuffer);
 
-			byte[] byteProbabilityValues = new byte[256];
-			for (int i = 0; i < 256; i++)
-				byteProbabilityValues[i] = (byte)i;
+			//byte[] byteProbabilityValues = new byte[256];
+			//for (int i = 0; i < 256; i++)
+			//    byteProbabilityValues[i] = (byte)i;
 
 			//Array.Sort<long, byte>(byteProbabilityCounts, byteProbabilityValues);
 
@@ -976,18 +976,18 @@ namespace CloudAE.Core
 			return new PointCloudTileSourceEnumerator(this, buffer);
 		}
 
-		#region IEnumerable Members
+		//#region IEnumerable Members
 
-		public IEnumerator<PointCloudTile> GetEnumerator()
-		{
-			return TileSet.GetEnumerator();
-		}
+		//public IEnumerator<PointCloudTile> GetEnumerator()
+		//{
+		//    return TileSet.GetEnumerator();
+		//}
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
+		//IEnumerator IEnumerable.GetEnumerator()
+		//{
+		//    return GetEnumerator();
+		//}
 
-		#endregion
+		//#endregion
 	}
 }

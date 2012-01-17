@@ -186,7 +186,7 @@ namespace CloudAE.Core
 					outputStream.Seek(tileSource.PointDataOffset, SeekOrigin.Begin);
 
 					// go through tiles and write at the correct offset
-					foreach (PointCloudTile tile in tileSource)
+					foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
 					{
 						for (int i = 0; i < tiledSegments.Length; i++)
 						{

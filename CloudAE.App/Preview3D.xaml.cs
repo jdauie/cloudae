@@ -27,7 +27,6 @@ namespace CloudAE.App
 	public class TileInfo3D
 	{
 		public readonly PointCloudTile Tile;
-		public readonly int ValidTileIndex;
 
 		public readonly GeometryModel3D LowResGeometry;
 		public readonly Grid<float> LowResGrid;
@@ -55,10 +54,9 @@ namespace CloudAE.App
 			get { return m_currentGrid; }
 		}
 
-		public TileInfo3D(PointCloudTile tile, int validTileIndex, GeometryModel3D lowResGeometry, Grid<float> lowResGrid)
+		public TileInfo3D(PointCloudTile tile, GeometryModel3D lowResGeometry, Grid<float> lowResGrid)
 		{
 			Tile = tile;
-			ValidTileIndex = validTileIndex;
 
 			LowResGeometry = lowResGeometry;
 			LowResGrid = lowResGrid;
@@ -306,16 +304,15 @@ namespace CloudAE.App
 				
 				// load tiles
 				m_buffer = new byte[tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes];
-				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.First(), m_gridDimensionLowRes);
+				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.ValidTiles.First(), m_gridDimensionLowRes);
 				m_gridLowRes = gridsLowRes.Value;
 				m_quantizedGridLowRes = gridsLowRes.Key;
 
-				KeyValuePair<Grid<uint>, Grid<float>> gridsHighRes = tileSource.GenerateGrid(tileSource.First(), m_gridDimensionHighRes);
+				KeyValuePair<Grid<uint>, Grid<float>> gridsHighRes = tileSource.GenerateGrid(tileSource.TileSet.ValidTiles.First(), m_gridDimensionHighRes);
 				m_gridHighRes = gridsHighRes.Value;
 				m_quantizedGridHighRes = gridsHighRes.Key;
 
-				int validTileIndex = 0;
-				foreach (PointCloudTile tile in tileSource)
+				foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
 				{
 					tileSource.LoadTileGrid(tile, m_buffer, m_gridLowRes, m_quantizedGridLowRes);
 					CloudAE.Core.Geometry.Extent3D tileExtent = tile.Extent;
@@ -337,17 +334,15 @@ namespace CloudAE.App
 					geometryModel.Freeze();
 
 
-					TileInfo3D tileInfo = new TileInfo3D(tile, validTileIndex, geometryModel, m_gridLowRes);
+					TileInfo3D tileInfo = new TileInfo3D(tile, geometryModel, m_gridLowRes);
 					m_tileInfo.Add(tile, tileInfo);
 
 					// add mappings
 					m_meshTileMap.Add(geometryModel, tile);
 					//m_lowResMap.Add(tile, geometryModel);
 
-					if (!m_progressManager.Update((float)validTileIndex / tileSource.TileSet.ValidTileCount, geometryModel))
+					if (!m_progressManager.Update((float)tile.ValidIndex / tileSource.TileSet.ValidTileCount, geometryModel))
 					    break;
-
-					++validTileIndex;
 				}
 
 
@@ -368,7 +363,7 @@ namespace CloudAE.App
 
 
 				int validStitchingIndex = 0;
-				foreach (PointCloudTile tile in tileSource)
+				foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
 				{
 					TileInfo3D tileInfo = m_tileInfo[tile];
 					Model3DGroup stitchingGroup = GenerateTileStitching(tileSource, tileInfo);
@@ -735,7 +730,7 @@ namespace CloudAE.App
 					//m_loadedTileBuffers.Remove(currentTile);
 
 					// replace high-res tile with low-res geometry
-					int modelIndex = tileInfo.ValidTileIndex;
+					int modelIndex = tileInfo.Tile.ValidIndex;
 					m_tileModelCollection[modelIndex] = tileInfo.LowResGeometry;
 					// clear stitching
 					m_stitchingModelCollection[modelIndex] = emptyModelGroup;
@@ -773,7 +768,7 @@ namespace CloudAE.App
 				geometryModel.Freeze();
 
 				// replace low-res tile with high-res geometry
-				int modelIndex = tileInfo.ValidTileIndex;
+				int modelIndex = tileInfo.Tile.ValidIndex;
 				m_tileModelCollection[modelIndex] = geometryModel;
 				// clear stitching
 				m_stitchingModelCollection[modelIndex] = emptyModelGroup;
@@ -806,7 +801,7 @@ namespace CloudAE.App
 							if (!alteredTiles.ContainsKey(adjacentTile))
 								alteredTiles.Add(adjacentTile, adjacentTileInfo);
 
-							m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
+							m_stitchingModelCollection[adjacentTileInfo.Tile.ValidIndex] = emptyModelGroup;
 							adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.Left);
 						}
 					}
@@ -820,7 +815,7 @@ namespace CloudAE.App
 							if (!alteredTiles.ContainsKey(adjacentTile))
 								alteredTiles.Add(adjacentTile, adjacentTileInfo);
 
-							m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
+							m_stitchingModelCollection[adjacentTileInfo.Tile.ValidIndex] = emptyModelGroup;
 							adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.Top);
 						}
 					}
@@ -834,7 +829,7 @@ namespace CloudAE.App
 							if (!alteredTiles.ContainsKey(adjacentTile))
 								alteredTiles.Add(adjacentTile, adjacentTileInfo);
 
-							m_stitchingModelCollection[adjacentTileInfo.ValidTileIndex] = emptyModelGroup;
+							m_stitchingModelCollection[adjacentTileInfo.Tile.ValidIndex] = emptyModelGroup;
 							adjacentTileInfo.UpdateStitching(null, null, TileStitchingEdge.TopLeft);
 						}
 					}
@@ -842,7 +837,7 @@ namespace CloudAE.App
 
 				foreach (KeyValuePair<PointCloudTile, TileInfo3D> kvp in alteredTiles)
 				{
-					int i = kvp.Value.ValidTileIndex;
+					int i = kvp.Value.Tile.ValidIndex;
 					Model3DGroup stitchingGroup = m_stitchingModelCollection[i] as Model3DGroup;
 					if (stitchingGroup.Children.Count == 0)
 					{
