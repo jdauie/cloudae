@@ -58,7 +58,7 @@ namespace CloudAE.Core
 
 			for (int x = 0; x < m_tileSet.Cols; x++)
 				for (int y = 0; y < m_tileSet.Rows; y++)
-					m_createdBuffers[x, y] = new PointCloudTileBuffer(m_tileSet.Tiles[x, y], this);
+					m_createdBuffers[x, y] = new PointCloudTileBuffer(m_tileSet[x, y], this);
 			
 			// allocate buffers
 			int maxIndividualBufferSize = m_tileSource.PointSizeBytes;
@@ -91,7 +91,7 @@ namespace CloudAE.Core
 		{
 			// figure out how to optimize this method
 
-			//PointCloudTile tile = m_tileSet.Tiles[tileX, tileY];
+			//PointCloudTile tile = m_tileSet[tileX, tileY];
 			PointCloudTileBuffer tileBuffer = m_createdBuffers[tileX, tileY];
 
 			ActivateBuffer(tileBuffer);
@@ -154,12 +154,12 @@ namespace CloudAE.Core
 			{
 				for (int y = 0; y < m_tileSet.Rows; y++)
 				{
-					PointCloudTile tile = m_tileSet.Tiles[x, y];
+					PointCloudTile tile = m_tileSet[x, y];
 					UQuantizedExtent3D quantizedExtent = m_tileSet.ComputeTileExtent(tile, m_tileSource.QuantizedExtent);
 					if (tile.PointCount > 0)
 						quantizedExtent = m_createdBuffers[x, y].GetExtent().Union2D(quantizedExtent);
 
-					m_tileSet.Tiles[x, y] = new PointCloudTile(tile, quantizedExtent);
+					m_tileSet[x, y] = new PointCloudTile(tile, quantizedExtent);
 				}
 			}
 

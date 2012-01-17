@@ -115,7 +115,7 @@ namespace CloudAE.App
 			{
 				for (int y = yMin; y < yMax; y++)
 				{
-					PointCloudTile currentTile = CurrentTileSource.TileSet.Tiles[x, y];
+					PointCloudTile currentTile = CurrentTileSource.TileSet[x, y];
 
 					if (currentTile.PointCount > 0)
 					{

@@ -89,7 +89,7 @@ namespace CloudAE.Core
 			//    Stopwatch stopwatch = new Stopwatch();
 			//    stopwatch.Start();
 
-			//    PointCloudTile tempTile = m_tileSource.TileSet.Tiles[0, 0];
+			//    PointCloudTile tempTile = m_tileSource.TileSet[0, 0];
 			//    Grid<float> grid = new Grid<float>(tempTile.Extent, 540, (float)m_tileSource.Extent.MinZ - 1.0f, true);
 			//    Grid<uint> quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, m_tileSource.Extent, true);
 
@@ -190,7 +190,7 @@ namespace CloudAE.Core
 					{
 						for (int i = 0; i < tiledSegments.Length; i++)
 						{
-							PointCloudTile segmentTile = tiledSegments[i].TileSet.Tiles[tile.Col, tile.Row];
+							PointCloudTile segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
 							if (segmentTile.IsValid)
 							{
 								tiledSegments[i].LoadTile(segmentTile, inputBuffer);

@@ -37,7 +37,7 @@ namespace CloudAE.Core
 			{
 				for (int y = 0; y < m_tileSet.Rows; y++)
 				{
-					PointCloudTile tile = m_tileSet.Tiles[x, y];
+					PointCloudTile tile = m_tileSet[x, y];
 					if (tile.IsValid)
 					{
 						m_createdBuffers[x, y] = new PointCloudTileBuffer(tile, this);
@@ -58,12 +58,12 @@ namespace CloudAE.Core
 			{
 				for (int y = 0; y < m_tileSet.Rows; y++)
 				{
-					PointCloudTile tile = m_tileSet.Tiles[x, y];
+					PointCloudTile tile = m_tileSet[x, y];
 					UQuantizedExtent3D quantizedExtent = m_tileSet.ComputeTileExtent(tile, m_tileSource.QuantizedExtent);
 					if (tile.PointCount > 0)
 						quantizedExtent = m_createdBuffers[x, y].GetExtent().Union2D(quantizedExtent);
 
-					m_tileSet.Tiles[x, y] = new PointCloudTile(tile, quantizedExtent);
+					m_tileSet[x, y] = new PointCloudTile(tile, quantizedExtent);
 				}
 			}
 

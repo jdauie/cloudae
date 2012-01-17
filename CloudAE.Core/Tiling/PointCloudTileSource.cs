@@ -593,7 +593,7 @@ namespace CloudAE.Core
 						}
 
 						// make new tile object with compressed offset/size
-						TileSet.Tiles[tile.Col, tile.Row] = new PointCloudTile(tile, compressedCount, bytesToWrite);
+						TileSet[tile.Col, tile.Row] = new PointCloudTile(tile, compressedCount, bytesToWrite);
 
 						// write out buffer (same file or different file?)
 						outputStream.Write(bufferToWrite, 0, bytesToWrite);

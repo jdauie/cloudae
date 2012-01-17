@@ -10,7 +10,7 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileSet : IEnumerable<PointCloudTile>, ISerializeBinary
 	{
-		public readonly PointCloudTile[,] Tiles;
+		private readonly PointCloudTile[,] m_tiles;
 
 		public readonly Extent3D Extent;
 		public readonly PointCloudTileDensity Density;
@@ -20,6 +20,17 @@ namespace CloudAE.Core
 		public readonly ushort Cols;
 
 		public readonly int ValidTileCount;
+
+		/// <summary>
+		/// Gets or sets the <see cref="CloudAE.Core.PointCloudTile"/> with the specified x.
+		/// This is less than 10% slower than accessing the array directly.
+		/// </summary>
+		/// <value></value>
+		public PointCloudTile this[int x, int y]
+		{
+			get { return m_tiles[x, y]; }
+			set { m_tiles[x, y] = value; }
+		}
 
 		public PointCloudTileSet(PointCloudTileDensity density, Grid<int> tileCounts)
 		{
@@ -31,7 +42,7 @@ namespace CloudAE.Core
 
 			TileCount = Rows * Cols;
 
-			Tiles = new PointCloudTile[Cols, Rows];
+			m_tiles = new PointCloudTile[Cols, Rows];
 			int offset = 0;
 			for (ushort x = 0; x < Cols; x++)
 			{
@@ -41,7 +52,7 @@ namespace CloudAE.Core
 					long byteOffset = (long)offset * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
 					int byteLength = tileCount * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
 
-					Tiles[x, y] = new PointCloudTile(x, y, offset, tileCount, byteOffset, byteLength, null, null);
+					m_tiles[x, y] = new PointCloudTile(x, y, offset, tileCount, byteOffset, byteLength, null, null);
 					offset += tileCount;
 				}
 			}
@@ -61,13 +72,13 @@ namespace CloudAE.Core
 
 			PointCount = tileSet.PointCount;
 
-			Tiles = new PointCloudTile[Cols, Rows];
+			m_tiles = new PointCloudTile[Cols, Rows];
 			for (ushort x = 0; x < Cols; x++)
 			{
 				for (ushort y = 0; y < Rows; y++)
 				{
-					PointCloudTile currentTile = tileSet.Tiles[x, y];
-					Tiles[x, y] = new PointCloudTile(currentTile, tileSource);
+					PointCloudTile currentTile = tileSet.m_tiles[x, y];
+					m_tiles[x, y] = new PointCloudTile(currentTile, tileSource);
 				}
 			}
 			ValidTileCount = this.Where(t => t.IsValid).Count();
@@ -98,13 +109,13 @@ namespace CloudAE.Core
 			{
 				for (ushort y = 0; y < Rows; y++)
 				{
-					int tileCount = tileSets.Sum(t => t.Tiles[x, y].PointCount);
+					int tileCount = tileSets.Sum(t => t.m_tiles[x, y].PointCount);
 
 					long byteOffset = (long)offset * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
 					int byteLength = tileCount * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
 
-					UQuantizedExtent3D mergedExtent = tileSets.Select(s => s.Tiles[x, y].QuantizedExtent).Union();
-					Tiles[x, y] = new PointCloudTile(x, y, offset, tileCount, byteOffset, byteLength, mergedExtent, null);
+					UQuantizedExtent3D mergedExtent = tileSets.Select(s => s.m_tiles[x, y].QuantizedExtent).Union();
+					m_tiles[x, y] = new PointCloudTile(x, y, offset, tileCount, byteOffset, byteLength, mergedExtent, null);
 					offset += tileCount;
 				}
 			}
@@ -124,7 +135,7 @@ namespace CloudAE.Core
 			Extent = reader.ReadExtent3D();
 			Density = reader.ReadTileDensity();
 
-			Tiles = new PointCloudTile[Cols, Rows];
+			m_tiles = new PointCloudTile[Cols, Rows];
 			int pointOffset = 0;
 			long storageOffset = 0;
 			for (ushort x = 0; x < Cols; x++)
@@ -135,7 +146,7 @@ namespace CloudAE.Core
 					int tileStorageSize = reader.ReadInt32();
 					UQuantizedExtent3D quantizedExtent = reader.ReadUQuantizedExtent3D();
 
-					Tiles[x, y] = new PointCloudTile(x, y, pointOffset, tilePointCount, storageOffset, tileStorageSize, quantizedExtent, null);
+					m_tiles[x, y] = new PointCloudTile(x, y, pointOffset, tilePointCount, storageOffset, tileStorageSize, quantizedExtent, null);
 
 					pointOffset += tilePointCount;
 					storageOffset += tileStorageSize;
@@ -156,7 +167,7 @@ namespace CloudAE.Core
 			{
 				for (ushort y = 0; y < Rows; y++)
 				{
-					PointCloudTile tile = Tiles[x, y];
+					PointCloudTile tile = m_tiles[x, y];
 					writer.Write(tile.PointCount);
 					writer.Write(tile.StorageSize);
 					writer.Write(tile.QuantizedExtent);
@@ -174,7 +185,7 @@ namespace CloudAE.Core
 			int tileY = (int)(yRatio * Rows);
 			if (tileY >= Rows) tileY = Rows - 1;
 
-			return Tiles[tileX, tileY];
+			return m_tiles[tileX, tileY];
 		}
 
 		public Extent3D ComputeTileExtent(PointCloudTile tile)
@@ -216,8 +227,8 @@ namespace CloudAE.Core
 			{
 				for (int tileY = 0; tileY < Rows; tileY++)
 				{
-					if (Tiles[tileX, tileY].IsValid)
-						yield return Tiles[tileX, tileY];
+					if (m_tiles[tileX, tileY].IsValid)
+						yield return m_tiles[tileX, tileY];
 				}
 			}
 		}
