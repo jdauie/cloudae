@@ -14,6 +14,7 @@ namespace CloudAE.Core
 		[DllImport("gdi32")]
 		static extern int DeleteObject(IntPtr o);
 
+		[Obsolete("Use a WriteableBitmap instead.")]
 		public static BitmapSource LoadBitmap(Bitmap source)
 		{
 			IntPtr ip = source.GetHbitmap();
