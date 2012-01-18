@@ -16,12 +16,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Diagnostics;
-using System.Reflection;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using Microsoft.Win32;
 
 namespace CloudAE.Core
@@ -255,14 +253,16 @@ namespace CloudAE.Core
 					case TypeCode.Int16:
 					case TypeCode.UInt16:
 					case TypeCode.Int32:
-					case TypeCode.UInt32:
-					case TypeCode.Single:
 						valueKind = RegistryValueKind.DWord;
 						break;
 					case TypeCode.Int64:
+						valueKind = RegistryValueKind.QWord;
+						break;
+					case TypeCode.UInt32:
+					case TypeCode.Single:
 					case TypeCode.UInt64:
 					case TypeCode.Double:
-						valueKind = RegistryValueKind.QWord;
+						valueKind = RegistryValueKind.Binary;
 						break;
 					case TypeCode.String:
 						valueKind = RegistryValueKind.String;
@@ -281,21 +281,24 @@ namespace CloudAE.Core
 					case TypeCode.SByte:
 					case TypeCode.Int16:
 					case TypeCode.UInt16:
-					case TypeCode.UInt32:
-						readConversion  = (value => (int)value);
+						readConversion = (value => (int)value);
 						writeConversion = (value => Convert.ToInt32(value));
+						break;
+					case TypeCode.UInt32:
+						readConversion = (value => BitConverter.ToUInt32((byte[])value, 0));
+						writeConversion = (value => BitConverter.GetBytes((uint)value));
 						break;
 					case TypeCode.UInt64:
 						readConversion  = (value => (long)value);
 						writeConversion = (value => Convert.ToInt64(value));
 						break;
 					case TypeCode.Single:
-						writeConversion = (value => BitConverter.ToInt32(BitConverter.GetBytes((float)value), 0));
-						readConversion  = (value => BitConverter.ToSingle(BitConverter.GetBytes((int)value), 0));
+						readConversion  = (value => BitConverter.ToSingle((byte[])value, 0));
+						writeConversion = (value => BitConverter.GetBytes((float)value));
 						break;
 					case TypeCode.Double:
-						writeConversion = (value => BitConverter.ToInt64(BitConverter.GetBytes((double)value), 0));
-						readConversion  = (value => BitConverter.ToDouble(BitConverter.GetBytes((long)value), 0));
+						readConversion  = (value => BitConverter.ToDouble((byte[])value, 0));
+						writeConversion = (value => BitConverter.GetBytes((double)value));
 						break;
 				}
 
