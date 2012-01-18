@@ -67,5 +67,15 @@ namespace CloudAE.App
 		{
 			
 		}
+
+		private void OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
+		{
+
+		}
+
+		private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+		{
+
+		}
 	}
 }

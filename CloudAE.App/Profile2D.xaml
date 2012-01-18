@@ -7,15 +7,18 @@
              d:DesignHeight="300" d:DesignWidth="300">
 	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto" />
-			<RowDefinition Height="*" />
-		</Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-		<Grid Grid.Row="0" MinHeight="100" x:Name="previewImageGrid">
-			<Image Stretch="Uniform" x:Name="previewImage" MouseMove="OnPreviewMouseMove" />
+        <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" ResizeBehavior="PreviousAndNext" Height="4" Background="AliceBlue" />
+        
+        <Grid Grid.Row="0" MinHeight="100" x:Name="previewImageGrid">
+			<Image Stretch="Uniform" x:Name="previewImage" MouseMove="OnPreviewMouseMove" MouseDown="OnPreviewMouseDown" MouseUp="OnPreviewMouseUp" />
 			<Grid x:Name="previewImageGraphicsGrid" />
 		</Grid>
-		<Grid Grid.Row="1" MinHeight="100">
+		<Grid Grid.Row="2" MinHeight="100">
 			<Image Stretch="Uniform" x:Name="profileImage" />
 		</Grid>
 	</Grid>

@@ -69,7 +69,6 @@ namespace CloudAE.Core
 			}
 
 			AppDomain appDomain = AppDomain.CurrentDomain;
-
 			{
 				c_baseDirectory = appDomain.BaseDirectory;
 				c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
@@ -87,7 +86,6 @@ namespace CloudAE.Core
 			RegisterProperties();
 
 			stopwatch.Stop();
-
 			{
 				Context.WriteLine("[{0}]", typeof(Context).FullName);
 				Context.WriteLine("Base:    {0}", c_baseDirectory);
