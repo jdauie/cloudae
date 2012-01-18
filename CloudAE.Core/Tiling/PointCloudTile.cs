@@ -28,7 +28,7 @@ namespace CloudAE.Core
 		public readonly int Index;
 		public readonly int ValidIndex;
 
-		private readonly UQuantizedExtent3D m_quantizedExtent;
+		private UQuantizedExtent3D m_quantizedExtent;
 		private Extent3D m_extent;
 
 		public Extent3D Extent
@@ -46,10 +46,18 @@ namespace CloudAE.Core
 		{
 			get
 			{
-				if (m_quantizedExtent != null)
-					return m_quantizedExtent;
+				if (m_quantizedExtent == null)
+				{
+					m_quantizedExtent = TileSource.TileSet.ComputeTileExtent(this, TileSource.QuantizedExtent);
+					m_extent = null;
+				}
 
-				return new UQuantizedExtent3D(0, 0, 0, 0, 0, 0);
+				return m_quantizedExtent;
+			}
+			set
+			{
+				m_quantizedExtent = value;
+				m_extent = null;
 			}
 		}
 
@@ -111,11 +119,11 @@ namespace CloudAE.Core
 			StorageSize = storageSize;
 		}
 
-		public PointCloudTile(PointCloudTile tile, UQuantizedExtent3D extent)
-			: this(tile)
-		{
-			m_quantizedExtent = extent;
-		}
+		//public PointCloudTile(PointCloudTile tile, UQuantizedExtent3D extent)
+		//    : this(tile)
+		//{
+		//    m_quantizedExtent = extent;
+		//}
 
 		public unsafe int ReadTile(FileStream inputStream, byte[] inputBuffer)
 		{

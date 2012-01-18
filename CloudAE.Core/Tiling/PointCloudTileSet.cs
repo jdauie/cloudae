@@ -22,7 +22,7 @@ namespace CloudAE.Core
 		public readonly int ValidTileCount;
 
 		/// <summary>
-		/// Gets or sets the <see cref="CloudAE.Core.PointCloudTile"/> with the specified x.
+		/// Gets or sets the <see cref="CloudAE.Core.PointCloudTile"/> with the specified indices.
 		/// This is less than 10% slower than accessing the array directly.
 		/// </summary>
 		/// <value></value>

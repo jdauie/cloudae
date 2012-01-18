@@ -11,9 +11,6 @@ namespace CloudAE.Core
 {
 	unsafe class PointCloudTileBuffer
 	{
-		// should I have this copy here?
-		//public readonly PointCloudTile Tile;
-
 		public readonly ushort Col;
 		public readonly ushort Row;
 
@@ -39,8 +36,6 @@ namespace CloudAE.Core
 
 		public PointCloudTileBuffer(PointCloudTile tile, IPointCloudTileBufferManager manager)
 		{
-			//Tile = tile;
-
 			Col = tile.Col;
 			Row = tile.Row;
 
@@ -51,6 +46,14 @@ namespace CloudAE.Core
 
 			m_pointsWritten = 0;
 			m_currentPointIndex = 0;
+
+			UQuantizedExtent3D computedExtent = tile.QuantizedExtent;
+			m_minX = computedExtent.MinX;
+			m_minY = computedExtent.MinY;
+			m_minZ = computedExtent.MinZ;
+			m_maxX = computedExtent.MaxX;
+			m_maxY = computedExtent.MaxY;
+			m_maxZ = computedExtent.MaxZ;
 		}
 
 		public void PinBuffer(byte[] buffer)
@@ -80,28 +83,16 @@ namespace CloudAE.Core
 			if (m_buffer == null)
 				throw new Exception("cannot add to inactive buffer");
 
-			if (m_currentPointIndex == 0 && m_pointsWritten == 0)
-			{
-				m_minX = m_maxX = point.X;
-				m_minY = m_maxY = point.Y;
-				m_minZ = m_maxZ = point.Z;
-			}
-			else
-			{
-				if (point.X < m_minX) m_minX = point.X; else if (point.X > m_maxX) m_maxX = point.X;
-				if (point.Y < m_minY) m_minY = point.Y; else if (point.Y > m_maxY) m_maxY = point.Y;
-				if (point.Z < m_minZ) m_minZ = point.Z; else if (point.Z > m_maxZ) m_maxZ = point.Z;
-			}
+			if (point.X < m_minX) m_minX = point.X; else if (point.X > m_maxX) m_maxX = point.X;
+			if (point.Y < m_minY) m_minY = point.Y; else if (point.Y > m_maxY) m_maxY = point.Y;
+			if (point.Z < m_minZ) m_minZ = point.Z; else if (point.Z > m_maxZ) m_maxZ = point.Z;
 
 			(*m_pBuffer) = point;
 
 			++m_currentPointIndex;
 			++m_pBuffer;
 
-			// I should probably try to simplify this function for optimization
-			
 			// buffer is full
-			//if (m_currentPointIndex * BufferManager.QUANTIZED_POINT_SIZE_BYTES == m_buffer.Length)
 			if (m_pBuffer == m_pBufferEnd)
 				return true;
 

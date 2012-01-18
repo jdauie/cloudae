@@ -88,9 +88,6 @@ namespace CloudAE.Core
 
 		public void AddPoint(UQuantizedPoint3D point, int tileX, int tileY)
 		{
-			// figure out how to optimize this method
-
-			//PointCloudTile tile = m_tileSet[tileX, tileY];
 			PointCloudTileBuffer tileBuffer = m_createdBuffers[tileX, tileY];
 
 			ActivateBuffer(tileBuffer);
@@ -149,14 +146,8 @@ namespace CloudAE.Core
 
 		public UQuantizedExtent3D FinalizeTiles(ProgressManager progressManager)
 		{
-			foreach (PointCloudTile tile in m_tileSet)
-			{
-				UQuantizedExtent3D quantizedExtent = m_tileSet.ComputeTileExtent(tile, m_tileSource.QuantizedExtent);
-				if (tile.IsValid)
-					quantizedExtent = m_createdBuffers[tile.Col, tile.Row].GetExtent().Union2D(quantizedExtent);
-
-				m_tileSet[tile.Col, tile.Row] = new PointCloudTile(tile, quantizedExtent);
-			}
+			foreach (PointCloudTile tile in m_tileSet.ValidTiles)
+				m_tileSet[tile.Col, tile.Row].QuantizedExtent = m_createdBuffers[tile.Col, tile.Row].GetExtent();
 
 			UQuantizedExtent3D newQuantizedExtent = m_tileSet.Select(t => t.QuantizedExtent).Union();
 			return newQuantizedExtent;
