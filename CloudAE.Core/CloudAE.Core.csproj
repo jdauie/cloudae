@@ -60,7 +60,7 @@
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Geometry\Plane.cs" />
-    <Compile Include="Handlers\IFactory.cs" />
+    <Compile Include="Discovery\IFactory.cs" />
     <Compile Include="Handlers\XYZCreator.cs" />
     <Compile Include="Handlers\HandlerCreatorBase.cs" />
     <Compile Include="Handlers\IHandlerCreator.cs" />
