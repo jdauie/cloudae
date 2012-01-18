@@ -5,8 +5,30 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-	<Grid x:Name="previewImageGrid">
-		<Image Stretch="Uniform" x:Name="previewImage" MouseMove="OnPreviewMouseMove" />
-		<Grid x:Name="previewImageGraphicsGrid" />
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+		
+		<ToolBarTray Grid.Row="0">
+			<ToolBar Name="ToolBarCommon">
+				<Menu>
+					<MenuItem Header="asdf" StaysOpenOnClick="True">
+						<MenuItem Header="Elevation1" />
+						<MenuItem Header="Elevation2" />
+					</MenuItem>
+				</Menu>
+				<ComboBox x:Name="colorRampsCombo" SelectedIndex="0" IsReadOnly="True">
+					<Label>Elevation1</Label>
+					<Label>Elevation2</Label>
+				</ComboBox>
+			</ToolBar>
+		</ToolBarTray>
+
+		<Grid Grid.Row="1" x:Name="previewImageGrid">
+			<Image Stretch="Uniform" x:Name="previewImage" MouseMove="OnPreviewMouseMove" />
+			<Grid x:Name="previewImageGraphicsGrid" />
+		</Grid>
 	</Grid>
 </UserControl>

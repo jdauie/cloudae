@@ -165,7 +165,7 @@ namespace CloudAE.App
 
 			if (tileSource != null)
 			{
-				tileSource.GeneratePreview(1000, m_progressManager);
+				tileSource.GeneratePreview(m_progressManager);
 
 				e.Result = tileSource;
 			}

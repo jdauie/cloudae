@@ -16,11 +16,10 @@ using CloudAE.Core.DelaunayIncremental;
 
 namespace CloudAE.Core
 {
-	public class PointCloudTileSource : PointCloudBinarySource, ISerializeBinary //, IEnumerable<PointCloudTile>
+	public class PointCloudTileSource : PointCloudBinarySource, ISerializeBinary
 	{
 		private const int MAX_PREVIEW_DIMENSION = 1000;
 
-		// change this to TPBF?
 		private const string FILE_IDENTIFIER = "TPBF";
 		private const int FILE_VERSION_MAJOR = 1;
 		private const int FILE_VERSION_MINOR = 8;
@@ -698,11 +697,9 @@ namespace CloudAE.Core
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
 
-			Grid<float> grid = GeneratePreviewPixelGrid(maxPreviewDimension, progressManager);
-			
-			m_preview = CreateBitmapSource(grid, Extent.RangeZ, true, ColorRamp.PredefinedColorRamps.Elevation1);
-			//m_preview = CreateSegmentationBitmap(grid);
-			//m_preview = CreatePlaneFittingBitmap(grid);
+			GeneratePreviewPixelGrid(maxPreviewDimension, progressManager);
+
+			m_preview = GeneratePreviewImage(m_pixelGrid);
 
 			progressManager.Log(stopwatch, "Generated preview");
 
@@ -782,14 +779,14 @@ namespace CloudAE.Core
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
 
-			Grid<float> grid = GeneratePreviewPixelGrid(maxPreviewDimension, progressManager);
+			GeneratePreviewPixelGrid(maxPreviewDimension, progressManager);
 			
 			progressManager.Log(stopwatch, "Generated preview grid");
 
-			return grid;
+			return m_pixelGrid;
 		}
 
-		private unsafe Grid<float> GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
+		private unsafe void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
 		{
 			float fillVal = (float)Extent.MinZ - 1;
 			Grid<float> grid = new Grid<float>(Extent, maxPreviewDimension, fillVal, true);
@@ -834,8 +831,6 @@ namespace CloudAE.Core
 						grid.Data[x, y] = (float)(quantizedGrid.Data[x, y] * Quantization.ScaleFactorZ + Quantization.OffsetZ);
 
 			m_pixelGrid = grid;
-
-			return grid;
 		}
 
 		private unsafe BitmapSource CreateBitmapSource(Grid<float> grid, double rangeZ, bool useStdDevStretch, IColorHandler colorHandler)
@@ -975,19 +970,5 @@ namespace CloudAE.Core
 		{
 			return new PointCloudTileSourceEnumerator(this, buffer);
 		}
-
-		//#region IEnumerable Members
-
-		//public IEnumerator<PointCloudTile> GetEnumerator()
-		//{
-		//    return TileSet.GetEnumerator();
-		//}
-
-		//IEnumerator IEnumerable.GetEnumerator()
-		//{
-		//    return GetEnumerator();
-		//}
-
-		//#endregion
 	}
 }
