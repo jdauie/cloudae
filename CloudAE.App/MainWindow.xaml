@@ -74,9 +74,16 @@
 		<Grid Grid.Row="1" Grid.Column="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 			<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="tabControl2">
 				<TabItem Header="Queue" x:Name="tabItemPreview">
-					<Grid>
-						<TextBlock Grid.Row="0" x:Name="textBlockPreview" />
-					</Grid>
+					<StackPanel>
+						<TextBlock x:Name="textBlockPreview" />
+						<ListBox x:Name="listBoxQueue">
+							<ListBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding Name}" />
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+						</ListBox>
+					</StackPanel>
 				</TabItem>
 				<TabItem Header="Options" x:Name="tabItemInfo">
 					<Grid>

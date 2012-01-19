@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Timers;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using System.Reflection;
 using Microsoft.Win32;
 
 using CloudAE.Core;
-using System.Windows.Media.Imaging;
 
 namespace CloudAE.App
 {
@@ -29,7 +27,7 @@ namespace CloudAE.App
 		private ProgressManager m_progressManager;
 		private BackgroundWorker m_backgroundWorker;
 
-		private Queue<FileHandlerBase> m_inputQueue;
+		private ObservableQueue<FileHandlerBase> m_inputQueue;
 
 		private TabItem m_tabItemOnStarted;
 		private TabItem m_tabItemOnSelection;
@@ -58,7 +56,8 @@ namespace CloudAE.App
 
 			m_sources = new Dictionary<string, PointCloudTileSource>();
 
-			m_inputQueue = new Queue<FileHandlerBase>();
+			m_inputQueue = new ObservableQueue<FileHandlerBase>();
+			listBoxQueue.ItemsSource = m_inputQueue;
 
 			m_backgroundWorker = new BackgroundWorker();
 			m_backgroundWorker.WorkerReportsProgress = true;
@@ -97,7 +96,10 @@ namespace CloudAE.App
 
 			m_tabItemOnStarted = tabItemLog;
 			m_tabItemOnSelection = tabControl.Items.OfType<TabItem>()
-				.Where(t => t.Tag != null && typeof(Preview2D).IsAssignableFrom(t.Tag.GetType())).First();
+				.Where(t => t.Tag != null && typeof(Preview2D).IsAssignableFrom(t.Tag.GetType())).FirstOrDefault();
+
+			if(m_tabItemOnSelection == null)
+				throw new Exception("Required control not available.");
 		}
 
 		private static List<ITileSourceControl> RegisterControls()

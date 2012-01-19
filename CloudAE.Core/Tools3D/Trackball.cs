@@ -155,6 +155,10 @@ namespace CloudAE.Core.Tools3D
 
 			Vector3D axis = Vector3D.CrossProduct(_previousPosition3D, currentPosition3D);
 			double angle = Vector3D.AngleBetween(_previousPosition3D, currentPosition3D);
+
+			if (axis.Length == 0 || angle == 0)
+				return;
+
 			Quaternion delta = new Quaternion(axis, -angle);
 
 			// Get the current orientantion from the RotateTransform3D
