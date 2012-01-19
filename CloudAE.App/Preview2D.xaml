@@ -12,23 +12,28 @@
 		</Grid.RowDefinitions>
 		
 		<ToolBarTray Grid.Row="0">
-			<ToolBar Name="ToolBarCommon">
-				<Menu>
-					<MenuItem Header="asdf" StaysOpenOnClick="True">
-						<MenuItem Header="Elevation1" />
-						<MenuItem Header="Elevation2" />
-					</MenuItem>
-				</Menu>
-				<ComboBox x:Name="colorRampsCombo" SelectedIndex="0" IsReadOnly="True">
-					<Label>Elevation1</Label>
-					<Label>Elevation2</Label>
-				</ComboBox>
-			</ToolBar>
+            <ToolBar Name="ToolBarCommon">
+                <StackPanel ToolTip="Color Ramp" Orientation="Horizontal">
+                    <Image Source="/CloudAE.App;component/Icons/color_swatch.png" VerticalAlignment="Center" />
+                    <ComboBox x:Name="colorRampsCombo" IsReadOnly="True" SelectionChanged="OnColorHandlerSelectionChanged">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <Rectangle Width="100" Height="14" Margin="1" Fill="{Binding HorizontalGradientBrush}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+                <ToggleButton x:Name="colorUseStdDev" ToolTip="Use standard deviation stretch" Checked="OnStdDevCheckedStateChanged" Unchecked="OnStdDevCheckedStateChanged">
+                    <ToggleButton.Content>
+                        <Image Source="/CloudAE.App;component/Icons/color_wheel.png" VerticalAlignment="Center" />
+                    </ToggleButton.Content>
+                </ToggleButton>
+            </ToolBar>
 		</ToolBarTray>
 
 		<Grid Grid.Row="1" x:Name="previewImageGrid">
 			<Image Stretch="Uniform" x:Name="previewImage" MouseMove="OnPreviewMouseMove" />
-			<Grid x:Name="previewImageGraphicsGrid" />
-		</Grid>
+            <Grid x:Name="previewImageGraphicsGrid" />
+        </Grid>
 	</Grid>
 </UserControl>

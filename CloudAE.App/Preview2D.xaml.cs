@@ -14,15 +14,18 @@ using System.Windows.Shapes;
 using CloudAE.Core;
 using CloudAE.Core.Delaunay;
 using System.Windows.Media.Media3D;
+using System.Windows.Controls.Primitives;
 
 namespace CloudAE.App
 {
 	/// <summary>
 	/// Interaction logic for Preview2D.xaml
 	/// </summary>
-	public sealed partial class Preview2D : UserControl, ITileSourceControl
+	public sealed partial class Preview2D : UserControl, ITileSourceControl, IFactory
 	{
 		private const int MAX_BUFFER_SIZE_BYTES = (int)ByteSizesSmall.MB_128;
+
+		private static readonly ColorRamp[] c_colorRamps;
 
 		private PointCloudTileSource m_currentTileSource;
 
@@ -32,6 +35,11 @@ namespace CloudAE.App
 		public string DisplayName
 		{
 			get { return "2D"; }
+		}
+
+		public ImageSource Icon
+		{
+			get { return new BitmapImage(new Uri("pack://application:,,,/CloudAE.App;component/Icons/map.png")); }
 		}
 
 		public PointCloudTileSource CurrentTileSource
@@ -55,13 +63,45 @@ namespace CloudAE.App
 
 				if (m_currentTileSource != null)
 				{
-					previewImage.Source = m_currentTileSource.Preview;
+					colorRampsCombo.SelectedItem = CurrentColorRamp;
+					colorUseStdDev.IsChecked = CurrentColorUseStdDev;
 				}
 				else
 				{
 					previewImage.Source = null;
+					colorRampsCombo.SelectedItem = null;
 				}
 			}
+		}
+
+		private ColorRamp CurrentColorRamp
+		{
+			get
+			{
+				ColorRamp ramp = ColorRamp.PredefinedColorRamps.Elevation1;
+				if (CurrentTileSource.Preview != null)
+					ramp = m_currentTileSource.Preview.ColorHandler as ColorRamp;
+
+				return ramp;
+			}
+		}
+
+		private bool CurrentColorUseStdDev
+		{
+			get
+			{
+				bool useStdDev = true;
+				if (CurrentTileSource.Preview != null)
+					useStdDev = CurrentTileSource.Preview.UseStdDevStretch;
+
+				return useStdDev;
+			}
+		}
+
+		static Preview2D()
+		{
+			List<ColorRamp> controls = RegisterColorHandlers();
+			c_colorRamps = controls.ToArray();
 		}
 		
 		public Preview2D()
@@ -70,6 +110,47 @@ namespace CloudAE.App
 
 			m_loadedTiles = new Dictionary<PointCloudTile, System.Windows.Shapes.Rectangle>();
 			m_loadedTileBuffers = new Dictionary<PointCloudTile, byte[]>();
+
+			foreach (ColorRamp handler in c_colorRamps)
+				colorRampsCombo.Items.Add(handler);
+		}
+
+		private static List<ColorRamp> RegisterColorHandlers()
+		{
+			List<ColorRamp> instances = new List<ColorRamp>();
+			Type baseType = typeof(ColorRamp);
+
+			Context.ProcessLoadedTypes(
+				2,
+				"ColorRamps",
+				t => baseType.IsAssignableFrom(t),
+				t => !t.IsAbstract,
+				t => instances.Add(ColorRamp.LoadMap(t))
+			);
+
+			return instances;
+		}
+
+		private void OnColorHandlerSelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			ColorRamp ramp = (sender as ComboBox).SelectedItem as ColorRamp;
+			if (ramp != null)
+			{
+				PointCloudTileSource source = CurrentTileSource;
+				if (source != null)
+					previewImage.Source = source.GeneratePreviewImage(ramp, CurrentColorUseStdDev);
+			}
+		}
+
+		private void OnStdDevCheckedStateChanged(object sender, RoutedEventArgs e)
+		{
+			bool? useStdDev = (sender as ToggleButton).IsChecked;
+			if (useStdDev.HasValue)
+			{
+				PointCloudTileSource source = CurrentTileSource;
+				if (source != null)
+					previewImage.Source = source.GeneratePreviewImage(CurrentColorRamp, useStdDev.Value);
+			}
 		}
 
 		private void OnPreviewMouseMove(object sender, MouseEventArgs e)

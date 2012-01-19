@@ -6,14 +6,14 @@ using System.Drawing;
 
 namespace CloudAE.Core
 {
-	public interface IColorHandler
-	{
-
-	}
-
 	public class ColorMapDistinct : IColorHandler
 	{
 		Color[] m_colors;
+
+		public string Name
+		{
+			get { return "Distinct Color Map"; }
+		}
 
 		public ColorMapDistinct()
 		{

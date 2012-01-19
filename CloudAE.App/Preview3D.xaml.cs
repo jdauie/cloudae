@@ -177,6 +177,11 @@ namespace CloudAE.App
 			get { return "3D"; }
 		}
 
+		public ImageSource Icon
+		{
+			get { return new BitmapImage(new Uri("pack://application:,,,/CloudAE.App;component/Icons/world.png")); }
+		}
+
 		public PointCloudTileSource CurrentTileSource
 		{
 			get
@@ -274,7 +279,7 @@ namespace CloudAE.App
 			PointCloudTileSource tileSource = e.Argument as PointCloudTileSource;
 			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
 
-			m_overviewTextureBrush = new ImageBrush(tileSource.Preview);
+			m_overviewTextureBrush = new ImageBrush(tileSource.Preview.Image);
 			m_overviewTextureBrush.ViewportUnits = BrushMappingMode.Absolute;
 			m_overviewTextureBrush.Freeze();
 

@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
-using System.Drawing.Imaging;
-using System.Drawing;
-using System.Diagnostics;
 using System.Windows.Media.Imaging;
 
-using CloudAE.Core.Geometry;
+using CloudAE.Core;
 using CloudAE.Core.Compression;
 using CloudAE.Core.Delaunay;
 using CloudAE.Core.DelaunayIncremental;
+using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class PointCloudTileSource : PointCloudBinarySource, ISerializeBinary
+	public class PointCloudTileSource : PointCloudBinarySource, ISerializeBinary, INotifyPropertyChanged
 	{
 		private const int MAX_PREVIEW_DIMENSION = 1000;
 
@@ -31,12 +31,38 @@ namespace CloudAE.Core
 
 		private FileStream m_inputStream;
 
-		private BitmapSource m_preview;
 		private Grid<float> m_pixelGrid;
+		private PreviewImage m_preview;
 
-		public BitmapSource Preview
+		#region INotifyPropertyChanged Members
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		protected void OnPropertyChanged(string name)
+		{
+			PropertyChangedEventHandler handler = PropertyChanged;
+			if (handler != null)
+				handler(this, new PropertyChangedEventArgs(name));
+		}
+
+		#endregion
+
+		public BitmapSource PreviewImage
+		{
+			get { return m_preview.Image; }
+		}
+
+		public PreviewImage Preview
 		{
 			get { return m_preview; }
+			private set
+			{
+				if (m_preview != value)
+				{
+					m_preview = value;
+					OnPropertyChanged("PreviewImage");
+				}
+			}
 		}
 
 		public Grid<float> PixelGrid
@@ -687,28 +713,19 @@ namespace CloudAE.Core
 			return maxZ;
 		}
 
-		public unsafe BitmapSource GeneratePreview(ProgressManager progressManager)
+		public BitmapSource GeneratePreviewImage(ColorRamp ramp, bool useStdDevStretch)
 		{
-			return GeneratePreview(MAX_PREVIEW_DIMENSION, progressManager);
+			if (Preview == null || Preview.ColorHandler != ramp || Preview.UseStdDevStretch != useStdDevStretch)
+			{
+				BitmapSource source = GeneratePreviewImage(m_pixelGrid, ramp, useStdDevStretch);
+				Preview = new PreviewImage(source, ramp, useStdDevStretch);
+			}
+			return Preview.Image;
 		}
 
-		public unsafe BitmapSource GeneratePreview(ushort maxPreviewDimension, ProgressManager progressManager)
+		private BitmapSource GeneratePreviewImage(Grid<float> grid, ColorRamp ramp, bool useStdDevStretch)
 		{
-			Stopwatch stopwatch = new Stopwatch();
-			stopwatch.Start();
-
-			GeneratePreviewPixelGrid(maxPreviewDimension, progressManager);
-
-			m_preview = GeneratePreviewImage(m_pixelGrid);
-
-			progressManager.Log(stopwatch, "Generated preview");
-
-			return m_preview;
-		}
-
-		private unsafe BitmapSource GeneratePreviewImage(Grid<float> grid)
-		{
-			BitmapSource bmp = CreateBitmapSource(grid, Extent.RangeZ, true, ColorRamp.PredefinedColorRamps.Elevation1);
+			BitmapSource bmp = CreateBitmapSource(grid, Extent.RangeZ, useStdDevStretch, ramp);
 			//BitmapSource bmp = CreateSegmentationBitmap(grid);
 			//BitmapSource bmp = CreatePlaneFittingBitmap(grid);
 
@@ -774,21 +791,19 @@ namespace CloudAE.Core
 			return bmp;
 		}
 
-		private unsafe Grid<float> GeneratePreviewGrid(ushort maxPreviewDimension, ProgressManager progressManager)
+		public void GeneratePreviewGrid(ProgressManager progressManager)
 		{
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
 
-			GeneratePreviewPixelGrid(maxPreviewDimension, progressManager);
+			GeneratePreviewPixelGrid(MAX_PREVIEW_DIMENSION, progressManager);
 			
-			progressManager.Log(stopwatch, "Generated preview grid");
-
-			return m_pixelGrid;
+			progressManager.Log(stopwatch, "Generated preview");
 		}
 
 		private unsafe void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
 		{
-			float fillVal = (float)Extent.MinZ - 1;
+			float fillVal = -1.0f;
 			Grid<float> grid = new Grid<float>(Extent, maxPreviewDimension, fillVal, true);
 			Grid<uint> quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, Extent, true);
 
@@ -828,7 +843,7 @@ namespace CloudAE.Core
 			for (int x = 0; x < grid.SizeX; x++)
 				for (int y = 0; y < grid.SizeY; y++)
 					if (quantizedGrid.Data[x, y] > 0) // ">" zero is not quite what I want here
-						grid.Data[x, y] = (float)(quantizedGrid.Data[x, y] * Quantization.ScaleFactorZ + Quantization.OffsetZ);
+						grid.Data[x, y] = (float)(quantizedGrid.Data[x, y] * Quantization.ScaleFactorZ + Quantization.OffsetZ - Extent.MinZ);
 
 			m_pixelGrid = grid;
 		}
@@ -836,14 +851,6 @@ namespace CloudAE.Core
 		private unsafe BitmapSource CreateBitmapSource(Grid<float> grid, double rangeZ, bool useStdDevStretch, IColorHandler colorHandler)
 		{
 			WriteableBitmap bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
-
-			float stdDevOffset = 0;
-			if (useStdDevStretch)
-			{
-				float devFromMean = (float)(2 * StatisticsZ.StdDev);
-				stdDevOffset = (float)StatisticsZ.Mean - devFromMean;
-				rangeZ = 2 * devFromMean;
-			}
 
 			ColorRamp ramp = colorHandler as ColorRamp;
 			ColorMapDistinct map = colorHandler as ColorMapDistinct;
@@ -876,7 +883,8 @@ namespace CloudAE.Core
 		private unsafe void CreateColorBufferStdDev(Grid<float> grid, int* p, ColorRamp ramp)
 		{
 			float devFromMean = (float)(2 * StatisticsZ.StdDev);
-			float stdDevOffset = (float)StatisticsZ.Mean - devFromMean;
+			float stdDevOffset = (float)(StatisticsZ.Mean - Extent.MinZ - devFromMean);
+			if (stdDevOffset < 0) stdDevOffset = 0;
 			float rangeZ = 2 * devFromMean;
 
 			for (int r = 0; r < grid.SizeY; r++)
@@ -926,6 +934,8 @@ namespace CloudAE.Core
 					if (z != grid.FillVal)
 					{
 						double ratio = z / rangeZ;
+
+						if (ratio < 0) ratio = 0.0f; else if (ratio > 1) ratio = 1.0f;
 
 						if (ramp != null)
 						{

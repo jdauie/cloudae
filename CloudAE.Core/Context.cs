@@ -34,6 +34,7 @@ namespace CloudAE.Core
 		}
 
 		public const bool STORE_PROPERTY_REGISTRATION = true;
+		private const bool SHOW_ABSTRACT_TYPES_DURING_DISCOVERY = false;
 
 		// options registration?
 		// convert/remove deprecated options
@@ -206,7 +207,9 @@ namespace CloudAE.Core
 						result = 'x';
 					}
 				}
-				Context.WriteLine("{0} {1} {2}", padding, result, type.Name);
+
+				if (SHOW_ABSTRACT_TYPES_DURING_DISCOVERY || result != '-')
+					Context.WriteLine("{0} {1} {2}", padding, result, type.Name);
 			}
 		}
 

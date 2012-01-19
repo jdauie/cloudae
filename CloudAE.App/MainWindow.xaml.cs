@@ -12,6 +12,7 @@ using System.Reflection;
 using Microsoft.Win32;
 
 using CloudAE.Core;
+using System.Windows.Media.Imaging;
 
 namespace CloudAE.App
 {
@@ -72,8 +73,23 @@ namespace CloudAE.App
 			{
 				Grid grid = new Grid();
 				grid.Children.Add(control as UserControl);
+
+				Image tabIcon = new Image();
+				tabIcon.Source = control.Icon;
+				tabIcon.VerticalAlignment = System.Windows.VerticalAlignment.Center;
+
+				TextBlock text = new TextBlock();
+				text.Text = control.DisplayName;
+				text.Margin = new Thickness(4, 0, 0, 0);
+				text.VerticalAlignment = System.Windows.VerticalAlignment.Center;
+
+				StackPanel tabHeader = new StackPanel();
+				tabHeader.Orientation = Orientation.Horizontal;
+				tabHeader.Children.Add(tabIcon);
+				tabHeader.Children.Add(text);
+
 				TabItem tabItem = new TabItem();
-				tabItem.Header = control.DisplayName;
+				tabItem.Header = tabHeader;
 				tabItem.Content = grid;
 				tabItem.Tag = control;
 				tabControl.Items.Add(tabItem);
@@ -165,7 +181,7 @@ namespace CloudAE.App
 
 			if (tileSource != null)
 			{
-				tileSource.GeneratePreview(m_progressManager);
+				tileSource.GeneratePreviewGrid(m_progressManager);
 
 				e.Result = tileSource;
 			}

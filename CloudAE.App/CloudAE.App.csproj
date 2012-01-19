@@ -178,6 +178,14 @@
   <ItemGroup>
     <Resource Include="Icons\folder.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\application_xp_terminal.png" />
+    <Resource Include="Icons\color_swatch.png" />
+    <Resource Include="Icons\color_wheel.png" />
+    <Resource Include="Icons\map.png" />
+    <Resource Include="Icons\shape_rotate_clockwise.png" />
+    <Resource Include="Icons\world.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"</PostBuildEvent>

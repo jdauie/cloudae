@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Windows.Media;
 
 using CloudAE.Core;
 
@@ -10,6 +7,11 @@ namespace CloudAE.App
 	interface ITileSourceControl
 	{
 		string DisplayName
+		{
+			get;
+		}
+
+		ImageSource Icon
 		{
 			get;
 		}

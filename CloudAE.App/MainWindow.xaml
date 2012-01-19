@@ -30,7 +30,7 @@
             <ToolBarTray>
                 <ToolBar Name="ToolBarCommon">
                     <Button>
-                        <Image Source="/CloudAE.App;component/Icons/folder.png" Height="16" Width="16" />
+                        <Image Source="/CloudAE.App;component/Icons/folder.png" />
                     </Button>
                 </ToolBar>
                 <ToolBar Name="ToolBar3D">
@@ -56,7 +56,7 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="{Binding Name}" FontWeight="Bold" />
-                            <Image Grid.Row="1" Stretch="Uniform" Source="{Binding Preview}" HorizontalAlignment="Left" MaxWidth="100" MaxHeight="100" />
+                            <Image Grid.Row="1" Stretch="Uniform" Source="{Binding PreviewImage}" HorizontalAlignment="Left" MaxWidth="100" MaxHeight="100" />
                         </Grid>
                     </DataTemplate>
                 </TreeView.ItemTemplate>
@@ -83,8 +83,14 @@
 
         <Grid Grid.Row="1" Grid.Column="2" x:Name="viewportBackground">
 			<TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="tabControl" SelectionChanged="OnTabControlSelectionChanged">
-				<TabItem Header="Log" x:Name="tabItemLog">
-					<Grid>
+				<TabItem x:Name="tabItemLog">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/CloudAE.App;component/Icons/application_xp_terminal.png" VerticalAlignment="Center" />
+                            <TextBlock Text="Log" Margin="4,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
 						<local:LogViewer x:Name="logViewer" />
 					</Grid>
 				</TabItem>

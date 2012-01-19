@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+//using System.Windows.Media;
 using System.Drawing;
 
 namespace CloudAE.Core
@@ -88,6 +89,35 @@ namespace CloudAE.Core
 		#endregion
 
 		private Color[] m_map;
+		private System.Windows.Media.Brush m_brush;
+
+		public abstract string Name
+		{
+			get;
+		}
+
+		public System.Windows.Media.Brush HorizontalGradientBrush
+		{
+			get
+			{
+				if (m_brush == null)
+				{
+					var hGradient = new System.Windows.Media.LinearGradientBrush();
+					hGradient.StartPoint = new System.Windows.Point(0, 0.5);
+					hGradient.EndPoint = new System.Windows.Point(1, 0.5);
+
+					for (int i = 0; i < m_map.Length; i++)
+					{
+						System.Windows.Media.Color color = System.Windows.Media.Color.FromRgb(m_map[i].R, m_map[i].G, m_map[i].B);
+						hGradient.GradientStops.Add(new System.Windows.Media.GradientStop(color, (float)i / (m_map.Length - 1)));
+					}
+					
+					hGradient.Freeze();
+					m_brush = hGradient;
+				}
+				return m_brush;
+			}
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ColorRamp"/> class.
@@ -148,15 +178,13 @@ namespace CloudAE.Core
 		}
 	}
 
-	/// <summary>
-	/// ColorRampElevation1
-	/// </summary>
+	/// <summary>Predefined color ramp.</summary>
 	class ColorRampElevation1 : ColorRamp
 	{
-		/// <summary>
-		/// Creates the map.
-		/// </summary>
-		/// <returns></returns>
+		/// <summary>Gets the name.</summary>
+		public override string Name { get { return "Elevation 1"; } }
+
+		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
 			return new Color[]
@@ -173,15 +201,13 @@ namespace CloudAE.Core
 		}
 	}
 
-	/// <summary>
-	/// ColorRampElevation2
-	/// </summary>
+	/// <summary>Predefined color ramp.</summary>
 	class ColorRampElevation2 : ColorRamp
 	{
-		/// <summary>
-		/// Creates the map.
-		/// </summary>
-		/// <returns></returns>
+		/// <summary>Gets the name.</summary>
+		public override string Name { get { return "Elevation 2"; } }
+
+		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
 			return new Color[]
@@ -199,15 +225,13 @@ namespace CloudAE.Core
 		}
 	}
 
-	/// <summary>
-	/// ColorRampBareEarth
-	/// </summary>
+	/// <summary>Predefined color ramp.</summary>
 	class ColorRampBareEarth : ColorRamp
 	{
-		/// <summary>
-		/// Creates the map.
-		/// </summary>
-		/// <returns></returns>
+		/// <summary>Gets the name.</summary>
+		public override string Name { get { return "Bare Earth"; } }
+
+		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
 			return new Color[]
@@ -219,15 +243,13 @@ namespace CloudAE.Core
 		}
 	}
 
-	/// <summary>
-	/// ColorRampFullSpectrum
-	/// </summary>
+	/// <summary>Predefined color ramp.</summary>
 	class ColorRampFullSpectrum : ColorRamp
 	{
-		/// <summary>
-		/// Creates the map.
-		/// </summary>
-		/// <returns></returns>
+		/// <summary>Gets the name.</summary>
+		public override string Name { get { return "Full Spectrum"; } }
+
+		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
 			return new Color[]
@@ -240,15 +262,13 @@ namespace CloudAE.Core
 		}
 	}
 
-	/// <summary>
-	/// ColorRampPartialSpectrum
-	/// </summary>
+	/// <summary>Predefined color ramp.</summary>
 	class ColorRampPartialSpectrum : ColorRamp
 	{
-		/// <summary>
-		/// Creates the map.
-		/// </summary>
-		/// <returns></returns>
+		/// <summary>Gets the name.</summary>
+		public override string Name { get { return "Partial Spectrum"; } }
+
+		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
 			return new Color[]

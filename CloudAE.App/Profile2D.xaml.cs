@@ -30,6 +30,11 @@ namespace CloudAE.App
 			get { return "Profile"; }
 		}
 
+		public ImageSource Icon
+		{
+			get { return new BitmapImage(new Uri("pack://application:,,,/CloudAE.App;component/Icons/shape_rotate_clockwise.png")); }
+		}
+
 		public PointCloudTileSource CurrentTileSource
 		{
 			get
@@ -49,7 +54,7 @@ namespace CloudAE.App
 
 				if (m_currentTileSource != null)
 				{
-					previewImage.Source = m_currentTileSource.Preview;
+					previewImage.Source = m_currentTileSource.Preview.Image;
 				}
 				else
 				{
