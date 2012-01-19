@@ -57,6 +57,7 @@ namespace CloudAE.App
 				if (m_currentTileSource != null)
 				{
 					m_currentTileSource.Close();
+					colorRampsCombo.SelectedItem = null;
 				}
 
 				m_currentTileSource = value;
@@ -69,7 +70,6 @@ namespace CloudAE.App
 				else
 				{
 					previewImage.Source = null;
-					colorRampsCombo.SelectedItem = null;
 				}
 			}
 		}

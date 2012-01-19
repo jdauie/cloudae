@@ -186,6 +186,11 @@
     <Resource Include="Icons\shape_rotate_clockwise.png" />
     <Resource Include="Icons\world.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\arrow_rotate_clockwise.png" />
+    <Resource Include="Icons\keyboard.png" />
+    <Resource Include="Icons\mouse.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"</PostBuildEvent>

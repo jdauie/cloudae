@@ -29,31 +29,37 @@ namespace CloudAE.Core
 		/// </summary>
 		public static class PredefinedColorRamps
 		{
-			/// <summary>Gets the elevation1 map.</summary>
+			/// <summary>Gets the predefined map.</summary>
+			public static ColorRamp Grayscale
+			{
+				get { return ColorRamp.LoadMap(typeof(ColorRampGrayscale)); }
+			}
+
+			/// <summary>Gets the predefined map.</summary>
 			public static ColorRamp Elevation1
 			{
 				get { return ColorRamp.LoadMap(typeof(ColorRampElevation1)); }
 			}
 
-			/// <summary>Gets the elevation2 map.</summary>
+			/// <summary>Gets the predefined map.</summary>
 			public static ColorRamp Elevation2
 			{
 				get { return ColorRamp.LoadMap(typeof(ColorRampElevation2)); }
 			}
 
-			/// <summary>Gets the bare earth map.</summary>
+			/// <summary>Gets the predefined map.</summary>
 			public static ColorRamp BareEarth
 			{
 				get { return ColorRamp.LoadMap(typeof(ColorRampBareEarth)); }
 			}
 
-			/// <summary>Gets the full spectrum map.</summary>
+			/// <summary>Gets the predefined map.</summary>
 			public static ColorRamp FullSpectrum
 			{
 				get { return ColorRamp.LoadMap(typeof(ColorRampFullSpectrum)); }
 			}
 
-			/// <summary>Gets the partial spectrum map.</summary>
+			/// <summary>Gets the predefined map.</summary>
 			public static ColorRamp PartialSpectrum
 			{
 				get { return ColorRamp.LoadMap(typeof(ColorRampPartialSpectrum)); }
@@ -175,6 +181,23 @@ namespace CloudAE.Core
 				return (int)(start + (end - start) * ratio);
 			else
 				return (int)(end + (start - end) * (1 - ratio));
+		}
+	}
+
+	/// <summary>Predefined color ramp.</summary>
+	class ColorRampGrayscale : ColorRamp
+	{
+		/// <summary>Gets the name.</summary>
+		public override string Name { get { return "Grayscale"; } }
+
+		/// <summary>Creates the map.</summary>
+		protected override Color[] CreateMap()
+		{
+			return new Color[]
+			{
+				Color.FromArgb(0,   0,   0),
+				Color.FromArgb(255, 255, 255)
+			};
 		}
 	}
 

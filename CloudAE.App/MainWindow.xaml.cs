@@ -124,6 +124,7 @@ namespace CloudAE.App
 			if (dialog.ShowDialog(this) == true)
 			{
 				string[] inputFiles = dialog.FileNames;
+				Array.Sort<string>(inputFiles);
 				foreach (string inputFile in inputFiles)
 				{
 					AddToQueue(inputFile);
@@ -216,6 +217,9 @@ namespace CloudAE.App
 			m_sources.Add(tileSource.FilePath, tileSource);
 
 			treeView.Items.Add(tileSource);
+			TreeViewItem treeViewItem = treeView.ItemContainerGenerator.ContainerFromItem(tileSource) as TreeViewItem;
+			treeViewItem.BringIntoView();
+			treeViewItem.IsSelected = true;
 
 			UpdateSelection(tileSource);
 		}
@@ -273,6 +277,7 @@ namespace CloudAE.App
 		private void OnTreeViewDrop(object sender, DragEventArgs e)
 		{
 			string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+			Array.Sort<string>(files);
 			foreach (string file in files)
 			{
 				AddToQueue(file);

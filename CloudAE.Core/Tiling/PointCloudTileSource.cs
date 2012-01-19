@@ -850,11 +850,10 @@ namespace CloudAE.Core
 
 		private unsafe BitmapSource CreateBitmapSource(Grid<float> grid, double rangeZ, bool useStdDevStretch, IColorHandler colorHandler)
 		{
-			WriteableBitmap bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
-
 			ColorRamp ramp = colorHandler as ColorRamp;
 			ColorMapDistinct map = colorHandler as ColorMapDistinct;
 
+			WriteableBitmap bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
 			bmp.Lock();
 			int pBackBuffer = (int)bmp.BackBuffer;
 			int* p = (int*)pBackBuffer;
@@ -865,6 +864,9 @@ namespace CloudAE.Core
 			}
 			else
 			{
+				if (ramp == null)
+					ramp = ColorRamp.PredefinedColorRamps.Grayscale;
+
 				if (useStdDevStretch)
 					CreateColorBufferStdDev(grid, p, ramp);
 				else
@@ -903,15 +905,7 @@ namespace CloudAE.Core
 						if (z < 0) z = 0; else if (z > rangeZ) z = rangeZ;
 						double ratio = z / rangeZ;
 
-						if (ramp != null)
-						{
-							color = ramp.GetColor(ratio);
-						}
-						else
-						{
-							int colorZ = (int)(ratio * 255.0);
-							color = Color.FromArgb(colorZ, colorZ, colorZ);
-						}
+						color = ramp.GetColor(ratio);
 					}
 
 					(*p) = color.ToArgb();
@@ -937,15 +931,7 @@ namespace CloudAE.Core
 
 						if (ratio < 0) ratio = 0.0f; else if (ratio > 1) ratio = 1.0f;
 
-						if (ramp != null)
-						{
-							color = ramp.GetColor(ratio);
-						}
-						else
-						{
-							int colorZ = (int)(ratio * 255.0);
-							color = Color.FromArgb(colorZ, colorZ, colorZ);
-						}
+						color = ramp.GetColor(ratio);
 					}
 
 					(*p) = color.ToArgb();

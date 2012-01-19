@@ -5,7 +5,34 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid x:Name="previewImageGrid">
-        <Viewport3D x:Name="viewport" Focusable="True" />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ToolBarTray Grid.Row="0">
+            <ToolBar Name="ToolBarCommon">
+                <ToggleButton x:Name="toggleTrackball" ToolTip="Trackball">
+                    <ToggleButton.Content>
+                        <Image Source="/CloudAE.App;component/Icons/mouse.png" VerticalAlignment="Center" />
+                    </ToggleButton.Content>
+                </ToggleButton>
+                <ToggleButton x:Name="toggleOrbit" ToolTip="Orbit">
+                    <ToggleButton.Content>
+                        <Image Source="/CloudAE.App;component/Icons/arrow_rotate_clockwise.png" VerticalAlignment="Center" />
+                    </ToggleButton.Content>
+                </ToggleButton>
+                <ToggleButton x:Name="toggleFly" ToolTip="Fly">
+                    <ToggleButton.Content>
+                        <Image Source="/CloudAE.App;component/Icons/keyboard.png" VerticalAlignment="Center" />
+                    </ToggleButton.Content>
+                </ToggleButton>
+            </ToolBar>
+        </ToolBarTray>
+
+        <Grid Grid.Row="1" x:Name="previewImageGrid">
+            <Viewport3D x:Name="viewport" Focusable="True" />
+        </Grid>
     </Grid>
 </UserControl>
