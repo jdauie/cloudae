@@ -34,14 +34,8 @@ namespace CloudAE.Core
 		}
 
 		public const bool STORE_PROPERTY_REGISTRATION = true;
+
 		private const bool SHOW_ABSTRACT_TYPES_DURING_DISCOVERY = false;
-
-		// options registration?
-		// convert/remove deprecated options
-
-		// add property validators and descriptions
-
-		// cache options
 
 		private const string SETTINGS_TYPE_WINDOWS = "Windows";
 

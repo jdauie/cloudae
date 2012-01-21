@@ -20,9 +20,12 @@ namespace CloudAE.Core
 		{
 			get
 			{
-				string[] files = Directory.GetFiles(APP_CACHE_DIR, "*", SearchOption.AllDirectories);
-				long size = files.Select(f => new FileInfo(f).Length).Sum();
-
+				long size = 0;
+				if (Directory.Exists(APP_CACHE_DIR))
+				{
+					string[] files = Directory.GetFiles(APP_CACHE_DIR, "*", SearchOption.AllDirectories);
+					size = files.Select(f => new FileInfo(f).Length).Sum();
+				}
 				return size;
 			}
 		}
