@@ -162,6 +162,10 @@ namespace CloudAE.App
 					m_backgroundWorker.RunWorkerAsync(inputHandler);
 				}
 			}
+			else
+			{
+				textBlockPreview.Text = "[Queue empty]";
+			}
 		}
 
 		private void AppendToLog(string value)

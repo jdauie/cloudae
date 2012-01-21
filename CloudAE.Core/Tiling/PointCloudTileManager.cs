@@ -458,6 +458,9 @@ namespace CloudAE.Core
 			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
 			ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
 
+			if (tilesX == 0) tilesX = 1;
+			if (tilesY == 0) tilesY = 1;
+
 			return new Grid<int>(tilesX, tilesY, extent, true);
 		}
 

@@ -10,6 +10,7 @@ namespace CloudAE.Core
 	{
 		private string m_path;
 		private string m_name;
+		private long m_size;
 
 		public string FilePath
 		{
@@ -21,12 +22,20 @@ namespace CloudAE.Core
 
 				m_path = value;
 				m_name = Path.GetFileName(m_path);
+
+				FileInfo fileInfo = new FileInfo(m_path);
+				m_size = fileInfo.Length;
 			}
 		}
 
 		public string Name
 		{
 			get { return m_name; }
+		}
+
+		public long Size
+		{
+			get { return m_size; }
 		}
 
 		protected FileHandlerBase(string path)

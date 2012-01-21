@@ -105,8 +105,16 @@ namespace CloudAE.Core
 			sb.AppendLine("LASF");
 			sb.AppendLine(String.Format("Points: {0:0,0}", m_pointCount));
 			sb.AppendLine(String.Format("Extent: {0}", m_headerExtent));
+			sb.AppendLine(String.Format("File Size: {0}", Size.ToSize()));
 			sb.AppendLine();
 			sb.AppendLine(String.Format("Point Size: {0} bytes", PointDataRecordLength));
+			sb.AppendLine();
+			sb.AppendLine(String.Format("Offset X: {0}", Quantization.OffsetX));
+			sb.AppendLine(String.Format("Offset Y: {0}", Quantization.OffsetY));
+			sb.AppendLine(String.Format("Offset Z: {0}", Quantization.OffsetZ));
+			sb.AppendLine(String.Format("Scale X: {0}", Quantization.ScaleFactorX));
+			sb.AppendLine(String.Format("Scale Y: {0}", Quantization.ScaleFactorY));
+			sb.AppendLine(String.Format("Scale Z: {0}", Quantization.ScaleFactorZ));
 
 			return sb.ToString();
 		}
