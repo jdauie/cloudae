@@ -30,7 +30,8 @@ namespace CloudAE.Core
 		{
 			Tiling = 1,
 			Preview2D,
-			Preview3D
+			Preview3D,
+			App
 		}
 
 		public const bool STORE_PROPERTY_REGISTRATION = true;

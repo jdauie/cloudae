@@ -25,19 +25,34 @@
 				<MenuItem Header="_File">
                     <MenuItem Header="Open ..." Click="OnBrowseButtonClick">
                         <MenuItem.Icon>
-                            <Image Source="/CloudAE.App;component/Icons/folder.png" />
+                            <Image Source="/CloudAE.App;component/Icons/add.png" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Show Performance" Click="OnPerformanceButtonClick" />
-					<MenuItem Header="Recent Files" x:Name="recentFilesMenuItem" />
+					<MenuItem x:Name="itemRemove" Header="Remove" Click="OnRemoveButtonClick">
+						<MenuItem.Icon>
+							<Image Source="/CloudAE.App;component/Icons/delete.png" />
+						</MenuItem.Icon>
+					</MenuItem>
+					<MenuItem x:Name="itemRemoveAll" Header="Remove All" Click="OnRemoveAllButtonClick" />
+					<MenuItem x:Name="itemStop" Header="Clear Queue" Click="OnStopButtonClick">
+						<MenuItem.Icon>
+							<Image Source="/CloudAE.App;component/Icons/cross.png" />
+						</MenuItem.Icon>
+					</MenuItem>
 				</MenuItem>
 			</Menu>
             <ToolBarTray>
                 <ToolBar Name="ToolBarCommon">
                     <Button ToolTip="Open ..." Click="OnBrowseButtonClick">
-                        <Image Source="/CloudAE.App;component/Icons/folder.png" />
+                        <Image Source="/CloudAE.App;component/Icons/add.png" />
                     </Button>
-                </ToolBar>
+					<Button x:Name="buttonRemove" ToolTip="Remove" Click="OnRemoveButtonClick">
+						<Image Source="/CloudAE.App;component/Icons/delete.png" />
+					</Button>
+					<Button x:Name="buttonStop" ToolTip="Clear Processing Queue" Click="OnStopButtonClick">
+						<Image Source="/CloudAE.App;component/Icons/cross.png" />
+					</Button>
+				</ToolBar>
             </ToolBarTray>
         </StackPanel>
 

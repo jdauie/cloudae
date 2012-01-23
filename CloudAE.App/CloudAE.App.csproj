@@ -191,6 +191,13 @@
     <Resource Include="Icons\keyboard.png" />
     <Resource Include="Icons\mouse.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\add.png" />
+    <Resource Include="Icons\delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\cross.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"</PostBuildEvent>

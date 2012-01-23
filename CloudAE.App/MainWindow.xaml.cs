@@ -17,9 +17,11 @@ namespace CloudAE.App
 	/// <summary>
 	/// Interaction logic for MainWindow2.xaml
 	/// </summary>
-	public partial class MainWindow : Window, ISerializeStateBinary, IFactory
+	public partial class MainWindow : Window, ISerializeStateBinary, IFactory, IPropertyContainer
 	{
 		private static readonly ITileSourceControl[] c_controls;
+
+		private static readonly PropertyState<bool> SWITCH_TO_LOG_TAB_ON_PROCESSING_START;
 
 		private Dictionary<string, PointCloudTileSource> m_sources;
 		private PointCloudTileSource m_currentTileSource;
@@ -46,6 +48,8 @@ namespace CloudAE.App
 
 		static MainWindow()
 		{
+			SWITCH_TO_LOG_TAB_ON_PROCESSING_START = Context.RegisterOption<bool>(Context.OptionCategory.App, "SwitchToLogTabOnProcessingStart", true);
+
 			List<ITileSourceControl> controls = RegisterControls();
 			c_controls = controls.ToArray();
 		}
@@ -100,6 +104,8 @@ namespace CloudAE.App
 
 			if(m_tabItemOnSelection == null)
 				throw new Exception("Required control not available.");
+
+			UpdateButtonStates();
 		}
 
 		private static List<ITileSourceControl> RegisterControls()
@@ -117,6 +123,23 @@ namespace CloudAE.App
 			);
 
 			return controls;
+		}
+
+		private void OnRemoveButtonClick(object sender, RoutedEventArgs e)
+		{
+			//treeView.SelectedItem
+		}
+
+		private void OnRemoveAllButtonClick(object sender, RoutedEventArgs e)
+		{
+			PointCloudTileSource[] sources = m_sources.Values.ToArray();
+			foreach (PointCloudTileSource source in sources)
+				RemoveTileSource(source);
+		}
+
+		private void OnStopButtonClick(object sender, RoutedEventArgs e)
+		{
+			m_inputQueue.Clear();
 		}
 
 		private void OnBrowseButtonClick(object sender, RoutedEventArgs e)
@@ -158,7 +181,9 @@ namespace CloudAE.App
 
 					textBlockPreview.Text = inputHandler.GetPreview();
 
-					m_tabItemOnStarted.IsSelected = true;
+					if (SWITCH_TO_LOG_TAB_ON_PROCESSING_START.Value)
+						m_tabItemOnStarted.IsSelected = true;
+
 					m_backgroundWorker.RunWorkerAsync(inputHandler);
 				}
 			}
@@ -228,6 +253,29 @@ namespace CloudAE.App
 			treeViewItem.IsSelected = true;
 
 			UpdateSelection(tileSource);
+
+			UpdateButtonStates();
+		}
+
+		private void RemoveTileSource(PointCloudTileSource tileSource)
+		{
+			UpdateSelection(null);
+
+			m_sources.Remove(tileSource.FilePath);
+
+			treeView.Items.Remove(tileSource);
+
+			UpdateButtonStates();
+		}
+
+		private void UpdateButtonStates()
+		{
+			itemRemoveAll.IsEnabled = (m_sources.Count > 0);
+			itemRemove.IsEnabled = (treeView.SelectedItem != null);
+			itemStop.IsEnabled = (m_inputQueue.Count > 0);
+
+			buttonRemove.IsEnabled = itemRemove.IsEnabled;
+			buttonStop.IsEnabled = itemRemove.IsEnabled;
 		}
 
 		private void UpdateSelection(PointCloudTileSource tileSource)
