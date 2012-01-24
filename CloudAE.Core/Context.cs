@@ -272,18 +272,18 @@ namespace CloudAE.Core
 				switch (typeCode)
 				{
 					case TypeCode.Boolean:
-						writeConversion = (value => (int)((bool)value ? 1 : 0));
 						readConversion  = (value => ((int)value == 1));
+						writeConversion = (value => (int)((bool)value ? 1 : 0));
 						break;
 					case TypeCode.Byte:
 					case TypeCode.SByte:
 					case TypeCode.Int16:
 					case TypeCode.UInt16:
-						readConversion = (value => (int)value);
+						readConversion  = (value => (int)value);
 						writeConversion = (value => Convert.ToInt32(value));
 						break;
 					case TypeCode.UInt32:
-						readConversion = (value => BitConverter.ToUInt32((byte[])value, 0));
+						readConversion  = (value => BitConverter.ToUInt32((byte[])value, 0));
 						writeConversion = (value => BitConverter.GetBytes((uint)value));
 						break;
 					case TypeCode.UInt64:
