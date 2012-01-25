@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
+//using System.Runtime.InteropServices;
 using System.Windows;
+
 using CloudAE.Core;
 
 namespace CloudAE.App
@@ -13,12 +11,31 @@ namespace CloudAE.App
 	/// </summary>
 	public partial class App : Application
 	{
+		//[DllImport("kernel32.dll", SetLastError = true)]
+		//static extern bool AllocConsole();
+
+		//[DllImport("kernel32.dll", SetLastError = true)]
+		//static extern bool FreeConsole();
+
 		protected override void OnStartup(StartupEventArgs e)
 		{
-			base.OnStartup(e);
+			//AllocConsole();
 
-			Context.Startup();
+			SplashScreen appSplash = new SplashScreen("splash.png");
+			appSplash.Show(false);
+			{
+				base.OnStartup(e);
+				Context.Startup();
+			}
+			appSplash.Close(TimeSpan.FromMilliseconds(300));
 
+			//FreeConsole();
+
+			ShowMainWindow();
+		}
+
+		private void ShowMainWindow()
+		{
 			MainWindow window = new MainWindow();
 			window.Show();
 		}
