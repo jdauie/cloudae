@@ -71,8 +71,8 @@ namespace CloudAE.Core
 			{
 				c_baseDirectory = appDomain.BaseDirectory;
 				
-				//c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
-				c_writeLineAction = Console.WriteLine;
+				c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
+				//c_writeLineAction = Console.WriteLine;
 
 				c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 				c_registeredPropertiesList = new List<IPropertyState>();
@@ -108,6 +108,8 @@ namespace CloudAE.Core
 				foreach (IPropertyState property in c_registeredPropertiesList)
 					Context.WriteLine("{0}", property.ToString());
 			}
+
+			Context.WriteLine(SystemInfo.GetSystemInfo());
 		}
 
 		#region Events

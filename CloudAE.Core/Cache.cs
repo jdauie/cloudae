@@ -10,10 +10,12 @@ namespace CloudAE.Core
 	public static class Cache
 	{
 		public static readonly string APP_CACHE_DIR;
+		public static readonly DriveInfo APP_CACHE_DRIVE;
 
 		static Cache()
 		{
 			APP_CACHE_DIR = Path.Combine(PropertyManager.APP_TEMP_DIR, "cache");
+			APP_CACHE_DRIVE = new DriveInfo(Path.GetPathRoot(APP_CACHE_DIR));
 		}
 
 		public static long CacheSize
