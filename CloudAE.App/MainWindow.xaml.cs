@@ -23,27 +23,15 @@ namespace CloudAE.App
 
 		private static readonly PropertyState<bool> SWITCH_TO_LOG_TAB_ON_PROCESSING_START;
 
-		private Dictionary<string, PointCloudTileSource> m_sources;
 		private PointCloudTileSource m_currentTileSource;
-
-		private ProgressManager m_progressManager;
-		private BackgroundWorker m_backgroundWorker;
-
-		private ObservableQueue<FileHandlerBase> m_inputQueue;
 
 		private TabItem m_tabItemOnStarted;
 		private TabItem m_tabItemOnSelection;
 
 		public PointCloudTileSource CurrentTileSource
 		{
-			get
-			{
-				return m_currentTileSource;
-			}
-			set
-			{
-				m_currentTileSource = value;
-			}
+			get { return m_currentTileSource; }
+			set { m_currentTileSource = value; }
 		}
 
 		static MainWindow()
@@ -58,17 +46,12 @@ namespace CloudAE.App
 		{
 			InitializeComponent();
 
-			m_sources = new Dictionary<string, PointCloudTileSource>();
+			listBoxQueue.ItemsSource = Context.ProcessingQueue;
 
-			m_inputQueue = new ObservableQueue<FileHandlerBase>();
-			listBoxQueue.ItemsSource = m_inputQueue;
-
-			m_backgroundWorker = new BackgroundWorker();
-			m_backgroundWorker.WorkerReportsProgress = true;
-			m_backgroundWorker.WorkerSupportsCancellation = true;
-			m_backgroundWorker.DoWork += OnBackgroundDoWork;
-			m_backgroundWorker.ProgressChanged += OnBackgroundProgressChanged;
-			m_backgroundWorker.RunWorkerCompleted += OnBackgroundRunWorkerCompleted;
+			Context.Log                       += OnLog;
+			Context.ProcessingStarted         += OnProcessingStarted;
+			Context.ProcessingCompleted       += OnProcessingCompleted;
+			Context.ProcessingProgressChanged += OnProcessingProgressChanged;
 
 			Context.LoadWindowState(this);
 
@@ -132,14 +115,14 @@ namespace CloudAE.App
 
 		private void OnRemoveAllButtonClick(object sender, RoutedEventArgs e)
 		{
-			PointCloudTileSource[] sources = m_sources.Values.ToArray();
-			foreach (PointCloudTileSource source in sources)
-				RemoveTileSource(source);
+			//PointCloudTileSource[] sources = m_sources.Values.ToArray();
+			//foreach (PointCloudTileSource source in sources)
+			//    RemoveTileSource(source);
 		}
 
 		private void OnStopButtonClick(object sender, RoutedEventArgs e)
 		{
-			m_inputQueue.Clear();
+			//m_inputQueue.Clear();
 		}
 
 		private void OnBrowseButtonClick(object sender, RoutedEventArgs e)
@@ -149,51 +132,13 @@ namespace CloudAE.App
 			if (dialog.ShowDialog(this) == true)
 			{
 				string[] inputFiles = dialog.FileNames;
-				Array.Sort<string>(inputFiles);
-				foreach (string inputFile in inputFiles)
-				{
-					AddToQueue(inputFile);
-				}
-
-				LoadNextInput();
+				Context.AddToProcessingQueue(inputFiles);
 			}
 		}
 
-		private void AddToQueue(string inputFile)
-		{
-			if (File.Exists(inputFile))
-			{
-				FileHandlerBase inputHandler = HandlerFactory.GetInputHandler(inputFile);
-				if (inputHandler != null)
-				{
-					m_inputQueue.Enqueue(inputHandler);
-				}
-			}
-		}
+		#region Context Event Handlers
 
-		private void LoadNextInput()
-		{
-			if (m_inputQueue.Count > 0)
-			{
-				if (!m_backgroundWorker.IsBusy)
-				{
-					FileHandlerBase inputHandler = m_inputQueue.Dequeue();
-
-					textBlockPreview.Text = inputHandler.GetPreview();
-
-					if (SWITCH_TO_LOG_TAB_ON_PROCESSING_START.Value)
-						m_tabItemOnStarted.IsSelected = true;
-
-					m_backgroundWorker.RunWorkerAsync(inputHandler);
-				}
-			}
-			else
-			{
-				textBlockPreview.Text = "[Queue empty]";
-			}
-		}
-
-		private void AppendToLog(string value)
+		private void OnLog(string value)
 		{
 			Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate()
 			{
@@ -201,52 +146,32 @@ namespace CloudAE.App
 			}));
 		}
 
-		private void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
+		private void OnProcessingStarted(FileHandlerBase inputHandler)
 		{
-			FileHandlerBase inputHandler = e.Argument as FileHandlerBase;
+			textBlockPreview.Text = inputHandler.GetPreview();
 
-			Action<string> logAction = new Action<string>(delegate(string value) { AppendToLog(value); });
-			m_progressManager = new ProgressManager(m_backgroundWorker, e, logAction);
+			if (SWITCH_TO_LOG_TAB_ON_PROCESSING_START.Value)
+				m_tabItemOnStarted.IsSelected = true;
+		}
 
-			ProcessingSet processingSet = new ProcessingSet(inputHandler);
-			PointCloudTileSource tileSource = processingSet.Process(m_progressManager);
+		private void OnProcessingCompleted(PointCloudTileSource tileSource)
+		{
+			// this could be determined with additional event info
+			textBlockPreview.Text = "[Queue empty]";
 
 			if (tileSource != null)
-			{
-				tileSource.GeneratePreviewGrid(m_progressManager);
-
-				e.Result = tileSource;
-			}
+				AddTileSource(tileSource);
 		}
 
-		private void OnBackgroundRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+		private void OnProcessingProgressChanged(int progressPercentage)
 		{
-			if ((e.Cancelled == true))
-			{
-			}
-			else if (!(e.Error == null))
-			{
-			}
-			else
-			{
-				// success
-				PointCloudTileSource tileSource = e.Result as PointCloudTileSource;
-				if (tileSource != null)
-					AddTileSource(tileSource);
-
-				LoadNextInput();
-			}
+			progressBar.Value = progressPercentage;
 		}
 
-		private void OnBackgroundProgressChanged(object sender, ProgressChangedEventArgs e)
-		{
-			progressBar.Value = e.ProgressPercentage;
-		}
+		#endregion
 
 		private void AddTileSource(PointCloudTileSource tileSource)
 		{
-			m_sources.Add(tileSource.FilePath, tileSource);
-
 			treeView.Items.Add(tileSource);
 			TreeViewItem treeViewItem = treeView.ItemContainerGenerator.ContainerFromItem(tileSource) as TreeViewItem;
 			treeViewItem.BringIntoView();
@@ -261,7 +186,7 @@ namespace CloudAE.App
 		{
 			UpdateSelection(null);
 
-			m_sources.Remove(tileSource.FilePath);
+			//m_sources.Remove(tileSource.FilePath);
 
 			treeView.Items.Remove(tileSource);
 
@@ -270,9 +195,9 @@ namespace CloudAE.App
 
 		private void UpdateButtonStates()
 		{
-			itemRemoveAll.IsEnabled = (m_sources.Count > 0);
+			//itemRemoveAll.IsEnabled = (m_sources.Count > 0);
 			itemRemove.IsEnabled = (treeView.SelectedItem != null);
-			itemStop.IsEnabled = (m_inputQueue.Count > 0);
+			//itemStop.IsEnabled = (m_inputQueue.Count > 0);
 
 			buttonRemove.IsEnabled = itemRemove.IsEnabled;
 			buttonStop.IsEnabled = itemRemove.IsEnabled;
@@ -326,25 +251,23 @@ namespace CloudAE.App
 			CurrentTileSource = null;
 
 			Context.SaveWindowState(this);
+
+			Context.Log                       -= OnLog;
+			Context.ProcessingStarted         -= OnProcessingStarted;
+			Context.ProcessingCompleted       -= OnProcessingCompleted;
+			Context.ProcessingProgressChanged -= OnProcessingProgressChanged;
 		}
 
 		private void OnTreeViewDrop(object sender, DragEventArgs e)
 		{
 			string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-			Array.Sort<string>(files);
-			foreach (string file in files)
-			{
-				AddToQueue(file);
-			}
-			LoadNextInput();
+			Context.AddToProcessingQueue(files);
 		}
 
 		private void OnTreeViewDragEnter(object sender, DragEventArgs e)
 		{
 			if (!e.Data.GetDataPresent(DataFormats.FileDrop, false))
-			{
 				e.Effects = DragDropEffects.None;
-			}
 		}
 
 		#region ISerializeStateBinary Members

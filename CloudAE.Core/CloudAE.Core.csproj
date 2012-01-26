@@ -66,8 +66,10 @@
     <Compile Include="Handlers\HandlerCreatorBase.cs" />
     <Compile Include="Handlers\IHandlerCreator.cs" />
     <Compile Include="Handlers\LASCreator.cs" />
+    <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />
+    <Compile Include="ProcessingQueue.cs" />
     <Compile Include="Serialization\ISerializeStateBinary.cs" />
     <Compile Include="Serialization\ISerializeBinary.cs" />
     <Compile Include="Media\ColorMap.cs" />

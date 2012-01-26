@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Win32;
+using System.ComponentModel;
 
 namespace CloudAE.Core
 {
@@ -50,6 +51,10 @@ namespace CloudAE.Core
 
 		private static Action<string, object[]> c_writeLineAction;
 
+		private static Dictionary<string, PointCloudTileSource> c_sources;
+		private static ProcessingQueue c_queue;
+		private static BackgroundWorker c_backgroundWorker;
+
 		static Context()
 		{
 			Stopwatch stopwatch = new Stopwatch();
@@ -65,6 +70,7 @@ namespace CloudAE.Core
 			AppDomain appDomain = AppDomain.CurrentDomain;
 			{
 				c_baseDirectory = appDomain.BaseDirectory;
+				
 				//c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
 				c_writeLineAction = Console.WriteLine;
 
@@ -72,6 +78,16 @@ namespace CloudAE.Core
 				c_registeredPropertiesList = new List<IPropertyState>();
 
 				c_fileIndex = new Dictionary<string, string>();
+
+				c_sources = new Dictionary<string, PointCloudTileSource>();
+				c_queue = new ProcessingQueue();
+
+				c_backgroundWorker = new BackgroundWorker();
+				c_backgroundWorker.WorkerReportsProgress = true;
+				c_backgroundWorker.WorkerSupportsCancellation = true;
+				c_backgroundWorker.DoWork += OnBackgroundDoWork;
+				c_backgroundWorker.ProgressChanged += OnBackgroundProgressChanged;
+				c_backgroundWorker.RunWorkerCompleted += OnBackgroundRunWorkerCompleted;
 			}
 
 			RegisterExtensions();
@@ -94,9 +110,134 @@ namespace CloudAE.Core
 			}
 		}
 
+		#region Events
+
+		public delegate void LogHandler(string value);
+		public delegate void ProcessingStartedHandler(FileHandlerBase inputHandler);
+		public delegate void ProcessingCompletedHandler(PointCloudTileSource tileSource);
+		public delegate void ProcessingProgressChangedHandler(int progressPercentage);
+
+		public static event LogHandler Log;
+		public static event ProcessingStartedHandler ProcessingStarted;
+		public static event ProcessingCompletedHandler ProcessingCompleted;
+		public static event ProcessingProgressChangedHandler ProcessingProgressChanged;
+
+		private static void OnLog(string value)
+		{
+			LogHandler handler = Log;
+			if (handler != null)
+				handler(value);
+		}
+
+		private static void OnProcessingStarted(FileHandlerBase inputHandler)
+		{
+			ProcessingStartedHandler handler = ProcessingStarted;
+			if (handler != null)
+				handler(inputHandler);
+		}
+
+		private static void OnProcessingCompleted(PointCloudTileSource tileSource)
+		{
+			ProcessingCompletedHandler handler = ProcessingCompleted;
+			if (handler != null)
+				handler(tileSource);
+		}
+
+		private static void OnProcessingProgressChanged(int progressPercentage)
+		{
+			ProcessingProgressChangedHandler handler = ProcessingProgressChanged;
+			if (handler != null)
+				handler(progressPercentage);
+		}
+
+		#endregion
+
 		public static List<IPropertyState> RegisteredProperties
 		{
 			get { return c_registeredPropertiesList; }
+		}
+
+		public static ProcessingQueue ProcessingQueue
+		{
+			get { return c_queue; }
+		}
+
+		#region BackgroundWorker
+
+		private static void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
+		{
+			ProgressManager progressManager = new BackgroundWorkerProgressManager(c_backgroundWorker, e, OnLog);
+
+			FileHandlerBase inputHandler = e.Argument as FileHandlerBase;
+			ProcessingSet processingSet = new ProcessingSet(inputHandler);
+			PointCloudTileSource tileSource = processingSet.Process(progressManager);
+
+			if (tileSource != null)
+			{
+				tileSource.GeneratePreviewGrid(progressManager);
+
+				e.Result = tileSource;
+			}
+		}
+
+		private static void OnBackgroundRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+		{
+			if ((e.Cancelled == true)) { }
+			else if (!(e.Error == null)) { }
+			else
+			{
+				// success
+				PointCloudTileSource tileSource = e.Result as PointCloudTileSource;
+				if (tileSource != null)
+				    AddTileSource(tileSource);
+
+				OnProcessingCompleted(tileSource);
+
+				StartNextInProcessingQueue();
+			}
+		}
+
+		private static void OnBackgroundProgressChanged(object sender, ProgressChangedEventArgs e)
+		{
+			OnProcessingProgressChanged(e.ProgressPercentage);
+		}
+
+		#endregion
+
+		public static void AddToProcessingQueue(string path)
+		{
+			if (!File.Exists(path))
+				throw new FileNotFoundException("Item cannot be added to queue.", path);
+
+			FileHandlerBase handler = HandlerFactory.GetInputHandler(path);
+			if (handler != null)
+				c_queue.Enqueue(handler);
+
+			StartNextInProcessingQueue();
+		}
+
+		public static void AddToProcessingQueue(string[] paths)
+		{
+			foreach (string path in paths.OrderBy(p => p))
+				AddToProcessingQueue(path);
+		}
+
+		private static void StartNextInProcessingQueue()
+		{
+			if (c_queue.Count > 0)
+			{
+				if (!c_backgroundWorker.IsBusy)
+				{
+					FileHandlerBase inputHandler = c_queue.Dequeue();
+					OnProcessingStarted(inputHandler);
+					c_backgroundWorker.RunWorkerAsync(inputHandler);
+				}
+			}
+		}
+
+		private static void AddTileSource(PointCloudTileSource tileSource)
+		{
+			c_sources.Add(tileSource.FilePath, tileSource);
 		}
 
 		public static void WriteLine(string value, params object[] args)

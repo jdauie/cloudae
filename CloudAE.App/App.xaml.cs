@@ -31,6 +31,9 @@ namespace CloudAE.App
 
 			//FreeConsole();
 
+			// handle any args
+			// (e.g. inputs, silent, scripts?)
+
 			ShowMainWindow();
 		}
 

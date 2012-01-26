@@ -7,34 +7,13 @@ using System.Diagnostics;
 
 namespace CloudAE.Core
 {
-	public class ProgressManager
+	public abstract class ProgressManager
 	{
-		private BackgroundWorker m_worker;
-		private DoWorkEventArgs m_args;
 		private Action<string> m_logAction;
 
-		public ProgressManager(BackgroundWorker worker, DoWorkEventArgs args, Action<string> logAction)
+		public ProgressManager(Action<string> logAction)
 		{
-			m_worker = worker;
-			m_args = args;
 			m_logAction = logAction;
-		}
-
-		public bool Update(float progressRatio)
-		{
-			return Update(progressRatio, null);
-		}
-
-		public bool Update(float progressRatio, object userState)
-		{
-			if ((m_worker.CancellationPending == true))
-			{
-				m_args.Cancel = true;
-				return false;
-			}
-
-			m_worker.ReportProgress((int)(100 * progressRatio), userState);
-			return true;
 		}
 
 		public void Log(string value, params object[] args)
@@ -50,5 +29,12 @@ namespace CloudAE.Core
 			Log("{1} in {0:0,.}s", stopwatch.ElapsedMilliseconds, eventNameFormat);
 			stopwatch.Restart();
 		}
+
+		public bool Update(float progressRatio)
+		{
+			return Update(progressRatio, null);
+		}
+
+		public abstract bool Update(float progressRatio, object userState);
 	}
 }
