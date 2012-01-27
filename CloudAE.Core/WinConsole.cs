@@ -241,8 +241,10 @@ namespace CloudAE.Core
 		#endregion
 	}
 
-	public class WinConsole
+	public class WinConsole : IPropertyContainer
 	{
+		private static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
+
 		private static IntPtr c_buffer;
 
 		#region Properties
@@ -253,7 +255,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Gets or sets the title of the console window
+		/// Gets or sets the title.
 		/// </summary>
 		public static string Title
 		{
@@ -270,9 +272,8 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Get the HWND of the console window
+		/// Get the handle of the console window.
 		/// </summary>
-		/// <returns></returns>
 		public static IntPtr Handle
 		{
 			get
@@ -283,7 +284,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Gets and sets a new parent hwnd to the console window
+		/// Gets and sets the parent handle.
 		/// </summary>
 		public static IntPtr ParentHandle
 		{
@@ -309,7 +310,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Get the current Win32 buffer handle
+		/// Gets the current buffer handle.
 		/// </summary>
 		public static IntPtr Buffer
 		{
@@ -321,7 +322,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Get the current Win32 buffer handle
+		/// Sets the current buffer size.
 		/// </summary>
 		public static WinAPI.Coord BufferSize
 		{
@@ -336,7 +337,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Gets or sets the current color and attributes of text 
+		/// Sets the current text color.
 		/// </summary>
 		public static ForeGroundColour Color
 		{
@@ -351,7 +352,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Sets the position and size of the console window.
+		/// Sets the size of the console window.
 		/// </summary>
 		public static WinAPI.Coord WindowSize
 		{
@@ -369,7 +370,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Sets the position and size of the console window.
+		/// Sets the position of the console window.
 		/// </summary>
 		public static Point WindowPosition
 		{
@@ -388,6 +389,11 @@ namespace CloudAE.Core
 
 		#endregion
 
+		static WinConsole()
+		{
+			//PROPERTY_DESIRED_TILE_COUNT = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "ConsolePositionAndSize", 40000);
+		}
+
 		private WinConsole()
 		{
 			Initialize();
@@ -396,7 +402,6 @@ namespace CloudAE.Core
 		/// <summary>
 		/// Closes the debug console.
 		/// </summary>
-		/// <returns>whether the console can be shown</returns>
 		public static bool DestroyConsole()
 		{
 			bool result = false;
@@ -414,7 +419,7 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Initializes WinConsole -- should be called at the start of the program using it.
+		/// Initializes the console.
 		/// </summary>
 		public static void Initialize()
 		{
@@ -508,13 +513,33 @@ namespace CloudAE.Core
 			//else if (value.IndexOf(':') > 0)
 			//    color = ForeGroundColour.Blue;
 
-			if (color != ForeGroundColour.Undefined)
-				Color = color;
+			using (WinConsoleColorHandler.Handle(color))
+				Console.WriteLine(value);
+		}
+	}
 
-			Console.WriteLine(value);
+	class WinConsoleColorHandler : IDisposable
+	{
+		private bool m_reset;
 
+		public static WinConsoleColorHandler Handle(ForeGroundColour color)
+		{
+			return new WinConsoleColorHandler(color);
+		}
+
+		private WinConsoleColorHandler(ForeGroundColour color)
+		{
 			if (color != ForeGroundColour.Undefined)
-				Color = ForeGroundColour.Gray;
+			{
+				m_reset = true;
+				WinConsole.Color = color;
+			}
+		}
+
+		public void Dispose()
+		{
+			if (m_reset)
+				WinConsole.Color = ForeGroundColour.Gray;
 		}
 	}
 }

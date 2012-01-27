@@ -12,8 +12,6 @@ namespace CloudAE.App
 	{
 		protected override void OnStartup(StartupEventArgs e)
 		{
-			WinConsole.Initialize();
-
 			SplashScreen appSplash = new SplashScreen("splash.png");
 			appSplash.Show(false);
 			{

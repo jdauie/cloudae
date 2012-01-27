@@ -71,8 +71,9 @@ namespace CloudAE.Core
 			AppDomain appDomain = AppDomain.CurrentDomain;
 
 			c_baseDirectory = appDomain.BaseDirectory;
-				
+
 			//c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
+			WinConsole.Initialize();
 			c_writeLineAction = WinConsole.WriteLine;
 
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
