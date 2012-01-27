@@ -40,6 +40,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Management.Instrumentation" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -151,6 +153,7 @@
     <Compile Include="Tools3D\ScreenSpaceLines3D.cs" />
     <Compile Include="Tools3D\Trackball.cs" />
     <Compile Include="Utilities\XCopy.cs" />
+    <Compile Include="WinConsole.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

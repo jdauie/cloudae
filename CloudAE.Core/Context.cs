@@ -20,8 +20,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Win32;
 using System.ComponentModel;
+
+using Microsoft.Win32;
 
 namespace CloudAE.Core
 {
@@ -68,48 +69,40 @@ namespace CloudAE.Core
 			}
 
 			AppDomain appDomain = AppDomain.CurrentDomain;
-			{
-				c_baseDirectory = appDomain.BaseDirectory;
+
+			c_baseDirectory = appDomain.BaseDirectory;
 				
-				c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
-				//c_writeLineAction = Console.WriteLine;
+			//c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
+			c_writeLineAction = WinConsole.WriteLine;
 
-				c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
-				c_registeredPropertiesList = new List<IPropertyState>();
+			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
+			c_registeredPropertiesList = new List<IPropertyState>();
+			c_fileIndex = new Dictionary<string, string>();
+			c_sources = new Dictionary<string, PointCloudTileSource>();
+			c_queue = new ProcessingQueue();
 
-				c_fileIndex = new Dictionary<string, string>();
-
-				c_sources = new Dictionary<string, PointCloudTileSource>();
-				c_queue = new ProcessingQueue();
-
-				c_backgroundWorker = new BackgroundWorker();
-				c_backgroundWorker.WorkerReportsProgress = true;
-				c_backgroundWorker.WorkerSupportsCancellation = true;
-				c_backgroundWorker.DoWork += OnBackgroundDoWork;
-				c_backgroundWorker.ProgressChanged += OnBackgroundProgressChanged;
-				c_backgroundWorker.RunWorkerCompleted += OnBackgroundRunWorkerCompleted;
-			}
+			c_backgroundWorker = new BackgroundWorker();
+			c_backgroundWorker.WorkerReportsProgress = true;
+			c_backgroundWorker.WorkerSupportsCancellation = true;
+			c_backgroundWorker.DoWork += OnBackgroundDoWork;
+			c_backgroundWorker.ProgressChanged += OnBackgroundProgressChanged;
+			c_backgroundWorker.RunWorkerCompleted += OnBackgroundRunWorkerCompleted;
 
 			RegisterExtensions();
 			c_loadedTypes = appDomain.GetExtensionTypes(PropertyManager.PRODUCT_NAME).ToArray();
 			RegisterFactories();
 			RegisterProperties();
 
+			long startupElapsed = stopwatch.ElapsedMilliseconds;
+			stopwatch.Restart();
+
+			SystemInfo.WriteSystemInfo();
+
 			stopwatch.Stop();
-			{
-				Context.WriteLine("[{0}]", typeof(Context).FullName);
-				Context.WriteLine("Base:    {0}", c_baseDirectory);
-				Context.WriteLine("Types:   {0}", c_loadedTypes.Length);
-				Context.WriteLine("Options: {0}", c_registeredPropertiesList.Count);
-				Context.WriteLine("Cache:   {0}", Cache.CacheSize.ToSize());
-				Context.WriteLine("Startup: {0}ms", stopwatch.ElapsedMilliseconds);
-
-				Context.WriteLine("[Options]");
-				foreach (IPropertyState property in c_registeredPropertiesList)
-					Context.WriteLine("{0}", property.ToString());
-			}
-
-			Context.WriteLine(SystemInfo.GetSystemInfo());
+			Context.WriteLine("[Startup]");
+			Context.WriteLine("  Discover:    {0}ms", startupElapsed);
+			Context.WriteLine("  Instrument:  {0}ms", stopwatch.ElapsedMilliseconds);
+			Context.WriteLine("  Total:       {0}ms", stopwatch.ElapsedMilliseconds + startupElapsed);
 		}
 
 		#region Events
@@ -154,6 +147,11 @@ namespace CloudAE.Core
 
 		#endregion
 
+		public static Type[] LoadedTypes
+		{
+			get { return c_loadedTypes; }
+		}
+
 		public static List<IPropertyState> RegisteredProperties
 		{
 			get { return c_registeredPropertiesList; }
@@ -162,6 +160,11 @@ namespace CloudAE.Core
 		public static ProcessingQueue ProcessingQueue
 		{
 			get { return c_queue; }
+		}
+
+		public static string BasePath
+		{
+			get { return c_baseDirectory; }
 		}
 
 		#region BackgroundWorker

@@ -31,6 +31,11 @@ namespace CloudAE.Core
 			double value = (double)bytes / Math.Pow(1024, pow);
 			return value.ToString(pow == 0 ? "F0" : "F" + PRECISION.ToString()) + " " + Units[(int)pow];
 		}
+
+		public static string ToSize(this uint bytes)
+		{
+			return ToSize((long)bytes);
+		}
 	}
 
 	public class LongToSizeConverter : MarkupExtension, IValueConverter
