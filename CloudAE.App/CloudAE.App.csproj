@@ -75,11 +75,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="LogViewer.xaml.cs">
+    <Compile Include="Controls\LogViewer.xaml.cs">
       <DependentUpon>LogViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="ITileSourceControl.cs" />
-    <Compile Include="Profile2D.xaml.cs">
+    <Compile Include="Controls\Profile2D.xaml.cs">
       <DependentUpon>Profile2D.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
@@ -89,14 +89,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PropertyEditor.xaml.cs">
+    <Compile Include="Controls\PropertyEditor.xaml.cs">
       <DependentUpon>PropertyEditor.xaml</DependentUpon>
     </Compile>
-    <Page Include="LogViewer.xaml">
+    <Page Include="Controls\LogViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Profile2D.xaml">
+    <Page Include="Controls\Profile2D.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -104,24 +104,24 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Preview2D.xaml">
+    <Page Include="Controls\Preview2D.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Preview3D.xaml">
+    <Page Include="Controls\Preview3D.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PropertyEditor.xaml">
+    <Page Include="Controls\PropertyEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Preview2D.xaml.cs">
+    <Compile Include="Controls\Preview2D.xaml.cs">
       <DependentUpon>Preview2D.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Preview3D.xaml.cs">
+    <Compile Include="Controls\Preview3D.xaml.cs">
       <DependentUpon>Preview3D.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
