@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.IO;
-using Microsoft.Win32;
-using System.Reflection;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Management;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace CloudAE.Core
 {
@@ -167,6 +165,7 @@ namespace CloudAE.Core
 					case "User":                  return Environment.UserName;
 					case "Domain":                return Environment.UserDomainName;
 					case "Machine":               return Environment.MachineName;
+					case "DebuggerAttached":      return Debugger.IsAttached.ToString();
 					case "Interactive":           return Environment.UserInteractive.ToString();
 					case "OS":                    return GetOSInfo();
 					case "CLR":                   return Environment.Version.ToString();
@@ -210,6 +209,7 @@ namespace CloudAE.Core
 				templateLines.Add(@"[Environment]");
 				templateLines.Add(@"  User       : $Domain\$User");
 				templateLines.Add(@"  Machine    : $Machine");
+				templateLines.Add(@"  Debugging  : $DebuggerAttached");
 				templateLines.Add(@"  Interactive: $Interactive");
 				templateLines.Add(@"  OS Version : $OS");
 				templateLines.Add(@"  CLR Version: $CLR");

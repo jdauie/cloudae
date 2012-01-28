@@ -24,6 +24,8 @@ using System.ComponentModel;
 
 using Microsoft.Win32;
 
+using CloudAE.Core.Windows;
+
 namespace CloudAE.Core
 {
 	public static class Context
