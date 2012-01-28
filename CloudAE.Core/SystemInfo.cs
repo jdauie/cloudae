@@ -208,40 +208,40 @@ namespace CloudAE.Core
 			if ((infoFlags & DebugInfo.Environment) > 0)
 			{
 				templateLines.Add(@"[Environment]");
-				templateLines.Add(@"  User:        $Domain\$User");
-				templateLines.Add(@"  Machine:     $Machine");
+				templateLines.Add(@"  User       : $Domain\$User");
+				templateLines.Add(@"  Machine    : $Machine");
 				templateLines.Add(@"  Interactive: $Interactive");
-				templateLines.Add(@"  OS Version:  $OS");
+				templateLines.Add(@"  OS Version : $OS");
 				templateLines.Add(@"  CLR Version: $CLR");
-				templateLines.Add(@"  Processors:  $Processors");
-				templateLines.Add(@"  Graphics:    $Graphics");
-				templateLines.Add(@"  Drive $DriveLetter:     $DriveDetails");
+				templateLines.Add(@"  Processors : $Processors");
+				templateLines.Add(@"  Graphics   : $Graphics");
+				templateLines.Add(@"  Drive $DriveLetter    : $DriveDetails");
 			}
 			if ((infoFlags & DebugInfo.Context) > 0)
 			{
 				templateLines.Add(@"[Context]");
-				templateLines.Add(@"  Types:       $Types");
-				templateLines.Add(@"  Options:     $Options");
-				templateLines.Add(@"  Base Path:   $BasePath");
-				templateLines.Add(@"  Temp:        $Temp");
-				templateLines.Add(@"  Temp Used:   $TempUsed");
+				templateLines.Add(@"  Types      : $Types");
+				templateLines.Add(@"  Options    : $Options");
+				templateLines.Add(@"  Base Path  : $BasePath");
+				templateLines.Add(@"  Temp       : $Temp");
+				templateLines.Add(@"  Temp Used  : $TempUsed");
 			}
 			if ((infoFlags & DebugInfo.Process) > 0)
 			{
 				templateLines.Add(@"[Process]");
-				templateLines.Add(@"  Name:        $ProcName");
-				templateLines.Add(@"  ID:          $ProcId");
-				templateLines.Add(@"  Start Time:  $ProcStart");
-				templateLines.Add(@"  Handles:     $ProcHandles");
-				templateLines.Add(@"  Total CPU:   $ProcTotalCpu");
-				templateLines.Add(@"  User CPU:    $ProcUserCpu");
+				templateLines.Add(@"  Name       : $ProcName");
+				templateLines.Add(@"  ID         : $ProcId");
+				templateLines.Add(@"  Start Time : $ProcStart");
+				templateLines.Add(@"  Handles    : $ProcHandles");
+				templateLines.Add(@"  Total CPU  : $ProcTotalCpu");
+				templateLines.Add(@"  User CPU   : $ProcUserCpu");
 			}
 			if ((infoFlags & DebugInfo.Memory) > 0)
 			{
 				templateLines.Add(@"[Memory]");
 				templateLines.Add(@"  Working Set: $ProcWorkingSet ($PeakProcWorkingSet)");
-				templateLines.Add(@"  Paged:       $ProcPagedMemory ($PeakProcPagedMemory)");
-				templateLines.Add(@"  Virtual:     $ProcVirtualMemory ($PeakProcVirtualMemory)");
+				templateLines.Add(@"  Paged      : $ProcPagedMemory ($PeakProcPagedMemory)");
+				templateLines.Add(@"  Virtual    : $ProcVirtualMemory ($PeakProcVirtualMemory)");
 			}
 			if ((infoFlags & DebugInfo.Options) > 0)
 			{

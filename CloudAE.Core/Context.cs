@@ -101,9 +101,9 @@ namespace CloudAE.Core
 
 			stopwatch.Stop();
 			Context.WriteLine("[Startup]");
-			Context.WriteLine("  Discover:    {0}ms", startupElapsed);
-			Context.WriteLine("  Instrument:  {0}ms", stopwatch.ElapsedMilliseconds);
-			Context.WriteLine("  Total:       {0}ms", stopwatch.ElapsedMilliseconds + startupElapsed);
+			Context.WriteLine("  Discover   : {0}ms", startupElapsed);
+			Context.WriteLine("  Instrument : {0}ms", stopwatch.ElapsedMilliseconds);
+			Context.WriteLine("  Total      : {0}ms", stopwatch.ElapsedMilliseconds + startupElapsed);
 		}
 
 		#region Events
@@ -457,10 +457,12 @@ namespace CloudAE.Core
 
 		public static void Startup()
 		{
+			// this is after the class constructor
 		}
 
 		public static void Shutdown()
 		{
+			WinConsole.DestroyConsole();
 		}
 
 		#region Windows

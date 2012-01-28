@@ -49,12 +49,6 @@ namespace CloudAE.Core
 	{
 		#region Windows API
 
-		[DllImport("user32")]
-		public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int newValue);
-
-		[DllImport("user32")]
-		public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
 		[DllImport("kernel32")]
 		public static extern bool AllocConsole();
 
@@ -79,18 +73,6 @@ namespace CloudAE.Core
 		[DllImport("kernel32")]
 		public static extern bool SetConsoleTitle(string lpConsoleTitle);
 
-		[DllImport("user32")]
-		public static extern bool ShowWindow(IntPtr hwnd, int nCmdShow);
-
-		[DllImport("User32.Dll")]
-		public static extern IntPtr FindWindow( string lpClassName, string lpWindowName);
-
-		[DllImport("User32.Dll")]
-		public static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpClassName, string lpWindowName);
-
-		[DllImport("kernel32")]
-		public static extern IntPtr CreateConsoleScreenBuffer(int access, int share, IntPtr security, int flags, IntPtr reserved);
-
 		[DllImport("kernel32")]
 		public static extern bool SetConsoleActiveScreenBuffer(IntPtr handle);
 
@@ -109,27 +91,8 @@ namespace CloudAE.Core
 		[DllImport("kernel32")]
 		public static extern bool SetStdHandle(int handle1, IntPtr handle2);
 
-		[DllImport("user32")]
-		public static extern IntPtr SetParent(IntPtr hwnd, IntPtr hwnd2);
-
-		[DllImport("user32")]
-		public static extern IntPtr GetParent(IntPtr hwnd);
-
-		[DllImport("user32")]
-		public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
-			int x, int y, int cx, int cy, int flags);
-
-		[DllImport("User32.Dll")]
-		public static extern Boolean DeleteMenu( IntPtr hMenu, int uPosition, int uFlags );
-
-		[DllImport("User32.Dll")]
-		public static extern Boolean DrawMenuBar( IntPtr hWnd );
-
-		[DllImport("User32.Dll")]
-		public static extern IntPtr GetSystemMenu( IntPtr hWnd,	bool bRevert);
-
-		[DllImport("User32.Dll")]
-		public static extern short GetKeyState(int nVirtKey);
+		[DllImport("kernel32")]
+		public static extern IntPtr CreateConsoleScreenBuffer(int access, int share, IntPtr security, int flags, IntPtr reserved);
 
 		[DllImport("kernel32")]
 		public static extern bool SetConsoleScreenBufferSize(IntPtr hConsoleOutput, Coord dwSize);
@@ -137,13 +100,52 @@ namespace CloudAE.Core
 		[DllImport("kernel32")]
 		public static extern bool SetConsoleWindowInfo(IntPtr hConsoleOutput, bool bAbsolute, ref SmallRect lpConsoleWindow);
 
-		[DllImport("user32.dll")]
+		[DllImport("user32")]
+		public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int newValue);
+
+		[DllImport("user32")]
+		public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+		[DllImport("user32")]
+		public static extern bool ShowWindow(IntPtr hwnd, int nCmdShow);
+
+		[DllImport("user32")]
+		public static extern IntPtr FindWindow( string lpClassName, string lpWindowName);
+
+		[DllImport("user32")]
+		public static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpClassName, string lpWindowName);
+
+		[DllImport("user32")]
+		public static extern IntPtr SetParent(IntPtr hwnd, IntPtr hwnd2);
+
+		[DllImport("user32")]
+		public static extern IntPtr GetParent(IntPtr hwnd);
+
+		[DllImport("user32")]
+		public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, int flags);
+
+		[DllImport("user32")]
+		public static extern bool GetWindowRect(IntPtr hWnd, out Rect lpRect);
+
+		[DllImport("user32")]
+		public static extern Boolean DeleteMenu( IntPtr hMenu, int uPosition, int uFlags );
+
+		[DllImport("user32")]
+		public static extern Boolean DrawMenuBar( IntPtr hWnd );
+
+		[DllImport("user32")]
+		public static extern IntPtr GetSystemMenu( IntPtr hWnd,	bool bRevert);
+
+		[DllImport("user32")]
+		public static extern short GetKeyState(int nVirtKey);
+
+		[DllImport("user32")]
 		public static extern bool BringWindowToTop(IntPtr hWnd);
 
-		[DllImport("user32.dll")]
+		[DllImport("user32")]
 		public static extern bool IsWindowVisible(IntPtr hWnd);
 
-		[DllImport("user32.dll")]
+		[DllImport("user32")]
 		public static extern bool DeleteMenu(IntPtr hMenu, int uPosition, IntPtr uFlags);
 
 		#endregion
@@ -217,6 +219,33 @@ namespace CloudAE.Core
 				Bottom = tBottom;
 			}
 		}
+
+		/// <summary>
+		/// Rectangle.
+		/// </summary>
+		[StructLayout(LayoutKind.Sequential)]
+		public struct Rect
+		{
+			public Int32 Left;
+			public Int32 Top;
+			public Int32 Right;
+			public Int32 Bottom;
+
+			/// <summary>
+			/// Initializes a new instance of the <see cref="SmallRect"/> struct.
+			/// </summary>
+			/// <param name="tLeft">The left.</param>
+			/// <param name="tTop">The top.</param>
+			/// <param name="tRight">The right.</param>
+			/// <param name="tBottom">The bottom.</param>
+			public Rect(int tLeft, int tTop, int tRight, int tBottom)
+			{
+				Left   = tLeft;
+				Top    = tTop;
+				Right  = tRight;
+				Bottom = tBottom;
+			}
+		}
 		
 		/// <summary>
 		/// Coordinate.
@@ -243,9 +272,49 @@ namespace CloudAE.Core
 
 	public class WinConsole : IPropertyContainer
 	{
-		private static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
+		class WinConsoleStateHandler : ISerializeStateBinary
+		{
+			#region ISerializeStateBinary Members
+
+			public string GetIdentifier()
+			{
+				return "WinConsole";
+			}
+
+			public void Deserialize(BinaryReader reader)
+			{
+				if (WinConsole.Initialized)
+				{
+					int left   = reader.ReadInt32();
+					int top    = reader.ReadInt32();
+					int width  = reader.ReadInt32();
+					int height = reader.ReadInt32();
+
+					WinConsole.WindowPosition = new Point(left, top);
+					WinConsole.WindowSize = new WinAPI.Coord((short)width, (short)height);
+				}
+			}
+
+			public void Serialize(BinaryWriter writer)
+			{
+				if (WinConsole.Initialized)
+				{
+					Point pos = WinConsole.WindowPosition;
+					WinAPI.Coord coord = WinConsole.WindowSize;
+
+					writer.Write((int)pos.X);
+					writer.Write((int)pos.Y);
+					writer.Write((int)coord.X);
+					writer.Write((int)coord.Y);
+				}
+			}
+
+			#endregion
+		}
 
 		private static IntPtr c_buffer;
+
+		private static WinConsoleStateHandler c_rect;
 
 		#region Properties
 
@@ -352,10 +421,16 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Sets the size of the console window.
+		/// Gets or sets the size of the console window.
 		/// </summary>
 		public static WinAPI.Coord WindowSize
 		{
+			get
+			{
+				if (Initialized)
+					return new WinAPI.Coord((short)Console.WindowWidth, (short)Console.WindowHeight);
+				throw new InvalidOperationException("Console not initialized.");
+			}
 			set
 			{
 				if (!Initialized)
@@ -370,10 +445,21 @@ namespace CloudAE.Core
 		}
 
 		/// <summary>
-		/// Sets the position of the console window.
+		/// Gets or sets the position of the console window.
 		/// </summary>
 		public static Point WindowPosition
 		{
+			get
+			{
+				if (Initialized)
+				{
+					IntPtr hwnd = Handle;
+					WinAPI.Rect rect;
+					if (hwnd != IntPtr.Zero && WinAPI.GetWindowRect(hwnd, out rect))
+						return new Point(rect.Left, rect.Top);
+				}
+				throw new InvalidOperationException("Console not initialized.");
+			}
 			set
 			{
 				if (!Initialized)
@@ -381,9 +467,7 @@ namespace CloudAE.Core
 				IntPtr buffer = Buffer;
 				IntPtr hwnd = Handle;
 				if (buffer != IntPtr.Zero && hwnd != IntPtr.Zero)
-				{
 					WinAPI.SetWindowPos(hwnd, IntPtr.Zero, value.X, value.Y, 0, 0, WinAPI.SWP_NOSIZE | WinAPI.SWP_NOZORDER | WinAPI.SWP_NOACTIVATE);
-				}
 			}
 		}
 
@@ -391,7 +475,7 @@ namespace CloudAE.Core
 
 		static WinConsole()
 		{
-			//PROPERTY_DESIRED_TILE_COUNT = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "ConsolePositionAndSize", 40000);
+			c_rect = new WinConsoleStateHandler();
 		}
 
 		private WinConsole()
@@ -408,6 +492,8 @@ namespace CloudAE.Core
 
 			if (Initialized)
 			{
+				Context.SaveWindowState(c_rect);
+
 				if (WinAPI.FreeConsole())
 				{
 					c_buffer = IntPtr.Zero;
@@ -430,7 +516,7 @@ namespace CloudAE.Core
 			//    return;
 
 			const short bufferWidth = 100;
-			const short bufferHeight = 300;
+			const short bufferHeight = 900;
 
 			bool success = WinAPI.AllocConsole();
 			if (!success)
@@ -501,20 +587,59 @@ namespace CloudAE.Core
 			}
 			
 			Console.SetError(writer);
+
+			Context.LoadWindowState(c_rect);
 		}
 
 		public static void WriteLine(string format, params object[] args)
 		{
 			string value = string.Format(format, args);
+			string trimmedValue = value.TrimStart();
 
-			ForeGroundColour color = ForeGroundColour.Undefined;
-			if (value.TrimStart().StartsWith("["))
-				color = ForeGroundColour.Red;
-			//else if (value.IndexOf(':') > 0)
-			//    color = ForeGroundColour.Blue;
+			if (trimmedValue.StartsWith("["))
+			{
+				using (WinConsoleColorHandler.Handle(ForeGroundColour.White))
+					Console.Write(value.Substring(0, value.Length - trimmedValue.Length + 1));
+				using (WinConsoleColorHandler.Handle(ForeGroundColour.Green))
+					Console.Write(trimmedValue.Substring(1, trimmedValue.Length - 2));
+				using (WinConsoleColorHandler.Handle(ForeGroundColour.White))
+					Console.WriteLine(value.Substring(value.Length - 1));
+			}
+			else if (trimmedValue.StartsWith("+ ") || trimmedValue.StartsWith("- ") || trimmedValue.StartsWith("x "))
+			{
+				using (WinConsoleColorHandler.Handle(ForeGroundColour.Cyan))
+					Console.Write(value.Substring(0, value.Length - trimmedValue.Length + 1));
+				using (WinConsoleColorHandler.Handle(ForeGroundColour.Red))
+					Console.WriteLine(trimmedValue.Substring(1));
+			}
+			else
+			{
+				int separatorIndex = value.IndexOfAny(new char[] { ':', '=' });
+				if (separatorIndex > 0 && separatorIndex < value.Length - 1 && value[separatorIndex + 1] == ' ')
+				{
+					string[] segments = value.Substring(0, separatorIndex).Split('.');
+					for (int i = 0; i < segments.Length; i++)
+					{
+						if (i > 0)
+						{
+							using (WinConsoleColorHandler.Handle(ForeGroundColour.White))
+								Console.Write('.');
+						}
+						using (WinConsoleColorHandler.Handle(ForeGroundColour.Magenta))
+							Console.Write(segments[i]);
+					}
+					
+					using (WinConsoleColorHandler.Handle(ForeGroundColour.Cyan))
+						Console.Write(value.Substring(separatorIndex, 1));
+					Console.WriteLine(value.Substring(separatorIndex + 1));
+				}
+				else
+				{
+					Console.WriteLine(value);
+				}
+			}
 
-			using (WinConsoleColorHandler.Handle(color))
-				Console.WriteLine(value);
+			
 		}
 	}
 

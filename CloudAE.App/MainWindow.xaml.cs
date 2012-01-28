@@ -274,9 +274,9 @@ namespace CloudAE.App
 
 		public void Deserialize(BinaryReader reader)
 		{
-			Left = reader.ReadInt32();
-			Top = reader.ReadInt32();
-			Width = reader.ReadInt32();
+			Left   = reader.ReadInt32();
+			Top    = reader.ReadInt32();
+			Width  = reader.ReadInt32();
 			Height = reader.ReadInt32();
 
 			if (reader.BaseStream.Position == reader.BaseStream.Length - 1)
@@ -296,7 +296,6 @@ namespace CloudAE.App
 
 		public string GetIdentifier()
 		{
-			//return Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(Name));
 			return Name;
 		}
 
