@@ -7,7 +7,7 @@ namespace CloudAE.Core.Windows
 	/// <summary>
 	/// Win API helpers for console operations.
 	/// </summary>
-	public class WinAPI
+	public static class WinAPI
 	{
 		#region Windows API
 
