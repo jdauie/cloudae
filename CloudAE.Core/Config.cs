@@ -10,6 +10,7 @@ namespace CloudAE.Core
 		private static bool m_contextStarted;
 
 		private static bool m_showConsole;
+		private static bool m_enableInstrumentation;
 		private static bool m_enableExtensionDiscovery;
 		private static bool m_enableFactoryDiscovery;
 		private static bool m_enablePropertyDiscovery;
@@ -37,6 +38,12 @@ namespace CloudAE.Core
 		{
 			get { return m_showConsole; }
 			set { m_showConsole = AttemptToAssignValue<bool>(value); }
+		}
+
+		public static bool EnableInstrumentation
+		{
+			get { return m_enableInstrumentation; }
+			set { m_enableInstrumentation = AttemptToAssignValue<bool>(value); }
 		}
 
 		public static bool EnableExtensionDiscovery
@@ -74,6 +81,7 @@ namespace CloudAE.Core
 			m_contextStarted = false;
 
 			m_showConsole = true;
+			m_enableInstrumentation = true;
 			m_enableExtensionDiscovery = true;
 			m_enableFactoryDiscovery = true;
 			m_enablePropertyDiscovery = true;
@@ -83,31 +91,22 @@ namespace CloudAE.Core
 
 		private static T AttemptToAssignValue<T>(T value)
 		{
-			if (m_contextStarted)
+			if (ContextStarted)
 				throw new InvalidOperationException("Context already initialized.");
 
 			return value;
 		}
 
-		private static void WriteLine(string value, params object[] args)
+		public static void Write()
 		{
-			c_writeLineAction(value, args);
-		}
-
-		public static void Write(Action<string, object[]> writeLine)
-		{
-			if (writeLine != null)
-			{
-				c_writeLineAction = writeLine;
-
-				WriteLine("[Config]");
-				WriteLine("  ShowConsole = {0}", ShowConsole);
-				WriteLine("  EnableExtensionDiscovery = {0}", EnableExtensionDiscovery);
-				WriteLine("  EnableFactoryDiscovery = {0}", EnableFactoryDiscovery);
-				WriteLine("  EnablePropertyDiscovery = {0}", EnablePropertyDiscovery);
-				WriteLine("  StorePropertyRegistration = {0}", StorePropertyRegistration);
-				WriteLine("  ShowAbstractTypesDuringDiscovery = {0}", ShowAbstractTypesDuringDiscovery);
-			}
+			Context.WriteLine("[Config]");
+			Context.WriteLine("  ShowConsole = {0}", ShowConsole);
+			Context.WriteLine("  EnableInstrumentation = {0}", EnableInstrumentation);
+			Context.WriteLine("  EnableExtensionDiscovery = {0}", EnableExtensionDiscovery);
+			Context.WriteLine("  EnableFactoryDiscovery = {0}", EnableFactoryDiscovery);
+			Context.WriteLine("  EnablePropertyDiscovery = {0}", EnablePropertyDiscovery);
+			Context.WriteLine("  StorePropertyRegistration = {0}", StorePropertyRegistration);
+			Context.WriteLine("  ShowAbstractTypesDuringDiscovery = {0}", ShowAbstractTypesDuringDiscovery);
 		}
 	}
 }

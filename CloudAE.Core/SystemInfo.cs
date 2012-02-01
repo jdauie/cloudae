@@ -36,7 +36,7 @@ namespace CloudAE.Core
 			m_initialSystemInfo = null;
 		}
 
-		public static void WriteSystemInfo()
+		public static void Write()
 		{
 			DebugInfo flags =
 				DebugInfo.Environment |

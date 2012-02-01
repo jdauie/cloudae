@@ -95,7 +95,7 @@ namespace CloudAE.Core
 			c_backgroundWorker.ProgressChanged += OnBackgroundProgressChanged;
 			c_backgroundWorker.RunWorkerCompleted += OnBackgroundRunWorkerCompleted;
 
-			Config.Write(c_writeLineAction);
+			Config.Write();
 
 			if (Config.EnableExtensionDiscovery)
 				RegisterExtensions();
@@ -111,7 +111,8 @@ namespace CloudAE.Core
 			long startupElapsed = stopwatch.ElapsedMilliseconds;
 			stopwatch.Restart();
 
-			SystemInfo.WriteSystemInfo();
+			if (Config.EnableInstrumentation)
+				SystemInfo.Write();
 
 			stopwatch.Stop();
 			Context.WriteLine("[Startup]");
