@@ -64,7 +64,7 @@ namespace CloudAE.Core
 
 			m_type = typeof(T);
 
-			if (Context.STORE_PROPERTY_REGISTRATION)
+			if (Config.StorePropertyRegistration)
 			{
 				T storedValue = Value;
 				if (!m_hasValue)

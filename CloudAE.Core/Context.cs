@@ -38,10 +38,6 @@ namespace CloudAE.Core
 			App
 		}
 
-		public const bool STORE_PROPERTY_REGISTRATION = true;
-
-		private const bool SHOW_ABSTRACT_TYPES_DURING_DISCOVERY = false;
-
 		private const string SETTINGS_TYPE_WINDOWS = "Windows";
 
 		private static readonly Dictionary<PropertyName, IPropertyState> c_registeredProperties;
@@ -60,6 +56,8 @@ namespace CloudAE.Core
 
 		static Context()
 		{
+			Config.ContextStarted = true;
+
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
 
@@ -74,9 +72,15 @@ namespace CloudAE.Core
 
 			c_baseDirectory = appDomain.BaseDirectory;
 
-			//c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
-			WinConsole.Initialize();
-			c_writeLineAction = WinConsole.WriteLine;
+			if (Config.ShowConsole)
+			{
+				WinConsole.Initialize();
+				c_writeLineAction = WinConsole.WriteLine;
+			}
+			else
+			{
+				c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
+			}
 
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 			c_registeredPropertiesList = new List<IPropertyState>();
@@ -91,10 +95,18 @@ namespace CloudAE.Core
 			c_backgroundWorker.ProgressChanged += OnBackgroundProgressChanged;
 			c_backgroundWorker.RunWorkerCompleted += OnBackgroundRunWorkerCompleted;
 
-			RegisterExtensions();
+			Config.Write(c_writeLineAction);
+
+			if (Config.EnableExtensionDiscovery)
+				RegisterExtensions();
+			
 			c_loadedTypes = appDomain.GetExtensionTypes(PropertyManager.PRODUCT_NAME).ToArray();
-			RegisterFactories();
-			RegisterProperties();
+
+			if (Config.EnableFactoryDiscovery)
+				RegisterFactories();
+
+			if (Config.EnablePropertyDiscovery)
+				RegisterProperties();
 
 			long startupElapsed = stopwatch.ElapsedMilliseconds;
 			stopwatch.Restart();
@@ -250,7 +262,8 @@ namespace CloudAE.Core
 
 		public static void WriteLine(string value, params object[] args)
 		{
-			c_writeLineAction(value, args);
+			if (c_writeLineAction != null)
+				c_writeLineAction(value, args);
 		}
 
 		public static IEnumerable<Type> GetLoadedTypes(Func<Type, bool> predicate)
@@ -352,7 +365,7 @@ namespace CloudAE.Core
 					}
 				}
 
-				if (SHOW_ABSTRACT_TYPES_DURING_DISCOVERY || result != '-')
+				if (Config.ShowAbstractTypesDuringDiscovery || result != '-')
 					Context.WriteLine("{0} {1} {2}", padding, result, type.Name);
 			}
 		}

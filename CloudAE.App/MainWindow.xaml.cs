@@ -246,16 +246,18 @@ namespace CloudAE.App
 			}
 		}
 
-		private void OnWindowClosed(object sender, EventArgs e)
+		protected override void OnClosed(EventArgs e)
 		{
 			CurrentTileSource = null;
 
 			Context.SaveWindowState(this);
 
-			Context.Log                       -= OnLog;
-			Context.ProcessingStarted         -= OnProcessingStarted;
-			Context.ProcessingCompleted       -= OnProcessingCompleted;
+			Context.Log -= OnLog;
+			Context.ProcessingStarted -= OnProcessingStarted;
+			Context.ProcessingCompleted -= OnProcessingCompleted;
 			Context.ProcessingProgressChanged -= OnProcessingProgressChanged;
+
+			base.OnClosed(e);
 		}
 
 		private void OnTreeViewDrop(object sender, DragEventArgs e)
@@ -274,24 +276,12 @@ namespace CloudAE.App
 
 		public void Deserialize(BinaryReader reader)
 		{
-			Left   = reader.ReadInt32();
-			Top    = reader.ReadInt32();
-			Width  = reader.ReadInt32();
-			Height = reader.ReadInt32();
-
-			if (reader.BaseStream.Position == reader.BaseStream.Length - 1)
-				WindowState = System.Windows.WindowState.Maximized;
+			this.DeserializeState(reader);
 		}
 
 		public void Serialize(BinaryWriter writer)
 		{
-			writer.Write((int)Left);
-			writer.Write((int)Top);
-			writer.Write((int)Width);
-			writer.Write((int)Height);
-
-			if (WindowState == System.Windows.WindowState.Maximized)
-				writer.Write(true);
+			this.SerializeState(writer);
 		}
 
 		public string GetIdentifier()
