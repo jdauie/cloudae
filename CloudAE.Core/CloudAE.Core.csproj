@@ -156,7 +156,7 @@
     <Compile Include="Tools3D\Trackball.cs" />
     <Compile Include="Utilities\XCopy.cs" />
     <Compile Include="Windows\WinConsoleColorHandler.cs" />
-    <Compile Include="Windows\WinAPI.cs" />
+    <Compile Include="Windows\NativeMethods.cs" />
     <Compile Include="Windows\WinConsoleColor.cs" />
     <Compile Include="Windows\WinConsole.cs" />
   </ItemGroup>

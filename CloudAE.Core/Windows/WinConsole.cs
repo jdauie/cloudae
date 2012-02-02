@@ -27,7 +27,7 @@ namespace CloudAE.Core.Windows
 					int height = reader.ReadInt32();
 
 					WinConsole.WindowPosition = new Point(left, top);
-					WinConsole.WindowSize = new WinAPI.Coord((short)width, (short)height);
+					WinConsole.WindowSize = new NativeMethods.Coord((short)width, (short)height);
 				}
 			}
 
@@ -36,7 +36,7 @@ namespace CloudAE.Core.Windows
 				if (WinConsole.Initialized)
 				{
 					Point pos = WinConsole.WindowPosition;
-					WinAPI.Coord coord = WinConsole.WindowSize;
+					NativeMethods.Coord coord = WinConsole.WindowSize;
 
 					writer.Write((int)pos.X);
 					writer.Write((int)pos.Y);
@@ -58,7 +58,7 @@ namespace CloudAE.Core.Windows
 		{
 			get
 			{
-				return (WinAPI.GetConsoleWindow() != IntPtr.Zero);
+				return (NativeMethods.GetConsoleWindow() != IntPtr.Zero);
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace CloudAE.Core.Windows
 			//}
 			set
 			{
-				WinAPI.SetConsoleTitle(value);
+				NativeMethods.SetConsoleTitle(value);
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace CloudAE.Core.Windows
 			get
 			{
 				Initialize();
-				return WinAPI.GetConsoleWindow();
+				return NativeMethods.GetConsoleWindow();
 			}
 		}
 
@@ -98,8 +98,8 @@ namespace CloudAE.Core.Windows
 		{
 			get
 			{
-				IntPtr hwnd = WinAPI.GetConsoleWindow();
-				return WinAPI.GetParent(hwnd);
+				IntPtr hwnd = NativeMethods.GetConsoleWindow();
+				return NativeMethods.GetParent(hwnd);
 			}
 			set
 			{
@@ -107,13 +107,13 @@ namespace CloudAE.Core.Windows
 				if (hwnd == IntPtr.Zero)
 					return;
 
-				WinAPI.SetParent(hwnd, value);
-				int style = WinAPI.GetWindowLong(hwnd, WinAPI.GWL_STYLE);
+				NativeMethods.SetParent(hwnd, value);
+				int style = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_STYLE);
 				if (value == IntPtr.Zero)
-					WinAPI.SetWindowLong(hwnd, WinAPI.GWL_STYLE, (style & ~WinAPI.WS_CHILD) | WinAPI.WS_OVERLAPPEDWINDOW);
+					NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_STYLE, (style & ~NativeMethods.WS_CHILD) | NativeMethods.WS_OVERLAPPEDWINDOW);
 				else
-					WinAPI.SetWindowLong(hwnd, WinAPI.GWL_STYLE, (style | WinAPI.WS_CHILD) & ~WinAPI.WS_OVERLAPPEDWINDOW);
-				WinAPI.SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0, WinAPI.SWP_NOSIZE | WinAPI.SWP_NOZORDER | WinAPI.SWP_NOACTIVATE);
+					NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_STYLE, (style | NativeMethods.WS_CHILD) & ~NativeMethods.WS_OVERLAPPEDWINDOW);
+				NativeMethods.SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0, NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
 			}
 		}
 
@@ -132,7 +132,7 @@ namespace CloudAE.Core.Windows
 		/// <summary>
 		/// Sets the current buffer size.
 		/// </summary>
-		public static WinAPI.Coord BufferSize
+		public static NativeMethods.Coord BufferSize
 		{
 			set
 			{
@@ -140,7 +140,7 @@ namespace CloudAE.Core.Windows
 					return;
 				IntPtr buffer = Buffer;
 				if (buffer != IntPtr.Zero)
-					WinAPI.SetConsoleScreenBufferSize(buffer, value);
+					NativeMethods.SetConsoleScreenBufferSize(buffer, value);
 			}
 		}
 
@@ -155,19 +155,19 @@ namespace CloudAE.Core.Windows
 					return;
 				IntPtr buffer = Buffer;
 				if (buffer != IntPtr.Zero)
-					WinAPI.SetConsoleTextAttribute(buffer, value);
+					NativeMethods.SetConsoleTextAttribute(buffer, value);
 			}
 		}
 
 		/// <summary>
 		/// Gets or sets the size of the console window.
 		/// </summary>
-		public static WinAPI.Coord WindowSize
+		public static NativeMethods.Coord WindowSize
 		{
 			get
 			{
 				if (Initialized)
-					return new WinAPI.Coord((short)Console.WindowWidth, (short)Console.WindowHeight);
+					return new NativeMethods.Coord((short)Console.WindowWidth, (short)Console.WindowHeight);
 				throw new InvalidOperationException("Console not initialized.");
 			}
 			set
@@ -177,8 +177,8 @@ namespace CloudAE.Core.Windows
 				IntPtr buffer = Buffer;
 				if (buffer != IntPtr.Zero)
 				{
-					WinAPI.SmallRect rect = new WinAPI.SmallRect(0, 0, (short)(value.X - 1), (short)(value.Y - 1));
-					WinAPI.SetConsoleWindowInfo(buffer, true, ref rect);
+					NativeMethods.SmallRect rect = new NativeMethods.SmallRect(0, 0, (short)(value.X - 1), (short)(value.Y - 1));
+					NativeMethods.SetConsoleWindowInfo(buffer, true, ref rect);
 				}
 			}
 		}
@@ -193,8 +193,8 @@ namespace CloudAE.Core.Windows
 				if (Initialized)
 				{
 					IntPtr hwnd = Handle;
-					WinAPI.Rect rect;
-					if (hwnd != IntPtr.Zero && WinAPI.GetWindowRect(hwnd, out rect))
+					NativeMethods.Rect rect;
+					if (hwnd != IntPtr.Zero && NativeMethods.GetWindowRect(hwnd, out rect))
 						return new Point(rect.Left, rect.Top);
 				}
 				throw new InvalidOperationException("Console not initialized.");
@@ -206,7 +206,7 @@ namespace CloudAE.Core.Windows
 				IntPtr buffer = Buffer;
 				IntPtr hwnd = Handle;
 				if (buffer != IntPtr.Zero && hwnd != IntPtr.Zero)
-					WinAPI.SetWindowPos(hwnd, IntPtr.Zero, value.X, value.Y, 0, 0, WinAPI.SWP_NOSIZE | WinAPI.SWP_NOZORDER | WinAPI.SWP_NOACTIVATE);
+					NativeMethods.SetWindowPos(hwnd, IntPtr.Zero, value.X, value.Y, 0, 0, NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
 			}
 		}
 
@@ -233,7 +233,7 @@ namespace CloudAE.Core.Windows
 			{
 				Context.SaveWindowState(c_rect);
 
-				if (WinAPI.FreeConsole())
+				if (NativeMethods.FreeConsole())
 				{
 					c_buffer = IntPtr.Zero;
 					result = true;
@@ -257,71 +257,71 @@ namespace CloudAE.Core.Windows
 			const short bufferWidth = 100;
 			const short bufferHeight = 900;
 
-			bool success = WinAPI.AllocConsole();
+			bool success = NativeMethods.AllocConsole();
 			if (!success)
 				return;
 
-			IntPtr hwnd = WinAPI.GetConsoleWindow();
+			IntPtr hwnd = NativeMethods.GetConsoleWindow();
 			if (hwnd == IntPtr.Zero)
 				return;
 
-			if (!WinAPI.IsWindowVisible(hwnd))
+			if (!NativeMethods.IsWindowVisible(hwnd))
 			{
-				WinAPI.ShowWindow(hwnd, WinAPI.SW_SHOW);
+				NativeMethods.ShowWindow(hwnd, NativeMethods.SW_SHOW);
 			}
 
-			c_buffer = WinAPI.CreateConsoleScreenBuffer(
-				WinAPI.GENERIC_READ | WinAPI.GENERIC_WRITE,
-				WinAPI.FILE_SHARE_READ | WinAPI.FILE_SHARE_WRITE, 
+			c_buffer = NativeMethods.CreateConsoleScreenBuffer(
+				NativeMethods.GENERIC_READ | NativeMethods.GENERIC_WRITE,
+				NativeMethods.FILE_SHARE_READ | NativeMethods.FILE_SHARE_WRITE, 
 				IntPtr.Zero, 
-				WinAPI.CONSOLE_TEXTMODE_BUFFER, 
+				NativeMethods.CONSOLE_TEXTMODE_BUFFER, 
 				IntPtr.Zero
 			);
 
-			WinAPI.Coord size = new WinAPI.Coord(bufferHeight, bufferWidth);
+			NativeMethods.Coord size = new NativeMethods.Coord(bufferHeight, bufferWidth);
 			BufferSize = size;
 
-			bool result = WinAPI.SetConsoleActiveScreenBuffer(c_buffer);
+			bool result = NativeMethods.SetConsoleActiveScreenBuffer(c_buffer);
 
-			WinAPI.SetStdHandle(WinAPI.STD_OUTPUT_HANDLE, c_buffer);
-			WinAPI.SetStdHandle(WinAPI.STD_ERROR_HANDLE, c_buffer);
+			NativeMethods.SetStdHandle(NativeMethods.STD_OUTPUT_HANDLE, c_buffer);
+			NativeMethods.SetStdHandle(NativeMethods.STD_ERROR_HANDLE, c_buffer);
 
 			Title = "Trace Console for " + Process.GetCurrentProcess().ProcessName;
 			
-			IntPtr hMenu = WinAPI.GetSystemMenu( hwnd, false );
+			IntPtr hMenu = NativeMethods.GetSystemMenu( hwnd, false );
 			if (hMenu != IntPtr.Zero) 
 			{
-				WinAPI.DeleteMenu(hMenu, 61536 , 0);
-				WinAPI.DrawMenuBar(hwnd);
+				NativeMethods.DeleteMenu(hMenu, 61536 , 0);
+				NativeMethods.DrawMenuBar(hwnd);
 			}
 
-			Stream s = Console.OpenStandardInput(WinAPI.DEFAULT_CONSOLE_BUFFER_SIZE);
+			Stream s = Console.OpenStandardInput(NativeMethods.DEFAULT_CONSOLE_BUFFER_SIZE);
 			StreamReader reader = null;
 			if (s == Stream.Null)
 				reader = StreamReader.Null;
 			else
-				reader = new StreamReader(s, Encoding.GetEncoding(WinAPI.GetConsoleCP()), false, WinAPI.DEFAULT_CONSOLE_BUFFER_SIZE);
+				reader = new StreamReader(s, Encoding.GetEncoding(NativeMethods.GetConsoleCP()), false, NativeMethods.DEFAULT_CONSOLE_BUFFER_SIZE);
 
 			Console.SetIn(reader);
     
 			StreamWriter writer = null;
-			s = Console.OpenStandardOutput(WinAPI.DEFAULT_CONSOLE_BUFFER_SIZE);
+			s = Console.OpenStandardOutput(NativeMethods.DEFAULT_CONSOLE_BUFFER_SIZE);
 			if (s == Stream.Null) 
 				writer = StreamWriter.Null;
 			else 
 			{
-				writer = new StreamWriter(s, Encoding.GetEncoding(WinAPI.GetConsoleOutputCP()), WinAPI.DEFAULT_CONSOLE_BUFFER_SIZE);
+				writer = new StreamWriter(s, Encoding.GetEncoding(NativeMethods.GetConsoleOutputCP()), NativeMethods.DEFAULT_CONSOLE_BUFFER_SIZE);
 				writer.AutoFlush = true;
 			}
 
 			Console.SetOut(writer);
 
-			s = Console.OpenStandardError(WinAPI.DEFAULT_CONSOLE_BUFFER_SIZE);
+			s = Console.OpenStandardError(NativeMethods.DEFAULT_CONSOLE_BUFFER_SIZE);
 			if (s == Stream.Null) 
 				writer = StreamWriter.Null;
 			else 
 			{
-				writer = new StreamWriter(s, Encoding.GetEncoding(WinAPI.GetConsoleOutputCP()), WinAPI.DEFAULT_CONSOLE_BUFFER_SIZE);
+				writer = new StreamWriter(s, Encoding.GetEncoding(NativeMethods.GetConsoleOutputCP()), NativeMethods.DEFAULT_CONSOLE_BUFFER_SIZE);
 				writer.AutoFlush = true;
 			}
 			

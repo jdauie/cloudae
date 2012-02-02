@@ -2,19 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Text;
+
+using CloudAE.Core.Windows;
 
 namespace CloudAE.Core
 {
 	public static class PathUtil
 	{
-		[DllImport("mpr.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-		public static extern int WNetGetConnection(
-			[MarshalAs(UnmanagedType.LPTStr)] string localName,
-			[MarshalAs(UnmanagedType.LPTStr)] StringBuilder remoteName,
-			ref int length);
-		
 		/// <summary>
 		/// Given a path, returns the UNC path or the original. (No exceptions
 		/// are raised by this function directly). For example, "P:\2008-02-29"
@@ -32,7 +27,7 @@ namespace CloudAE.Core
 			string driveRoot = GetDriveRootFromPath(originalPath);
 			if (!string.IsNullOrEmpty(driveRoot))
 			{
-				int error = WNetGetConnection(driveRoot, sb, ref size);
+				int error = NativeMethods.WNetGetConnection(driveRoot, sb, ref size);
 				if (error == 0)
 				{
 					DirectoryInfo dir = new DirectoryInfo(originalPath);

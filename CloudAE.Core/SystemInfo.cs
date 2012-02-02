@@ -7,15 +7,13 @@ using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Runtime.InteropServices;
+
+using CloudAE.Core.Windows;
 
 namespace CloudAE.Core
 {
 	public static class SystemInfo
 	{
-		[DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Auto, SetLastError = false)]
-		internal static extern bool GetDiskFreeSpaceEx(string drive, out long freeBytesForUser, out long totalBytes, out long freeBytes);
-
 		[Flags]
 		private enum DebugInfo
 		{
@@ -267,19 +265,21 @@ namespace CloudAE.Core
 		private static string GetProcessorInfo()
 		{
 			SelectQuery query = new SelectQuery("SELECT Name, MaxClockSpeed, AddressWidth FROM Win32_Processor");
-			ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-			var cpu = searcher.Get().Cast<ManagementObject>().First();
-
-			return string.Format("{0}, {1}, {2}Mhz, {3}-bit", Environment.ProcessorCount, (string)cpu["Name"], (uint)cpu["MaxClockSpeed"], (ushort)cpu["AddressWidth"]);
+			using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+			{
+				var cpu = searcher.Get().Cast<ManagementObject>().First();
+				return string.Format("{0}, {1}, {2}Mhz, {3}-bit", Environment.ProcessorCount, (string)cpu["Name"], (uint)cpu["MaxClockSpeed"], (ushort)cpu["AddressWidth"]);
+			}
 		}
 
 		private static string GetOSInfo()
 		{
 			SelectQuery query = new SelectQuery("SELECT Caption, Version, CSDVersion FROM Win32_OperatingSystem");
-			ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-			var os = searcher.Get().Cast<ManagementObject>().First();
-
-			return string.Format("{0} ({1} {2})", (string)os["Caption"], (string)os["Version"], (string)os["CSDVersion"]);
+			using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+			{
+				var os = searcher.Get().Cast<ManagementObject>().First();
+				return string.Format("{0} ({1} {2})", (string)os["Caption"], (string)os["Version"], (string)os["CSDVersion"]);
+			}
 		}
 
 		private static string GetVideoInfo()
@@ -322,7 +322,7 @@ namespace CloudAE.Core
 						long free;
 						long freeUser;
 						long total;
-						if (GetDiskFreeSpaceEx(d.Name, out freeUser, out total, out free))
+						if (NativeMethods.GetDiskFreeSpaceEx(d.Name, out freeUser, out total, out free))
 						{
 							driveDetails += String.Format(" {0}, {1} total, {2} free", d.DriveFormat, total.ToSize(), free.ToSize());
 							if (freeUser < free)

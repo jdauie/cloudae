@@ -92,8 +92,17 @@ namespace CloudAE.Core
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool CopyFileEx(string lpExistingFileName, string lpNewFileName, CopyProgressRoutine lpProgressRoutine, IntPtr lpData, ref Int32 pbCancel, CopyFileFlags dwCopyFlags);
 
-		private delegate CopyProgressResult CopyProgressRoutine(long TotalFileSize, long TotalBytesTransferred, long StreamSize, long StreamBytesTransferred, uint dwStreamNumber, CopyProgressCallbackReason dwCallbackReason,
-														IntPtr hSourceFile, IntPtr hDestinationFile, IntPtr lpData);
+		private delegate CopyProgressResult CopyProgressRoutine(
+			long TotalFileSize,
+			long TotalBytesTransferred,
+			long StreamSize,
+			long StreamBytesTransferred,
+			uint dwStreamNumber,
+			CopyProgressCallbackReason dwCallbackReason,
+			IntPtr hSourceFile,
+			IntPtr hDestinationFile,
+			IntPtr lpData
+		);
 
 		private enum CopyProgressResult : uint
 		{

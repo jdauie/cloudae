@@ -5,115 +5,125 @@ using System.Text;
 namespace CloudAE.Core.Windows
 {
 	/// <summary>
-	/// Win API helpers for console operations.
+	/// Win API calls.
 	/// </summary>
-	public static class WinAPI
+	public static class NativeMethods
 	{
-		#region Windows API
+		#region Windows
 
 		[DllImport("kernel32")]
-		public static extern bool AllocConsole();
+		internal static extern bool AllocConsole();
 
 		[DllImport("kernel32")]
-		public static extern bool FreeConsole();
+		internal static extern bool FreeConsole();
 
 		[DllImport("kernel32")]
-		public static extern bool GetConsoleTitle(StringBuilder text, int size);
+		internal static extern bool GetConsoleTitle(StringBuilder text, int size);
 
 		[DllImport("kernel32")]
-		public static extern IntPtr GetConsoleWindow();
+		internal static extern IntPtr GetConsoleWindow();
 
 		[DllImport("kernel32")]
-		public static extern int SetConsoleCursorPosition(IntPtr buffer, Coord position);
+		internal static extern int SetConsoleCursorPosition(IntPtr buffer, Coord position);
 
 		[DllImport("kernel32")]
-		public static extern int FillConsoleOutputCharacter(IntPtr buffer, char character, int length, Coord position, out int written);
+		internal static extern int FillConsoleOutputCharacter(IntPtr buffer, char character, int length, Coord position, out int written);
 
 		[DllImport("kernel32")]
-		public static extern bool SetConsoleTextAttribute(IntPtr hConsoleOutput, WinConsoleColor wAttributes);
+		internal static extern bool SetConsoleTextAttribute(IntPtr hConsoleOutput, WinConsoleColor wAttributes);
 
 		[DllImport("kernel32")]
-		public static extern bool SetConsoleTitle(string lpConsoleTitle);
+		internal static extern bool SetConsoleTitle(string lpConsoleTitle);
 
 		[DllImport("kernel32")]
-		public static extern bool SetConsoleActiveScreenBuffer(IntPtr handle);
+		internal static extern bool SetConsoleActiveScreenBuffer(IntPtr handle);
 
 		[DllImport("kernel32")]
-		static extern bool WriteConsole(IntPtr handle, string s, int length, out int written, IntPtr reserved);
+		internal static extern bool WriteConsole(IntPtr handle, string s, int length, out int written, IntPtr reserved);
 
 		[DllImport("kernel32")]
-		public static extern int GetConsoleCP();
+		internal static extern int GetConsoleCP();
 
 		[DllImport("kernel32")]
-		public static extern int GetConsoleOutputCP();
+		internal static extern int GetConsoleOutputCP();
 
 		[DllImport("kernel32")]
-		static extern bool GetConsoleMode(IntPtr handle, out int flags);
+		internal static extern bool GetConsoleMode(IntPtr handle, out int flags);
 
 		[DllImport("kernel32")]
-		public static extern bool SetStdHandle(int handle1, IntPtr handle2);
+		internal static extern bool SetStdHandle(int handle1, IntPtr handle2);
 
 		[DllImport("kernel32")]
-		public static extern IntPtr CreateConsoleScreenBuffer(int access, int share, IntPtr security, int flags, IntPtr reserved);
+		internal static extern IntPtr CreateConsoleScreenBuffer(int access, int share, IntPtr security, int flags, IntPtr reserved);
 
 		[DllImport("kernel32")]
-		public static extern bool SetConsoleScreenBufferSize(IntPtr hConsoleOutput, Coord dwSize);
+		internal static extern bool SetConsoleScreenBufferSize(IntPtr hConsoleOutput, Coord dwSize);
 
 		[DllImport("kernel32")]
-		public static extern bool SetConsoleWindowInfo(IntPtr hConsoleOutput, bool bAbsolute, ref SmallRect lpConsoleWindow);
+		internal static extern bool SetConsoleWindowInfo(IntPtr hConsoleOutput, bool bAbsolute, ref SmallRect lpConsoleWindow);
 
 		[DllImport("user32")]
-		public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int newValue);
+		internal static extern int SetWindowLong(IntPtr hWnd, int nIndex, int newValue);
 
 		[DllImport("user32")]
-		public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+		internal static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
 		[DllImport("user32")]
-		public static extern bool ShowWindow(IntPtr hwnd, int nCmdShow);
+		internal static extern bool ShowWindow(IntPtr hwnd, int nCmdShow);
 
 		[DllImport("user32")]
-		public static extern IntPtr FindWindow( string lpClassName, string lpWindowName);
+		internal static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
 		[DllImport("user32")]
-		public static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpClassName, string lpWindowName);
+		internal static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpClassName, string lpWindowName);
 
 		[DllImport("user32")]
-		public static extern IntPtr SetParent(IntPtr hwnd, IntPtr hwnd2);
+		internal static extern IntPtr SetParent(IntPtr hwnd, IntPtr hwnd2);
 
 		[DllImport("user32")]
-		public static extern IntPtr GetParent(IntPtr hwnd);
+		internal static extern IntPtr GetParent(IntPtr hwnd);
 
 		[DllImport("user32")]
-		public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, int flags);
+		internal static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, int flags);
 
 		[DllImport("user32")]
-		public static extern bool GetWindowRect(IntPtr hWnd, out Rect lpRect);
+		internal static extern bool GetWindowRect(IntPtr hWnd, out Rect lpRect);
 
 		[DllImport("user32")]
-		public static extern Boolean DeleteMenu( IntPtr hMenu, int uPosition, int uFlags );
+		internal static extern Boolean DeleteMenu(IntPtr hMenu, int uPosition, int uFlags );
 
 		[DllImport("user32")]
-		public static extern Boolean DrawMenuBar( IntPtr hWnd );
+		internal static extern Boolean DrawMenuBar(IntPtr hWnd );
 
 		[DllImport("user32")]
-		public static extern IntPtr GetSystemMenu( IntPtr hWnd,	bool bRevert);
+		internal static extern IntPtr GetSystemMenu(IntPtr hWnd,	bool bRevert);
 
 		[DllImport("user32")]
-		public static extern short GetKeyState(int nVirtKey);
+		internal static extern short GetKeyState(int nVirtKey);
 
 		[DllImport("user32")]
-		public static extern bool BringWindowToTop(IntPtr hWnd);
+		internal static extern bool BringWindowToTop(IntPtr hWnd);
 
 		[DllImport("user32")]
-		public static extern bool IsWindowVisible(IntPtr hWnd);
+		internal static extern bool IsWindowVisible(IntPtr hWnd);
 
 		[DllImport("user32")]
-		public static extern bool DeleteMenu(IntPtr hMenu, int uPosition, IntPtr uFlags);
+		internal static extern bool DeleteMenu(IntPtr hMenu, int uPosition, IntPtr uFlags);
 
 		#endregion
-				
+
+		#region I/O
+
+		[DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Auto, SetLastError = true)]
+		internal static extern bool GetDiskFreeSpaceEx(string drive, out long freeBytesForUser, out long totalBytes, out long freeBytes);
+
+		[DllImport("mpr.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+		internal static extern int WNetGetConnection([MarshalAs(UnmanagedType.LPTStr)] string localName, [MarshalAs(UnmanagedType.LPTStr)] StringBuilder remoteName, ref int length);
+
+		#endregion
+
 		#region Constants
-	
+
 		public const int WS_CHILD = 0x40000000;
 
 		private const int WS_CAPTION = 0xC00000; // WS_BORDER | WS_DLGFRAME	
