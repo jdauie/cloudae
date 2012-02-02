@@ -51,7 +51,7 @@ namespace CloudAE.Core
 				DebugInfo.Options |
 				DebugInfo.Process;
 
-			flags |= DebugInfo.AllDrives;
+			//flags |= DebugInfo.AllDrives;
 
 			Write(flags);
 		}
@@ -121,7 +121,7 @@ namespace CloudAE.Core
 				{
 					string queryString = "SELECT Name FROM Win32_LogicalDisk";
 					if ((flags & DebugInfo.AllDrives) == 0)
-						queryString += " WHERE DriveType = 3 AND MediaType = 12";
+						queryString += " WHERE DriveType = 3";
 					else
 						queryString += " WHERE NOT DriveType = 5";
 					SelectQuery query = new SelectQuery(queryString);
@@ -327,6 +327,12 @@ namespace CloudAE.Core
 							driveDetails += String.Format(" {0}, {1} total, {2} free", d.DriveFormat, total.ToSize(), free.ToSize());
 							if (freeUser < free)
 								driveDetails += String.Format(", {0} available", freeUser.ToSize());
+							
+							if (type == DriveType.Network)
+							{
+								string uncPath = PathUtil.GetUNCPath(d.Name);
+								driveDetails += String.Format(", {0}", uncPath);
+							}
 						}
 					}
 					catch { }
