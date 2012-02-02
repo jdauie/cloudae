@@ -7,11 +7,15 @@ using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 
 namespace CloudAE.Core
 {
 	public static class SystemInfo
 	{
+		[DllImport("kernel32.dll", BestFitMapping = false, CharSet = CharSet.Auto, SetLastError = false)]
+		internal static extern bool GetDiskFreeSpaceEx(string drive, out long freeBytesForUser, out long totalBytes, out long freeBytes);
+
 		[Flags]
 		private enum DebugInfo
 		{
@@ -36,6 +40,8 @@ namespace CloudAE.Core
 			m_initialSystemInfo = null;
 		}
 
+		#region System Info Methods
+
 		public static void Write()
 		{
 			DebugInfo flags =
@@ -45,12 +51,12 @@ namespace CloudAE.Core
 				DebugInfo.Options |
 				DebugInfo.Process;
 
-			WriteSystemInfo(flags);
+			flags |= DebugInfo.AllDrives;
+
+			Write(flags);
 		}
 
-		#region System Info Methods
-
-		private static void WriteSystemInfo(DebugInfo debugFlags)
+		private static void Write(DebugInfo debugFlags)
 		{
 			var templateLines = GetSystemInfoTemplate(debugFlags);
 			var outputLines = templateLines.SelectMany(s => GenerateLines(s, debugFlags)).ToList();
@@ -116,6 +122,8 @@ namespace CloudAE.Core
 					string queryString = "SELECT Name FROM Win32_LogicalDisk";
 					if ((flags & DebugInfo.AllDrives) == 0)
 						queryString += " WHERE DriveType = 3 AND MediaType = 12";
+					else
+						queryString += " WHERE NOT DriveType = 5";
 					SelectQuery query = new SelectQuery(queryString);
 					ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
 					var drives = searcher.Get().Cast<ManagementObject>().Select(o => new DriveInfo((string)o["Name"]));
@@ -305,12 +313,23 @@ namespace CloudAE.Core
 			string driveDetails = string.Empty;
 			if (d != null)
 			{
-				driveDetails = d.DriveType.ToString();
-				if (d.IsReady)
+				DriveType type = d.DriveType;
+				driveDetails = type.ToString();
+				if (type != DriveType.CDRom)
 				{
-					driveDetails += String.Format(" {0}, {1} total, {2} free", d.DriveFormat, d.TotalSize.ToSize(), d.TotalFreeSpace.ToSize());
-					if (d.AvailableFreeSpace < d.TotalFreeSpace)
-						driveDetails += String.Format(", {0} available", d.AvailableFreeSpace.ToSize());
+					try
+					{
+						long free;
+						long freeUser;
+						long total;
+						if (GetDiskFreeSpaceEx(d.Name, out freeUser, out total, out free))
+						{
+							driveDetails += String.Format(" {0}, {1} total, {2} free", d.DriveFormat, total.ToSize(), free.ToSize());
+							if (freeUser < free)
+								driveDetails += String.Format(", {0} available", freeUser.ToSize());
+						}
+					}
+					catch { }
 				}
 			}
 			return driveDetails;
