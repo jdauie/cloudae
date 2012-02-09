@@ -77,11 +77,22 @@ namespace CloudAE.Core
 				if (m_binarySource.FilePath != m_inputHandler.FilePath || !m_isInputPathLocal)
 					File.Delete(m_binarySource.FilePath);
 
-				// step 4
-				// this is broken right now
-				//CompressTileSource(progressManager);
+				if (m_tileSource.IsDirty)
+				{
+					m_tileSource.Close();
+					File.Delete(m_tileSource.FilePath);
+					m_tileSource = null;
 
-				progressManager.Log(stopwatchTotal, "=> Processing Completed");
+					progressManager.Log(stopwatchTotal, "=> Processing Cancelled");
+				}
+				else
+				{
+					// step 4
+					// this is broken right now
+					//CompressTileSource(progressManager);
+
+					progressManager.Log(stopwatchTotal, "=> Processing Completed");
+				}
 			}
 
 			//{

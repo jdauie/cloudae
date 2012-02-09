@@ -134,6 +134,9 @@ namespace CloudAE.Core
 				tileSource.QuantizedExtent = newQuantizedExtent;
 			}
 
+			if (progressManager.Update(1.0f))
+				tileSource.IsDirty = false;
+			
 			tileSource.WriteHeader();
 
 			return tileSource;

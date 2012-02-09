@@ -54,6 +54,7 @@ namespace CloudAE.Core
 		private static Dictionary<string, PointCloudTileSource> c_sources;
 		private static ProcessingQueue c_queue;
 		private static ManagedBackgroundWorker c_backgroundWorker;
+		private static bool c_isProcessing;
 
 		static Context()
 		{
@@ -144,6 +145,8 @@ namespace CloudAE.Core
 
 		private static void OnProcessingStarted(FileHandlerBase inputHandler)
 		{
+			c_isProcessing = true;
+
 			ProcessingStartedHandler handler = ProcessingStarted;
 			if (handler != null)
 				handler(inputHandler);
@@ -151,6 +154,8 @@ namespace CloudAE.Core
 
 		private static void OnProcessingCompleted(PointCloudTileSource tileSource)
 		{
+			c_isProcessing = false;
+
 			ProcessingCompletedHandler handler = ProcessingCompleted;
 			if (handler != null)
 				handler(tileSource);
@@ -187,7 +192,7 @@ namespace CloudAE.Core
 
 		public static bool IsProcessing
 		{
-			get { return c_backgroundWorker.IsBusy; }
+			get { return c_isProcessing; }
 		}
 
 		public static bool IsProcessingQueueEmpty
@@ -223,7 +228,10 @@ namespace CloudAE.Core
 			FileHandlerBase inputHandler = (sender as ManagedBackgroundWorker).Manager.UserState as FileHandlerBase;
 			PointCloudTileSource tileSource = null;
 
-			if ((e.Cancelled == true)) { }
+			if ((e.Cancelled == true))
+			{
+				OnProcessingProgressChanged(0);
+			}
 			else if (!(e.Error == null)) { }
 			else
 			{
@@ -265,11 +273,14 @@ namespace CloudAE.Core
 
 		public static void ClearProcessingQueue(bool cancelCurrentProcessing)
 		{
+			foreach (string path in c_queue.Select(h => h.FilePath))
+				c_loadedPaths.Remove(path);
 			c_queue.Clear();
 
 			if (cancelCurrentProcessing)
 			{
-				// cancel the worker
+				if (IsProcessing)
+					c_backgroundWorker.CancelAsync();
 			}
 		}
 

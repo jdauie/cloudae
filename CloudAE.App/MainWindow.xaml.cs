@@ -117,12 +117,16 @@ namespace CloudAE.App
 
 		private void OnRemoveAllButtonClick(object sender, RoutedEventArgs e)
 		{
-			Context.RemoveAll();
+			List<PointCloudTileSource> sources = treeView.Items.Cast<PointCloudTileSource>().ToList();
+			foreach (PointCloudTileSource tileSource in sources)
+				RemoveTileSource(tileSource);
 		}
 
 		private void OnStopButtonClick(object sender, RoutedEventArgs e)
 		{
 			Context.ClearProcessingQueue(true);
+
+			UpdateButtonStates();
 		}
 
 		private void OnBrowseButtonClick(object sender, RoutedEventArgs e)
@@ -152,6 +156,8 @@ namespace CloudAE.App
 
 			if (SWITCH_TO_LOG_TAB_ON_PROCESSING_START.Value)
 				m_tabItemOnStarted.IsSelected = true;
+
+			UpdateButtonStates();
 		}
 
 		private void OnProcessingCompleted(PointCloudTileSource tileSource)
@@ -161,6 +167,8 @@ namespace CloudAE.App
 
 			if (tileSource != null)
 				AddTileSource(tileSource);
+
+			UpdateButtonStates();
 		}
 
 		private void OnProcessingProgressChanged(int progressPercentage)
@@ -204,16 +212,21 @@ namespace CloudAE.App
 		{
 			itemRemoveAll.IsEnabled = Context.HasTileSources;
 			itemRemove.IsEnabled = (treeView.SelectedItem != null);
-			itemStop.IsEnabled = !Context.IsProcessingQueueEmpty;
+			itemStop.IsEnabled = !Context.IsProcessingQueueEmpty || Context.IsProcessing;
 
 			buttonRemove.IsEnabled = itemRemove.IsEnabled;
-			buttonStop.IsEnabled = itemRemove.IsEnabled;
+			buttonStop.IsEnabled = itemStop.IsEnabled;
 		}
 
 		private void UpdateSelection(PointCloudTileSource tileSource)
 		{
 			CurrentTileSource = tileSource;
-			m_tabItemOnSelection.IsSelected = true;
+
+			if (tileSource != null)
+				m_tabItemOnSelection.IsSelected = true;
+			else
+				m_tabItemOnStarted.IsSelected = true;
+
 			UpdateTabSelection();
 		}
 
@@ -242,15 +255,29 @@ namespace CloudAE.App
 
 		private void UpdateTabSelection()
 		{
-			TabItem tabItem = tabControl.SelectedItem as TabItem;
-			if (tabItem != null)
+			bool enableTileControls = (CurrentTileSource != null);
+
+			foreach (TabItem tabItem in tabControl.Items)
 			{
 				ITileSourceControl control = tabItem.Tag as ITileSourceControl;
 				if (control != null)
 				{
-					control.CurrentTileSource = CurrentTileSource;
+					tabItem.IsEnabled = enableTileControls;
+
+					if (tabItem.IsSelected)
+						control.CurrentTileSource = CurrentTileSource;
 				}
 			}
+			
+			//TabItem tabItem = tabControl.SelectedItem as TabItem;
+			//if (tabItem != null)
+			//{
+			//    ITileSourceControl control = tabItem.Tag as ITileSourceControl;
+			//    if (control != null)
+			//    {
+			//        control.CurrentTileSource = CurrentTileSource;
+			//    }
+			//}
 		}
 
 		protected override void OnClosed(EventArgs e)

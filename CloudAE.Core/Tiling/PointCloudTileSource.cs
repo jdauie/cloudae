@@ -21,6 +21,7 @@ namespace CloudAE.Core
 		private const int MAX_PREVIEW_DIMENSION = 1000;
 
 		private const string FILE_IDENTIFIER = "TPBF";
+		private const string FILE_IDENTIFIER_DIRTY = "TPBD";
 		private const int FILE_VERSION_MAJOR = 1;
 		private const int FILE_VERSION_MINOR = 8;
 
@@ -30,6 +31,7 @@ namespace CloudAE.Core
 		private UQuantizedExtent3D m_quantizedExtent;
 
 		private FileStream m_inputStream;
+		private bool m_isDirty;
 
 		private Grid<float> m_pixelGrid;
 		private PreviewImage m_preview;
@@ -87,6 +89,12 @@ namespace CloudAE.Core
 				return new Point3D(Extent.MidpointX, Extent.MidpointY, StatisticsZ.ModeApproximate);
 			}
 		}
+
+		public bool IsDirty
+		{
+			get { return m_isDirty; }
+			set { m_isDirty = value; }
+		}
 		
 		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, Statistics zStats, CompressionMethod compression)
 			: this(file, tileSet, quantization, 0, zStats, compression)
@@ -102,6 +110,7 @@ namespace CloudAE.Core
 
 			if (pointDataOffset == 0)
 			{
+				IsDirty = true;
 				WriteHeader();
 			}
 		}
@@ -141,7 +150,11 @@ namespace CloudAE.Core
 
 		public void Serialize(BinaryWriter writer)
 		{
-			writer.Write(ASCIIEncoding.ASCII.GetBytes(FILE_IDENTIFIER));
+			// assumes this function will be atomic, which is true for cancellation, 
+			// but not for exceptions during the write operation
+			string identifier = IsDirty ? FILE_IDENTIFIER_DIRTY : FILE_IDENTIFIER;
+
+			writer.Write(ASCIIEncoding.ASCII.GetBytes(identifier));
 			writer.Write(FILE_VERSION_MAJOR);
 			writer.Write(FILE_VERSION_MINOR);
 			writer.Write(PointDataOffset);
