@@ -268,16 +268,6 @@ namespace CloudAE.App
 						control.CurrentTileSource = CurrentTileSource;
 				}
 			}
-			
-			//TabItem tabItem = tabControl.SelectedItem as TabItem;
-			//if (tabItem != null)
-			//{
-			//    ITileSourceControl control = tabItem.Tag as ITileSourceControl;
-			//    if (control != null)
-			//    {
-			//        control.CurrentTileSource = CurrentTileSource;
-			//    }
-			//}
 		}
 
 		protected override void OnClosed(EventArgs e)
