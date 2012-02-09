@@ -9,14 +9,21 @@ namespace CloudAE.Core
 {
 	public class BackgroundWorkerProgressManager : ProgressManager
 	{
-		private BackgroundWorker m_worker;
+		private ManagedBackgroundWorker m_worker;
 		private DoWorkEventArgs m_args;
 
-		public BackgroundWorkerProgressManager(BackgroundWorker worker, DoWorkEventArgs args, Action<string> logAction)
-			: base(logAction)
+		public BackgroundWorkerProgressManager(ManagedBackgroundWorker worker, DoWorkEventArgs args, Action<string> logAction)
+			: this(worker, args, null, logAction)
+		{
+		}
+
+		public BackgroundWorkerProgressManager(ManagedBackgroundWorker worker, DoWorkEventArgs args, object userState, Action<string> logAction)
+			: base(userState, logAction)
 		{
 			m_worker = worker;
 			m_args = args;
+
+			m_worker.Manager = this;
 		}
 
 		public override bool Update(float progressRatio, object userState)

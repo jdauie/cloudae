@@ -139,7 +139,7 @@ namespace CloudAE.App
 		private const bool START_ORBIT = false;
 		
 		private ProgressManager m_progressManager;
-		private BackgroundWorker m_backgroundWorker;
+		private ManagedBackgroundWorker m_backgroundWorker;
 
 		private PointCloudTileSource m_currentTileSource;
 
@@ -235,7 +235,7 @@ namespace CloudAE.App
 			m_solidBrush = new SolidColorBrush(Colors.DarkKhaki);
 			m_solidBrush.Freeze();
 
-			m_backgroundWorker = new BackgroundWorker();
+			m_backgroundWorker = new ManagedBackgroundWorker();
 			m_backgroundWorker.WorkerReportsProgress = true;
 			m_backgroundWorker.WorkerSupportsCancellation = true;
 			m_backgroundWorker.DoWork += OnBackgroundDoWork;

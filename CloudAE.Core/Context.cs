@@ -50,9 +50,10 @@ namespace CloudAE.Core
 
 		private static Action<string, object[]> c_writeLineAction;
 
+		private static Dictionary<string, FileHandlerBase> c_loadedPaths;
 		private static Dictionary<string, PointCloudTileSource> c_sources;
 		private static ProcessingQueue c_queue;
-		private static BackgroundWorker c_backgroundWorker;
+		private static ManagedBackgroundWorker c_backgroundWorker;
 
 		static Context()
 		{
@@ -84,11 +85,12 @@ namespace CloudAE.Core
 
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 			c_registeredPropertiesList = new List<IPropertyState>();
-			c_fileIndex = new Dictionary<string, string>();
-			c_sources = new Dictionary<string, PointCloudTileSource>();
+			c_fileIndex = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+			c_sources = new Dictionary<string, PointCloudTileSource>(StringComparer.OrdinalIgnoreCase);
+			c_loadedPaths = new Dictionary<string, FileHandlerBase>(StringComparer.OrdinalIgnoreCase);
 			c_queue = new ProcessingQueue();
 
-			c_backgroundWorker = new BackgroundWorker();
+			c_backgroundWorker = new ManagedBackgroundWorker();
 			c_backgroundWorker.WorkerReportsProgress = true;
 			c_backgroundWorker.WorkerSupportsCancellation = true;
 			c_backgroundWorker.DoWork += OnBackgroundDoWork;
@@ -183,13 +185,28 @@ namespace CloudAE.Core
 			get { return c_baseDirectory; }
 		}
 
+		public static bool IsProcessing
+		{
+			get { return c_backgroundWorker.IsBusy; }
+		}
+
+		public static bool IsProcessingQueueEmpty
+		{
+			get { return (c_queue.Count == 0); }
+		}
+
+		public static bool HasTileSources
+		{
+			get { return (c_sources.Count > 0); }
+		}
+
 		#region BackgroundWorker
 
 		private static void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
 		{
-			ProgressManager progressManager = new BackgroundWorkerProgressManager(c_backgroundWorker, e, OnLog);
-
 			FileHandlerBase inputHandler = e.Argument as FileHandlerBase;
+			ProgressManager progressManager = new BackgroundWorkerProgressManager(c_backgroundWorker, e, inputHandler, OnLog);
+			
 			ProcessingSet processingSet = new ProcessingSet(inputHandler);
 			PointCloudTileSource tileSource = processingSet.Process(progressManager);
 
@@ -203,19 +220,25 @@ namespace CloudAE.Core
 
 		private static void OnBackgroundRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
+			FileHandlerBase inputHandler = (sender as ManagedBackgroundWorker).Manager.UserState as FileHandlerBase;
+			PointCloudTileSource tileSource = null;
+
 			if ((e.Cancelled == true)) { }
 			else if (!(e.Error == null)) { }
 			else
 			{
 				// success
-				PointCloudTileSource tileSource = e.Result as PointCloudTileSource;
-				if (tileSource != null)
-				    AddTileSource(tileSource);
-
-				OnProcessingCompleted(tileSource);
-
-				StartNextInProcessingQueue();
+				tileSource = e.Result as PointCloudTileSource;
 			}
+
+			if (tileSource != null)
+				AddTileSource(tileSource);
+			else
+				c_loadedPaths.Remove(inputHandler.FilePath);
+
+			OnProcessingCompleted(tileSource);
+
+			StartNextInProcessingQueue();
 		}
 
 		private static void OnBackgroundProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -225,22 +248,55 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public static void AddToProcessingQueue(string path)
+		private static void AddToProcessingQueue(string path)
 		{
 			if (!File.Exists(path))
 				throw new FileNotFoundException("Item cannot be added to queue.", path);
 
 			FileHandlerBase handler = HandlerFactory.GetInputHandler(path);
 			if (handler != null)
+			{
 				c_queue.Enqueue(handler);
+				c_loadedPaths.Add(handler.FilePath, handler);
+			}
 
 			StartNextInProcessingQueue();
 		}
 
+		public static void ClearProcessingQueue(bool cancelCurrentProcessing)
+		{
+			c_queue.Clear();
+
+			if (cancelCurrentProcessing)
+			{
+				// cancel the worker
+			}
+		}
+
 		public static void AddToProcessingQueue(string[] paths)
 		{
+			List<string> skipped = new List<string>();
 			foreach (string path in paths.OrderBy(p => p))
-				AddToProcessingQueue(path);
+			{
+				if (c_loadedPaths.ContainsKey(path))
+				{
+					skipped.Add(path);
+				}
+				else
+				{
+					AddToProcessingQueue(path);
+				}
+			}
+
+			// maybe show a dialog or highlight the first skipped entry 
+			// if it is already in sources and none of the others were valid
+			if (skipped.Count > 0)
+			{
+				Context.WriteLine();
+				Context.WriteLine("[Skipped]");
+				foreach (string path in skipped)
+					Context.WriteLine("  {0}", path);
+			}
 		}
 
 		private static void StartNextInProcessingQueue()
@@ -256,9 +312,25 @@ namespace CloudAE.Core
 			}
 		}
 
+		public static void Remove(PointCloudTileSource tileSource)
+		{
+			if (c_sources.ContainsKey(tileSource.FilePath))
+				c_sources.Remove(tileSource.FilePath);
+		}
+
+		public static void RemoveAll()
+		{
+			c_sources.Clear();
+		}
+
 		private static void AddTileSource(PointCloudTileSource tileSource)
 		{
 			c_sources.Add(tileSource.FilePath, tileSource);
+		}
+
+		public static void WriteLine()
+		{
+			WriteLine("");
 		}
 
 		public static void WriteLine(string value, params object[] args)
