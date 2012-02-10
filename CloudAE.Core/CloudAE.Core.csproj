@@ -163,7 +163,9 @@
     <Compile Include="Windows\WinConsoleColor.cs" />
     <Compile Include="Windows\WinConsole.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Icons\bullet_green.png" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\brick.png" />
     <Resource Include="Icons\bricks.png" />

@@ -109,13 +109,18 @@
 							</ListBox.ItemTemplate>
 						</ListBox>
 					</StackPanel>
-				</TabItem>
-				<TabItem Header="Options" x:Name="tabItemInfo">
-					<Grid>
+                </TabItem>
+                <TabItem Header="Options" x:Name="tabItemInfo">
+                    <Grid>
                         <local:PropertyEditor x:Name="propertyEditor" />
                     </Grid>
-				</TabItem>
-			</TabControl>
+                </TabItem>
+                <TabItem Header="Properties" x:Name="tabItemProperties">
+                    <Grid>
+                        
+                    </Grid>
+                </TabItem>
+            </TabControl>
 		</Grid>
 
         <Grid Grid.Row="1" Grid.Column="2" x:Name="viewportBackground">

@@ -58,7 +58,7 @@ namespace CloudAE.Core
 			get
 			{
 				if (m_icon == null)
-					m_icon = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/CloudAE.Core;component/Icons/brick.png"));
+					m_icon = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/CloudAE.Core;component/Icons/bullet_green.png"));
 				return m_icon;
 			}
 		}
