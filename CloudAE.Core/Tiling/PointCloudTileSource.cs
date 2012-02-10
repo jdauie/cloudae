@@ -23,7 +23,7 @@ namespace CloudAE.Core
 		private const string FILE_IDENTIFIER = "TPBF";
 		private const string FILE_IDENTIFIER_DIRTY = "TPBD";
 		private const int FILE_VERSION_MAJOR = 1;
-		private const int FILE_VERSION_MINOR = 8;
+		private const int FILE_VERSION_MINOR = 9;
 
 		public readonly PointCloudTileSet TileSet;
 		public readonly Statistics StatisticsZ;
@@ -35,6 +35,8 @@ namespace CloudAE.Core
 
 		private Grid<float> m_pixelGrid;
 		private PreviewImage m_preview;
+
+		private System.Windows.Media.Imaging.BitmapImage m_icon;
 
 		#region INotifyPropertyChanged Members
 
@@ -48,6 +50,18 @@ namespace CloudAE.Core
 		}
 
 		#endregion
+
+		#region Properties
+
+		public System.Windows.Media.ImageSource Icon
+		{
+			get
+			{
+				if (m_icon == null)
+					m_icon = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/CloudAE.Core;component/Icons/brick.png"));
+				return m_icon;
+			}
+		}
 
 		public BitmapSource PreviewImage
 		{
@@ -95,7 +109,9 @@ namespace CloudAE.Core
 			get { return m_isDirty; }
 			set { m_isDirty = value; }
 		}
-		
+
+		#endregion
+
 		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, Statistics zStats, CompressionMethod compression)
 			: this(file, tileSet, quantization, 0, zStats, compression)
 		{

@@ -110,14 +110,14 @@ namespace CloudAE.App
 
 		private void OnRemoveButtonClick(object sender, RoutedEventArgs e)
 		{
-			PointCloudTileSource tileSource = treeView.SelectedItem as PointCloudTileSource;
+			PointCloudTileSource tileSource = ContentList.SelectedItem as PointCloudTileSource;
 			if (tileSource != null)
 				RemoveTileSource(tileSource);
 		}
 
 		private void OnRemoveAllButtonClick(object sender, RoutedEventArgs e)
 		{
-			List<PointCloudTileSource> sources = treeView.Items.Cast<PointCloudTileSource>().ToList();
+			List<PointCloudTileSource> sources = ContentList.Items.Cast<PointCloudTileSource>().ToList();
 			foreach (PointCloudTileSource tileSource in sources)
 				RemoveTileSource(tileSource);
 		}
@@ -180,10 +180,9 @@ namespace CloudAE.App
 
 		private void AddTileSource(PointCloudTileSource tileSource)
 		{
-			treeView.Items.Add(tileSource);
-			TreeViewItem treeViewItem = treeView.ItemContainerGenerator.ContainerFromItem(tileSource) as TreeViewItem;
-			treeViewItem.BringIntoView();
-			treeViewItem.IsSelected = true;
+			int index = ContentList.Items.Add(tileSource);
+			ContentList.SelectedIndex = index;
+			ContentList.ScrollIntoView(tileSource);
 
 			UpdateSelection(tileSource);
 
@@ -194,15 +193,12 @@ namespace CloudAE.App
 		{
 			if (tileSource != null)
 			{
-				PointCloudTileSource selectedTileSource = treeView.SelectedItem as PointCloudTileSource;
-
-				if (selectedTileSource == tileSource)
+				if (CurrentTileSource == tileSource)
 					UpdateSelection(null);
 
 				Context.Remove(tileSource);
 
-				// this should probably be a callback operation
-				treeView.Items.Remove(tileSource);
+				ContentList.Items.Remove(tileSource);
 
 				UpdateButtonStates();
 			}
@@ -211,7 +207,7 @@ namespace CloudAE.App
 		private void UpdateButtonStates()
 		{
 			itemRemoveAll.IsEnabled = Context.HasTileSources;
-			itemRemove.IsEnabled = (treeView.SelectedItem != null);
+			itemRemove.IsEnabled = (ContentList.SelectedItem != null);
 			itemStop.IsEnabled = !Context.IsProcessingQueueEmpty || Context.IsProcessing;
 
 			buttonRemove.IsEnabled = itemRemove.IsEnabled;
@@ -230,9 +226,14 @@ namespace CloudAE.App
 			UpdateTabSelection();
 		}
 
-		private void OnTreeViewDoubleClick(object sender, MouseButtonEventArgs e)
+		private void OnListSelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			UpdateSelection((sender as TreeViewItem).Header as PointCloudTileSource);
+			UpdateButtonStates();
+		}
+
+		private void OnListDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			UpdateSelection((sender as ListBoxItem).Content as PointCloudTileSource);
 		}
 
 		private void OnPerformanceButtonClick(object sender, RoutedEventArgs e)
@@ -284,13 +285,13 @@ namespace CloudAE.App
 			base.OnClosed(e);
 		}
 
-		private void OnTreeViewDrop(object sender, DragEventArgs e)
+		private void OnListDrop(object sender, DragEventArgs e)
 		{
 			string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 			Context.AddToProcessingQueue(files);
 		}
 
-		private void OnTreeViewDragEnter(object sender, DragEventArgs e)
+		private void OnListDragEnter(object sender, DragEventArgs e)
 		{
 			if (!e.Data.GetDataPresent(DataFormats.FileDrop, false))
 				e.Effects = DragDropEffects.None;

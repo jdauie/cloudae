@@ -51,7 +51,7 @@ namespace CloudAE.Core
 		private static Action<string, object[]> c_writeLineAction;
 
 		private static Dictionary<string, FileHandlerBase> c_loadedPaths;
-		private static Dictionary<string, PointCloudTileSource> c_sources;
+		private static Dictionary<PointCloudTileSource, FileHandlerBase> c_sources;
 		private static ProcessingQueue c_queue;
 		private static ManagedBackgroundWorker c_backgroundWorker;
 		private static bool c_isProcessing;
@@ -87,7 +87,7 @@ namespace CloudAE.Core
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 			c_registeredPropertiesList = new List<IPropertyState>();
 			c_fileIndex = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-			c_sources = new Dictionary<string, PointCloudTileSource>(StringComparer.OrdinalIgnoreCase);
+			c_sources = new Dictionary<PointCloudTileSource, FileHandlerBase>();
 			c_loadedPaths = new Dictionary<string, FileHandlerBase>(StringComparer.OrdinalIgnoreCase);
 			c_queue = new ProcessingQueue();
 
@@ -170,6 +170,8 @@ namespace CloudAE.Core
 
 		#endregion
 
+		#region Properties
+
 		public static Type[] LoadedTypes
 		{
 			get { return c_loadedTypes; }
@@ -204,6 +206,8 @@ namespace CloudAE.Core
 		{
 			get { return (c_sources.Count > 0); }
 		}
+
+		#endregion
 
 		#region BackgroundWorker
 
@@ -240,7 +244,7 @@ namespace CloudAE.Core
 			}
 
 			if (tileSource != null)
-				AddTileSource(tileSource);
+				AddTileSource(tileSource, inputHandler);
 			else
 				c_loadedPaths.Remove(inputHandler.FilePath);
 
@@ -255,6 +259,8 @@ namespace CloudAE.Core
 		}
 
 		#endregion
+
+		#region TileSources
 
 		private static void AddToProcessingQueue(string path)
 		{
@@ -325,8 +331,11 @@ namespace CloudAE.Core
 
 		public static void Remove(PointCloudTileSource tileSource)
 		{
-			if (c_sources.ContainsKey(tileSource.FilePath))
-				c_sources.Remove(tileSource.FilePath);
+			if (c_sources.ContainsKey(tileSource))
+			{
+				c_loadedPaths.Remove(c_sources[tileSource].FilePath);
+				c_sources.Remove(tileSource);
+			}
 		}
 
 		public static void RemoveAll()
@@ -334,10 +343,12 @@ namespace CloudAE.Core
 			c_sources.Clear();
 		}
 
-		private static void AddTileSource(PointCloudTileSource tileSource)
+		private static void AddTileSource(PointCloudTileSource tileSource, FileHandlerBase inputHandler)
 		{
-			c_sources.Add(tileSource.FilePath, tileSource);
+			c_sources.Add(tileSource, inputHandler);
 		}
+
+		#endregion
 
 		public static void WriteLine()
 		{
@@ -361,6 +372,8 @@ namespace CloudAE.Core
 				return c_fileIndex[file];
 			return null;
 		}
+
+		#region Discovery
 
 		/// <summary>
 		/// Currently, this looks at all directories below the current domain base, recursively.
@@ -554,9 +567,12 @@ namespace CloudAE.Core
 			return state;
 		}
 
+		#endregion
+
 		public static void Startup()
 		{
-			// this is after the class constructor
+			// calling this triggers the class constructor, so 
+			// this is actually happening after the constructor
 		}
 
 		public static void Shutdown()
