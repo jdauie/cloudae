@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CloudAE.Core.Geometry
 {
 	/// <summary>
 	/// Immutable point class.
 	/// </summary>
-	public struct Point3D : IPoint3D
+	public struct Point2D : IPoint2D
 	{
 		private readonly double m_x;
 		private readonly double m_y;
-		private readonly double m_z;
 
 		public double X
 		{
@@ -24,16 +20,10 @@ namespace CloudAE.Core.Geometry
 			get { return m_y; }
 		}
 
-		public double Z
-		{
-			get { return m_z; }
-		}
-
-		public Point3D(double x, double y, double z)
+		public Point2D(double x, double y)
 		{
 			m_x = x;
 			m_y = y;
-			m_z = z;
 		}
 
 		/// <summary>
@@ -44,7 +34,7 @@ namespace CloudAE.Core.Geometry
 		/// </returns>
 		public override string ToString()
 		{
-			return String.Format("({0:f}, {1:f}, {2:f})", X, Y, Z);
+			return String.Format("({0:f}, {1:f})", X, Y);
 		}
 	}
 }

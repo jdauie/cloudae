@@ -40,8 +40,8 @@ namespace CloudAE.Core.Geometry
 			for (int i = 0; i < points.Length; i++)
 			{
 				IPoint2D point = points[i];
-				double x = point.GetX();
-				double y = point.GetY();
+				double x = point.X;
+				double y = point.Y;
 
 				if (!initialized)
 				{

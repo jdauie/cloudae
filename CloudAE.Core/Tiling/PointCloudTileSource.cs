@@ -270,6 +270,18 @@ namespace CloudAE.Core
 			//}
 		}
 
+		public Point3D[] GetPointsWithinRegion(Polygon2D polygon, bool byRatio)
+		{
+			return null;
+		}
+
+		public Point3D[] GetPointsNearLine(System.Windows.Point p0, System.Windows.Point p1, double distance, bool byRatio)
+		{
+			// convert ratio points to quantized points?
+			// create a region from the points and the distance param
+			return null;
+		}
+
 		public KeyValuePair<Grid<uint>, Grid<float>> GenerateGrid(PointCloudTile template, ushort maxDimension)
 		{
 			Extent3D extent = template.Extent;

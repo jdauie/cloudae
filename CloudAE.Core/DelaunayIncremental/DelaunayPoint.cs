@@ -8,23 +8,34 @@ namespace CloudAE.Core.DelaunayIncremental
 {
 	public class DelaunayPoint : IPoint3D
 	{
-		public readonly float X;
-		public readonly float Y;
-		public readonly float Z;
+		public readonly float m_x;
+		public readonly float m_y;
+		public readonly float m_z;
 
 		public int Index;
 
-		public DelaunayPoint(double x, double y, double z, int index)
+		public double X
 		{
-			X = (float)x;
-			Y = (float)y;
-			Z = (float)z;
-			Index = index;
+			get { return m_x; }
 		}
 
-		public double GetX() { return X; }
-		public double GetY() { return Y; }
-		public double GetZ() { return Z; }
+		public double Y
+		{
+			get { return m_y; }
+		}
+
+		public double Z
+		{
+			get { return m_z; }
+		}
+
+		public DelaunayPoint(double x, double y, double z, int index)
+		{
+			m_x = (float)x;
+			m_y = (float)y;
+			m_z = (float)z;
+			Index = index;
+		}
 
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.

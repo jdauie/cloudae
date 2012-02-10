@@ -38,8 +38,8 @@ namespace CloudAE.Core.DelaunayIncremental
 
 			adjacentFace = new Triangle[3];
 
-			centroidX = (v1.X + v2.X + v3.X) / 3.0f;
-			centroidY = (v1.Y + v2.Y + v3.Y) / 3.0f;
+			centroidX = (float)(v1.X + v2.X + v3.X) / 3.0f;
+			centroidY = (float)(v1.Y + v2.Y + v3.Y) / 3.0f;
 
 			m_extent = new Extent2D(m_v[0], m_v[1], m_v[2]);
 		}

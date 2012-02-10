@@ -7,12 +7,12 @@ namespace CloudAE.Core.Geometry
 {
 	public interface IPoint3D : IPoint2D
 	{
-		double GetZ();
+		double Z { get; }
 	}
 
 	public interface IPoint2D
 	{
-		double GetX();
-		double GetY();
+		double X { get; }
+		double Y { get; }
 	}
 }
