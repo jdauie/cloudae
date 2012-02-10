@@ -296,13 +296,9 @@ namespace CloudAE.Core
 			foreach (string path in paths.OrderBy(p => p))
 			{
 				if (c_loadedPaths.ContainsKey(path))
-				{
 					skipped.Add(path);
-				}
 				else
-				{
 					AddToProcessingQueue(path);
-				}
 			}
 
 			// maybe show a dialog or highlight the first skipped entry 
