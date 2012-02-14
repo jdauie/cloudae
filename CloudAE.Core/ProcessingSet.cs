@@ -293,7 +293,9 @@ namespace CloudAE.Core
 
 		public string GetTileSourcePath(string path)
 		{
-			string fileName = String.Format("{0}.tpb", Path.GetFileName(m_inputHandler.FilePath));
+			// mark with some low-order bytes of the file size
+			FileInfo fileInfo = new FileInfo(path);
+			string fileName = String.Format("{0}.{1}.tpb", Path.GetFileName(m_inputHandler.FilePath), Convert.ToBase64String(BitConverter.GetBytes(fileInfo.Length), 0, 3));
 			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
 			return tilePath;
 		}
