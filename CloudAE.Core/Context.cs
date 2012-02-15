@@ -122,6 +122,7 @@ namespace CloudAE.Core
 			Context.WriteLine("  Discover   : {0}ms", startupElapsed);
 			Context.WriteLine("  Instrument : {0}ms", stopwatch.ElapsedMilliseconds);
 			Context.WriteLine("  Total      : {0}ms", stopwatch.ElapsedMilliseconds + startupElapsed);
+			Context.WriteLine();
 		}
 
 		#region Events

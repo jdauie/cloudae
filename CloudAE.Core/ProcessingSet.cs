@@ -208,7 +208,7 @@ namespace CloudAE.Core
 								outputStream.Write(inputBuffer, 0, segmentTile.StorageSize);
 							}
 						}
-						if (!progressManager.Update((float)tile.Index / tileSource.TileSet.TileCount))
+						if (!progressManager.Update((float)tile.ValidIndex / tileSource.TileSet.ValidTileCount))
 							break;
 					}
 				}
@@ -217,6 +217,12 @@ namespace CloudAE.Core
 				{
 					tiledSegments[i].Close();
 					File.Delete(tiledSegments[i].FilePath);
+				}
+
+				if (progressManager.Update(1.0f))
+				{
+					tileSource.IsDirty = false;
+					tileSource.WriteHeader();
 				}
 
 				progressManager.Log(stopwatch, "Merged Tiled Segments");
