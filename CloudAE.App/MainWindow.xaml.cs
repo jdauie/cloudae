@@ -271,6 +271,16 @@ namespace CloudAE.App
 			}
 		}
 
+		private void OnClearCacheButtonClick(object sender, RoutedEventArgs e)
+		{
+			Cache.Clear();
+		}
+
+		private void OnExitButtonClick(object sender, RoutedEventArgs e)
+		{
+			Close();
+		}
+
 		protected override void OnClosed(EventArgs e)
 		{
 			CurrentTileSource = null;

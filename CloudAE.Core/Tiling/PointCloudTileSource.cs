@@ -18,6 +18,8 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileSource : PointCloudBinarySource, ISerializeBinary, INotifyPropertyChanged
 	{
+		public const string FILE_EXTENSION = "tpb";
+		
 		private const int MAX_PREVIEW_DIMENSION = 1000;
 
 		private const string FILE_IDENTIFIER = "TPBF";
@@ -110,6 +112,18 @@ namespace CloudAE.Core
 			set { m_isDirty = value; }
 		}
 
+		public override string Name
+		{
+			get
+			{
+				string name = base.Name;
+				name = Path.GetFileNameWithoutExtension(name);
+				name = Path.GetFileNameWithoutExtension(name);
+
+				return name;
+			}
+		}
+
 		#endregion
 
 		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, Statistics zStats, CompressionMethod compression)
@@ -129,6 +143,15 @@ namespace CloudAE.Core
 				IsDirty = true;
 				WriteHeader();
 			}
+		}
+
+		public static string GetTileSourcePath(string path)
+		{
+			// mark with some low-order bytes of the file size
+			FileInfo fileInfo = new FileInfo(path);
+			string fileName = String.Format("{0}.{1}.{2}", fileInfo.Name, Convert.ToBase64String(BitConverter.GetBytes(fileInfo.Length), 0, 3), PointCloudTileSource.FILE_EXTENSION);
+			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
+			return tilePath;
 		}
 
 		public static PointCloudTileSource Open(string file)

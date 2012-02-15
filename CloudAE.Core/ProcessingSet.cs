@@ -34,7 +34,7 @@ namespace CloudAE.Core
 
 			m_isInputPathLocal = PathUtil.IsLocalPath(m_inputHandler.FilePath);
 
-			m_tiledPath = GetTileSourcePath(m_inputHandler.FilePath);
+			m_tiledPath = PointCloudTileSource.GetTileSourcePath(m_inputHandler.FilePath);
 
 			Directory.CreateDirectory(Path.GetDirectoryName(m_tiledPath));
 		}
@@ -274,7 +274,7 @@ namespace CloudAE.Core
 
 		public static string GetBinarySourceName(FileHandlerBase handler)
 		{
-			return handler.FilePath + ".bin";
+			return string.Format("{0}.{1}", handler.FilePath, PointCloudBinarySource.FILE_EXTENSION);
 		}
 
 		public string GetInputHandlerTempPath(string path)
@@ -286,18 +286,7 @@ namespace CloudAE.Core
 
 		public string GetTileSourcePath(string path, int segmentIndex)
 		{
-			string fileName = String.Format("{0}.tpb{1}", Path.GetFileName(m_inputHandler.FilePath), segmentIndex);
-			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
-			return tilePath;
-		}
-
-		public string GetTileSourcePath(string path)
-		{
-			// mark with some low-order bytes of the file size
-			FileInfo fileInfo = new FileInfo(path);
-			string fileName = String.Format("{0}.{1}.tpb", Path.GetFileName(m_inputHandler.FilePath), Convert.ToBase64String(BitConverter.GetBytes(fileInfo.Length), 0, 3));
-			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
-			return tilePath;
+			return string.Format("{0}{1}", PointCloudTileSource.GetTileSourcePath(path), segmentIndex);
 		}
 
 		public static string GetTemporaryCompressedTileSourceName(string path)

@@ -12,7 +12,7 @@ namespace CloudAE.Core
 		
 		private readonly string m_name;
 
-		public string Name
+		public virtual string Name
 		{
 			get { return m_name; }
 		}
@@ -20,7 +20,7 @@ namespace CloudAE.Core
 		public PointCloudSource(string file)
 		{
 			FilePath = file;
-			m_name = Path.GetFileNameWithoutExtension(FilePath);
+			m_name = Path.GetFileName(FilePath);
 		}
 
 		public override string ToString()

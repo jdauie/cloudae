@@ -38,8 +38,14 @@
 						<MenuItem.Icon>
 							<Image Source="/CloudAE.App;component/Icons/cross.png" />
 						</MenuItem.Icon>
-					</MenuItem>
-				</MenuItem>
+                    </MenuItem>
+                    <MenuItem x:Name="itemClearCache" Header="Clear Cache" Click="OnClearCacheButtonClick">
+                        <MenuItem.Icon>
+                            <Image Source="/CloudAE.App;component/Icons/database_delete.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="itemExit" Header="Exit" Click="OnExitButtonClick" />
+                </MenuItem>
 			</Menu>
             <ToolBarTray>
                 <ToolBar Name="ToolBarCommon">

@@ -31,5 +31,29 @@ namespace CloudAE.Core
 				return size;
 			}
 		}
+
+		public static bool Clear()
+		{
+			int skipped = 0;
+
+			if (Directory.Exists(APP_CACHE_DIR))
+			{
+				string[] files = Directory.GetFiles(APP_CACHE_DIR, "*", SearchOption.AllDirectories);
+				
+				foreach (string file in files)
+				{
+					try
+					{
+						File.Delete(file);
+					}
+					catch
+					{
+						++skipped;
+					}
+				}
+			}
+
+			return (skipped == 0);
+		}
 	}
 }

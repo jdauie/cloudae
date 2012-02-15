@@ -201,6 +201,9 @@
   <ItemGroup>
     <Resource Include="splash.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\database_delete.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"</PostBuildEvent>

@@ -11,6 +11,8 @@ namespace CloudAE.Core
 {
 	public class PointCloudBinarySource : PointCloudSource
 	{
+		public const string FILE_EXTENSION = "bin";
+
 		public readonly long Count;
 		public readonly Quantization3D Quantization;
 		public readonly CompressionMethod Compression;
