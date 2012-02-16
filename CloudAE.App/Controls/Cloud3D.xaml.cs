@@ -110,10 +110,15 @@ namespace CloudAE.App
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				m_buffer = new byte[tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes];
+
+				int thinFactor = (int)Math.Ceiling((double)tileSource.Count / 1000000);
+				int thinnedPointCount = (int)(tileSource.Count / thinFactor);
+				double areaPerPoint = tileSource.Extent.Area / thinnedPointCount;
+				double sqrtAreaPerPoint = Math.Sqrt(areaPerPoint);
 				
 				foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
 				{
-					MeshGeometry3D mesh = tileSource.LoadTilePointMesh(tile, m_buffer);
+					MeshGeometry3D mesh = tileSource.LoadTilePointMesh(tile, m_buffer, sqrtAreaPerPoint, thinFactor);
 
 					DiffuseMaterial material = new DiffuseMaterial();
 					material.Brush = m_overviewTextureBrush;

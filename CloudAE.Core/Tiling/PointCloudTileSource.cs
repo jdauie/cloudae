@@ -294,7 +294,7 @@ namespace CloudAE.Core
 			//}
 		}
 
-		public unsafe System.Windows.Media.Media3D.MeshGeometry3D LoadTilePointMesh(PointCloudTile tile, byte[] inputBuffer)
+		public unsafe System.Windows.Media.Media3D.MeshGeometry3D LoadTilePointMesh(PointCloudTile tile, byte[] inputBuffer, double pointSize, int thinByFactor)
 		{
 			LoadTile(tile, inputBuffer);
 
@@ -306,7 +306,8 @@ namespace CloudAE.Core
 			double yShift = -centeringExtent.MidpointY;
 			double zShift = -centerOfMass.Z;
 
-			int thinByFactor = 2;
+			double halfPointSize = pointSize / 2;
+
 			int thinnedTilePointCount = tile.PointCount / thinByFactor;
 
 			// these values need to be changed from 4,6 to 8,36 if I test it out
@@ -328,22 +329,6 @@ namespace CloudAE.Core
 					double xC = point.X + xShift;
 					double yC = point.Y + yShift;
 					double zC = point.Z + zShift;
-
-					//positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
-
-					double pointSize = 0.5f;
-					double halfPointSize = pointSize / 2;
-
-					//for (double z = zC - halfPointSize; z < zC + pointSize; z += pointSize)
-					//{
-					//    for (double y = yC - halfPointSize; y < yC + pointSize; y += pointSize)
-					//    {
-					//        for (double x = xC - halfPointSize; x < xC + pointSize; x += pointSize)
-					//        {
-					//            positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
-					//        }
-					//    }
-					//}
 
 					int currentStartIndex = positions.Count;
 
