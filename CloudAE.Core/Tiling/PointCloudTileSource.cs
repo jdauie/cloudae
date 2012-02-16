@@ -306,9 +306,13 @@ namespace CloudAE.Core
 			double yShift = -centeringExtent.MidpointY;
 			double zShift = -centerOfMass.Z;
 
-			System.Windows.Media.Media3D.Point3DCollection positions = new System.Windows.Media.Media3D.Point3DCollection(tile.PointCount * 8);
-			//System.Windows.Media.Media3D.Vector3DCollection normals = new System.Windows.Media.Media3D.Vector3DCollection(positions.Count);
-			System.Windows.Media.Int32Collection indices = new System.Windows.Media.Int32Collection(tile.PointCount * 36);
+			int thinByFactor = 2;
+			int thinnedTilePointCount = tile.PointCount / thinByFactor;
+
+			// these values need to be changed from 4,6 to 8,36 if I test it out
+			System.Windows.Media.Media3D.Point3DCollection positions = new System.Windows.Media.Media3D.Point3DCollection(thinnedTilePointCount * 4);
+			System.Windows.Media.Media3D.Vector3DCollection normals = new System.Windows.Media.Media3D.Vector3DCollection(positions.Count);
+			System.Windows.Media.Int32Collection indices = new System.Windows.Media.Int32Collection(tile.PointCount * 6);
 
 			fixed (byte* inputBufferPtr = inputBuffer)
 			{
@@ -316,6 +320,9 @@ namespace CloudAE.Core
 
 				for (int i = 0; i < tile.PointCount; i++)
 				{
+					if (!(i % thinByFactor == 0))
+						continue;
+
 					// slow!
 					Point3D point = Quantization.Convert(p[i]);
 					double xC = point.X + xShift;
@@ -324,7 +331,7 @@ namespace CloudAE.Core
 
 					//positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
 
-					double pointSize = 1.1f;
+					double pointSize = 0.5f;
 					double halfPointSize = pointSize / 2;
 
 					//for (double z = zC - halfPointSize; z < zC + pointSize; z += pointSize)
@@ -338,26 +345,31 @@ namespace CloudAE.Core
 					//    }
 					//}
 
-					int currentStartIndex = indices.Count;
+					int currentStartIndex = positions.Count;
 
 					foreach (double y in new double[] { yC - halfPointSize, yC + halfPointSize })
+					{
 						foreach (double x in new double[] { xC - halfPointSize, xC + halfPointSize })
+						{
 							positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, zC));
+							normals.Add(new System.Windows.Media.Media3D.Vector3D(0, 0, 1));
+						}
+					}
 
 					indices.Add(currentStartIndex + 0);
-					indices.Add(currentStartIndex + 3);
 					indices.Add(currentStartIndex + 1);
+					indices.Add(currentStartIndex + 3);
 
 					indices.Add(currentStartIndex + 0);
-					indices.Add(currentStartIndex + 2);
 					indices.Add(currentStartIndex + 3);
+					indices.Add(currentStartIndex + 2);
 				}
 			}
 
 			System.Windows.Media.Media3D.MeshGeometry3D geometry = new System.Windows.Media.Media3D.MeshGeometry3D();
 			geometry.Positions = positions;
 			geometry.TriangleIndices = indices;
-			//geometry.Normals = normals;
+			geometry.Normals = normals;
 
 			return geometry;
 		}
