@@ -75,6 +75,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\Cloud3D.xaml.cs">
+      <DependentUpon>Cloud3D.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\LogViewer.xaml.cs">
       <DependentUpon>LogViewer.xaml</DependentUpon>
     </Compile>
@@ -92,6 +95,10 @@
     <Compile Include="Controls\PropertyEditor.xaml.cs">
       <DependentUpon>PropertyEditor.xaml</DependentUpon>
     </Compile>
+    <Page Include="Controls\Cloud3D.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\LogViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -203,6 +210,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\database_delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\weather_clouds.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

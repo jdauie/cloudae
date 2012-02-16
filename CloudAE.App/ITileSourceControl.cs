@@ -16,6 +16,11 @@ namespace CloudAE.App
 			get;
 		}
 
+		int Index
+		{
+			get;
+		}
+
 		PointCloudTileSource CurrentTileSource
 		{
 			get;

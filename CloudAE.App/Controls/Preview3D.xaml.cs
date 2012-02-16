@@ -177,6 +177,11 @@ namespace CloudAE.App
 			get { return "3D"; }
 		}
 
+		public int Index
+		{
+			get { return 1; }
+		}
+
 		public ImageSource Icon
 		{
 			get { return new BitmapImage(new Uri("pack://application:,,,/CloudAE.App;component/Icons/world.png")); }
@@ -207,11 +212,6 @@ namespace CloudAE.App
 				m_loadedTileBuffers.Clear();
 
 				viewport.Children.Clear();
-
-				if (m_currentTileSource != null)
-				{
-					m_currentTileSource.Close();
-				}
 
 				m_currentTileSource = value;
 
@@ -290,7 +290,7 @@ namespace CloudAE.App
 			{
 				previewImageGrid.MouseMove -= OnViewportGridMouseMove;
 
-				Action<string> logAction = new Action<string>(delegate(string value) { Console.WriteLine(value); });
+				Action<string> logAction = new Action<string>(delegate(string value) { Context.WriteLine(value); });
 				m_progressManager = new BackgroundWorkerProgressManager(m_backgroundWorker, e, logAction);
 
 				m_gridDimensionLowRes = (ushort)Math.Sqrt(VERTEX_COUNT_FAST / tileSource.TileSet.ValidTileCount);

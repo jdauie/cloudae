@@ -332,6 +332,7 @@ namespace CloudAE.Core
 			{
 				c_loadedPaths.Remove(c_sources[tileSource].FilePath);
 				c_sources.Remove(tileSource);
+				tileSource.Close();
 			}
 		}
 
@@ -342,6 +343,7 @@ namespace CloudAE.Core
 
 		private static void AddTileSource(PointCloudTileSource tileSource, FileHandlerBase inputHandler)
 		{
+			tileSource.Open();
 			c_sources.Add(tileSource, inputHandler);
 		}
 

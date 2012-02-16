@@ -13,27 +13,27 @@
 		</Grid.RowDefinitions>
 
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="150" MinWidth="120" />
+			<ColumnDefinition Width="150" MinWidth="120" x:Name="GridColumnLeft" />
 			<ColumnDefinition Width="Auto" />
 			<ColumnDefinition Width="*" />
 			<ColumnDefinition Width="Auto" />
-			<ColumnDefinition Width="150" MinWidth="120" />
+            <ColumnDefinition Width="150" MinWidth="120" x:Name="GridColumnRight" />
 		</Grid.ColumnDefinitions>
 
 		<StackPanel Grid.Row="0" Grid.ColumnSpan="5">
 			<Menu IsMainMenu="True">
 				<MenuItem Header="_File">
-                    <MenuItem Header="Open ..." Click="OnBrowseButtonClick">
+                    <MenuItem Header="_Open ..." Click="OnBrowseButtonClick">
                         <MenuItem.Icon>
                             <Image Source="/CloudAE.App;component/Icons/add.png" />
                         </MenuItem.Icon>
                     </MenuItem>
-					<MenuItem x:Name="itemRemove" Header="Remove" Click="OnRemoveButtonClick">
+					<MenuItem x:Name="itemRemove" Header="_Remove" Click="OnRemoveButtonClick">
 						<MenuItem.Icon>
 							<Image Source="/CloudAE.App;component/Icons/delete.png" />
 						</MenuItem.Icon>
 					</MenuItem>
-					<MenuItem x:Name="itemRemoveAll" Header="Remove All" Click="OnRemoveAllButtonClick" />
+					<MenuItem x:Name="itemRemoveAll" Header="Remove _All" Click="OnRemoveAllButtonClick" />
 					<MenuItem x:Name="itemStop" Header="Clear Queue" Click="OnStopButtonClick">
 						<MenuItem.Icon>
 							<Image Source="/CloudAE.App;component/Icons/cross.png" />
@@ -44,7 +44,7 @@
                             <Image Source="/CloudAE.App;component/Icons/database_delete.png" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem x:Name="itemExit" Header="Exit" Click="OnExitButtonClick" />
+                    <MenuItem x:Name="itemExit" Header="_Exit" Click="OnExitButtonClick" />
                 </MenuItem>
 			</Menu>
             <ToolBarTray>
@@ -109,7 +109,7 @@
 								<DataTemplate>
 									<StackPanel>
 										<TextBlock Text="{Binding Name}" FontWeight="Bold" />
-										<TextBlock Text="{Binding Size, Mode=OneWay, Converter={core:LongToSizeConverter}}" />
+										<TextBlock Text="{Binding Size, Mode=OneWay, Converter={core:LongToSizeConverter}}" Margin="4,0,0,0" />
 									</StackPanel>
 								</DataTemplate>
 							</ListBox.ItemTemplate>

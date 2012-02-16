@@ -227,7 +227,7 @@ namespace CloudAE.Core
 		{
 			if (m_inputStream == null)
 			{
-				m_inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.RandomAccess);
+				m_inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.RandomAccess);
 			}
 		}
 
@@ -279,6 +279,7 @@ namespace CloudAE.Core
 
 			int bytesRead = tile.ReadTile(m_inputStream, inputBuffer);
 
+			// usage
 			//fixed (byte* inputBufferPtr = inputBuffer)
 			//{
 			//    UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
@@ -291,6 +292,74 @@ namespace CloudAE.Core
 			//        //    (*p).Z = 0;
 			//    }
 			//}
+		}
+
+		public unsafe System.Windows.Media.Media3D.MeshGeometry3D LoadTilePointMesh(PointCloudTile tile, byte[] inputBuffer)
+		{
+			LoadTile(tile, inputBuffer);
+
+			Extent3D distributionExtent = tile.Extent;
+			Extent3D centeringExtent = Extent;
+			Point3D centerOfMass = CenterOfMass;
+
+			double xShift = -centeringExtent.MidpointX;
+			double yShift = -centeringExtent.MidpointY;
+			double zShift = -centerOfMass.Z;
+
+			System.Windows.Media.Media3D.Point3DCollection positions = new System.Windows.Media.Media3D.Point3DCollection(tile.PointCount * 8);
+			//System.Windows.Media.Media3D.Vector3DCollection normals = new System.Windows.Media.Media3D.Vector3DCollection(positions.Count);
+			System.Windows.Media.Int32Collection indices = new System.Windows.Media.Int32Collection(tile.PointCount * 36);
+
+			fixed (byte* inputBufferPtr = inputBuffer)
+			{
+				UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
+
+				for (int i = 0; i < tile.PointCount; i++)
+				{
+					// slow!
+					Point3D point = Quantization.Convert(p[i]);
+					double xC = point.X + xShift;
+					double yC = point.Y + yShift;
+					double zC = point.Z + zShift;
+
+					//positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
+
+					double pointSize = 1.1f;
+					double halfPointSize = pointSize / 2;
+
+					//for (double z = zC - halfPointSize; z < zC + pointSize; z += pointSize)
+					//{
+					//    for (double y = yC - halfPointSize; y < yC + pointSize; y += pointSize)
+					//    {
+					//        for (double x = xC - halfPointSize; x < xC + pointSize; x += pointSize)
+					//        {
+					//            positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
+					//        }
+					//    }
+					//}
+
+					int currentStartIndex = indices.Count;
+
+					foreach (double y in new double[] { yC - halfPointSize, yC + halfPointSize })
+						foreach (double x in new double[] { xC - halfPointSize, xC + halfPointSize })
+							positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, zC));
+
+					indices.Add(currentStartIndex + 0);
+					indices.Add(currentStartIndex + 3);
+					indices.Add(currentStartIndex + 1);
+
+					indices.Add(currentStartIndex + 0);
+					indices.Add(currentStartIndex + 2);
+					indices.Add(currentStartIndex + 3);
+				}
+			}
+
+			System.Windows.Media.Media3D.MeshGeometry3D geometry = new System.Windows.Media.Media3D.MeshGeometry3D();
+			geometry.Positions = positions;
+			geometry.TriangleIndices = indices;
+			//geometry.Normals = normals;
+
+			return geometry;
 		}
 
 		public Point3D[] GetPointsWithinRegion(Polygon2D polygon, bool byRatio)

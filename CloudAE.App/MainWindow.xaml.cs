@@ -39,7 +39,7 @@ namespace CloudAE.App
 			SWITCH_TO_LOG_TAB_ON_PROCESSING_START = Context.RegisterOption<bool>(Context.OptionCategory.App, "SwitchToLogTabOnProcessingStart", true);
 
 			List<ITileSourceControl> controls = RegisterControls();
-			c_controls = controls.ToArray();
+			c_controls = controls.OrderBy(c => c.Index).ToArray();
 		}
 
 		public MainWindow()
@@ -311,12 +311,22 @@ namespace CloudAE.App
 
 		public void Deserialize(BinaryReader reader)
 		{
-			this.DeserializeState(reader);
+			if (this.DeserializeState(reader))
+			{
+				if (reader.BaseStream.Length - reader.BaseStream.Position == 2 * sizeof(int))
+				{
+					GridColumnLeft.Width = new GridLength(reader.ReadInt32());
+					GridColumnRight.Width = new GridLength(reader.ReadInt32());
+				}
+			}
 		}
 
 		public void Serialize(BinaryWriter writer)
 		{
 			this.SerializeState(writer);
+
+			writer.Write((int)GridColumnLeft.ActualWidth);
+			writer.Write((int)GridColumnRight.ActualWidth);
 		}
 
 		public string GetIdentifier()

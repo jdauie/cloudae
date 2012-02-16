@@ -34,7 +34,9 @@ namespace CloudAE.Core
 
 		public static bool Clear()
 		{
-			int skipped = 0;
+			int deleted = 0;
+			int locked = 0;
+			int failed = 0;
 
 			if (Directory.Exists(APP_CACHE_DIR))
 			{
@@ -42,18 +44,35 @@ namespace CloudAE.Core
 				
 				foreach (string file in files)
 				{
+					FileStream streamLock = null;
 					try
 					{
-						File.Delete(file);
+						streamLock = File.Open(file, FileMode.Open, FileAccess.Write, FileShare.None);
 					}
 					catch
 					{
-						++skipped;
+						++locked;
+					}
+
+					if (streamLock != null)
+					{
+						streamLock.Dispose();
+						try
+						{
+							File.Delete(file);
+							++deleted;
+						}
+						catch
+						{
+							++failed;
+						}
 					}
 				}
 			}
 
-			return (skipped == 0);
+			Context.WriteLine("Cache.Clear: {0} deleted, {1} locked, {2} failed", deleted, locked, failed);
+
+			return (failed == 0);
 		}
 	}
 }

@@ -32,6 +32,11 @@ namespace CloudAE.App
 			get { return "2D"; }
 		}
 
+		public int Index
+		{
+			get { return 0; }
+		}
+
 		public ImageSource Icon
 		{
 			get { return new BitmapImage(new Uri("pack://application:,,,/CloudAE.App;component/Icons/map.png")); }
@@ -51,7 +56,6 @@ namespace CloudAE.App
 
 				if (m_currentTileSource != null)
 				{
-					m_currentTileSource.Close();
 					colorRampsCombo.SelectedItem = null;
 				}
 

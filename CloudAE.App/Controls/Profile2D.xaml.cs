@@ -28,6 +28,11 @@ namespace CloudAE.App
 			get { return "Profile"; }
 		}
 
+		public int Index
+		{
+			get { return 3; }
+		}
+
 		public ImageSource Icon
 		{
 			get { return new BitmapImage(new Uri("pack://application:,,,/CloudAE.App;component/Icons/shape_rotate_clockwise.png")); }
@@ -42,11 +47,6 @@ namespace CloudAE.App
 			set
 			{
 				CancelSelection();
-
-				if (m_currentTileSource != null)
-				{
-					m_currentTileSource.Close();
-				}
 
 				m_currentTileSource = value;
 

@@ -16,22 +16,23 @@ namespace CloudAE.Core
 			writer.Write((int)target.Width);
 			writer.Write((int)target.Height);
 
-			if (target.WindowState == System.Windows.WindowState.Maximized)
-				writer.Write(true);
+			writer.Write(target.WindowState == System.Windows.WindowState.Maximized);
 		}
 
-		public static void DeserializeState(this Window target, BinaryReader reader)
+		public static bool DeserializeState(this Window target, BinaryReader reader)
 		{
-			if (reader.BaseStream.Length < 4 * sizeof(int))
-				return;
+			if ((reader.BaseStream.Length - reader.BaseStream.Position) < (4 * sizeof(int) + sizeof(bool)))
+				return false;
 
 			target.Left   = reader.ReadInt32();
 			target.Top    = reader.ReadInt32();
 			target.Width  = reader.ReadInt32();
 			target.Height = reader.ReadInt32();
 
-			if (reader.BaseStream.Position == reader.BaseStream.Length - 1)
+			if (reader.ReadBoolean())
 				target.WindowState = System.Windows.WindowState.Maximized;
+
+			return true;
 		}
 	}
 }
