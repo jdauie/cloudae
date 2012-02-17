@@ -226,8 +226,8 @@ namespace CloudAE.Core
 			else
 			{
 				double mean = (sum / source.Count);
-				verticalValueCounts[verticalValueIntervals - 2] += verticalValueCounts[verticalValueIntervals - 1];
-				verticalValueCounts[verticalValueIntervals - 1] = 0;
+				verticalValueCounts[verticalValueIntervals - 1] += verticalValueCounts[verticalValueIntervals];
+				verticalValueCounts[verticalValueIntervals] = 0;
 				int interval = verticalValueCounts.MaxIndex<long>();
 				double mode = extent.MinZ + (double)interval / intervalsOverRangeZ;
 				statsGenerator.SetMean(mean, mode);
@@ -345,8 +345,8 @@ namespace CloudAE.Core
 			else
 			{
 				double mean = (sum / source.Count) * inputQuantization.ScaleFactorZ + inputQuantization.OffsetZ;
-				verticalValueCounts[verticalValueIntervals - 2] += verticalValueCounts[verticalValueIntervals - 1];
-				verticalValueCounts[verticalValueIntervals - 1] = 0;
+				verticalValueCounts[verticalValueIntervals - 1] += verticalValueCounts[verticalValueIntervals];
+				verticalValueCounts[verticalValueIntervals] = 0;
 				int interval = verticalValueCounts.MaxIndex<long>();
 				double mode = extent.MinZ + extent.RangeZ * interval / verticalValueIntervals;
 				statsGenerator.SetMean(mean, mode);
