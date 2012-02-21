@@ -13,15 +13,47 @@ namespace CloudAE.Core
 	{
 		public const string FILE_EXTENSION = "bin";
 
-		public readonly long Count;
-		public readonly Quantization3D Quantization;
-		public readonly CompressionMethod Compression;
-		public readonly ICompressor Compressor;
-		public readonly short PointSizeBytes;
-		public readonly int UsableBytesPerBuffer;
+		private readonly long m_count;
+		private readonly Quantization3D m_quantization;
+		private readonly CompressionMethod m_compression;
+		private readonly ICompressor m_compressor;
+		private readonly short m_pointSizeBytes;
+		private readonly int m_usableBytesPerBuffer;
 
 		private long m_pointDataOffset;
 		private Extent3D m_extent;
+
+		#region Properties
+
+		public long Count
+		{
+			get { return m_count; }
+		}
+
+		public Quantization3D Quantization
+		{
+			get { return m_quantization; }
+		}
+
+		public CompressionMethod Compression
+		{
+			get { return m_compression; }
+		}
+
+		public ICompressor Compressor
+		{
+			get { return m_compressor; }
+		}
+
+		public short PointSizeBytes
+		{
+			get { return m_pointSizeBytes; }
+		}
+
+		public int UsableBytesPerBuffer
+		{
+			get { return m_usableBytesPerBuffer; }
+		}
 
 		public long PointDataOffset
 		{
@@ -35,18 +67,20 @@ namespace CloudAE.Core
 			set { m_extent = value; }
 		}
 
+		#endregion
+
 		public PointCloudBinarySource(string file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes, CompressionMethod compression)
 			: base(file)
 		{
-			Count = count;
+			m_count = count;
 			Extent = extent;
-			Quantization = quantization;
-			Compression = compression;
-			Compressor = CompressionFactory.GetCompressor(Compression);
+			m_quantization = quantization;
+			m_compression = compression;
+			m_compressor = CompressionFactory.GetCompressor(Compression);
 			PointDataOffset = dataOffset;
-			PointSizeBytes = pointSizeBytes;
+			m_pointSizeBytes = pointSizeBytes;
 			int pointsPerInputBuffer = BufferManager.BUFFER_SIZE_BYTES / pointSizeBytes;
-			UsableBytesPerBuffer = pointsPerInputBuffer * pointSizeBytes;
+			m_usableBytesPerBuffer = pointsPerInputBuffer * pointSizeBytes;
 		}
 
 		public PointCloudBinarySourceEnumerator GetBlockEnumerator(byte[] buffer)

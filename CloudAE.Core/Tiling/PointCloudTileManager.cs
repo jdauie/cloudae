@@ -256,7 +256,7 @@ namespace CloudAE.Core
 			//// test precision
 			//int maxBytesForPrecisionTest = 1 << 24; // 26->64MB
 			//int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
-			//int pointsToTest = Math.Min(source.Count, maxPointsForPrecisionTest);
+			//int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTest);
 
 			//double[] scaleFactors = new double[] { inputQuantization.ScaleFactorX, inputQuantization.ScaleFactorY, inputQuantization.ScaleFactorZ };
 			//int testValuesIndex = 0;
@@ -286,8 +286,11 @@ namespace CloudAE.Core
 
 					//if (testValuesIndex < pointsToTest)
 					//{
-					//    for (int i = 0; i < bytesRead; i += source.PointSizeBytes)
+					//    for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
 					//    {
+					//        if (testValuesIndex >= pointsToTest)
+					//            break;
+
 					//        SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
 					//        testValues[0][testValuesIndex] = (*p).X;
 					//        testValues[1][testValuesIndex] = (*p).Y;

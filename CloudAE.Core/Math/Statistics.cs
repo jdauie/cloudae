@@ -9,44 +9,68 @@ namespace CloudAE.Core
 {
 	public class Statistics : ISerializeBinary
 	{
-		public readonly double Mean;
-		public readonly double StdDev;
-		public readonly double Variance;
+		public readonly double m_mean;
+		public readonly double m_stdDev;
+		public readonly double m_variance;
 
-		public readonly double ModeApproximate;
+		public readonly double m_modeApproximate;
+
+		#region Properties
+
+		public double Mean
+		{
+			get { return m_mean; }
+		}
+
+		public double StdDev
+		{
+			get { return m_stdDev; }
+		}
+
+		public double Variance
+		{
+			get { return m_variance; }
+		}
+
+		public double ModeApproximate
+		{
+			get { return m_modeApproximate; }
+		}
+
+		#endregion
 
 		public Statistics(IEnumerable<float> values, float nodata)
 		{
 			IEnumerable<float> validValues = values.Where(v => v != nodata);
-			Mean = validValues.Average();
-			Variance = validValues.Average(v => Math.Pow(v - Mean, 2));
-			StdDev = Math.Sqrt(Variance);
+			m_mean = validValues.Average();
+			m_variance = validValues.Average(v => Math.Pow(v - Mean, 2));
+			m_stdDev = Math.Sqrt(Variance);
 			//ModeApproximate
 		}
 
 		public Statistics(double mean, double variance, double mode)
 		{
-			Mean = mean;
-			Variance = variance;
-			StdDev = Math.Sqrt(Variance);
-			ModeApproximate = mode;
+			m_mean = mean;
+			m_variance = variance;
+			m_stdDev = Math.Sqrt(Variance);
+			m_modeApproximate = mode;
 		}
 
 		public Statistics(IEnumerable<Statistics> statsCollection)
 		{
 			// just average them for now
-			Mean = statsCollection.Average(s => s.Mean);
-			Variance = statsCollection.Average(s => s.Variance);
-			StdDev = Math.Sqrt(Variance);
-			ModeApproximate = statsCollection.Average(s => s.ModeApproximate);
+			m_mean = statsCollection.Average(s => s.Mean);
+			m_variance = statsCollection.Average(s => s.Variance);
+			m_stdDev = Math.Sqrt(Variance);
+			m_modeApproximate = statsCollection.Average(s => s.ModeApproximate);
 		}
 
 		public Statistics(BinaryReader reader)
 		{
-			Mean = reader.ReadDouble();
-			Variance = reader.ReadDouble();
-			StdDev = Math.Sqrt(Variance);
-			ModeApproximate = reader.ReadDouble();
+			m_mean = reader.ReadDouble();
+			m_variance = reader.ReadDouble();
+			m_stdDev = Math.Sqrt(Variance);
+			m_modeApproximate = reader.ReadDouble();
 		}
 
 		public void Serialize(BinaryWriter writer)

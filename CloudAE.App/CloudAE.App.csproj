@@ -78,6 +78,9 @@
     <Compile Include="Controls\Cloud3D.xaml.cs">
       <DependentUpon>Cloud3D.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\TileSourcePropertyViewer.xaml.cs">
+      <DependentUpon>TileSourcePropertyViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\LogViewer.xaml.cs">
       <DependentUpon>LogViewer.xaml</DependentUpon>
     </Compile>
@@ -96,6 +99,10 @@
       <DependentUpon>PropertyEditor.xaml</DependentUpon>
     </Compile>
     <Page Include="Controls\Cloud3D.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\TileSourcePropertyViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

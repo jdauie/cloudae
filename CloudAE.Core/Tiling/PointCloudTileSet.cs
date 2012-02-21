@@ -45,7 +45,9 @@ namespace CloudAE.Core
 			Cols = tileCounts.SizeX;
 			Rows = tileCounts.SizeY;
 
-			TileCount = Rows * Cols;
+			PointCount = density.PointCount;
+			TileCount = density.TileCount;
+			ValidTileCount = density.ValidTileCount;
 
 			m_tiles = new PointCloudTile[Cols, Rows];
 			int offset = 0;
@@ -67,8 +69,6 @@ namespace CloudAE.Core
 					}
 				}
 			}
-			PointCount = offset;
-			ValidTileCount = this.Where(t => t.IsValid).Count();
 		}
 
 		public PointCloudTileSet(PointCloudTileSet tileSet, PointCloudTileSource tileSource)
@@ -76,23 +76,17 @@ namespace CloudAE.Core
 			Extent = tileSet.Extent;
 			Density = tileSet.Density;
 
+			PointCount = tileSet.PointCount;
 			TileCount = tileSet.TileCount;
+			ValidTileCount = tileSet.ValidTileCount;
 
 			Cols = tileSet.Cols;
 			Rows = tileSet.Rows;
 
-			PointCount = tileSet.PointCount;
-
 			m_tiles = new PointCloudTile[Cols, Rows];
 			for (ushort x = 0; x < Cols; x++)
-			{
 				for (ushort y = 0; y < Rows; y++)
-				{
-					PointCloudTile currentTile = tileSet.m_tiles[x, y];
-					m_tiles[x, y] = new PointCloudTile(currentTile, tileSource);
-				}
-			}
-			ValidTileCount = this.Where(t => t.IsValid).Count();
+					m_tiles[x, y] = new PointCloudTile(tileSet.m_tiles[x, y], tileSource);
 		}
 
 		public PointCloudTileSet(PointCloudTileSet[] tileSets)
@@ -151,6 +145,8 @@ namespace CloudAE.Core
 
 			Extent = reader.ReadExtent3D();
 			Density = reader.ReadTileDensity();
+			PointCount = Density.PointCount;
+			ValidTileCount = Density.ValidTileCount;
 
 			m_tiles = new PointCloudTile[Cols, Rows];
 			int pointOffset = 0;
@@ -174,8 +170,6 @@ namespace CloudAE.Core
 					}
 				}
 			}
-			PointCount = pointOffset;
-			ValidTileCount = this.Where(t => t.IsValid).Count();
 		}
 
 		public void Serialize(BinaryWriter writer)

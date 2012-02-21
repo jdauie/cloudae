@@ -229,6 +229,8 @@ namespace CloudAE.App
 		private void OnListSelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
 			UpdateButtonStates();
+
+			propertyViewer.Source = ContentList.SelectedItem as PointCloudTileSource;
 		}
 
 		private void OnListDoubleClick(object sender, MouseButtonEventArgs e)

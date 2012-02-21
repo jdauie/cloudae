@@ -27,8 +27,8 @@ namespace CloudAE.Core
 		private const int FILE_VERSION_MAJOR = 1;
 		private const int FILE_VERSION_MINOR = 9;
 
-		public readonly PointCloudTileSet TileSet;
-		public readonly Statistics StatisticsZ;
+		private readonly PointCloudTileSet m_tileSet;
+		private readonly Statistics m_statisticsZ;
 		
 		private UQuantizedExtent3D m_quantizedExtent;
 
@@ -65,9 +65,19 @@ namespace CloudAE.Core
 			}
 		}
 
+		public PointCloudTileSet TileSet
+		{
+			get { return m_tileSet; }
+		}
+
+		public Statistics StatisticsZ
+		{
+			get { return m_statisticsZ; }
+		}
+
 		public BitmapSource PreviewImage
 		{
-			get { return m_preview.Image; }
+			get { return m_preview != null ? m_preview.Image : null; }
 		}
 
 		public PreviewImage Preview
@@ -134,8 +144,8 @@ namespace CloudAE.Core
 		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, Statistics zStats, CompressionMethod compression)
 			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, BufferManager.QUANTIZED_POINT_SIZE_BYTES, compression)
 		{
-			TileSet = new PointCloudTileSet(tileSet, this);
-			StatisticsZ = zStats;
+			m_tileSet = new PointCloudTileSet(tileSet, this);
+			m_statisticsZ = zStats;
 			QuantizedExtent = (UQuantizedExtent3D)Quantization.Convert(Extent);
 
 			if (pointDataOffset == 0)

@@ -8,9 +8,14 @@ namespace CloudAE.Core
 {
 	public abstract class PointCloudSource
 	{
-		public readonly string FilePath;
+		private readonly string m_filePath;
 		
 		private readonly string m_name;
+
+		public virtual string FilePath
+		{
+			get { return m_filePath; }
+		}
 
 		public virtual string Name
 		{
@@ -19,7 +24,7 @@ namespace CloudAE.Core
 		
 		public PointCloudSource(string file)
 		{
-			FilePath = file;
+			m_filePath = file;
 			m_name = Path.GetFileName(FilePath);
 		}
 
