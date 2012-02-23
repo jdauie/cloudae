@@ -64,7 +64,7 @@ namespace CloudAE.Core
 		public Extent3D Extent
 		{
 			get { return m_extent; }
-			set { m_extent = value; }
+			protected set { m_extent = value; }
 		}
 
 		#endregion

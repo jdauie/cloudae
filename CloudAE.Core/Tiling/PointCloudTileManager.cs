@@ -123,7 +123,7 @@ namespace CloudAE.Core
 
 			Quantization3D optimalQuantization = m_testQuantization;
 			if (optimalQuantization == null)
-				Quantization3D.Create(tileSet.Extent, true);
+				optimalQuantization = Quantization3D.Create(tileSet.Extent, true);
 
 			PointCloudTileSource tileSource = new PointCloudTileSource(path, tileSet, optimalQuantization, zStats, CompressionMethod.None);
 			tileSource.AllocateFile(m_options.AllowSparseAllocation);
@@ -405,7 +405,7 @@ namespace CloudAE.Core
 					if (compontentSumPow > 1)
 						scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow - scalePow);
 				}
-				m_testQuantization = new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], (long)extent.MinX, (long)extent.MinY, (long)extent.MinZ);
+				m_testQuantization = new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], Math.Floor(extent.MinX), Math.Floor(extent.MinY), Math.Floor(extent.MinZ));
 			}
 
 			PointCloudTileDensity density = new PointCloudTileDensity(tileCounts, extent);

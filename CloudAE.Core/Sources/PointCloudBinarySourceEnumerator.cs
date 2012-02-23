@@ -13,6 +13,7 @@ namespace CloudAE.Core
 		private byte[] m_buffer;
 		private long m_endPosition;
 		private int m_currentBytesRead;
+		private int m_usableBytesPerBuffer;
 
 		public PointCloudBinarySourceEnumerator(PointCloudBinarySource source, byte[] buffer)
 		{
@@ -21,6 +22,9 @@ namespace CloudAE.Core
 			m_stream = new FileStream(m_source.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
 
 			m_endPosition = m_source.PointDataOffset + (long)m_source.Count * m_source.PointSizeBytes;
+
+			int pointsPerInputBuffer = BufferManager.BUFFER_SIZE_BYTES / m_source.PointSizeBytes;
+			m_usableBytesPerBuffer = pointsPerInputBuffer * m_source.PointSizeBytes;
 
 			Reset();
 		}
@@ -39,7 +43,7 @@ namespace CloudAE.Core
 		{
 			if (m_stream.Position < m_endPosition)
 			{
-				int bytesRead = m_stream.Read(m_buffer, 0, m_source.UsableBytesPerBuffer);
+				int bytesRead = m_stream.Read(m_buffer, 0, m_usableBytesPerBuffer);
 
 				if (m_stream.Position > m_endPosition)
 					bytesRead -= (int)(m_stream.Position - m_endPosition);

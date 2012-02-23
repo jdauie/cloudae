@@ -88,6 +88,10 @@ namespace CloudAE.Core
 
 		public static void ReleaseBuffer(byte[] buffer)
 		{
+			// I should just add a dictionary of these instead
+			if (buffer.Length != BUFFER_SIZE_BYTES)
+				throw new Exception("attempted to release a buffer that does not belong");
+
 			c_availableBuffers.AddLast(buffer);
 		}
 	}

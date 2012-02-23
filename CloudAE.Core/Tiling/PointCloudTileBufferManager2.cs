@@ -60,7 +60,7 @@ namespace CloudAE.Core
 					break;
 			}
 
-			UQuantizedExtent3D newQuantizedExtent = m_tileSet.Select(t => t.QuantizedExtent).Union();
+			UQuantizedExtent3D newQuantizedExtent = m_tileSet.ValidTiles.Select(t => t.QuantizedExtent).Union();
 			return newQuantizedExtent;
 		}
 	}

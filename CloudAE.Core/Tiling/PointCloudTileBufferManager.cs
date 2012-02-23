@@ -149,7 +149,7 @@ namespace CloudAE.Core
 			foreach (PointCloudTile tile in m_tileSet.ValidTiles)
 				m_tileSet[tile.Col, tile.Row].QuantizedExtent = m_createdBuffers[tile.Col, tile.Row].GetExtent();
 
-			UQuantizedExtent3D newQuantizedExtent = m_tileSet.Select(t => t.QuantizedExtent).Union();
+			UQuantizedExtent3D newQuantizedExtent = m_tileSet.ValidTiles.Select(t => t.QuantizedExtent).Union();
 			return newQuantizedExtent;
 		}
 	}

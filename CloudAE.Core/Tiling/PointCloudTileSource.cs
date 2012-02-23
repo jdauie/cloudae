@@ -693,8 +693,8 @@ namespace CloudAE.Core
 		public unsafe PointCloudTileSource CompressTileSource(CompressionMethod compressionMethod, ProgressManager progressManager)
 		{
 			int maxIndividualBufferSize = TileSet.Density.MaxTileCount * PointSizeBytes;
-			if (maxIndividualBufferSize > BufferManager.BUFFER_SIZE_BYTES)
-				throw new Exception("tile size was not anticipated to be larger than buffer size");
+			//if (maxIndividualBufferSize > BufferManager.BUFFER_SIZE_BYTES)
+			//    throw new Exception("tile size was not anticipated to be larger than buffer size");
 
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
@@ -708,8 +708,10 @@ namespace CloudAE.Core
 
 			long compressedCount = 0;
 
-			byte[] inputBuffer = BufferManager.AcquireBuffer();
-			byte[] outputBuffer = BufferManager.AcquireBuffer();
+			//byte[] inputBuffer = BufferManager.AcquireBuffer();
+			//byte[] outputBuffer = BufferManager.AcquireBuffer();
+			byte[] inputBuffer = new byte[maxIndividualBufferSize];
+			byte[] outputBuffer = new byte[maxIndividualBufferSize];
 
 			ICompressor compressor = CompressionFactory.GetCompressor(compressionMethod);
 
@@ -733,7 +735,18 @@ namespace CloudAE.Core
 						UQuantizedExtent3D qExtent = tile.QuantizedExtent;
 						uint maxDeltaZ = SortAndDeltaEncode(p, tile.PointCount, qExtent);
 
-						// check the byte frequencies
+						//// check the values
+						//List<uint> xVals = new List<uint>(tile.PointCount);
+						//List<uint> yVals = new List<uint>(tile.PointCount);
+						//List<uint> zVals = new List<uint>(tile.PointCount);
+						//for (int i = 0; i < tile.PointCount; i++)
+						//{
+						//    xVals.Add(p[i].X);
+						//    yVals.Add(p[i].Y);
+						//    zVals.Add(p[i].Z);
+						//}
+
+						//// check the byte frequencies
 						//for (int bIndex = 0; bIndex < bytesRead; bIndex++)
 						//{
 						//    ++byteProbabilityCounts[*(inputBufferPtr + bIndex)];
@@ -783,8 +796,8 @@ namespace CloudAE.Core
 			tempTileSource.IsDirty = false;
 			tempTileSource.WriteHeader();
 
-			BufferManager.ReleaseBuffer(outputBuffer);
-			BufferManager.ReleaseBuffer(inputBuffer);
+			//BufferManager.ReleaseBuffer(outputBuffer);
+			//BufferManager.ReleaseBuffer(inputBuffer);
 
 			//byte[] byteProbabilityValues = new byte[256];
 			//for (int i = 0; i < 256; i++)

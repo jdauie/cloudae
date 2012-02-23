@@ -50,10 +50,19 @@ namespace CloudAE.Core
 			UQuantizedExtent3D computedExtent = tile.QuantizedExtent;
 			m_minX = computedExtent.MinX;
 			m_minY = computedExtent.MinY;
-			m_minZ = computedExtent.MinZ;
 			m_maxX = computedExtent.MaxX;
 			m_maxY = computedExtent.MaxY;
-			m_maxZ = computedExtent.MaxZ;
+
+			if (m_pointCount == 0)
+			{
+				m_minZ = computedExtent.MinZ;
+				m_maxZ = computedExtent.MaxZ;
+			}
+			else
+			{
+				m_minZ = uint.MaxValue;
+				m_maxZ = uint.MinValue;
+			}
 		}
 
 		public void PinBuffer(byte[] buffer)
