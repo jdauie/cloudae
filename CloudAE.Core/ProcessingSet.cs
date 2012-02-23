@@ -273,7 +273,7 @@ namespace CloudAE.Core
 
 		private PointCloudTileSource CompressTileSource(ProgressManager progressManager)
 		{
-			m_tileSource = m_tileSource.CompressTileSource(CompressionMethod.None, progressManager);
+			m_tileSource = m_tileSource.CompressTileSource(CompressionMethod.Basic, progressManager);
 
 			return m_tileSource;
 		}

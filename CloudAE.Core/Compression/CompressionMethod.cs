@@ -4,7 +4,7 @@ namespace CloudAE.Core.Compression
 	public enum CompressionMethod : int
 	{
 		None = 0,
-		Default,
+		Basic,
 		QuickLZ,
 		DotNetZip,
 		SevenZipSharp

@@ -15,7 +15,7 @@ namespace CloudAE.Core.Compression
 
 		public static ICompressor GetCompressor(CompressionMethod method)
 		{
-			if (method == CompressionMethod.None)
+			if (method == CompressionMethod.None || method == CompressionMethod.Basic)
 				return null;
 
 			if (!c_compressors.ContainsKey(method))

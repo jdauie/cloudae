@@ -701,6 +701,8 @@ namespace CloudAE.Core
 
 			string outputTempFile = ProcessingSet.GetTemporaryCompressedTileSourceName(FilePath);
 
+			PointCloudTileSource tempTileSource = new PointCloudTileSource(outputTempFile, TileSet, Quantization, StatisticsZ, compressionMethod);
+
 			double compressionRatio = 0.0;
 			double pretendCompressionRatio = 0.0;
 
@@ -714,10 +716,11 @@ namespace CloudAE.Core
 			//long[] byteProbabilityCounts = new long[256];
 
 			using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
-			using (FileStream outputStream = new FileStream(outputTempFile, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
+			using (FileStream outputStream = new FileStream(outputTempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
 			{
 				long inputLength = inputStream.Length;
 				outputStream.SetLength(inputLength);
+				outputStream.Seek(PointDataOffset, SeekOrigin.Begin);
 
 				fixed (byte* inputBufferPtr = inputBuffer)
 				{
@@ -737,16 +740,17 @@ namespace CloudAE.Core
 						//}
 
 						// check the bit-compaction
-						//int zBits = (int)Math.Ceiling(Math.Log(maxZ, 2));
-						//int xBits = (int)Math.Ceiling(Math.Log(qExtent.RangeX, 2));
-						//int yBits = (int)Math.Ceiling(Math.Log(qExtent.RangeY, 2));
+						int zBits = (int)Math.Ceiling(Math.Log(maxDeltaZ, 2));
+						int xBits = (int)Math.Ceiling(Math.Log(qExtent.RangeX, 2));
+						int yBits = (int)Math.Ceiling(Math.Log(qExtent.RangeY, 2));
 
-						//pretendCompressionRatio += (double)tile.PointCount * (xBits + yBits + zBits) / (PointSizeBytes * 8);
+						pretendCompressionRatio += (double)tile.PointCount * (xBits + yBits + zBits) / (PointSizeBytes * 8);
 
 
 						int compressedSize = bytesRead;
 
-						compressedSize = compressor.Compress(tile, inputBuffer, bytesRead, outputBuffer);
+						if (compressor != null)
+							compressedSize = compressor.Compress(tile, inputBuffer, bytesRead, outputBuffer);
 
 						byte[] bufferToWrite = outputBuffer;
 						int bytesToWrite = compressedSize;
@@ -776,6 +780,9 @@ namespace CloudAE.Core
 				pretendCompressionRatio /= Count;
 			}
 
+			tempTileSource.IsDirty = false;
+			tempTileSource.WriteHeader();
+
 			BufferManager.ReleaseBuffer(outputBuffer);
 			BufferManager.ReleaseBuffer(inputBuffer);
 
@@ -791,7 +798,7 @@ namespace CloudAE.Core
 			File.Delete(FilePath);
 			File.Move(outputTempFile, FilePath);
 
-			PointCloudTileSource newTileSource = new PointCloudTileSource(FilePath, TileSet, Quantization, StatisticsZ, compressionMethod);
+			PointCloudTileSource newTileSource = PointCloudTileSource.Open(FilePath);
 
 			return newTileSource;
 		}
