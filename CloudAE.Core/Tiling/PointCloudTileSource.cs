@@ -399,8 +399,8 @@ namespace CloudAE.Core
 
 			UQuantizedExtent2D quantizedExtent = tile.QuantizedExtent;
 
-			uint cellSizeX = quantizedExtent.RangeX / grid.SizeX;
-			uint cellSizeY = quantizedExtent.RangeY / grid.SizeY;
+			double cellSizeX = (double)quantizedExtent.RangeX / grid.SizeX;
+			double cellSizeY = (double)quantizedExtent.RangeY / grid.SizeY;
 
 			grid.FillVal = (float)tile.Extent.MinZ - 1;
 			grid.Reset();
@@ -414,8 +414,8 @@ namespace CloudAE.Core
 
 				for (int i = 0; i < tile.PointCount; i++)
 				{
-					uint pixelX = (p[i].X - quantizedExtent.MinX) / cellSizeX;
-					uint pixelY = (p[i].Y - quantizedExtent.MinY) / cellSizeY;
+					uint pixelX = (uint)((p[i].X - quantizedExtent.MinX) / cellSizeX);
+					uint pixelY = (uint)((p[i].Y - quantizedExtent.MinY) / cellSizeY);
 
 					if (p[i].Z > quantizedGrid.Data[pixelX, pixelY])
 						quantizedGrid.Data[pixelX, pixelY] = p[i].Z;

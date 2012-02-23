@@ -4,14 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="226" d:DesignWidth="376">
+             d:DesignHeight="226" d:DesignWidth="376"
+             IsVisibleChanged="ControlIsVisibleChanged">
     <Grid>
         <DataGrid x:Name="propertyGrid" AutoGenerateColumns="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding Property, Mode=OneWay}" />
-                <DataGridTextColumn Header="Default" Binding="{Binding IsDefault, Mode=OneWay}" />
-                <DataGridTextColumn Header="Type" Binding="{Binding Type, Mode=OneWay}" />
                 <DataGridTextColumn Header="Value" Binding="{Binding Value, Mode=OneWay}" />
+                <DataGridTextColumn Header="Type" Binding="{Binding Type, Mode=OneWay}" />
+                <DataGridTextColumn Header="IsDefault" Binding="{Binding IsDefault, Mode=OneWay}" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

@@ -48,6 +48,13 @@ namespace CloudAE.App
 					properties.Add(new ImmutablePropertyString("Storage", "PointDataOffset", string.Format("{0} bytes", m_source.PointDataOffset)));
 					properties.Add(new ImmutablePropertyString("Storage", "PointSize", string.Format("{0} bytes", m_source.PointSizeBytes)));
 
+					properties.Add(new ImmutablePropertyString("Quantization", "OffsetX", string.Format("{0}", m_source.Quantization.OffsetX)));
+					properties.Add(new ImmutablePropertyString("Quantization", "OffsetY", string.Format("{0}", m_source.Quantization.OffsetY)));
+					properties.Add(new ImmutablePropertyString("Quantization", "OffsetZ", string.Format("{0}", m_source.Quantization.OffsetZ)));
+					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorX", string.Format("{0}", m_source.Quantization.ScaleFactorX)));
+					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorY", string.Format("{0}", m_source.Quantization.ScaleFactorY)));
+					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorX", string.Format("{0}", m_source.Quantization.ScaleFactorZ)));
+
 					properties.Add(new ImmutablePropertyString("Tiles", "Rows", m_source.TileSet.Rows));
 					properties.Add(new ImmutablePropertyString("Tiles", "Cols", m_source.TileSet.Cols));
 					properties.Add(new ImmutablePropertyString("Tiles", "Tiles", string.Format("{0:0,0} ({1:0,0})", m_source.TileSet.TileCount, m_source.TileSet.ValidTileCount)));

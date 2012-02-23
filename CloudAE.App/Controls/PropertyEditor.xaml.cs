@@ -23,8 +23,14 @@ namespace CloudAE.App
 		public PropertyEditor()
 		{
 			InitializeComponent();
+		}
 
-			//propertyGrid.ItemsSource = Context.RegisteredProperties;
+		private void ControlIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+		{
+			if (IsVisible)
+				propertyGrid.ItemsSource = Context.RegisteredProperties;
+			else
+				propertyGrid.ItemsSource = null;
 		}
 	}
 }
