@@ -43,4 +43,45 @@ namespace CloudAE.Core.Geometry
 			return String.Format("({0}, {1}, {2})", X, Y, Z);
 		}
 	}
+
+	public class UQuantizedPoint3DGridComparer : IComparer<UQuantizedPoint3D>
+	{
+		private readonly int m_gridSize;
+		private readonly int m_gridCellDimensionX;
+		private readonly int m_gridCellDimensionY;
+
+		public UQuantizedPoint3DGridComparer(int gridSize, int gridCellDimensionX, int gridCellDimensionY)
+		{
+			m_gridSize = gridSize;
+
+			m_gridCellDimensionX = gridCellDimensionX;
+			m_gridCellDimensionY = gridCellDimensionY;
+		}
+
+		public int Compare(UQuantizedPoint3D a, UQuantizedPoint3D b)
+		{
+			int xBinA = (int)(a.X / m_gridCellDimensionX);
+			int xBinB = (int)(b.X / m_gridCellDimensionX);
+
+			if (xBinA == m_gridSize) --xBinA;
+			if (xBinB == m_gridSize) --xBinB;
+
+			int diff = xBinA - xBinB;
+			if (diff == 0)
+			{
+				int yBinA = (int)(a.Y / m_gridCellDimensionY);
+				int yBinB = (int)(b.Y / m_gridCellDimensionY);
+
+				if (yBinA == m_gridSize) --yBinA;
+				if (yBinB == m_gridSize) --yBinB;
+
+				diff = yBinA - yBinB;
+				if (diff == 0)
+				{
+					diff = a.Z.CompareTo(b.Z);
+				}
+			}
+			return diff;
+		}
+	}
 }

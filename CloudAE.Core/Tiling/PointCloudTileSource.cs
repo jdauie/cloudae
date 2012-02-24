@@ -708,8 +708,6 @@ namespace CloudAE.Core
 
 			long compressedCount = 0;
 
-			//byte[] inputBuffer = BufferManager.AcquireBuffer();
-			//byte[] outputBuffer = BufferManager.AcquireBuffer();
 			byte[] inputBuffer = new byte[maxIndividualBufferSize];
 			byte[] outputBuffer = new byte[maxIndividualBufferSize];
 
@@ -718,7 +716,7 @@ namespace CloudAE.Core
 			//long[] byteProbabilityCounts = new long[256];
 
 			using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
-			using (FileStream outputStream = new FileStream(outputTempFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
+			using (FileStream outputStream = new FileStream(outputTempFile, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan | FileOptions.WriteThrough))
 			{
 				long inputLength = inputStream.Length;
 				outputStream.SetLength(inputLength);
@@ -732,8 +730,51 @@ namespace CloudAE.Core
 					{
 						int bytesRead = tile.ReadTile(inputStream, inputBuffer);
 
+						bool sortComponent = true;
+						bool sortGrid = false;
+						bool checkBitCompaction = true;
+
 						UQuantizedExtent3D qExtent = tile.QuantizedExtent;
-						uint maxDeltaZ = SortAndDeltaEncode(p, tile.PointCount, qExtent);
+						uint rangeX = qExtent.RangeX;
+						uint rangeY = qExtent.RangeY;
+						uint rangeZ = qExtent.RangeZ;
+
+						// remove offsets
+						for (int i = 0; i < tile.PointCount; i++)
+						{
+							p[i].X -= qExtent.MinX;
+							p[i].Y -= qExtent.MinY;
+							p[i].Z -= qExtent.MinZ;
+						}
+
+						if (sortGrid)
+						{
+							SortOnGrid(p, tile.PointCount, qExtent);
+
+							rangeX = 0;
+							rangeY = 0;
+
+							for (int i = 0; i < tile.PointCount; i++)
+							{
+								rangeX = Math.Max(rangeX, p[i].X);
+								rangeY = Math.Max(rangeY, p[i].Y);
+							}
+						}
+
+						if (sortComponent)
+						{
+							rangeX = SortAndDeltaEncode(p, tile.PointCount);
+						}
+
+						if (checkBitCompaction)
+						{
+							// check the bit-compaction
+							int xBits = (int)Math.Ceiling(Math.Log(rangeX, 2));
+							int yBits = (int)Math.Ceiling(Math.Log(rangeY, 2));
+							int zBits = (int)Math.Ceiling(Math.Log(rangeZ, 2));
+
+							pretendCompressionRatio += (double)tile.PointCount * (xBits + yBits + zBits) / (PointSizeBytes * 8);
+						}
 
 						//// check the values
 						//List<uint> xVals = new List<uint>(tile.PointCount);
@@ -752,12 +793,7 @@ namespace CloudAE.Core
 						//    ++byteProbabilityCounts[*(inputBufferPtr + bIndex)];
 						//}
 
-						// check the bit-compaction
-						int zBits = (int)Math.Ceiling(Math.Log(maxDeltaZ, 2));
-						int xBits = (int)Math.Ceiling(Math.Log(qExtent.RangeX, 2));
-						int yBits = (int)Math.Ceiling(Math.Log(qExtent.RangeY, 2));
-
-						pretendCompressionRatio += (double)tile.PointCount * (xBits + yBits + zBits) / (PointSizeBytes * 8);
+						
 
 
 						int compressedSize = bytesRead;
@@ -796,9 +832,6 @@ namespace CloudAE.Core
 			tempTileSource.IsDirty = false;
 			tempTileSource.WriteHeader();
 
-			//BufferManager.ReleaseBuffer(outputBuffer);
-			//BufferManager.ReleaseBuffer(inputBuffer);
-
 			//byte[] byteProbabilityValues = new byte[256];
 			//for (int i = 0; i < 256; i++)
 			//    byteProbabilityValues[i] = (byte)i;
@@ -836,11 +869,13 @@ namespace CloudAE.Core
 				do
 				{
 					--j;
-				} while (a[j].Z > a[p].Z);
+				} while (a[j].X > a[p].X);
+				//} while (a[j].Z > a[p].Z);
 				do
 				{
 					++i;
-				} while (a[i].Z < a[p].Z);
+				} while (a[i].X < a[p].X);
+				//} while (a[i].Z < a[p].Z);
 				if (i < j)
 				{
 					tmp = a[i];
@@ -851,26 +886,86 @@ namespace CloudAE.Core
 			}
 		}
 
-		private unsafe uint SortAndDeltaEncode(UQuantizedPoint3D* p, int count, UQuantizedExtent3D quantizedExtent)
+		private unsafe int[,] SortOnGrid(UQuantizedPoint3D* p, int count, UQuantizedExtent3D quantizedExtent)
+		{
+			UQuantizedPoint3D[] points = new UQuantizedPoint3D[count];
+			for (int i = 0; i < count; i++)
+				points[i] = p[i];
+
+			int gridSize = 32;
+			int gridCellDimensionX = (int)Math.Ceiling((double)quantizedExtent.RangeX / gridSize);
+			int gridCellDimensionY = (int)Math.Ceiling((double)quantizedExtent.RangeY / gridSize);
+
+			UQuantizedPoint3DGridComparer comparer = new UQuantizedPoint3DGridComparer(gridSize, gridCellDimensionX, gridCellDimensionY);
+			Array.Sort<UQuantizedPoint3D>(points, comparer);
+
+			// find the cells
+			// (obviously, this can be optimized)
+			int x = 0;
+			int y = 0;
+			int[,] cellStartIndices = new int[gridSize, gridSize];
+			for (int i = 0; i <= count; i++)
+			{
+				int currentCellX = -1;
+				int currentCellY = -1;
+
+				if (i < count)
+				{
+					currentCellX = (int)(points[i].X / gridCellDimensionX);
+					currentCellY = (int)(points[i].Y / gridCellDimensionY);
+
+					if (currentCellX == gridSize) --currentCellX;
+					if (currentCellY == gridSize) --currentCellY;
+				}
+
+				if (currentCellX != x || currentCellY != y)
+				{
+					// adjust the previous values
+					uint cellMinX = (uint)(gridCellDimensionX * x);
+					uint cellMinY = (uint)(gridCellDimensionY * y);
+					uint lastZ = 0;
+					for (int j = cellStartIndices[x, y]; j < i; j++)
+					{
+						uint diff = points[j].Z - lastZ;
+						lastZ = points[j].Z;
+
+						points[j].X -= cellMinX;
+						points[j].Y -= cellMinY;
+						points[j].Z = diff;
+					}
+
+					if (i < count)
+					{
+						x = currentCellX;
+						y = currentCellY;
+
+						cellStartIndices[x, y] = i;
+					}
+				}
+			}
+
+			for (int i = 0; i < count; i++)
+				p[i] = points[i];
+
+			return cellStartIndices;
+		}
+
+		private unsafe uint SortAndDeltaEncode(UQuantizedPoint3D* p, int count)
 		{
 			QuickSort(p, 0, count - 1);
 
 			// delta encoding on single component
-			// but offset the others
-			uint maxZ = 0;
-			uint lastZ = quantizedExtent.MinZ;
+			uint maxX = 0;
+			uint lastX = 0;
 			for (int i = 0; i < count; i++)
 			{
-				uint diff = p[i].Z - lastZ;
-				lastZ = p[i].Z;
-				p[i].Z = diff;
-				if (diff > maxZ) maxZ = diff;
-
-				p[i].X -= quantizedExtent.MinX;
-				p[i].Y -= quantizedExtent.MinY;
+				uint diff = p[i].X - lastX;
+				lastX = p[i].X;
+				p[i].X = diff;
+				if (diff > maxX) maxX = diff;
 			}
 
-			return maxZ;
+			return maxX;
 		}
 
 		public BitmapSource GeneratePreviewImage(ColorRamp ramp, bool useStdDevStretch)

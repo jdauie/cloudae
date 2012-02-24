@@ -173,9 +173,10 @@ namespace CloudAE.Core
 
 					for (int i = 1; i < PointCount; i++)
 					{
-						p[i].X += m_quantizedExtent.MinX;
+						p[i].X += p[i - 1].X;
+						//p[i].X += m_quantizedExtent.MinX;
 						p[i].Y += m_quantizedExtent.MinY;
-						p[i].Z += p[i - 1].Z;
+						p[i].Z += m_quantizedExtent.MinZ;
 					}
 				}
 			}
