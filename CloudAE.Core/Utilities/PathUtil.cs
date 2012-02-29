@@ -6,7 +6,7 @@ using System.Text;
 
 using CloudAE.Core.Windows;
 
-namespace CloudAE.Core
+namespace CloudAE.Core.Util
 {
 	public static class PathUtil
 	{

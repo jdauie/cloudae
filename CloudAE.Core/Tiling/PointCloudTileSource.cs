@@ -13,6 +13,7 @@ using CloudAE.Core.Compression;
 using CloudAE.Core.Delaunay;
 using CloudAE.Core.DelaunayIncremental;
 using CloudAE.Core.Geometry;
+using CloudAE.Core.Util;
 
 namespace CloudAE.Core
 {
@@ -159,7 +160,7 @@ namespace CloudAE.Core
 		{
 			// mark with some low-order bytes of the file size
 			FileInfo fileInfo = new FileInfo(path);
-			string fileName = String.Format("{0}.{1}.{2}", fileInfo.Name, Convert.ToBase64String(BitConverter.GetBytes(fileInfo.Length), 0, 3), PointCloudTileSource.FILE_EXTENSION);
+			string fileName = String.Format("{0}.{1}.{2}", fileInfo.Name, EncodingConverter.ToBase64SafeString(BitConverter.GetBytes(fileInfo.Length), 0, 3), PointCloudTileSource.FILE_EXTENSION);
 			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
 			return tilePath;
 		}
@@ -713,8 +714,6 @@ namespace CloudAE.Core
 
 			ICompressor compressor = CompressionFactory.GetCompressor(compressionMethod);
 
-			//long[] byteProbabilityCounts = new long[256];
-
 			using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
 			using (FileStream outputStream = new FileStream(outputTempFile, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan | FileOptions.WriteThrough))
 			{
@@ -787,13 +786,19 @@ namespace CloudAE.Core
 						//    zVals.Add(p[i].Z);
 						//}
 
-						//// check the byte frequencies
-						//for (int bIndex = 0; bIndex < bytesRead; bIndex++)
+
+						//Dictionary<uint, long> valueProbabilityCounts = new Dictionary<uint, long>();
+
+						//for (int i = 0; i < tile.PointCount; i++)
 						//{
-						//    ++byteProbabilityCounts[*(inputBufferPtr + bIndex)];
+						//    uint value = p[i].Z;
+						//    if (!valueProbabilityCounts.ContainsKey(value))
+						//        valueProbabilityCounts.Add(value, 0);
+						//    ++valueProbabilityCounts[value];
 						//}
 
-						
+						//var sortedValues = valueProbabilityCounts.OrderBy(kvp => kvp.Value).ToArray();
+
 
 
 						int compressedSize = bytesRead;
@@ -832,12 +837,6 @@ namespace CloudAE.Core
 			tempTileSource.IsDirty = false;
 			tempTileSource.WriteHeader();
 
-			//byte[] byteProbabilityValues = new byte[256];
-			//for (int i = 0; i < 256; i++)
-			//    byteProbabilityValues[i] = (byte)i;
-
-			//Array.Sort<long, byte>(byteProbabilityCounts, byteProbabilityValues);
-
 			stopwatch.Stop();
 			progressManager.Log(stopwatch, "Compressed tiles ({0:f}) ({1:f})", compressionRatio, pretendCompressionRatio);
 
@@ -847,6 +846,53 @@ namespace CloudAE.Core
 			PointCloudTileSource newTileSource = PointCloudTileSource.Open(FilePath);
 
 			return newTileSource;
+		}
+
+		private void golombEncode(string source, string dest)
+		{
+			// limited to Rice coding
+			//const int M = 2;
+			//const int log2M = 1;
+
+			//IntReader intreader(source);
+			//BitWriter bitwriter(dest);
+			//while(intreader.hasLeft())
+			//{
+			//    int num = intreader.getInt();
+			//    int q = num / M;
+			//    for (int i = 0 ; i < q; i++)
+			//    bitwriter.putBit(true);   // write q ones
+			//    bitwriter.putBit(false);      // write one zero
+			//    int v = 1;
+			//    for (int i = 0 ; i < log2M; i++)
+			//    {            
+			//    bitwriter.putBit( v & num );  
+			//    v = v << 1;         
+			//    }
+			//}
+			//bitwriter.close();
+			//intreader.close();
+		}
+
+		void golombDecode(string source, string dest, int M)
+		{
+			//BitReader bitreader(source);
+			//IntWriter intwriter(dest);
+			//int q = 0;
+			//int nr = 0;
+			//while (bitreader.hasLeft())
+			//{
+			//nr = 0;
+			//q = 0;
+			//while (bitreader.getBit()) q++;     // potentially dangerous with malformed files.
+			//for (int a = 0; a < log2(M); a++)   // read out the sequential log2(M) bits
+			//if (bitreader.getBit())
+			//nr += 1 << a;
+			//nr += q*M;                          // add the bits and the multiple of M
+			//intwriter.putInt(nr);               // write out the value
+			//}
+			//bitreader.close();
+			//intwriter.close();
 		}
 
 		private unsafe void QuickSort(UQuantizedPoint3D* a, int i, int j)
@@ -955,6 +1001,8 @@ namespace CloudAE.Core
 			QuickSort(p, 0, count - 1);
 
 			// delta encoding on single component
+			// the first value of the delta may be large, so it can be considered separately
+
 			uint maxX = 0;
 			uint lastX = 0;
 			for (int i = 0; i < count; i++)
@@ -962,7 +1010,7 @@ namespace CloudAE.Core
 				uint diff = p[i].X - lastX;
 				lastX = p[i].X;
 				p[i].X = diff;
-				if (diff > maxX) maxX = diff;
+				if (i > 0 && diff > maxX) maxX = diff;
 			}
 
 			return maxX;

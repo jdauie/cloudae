@@ -5,7 +5,7 @@ using System.Text;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace CloudAE.Core
+namespace CloudAE.Core.Util
 {
 	/// <summary>
 	/// PInvoke wrapper for CopyEx

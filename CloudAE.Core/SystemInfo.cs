@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 
 using CloudAE.Core.Windows;
+using CloudAE.Core.Util;
 
 namespace CloudAE.Core
 {
