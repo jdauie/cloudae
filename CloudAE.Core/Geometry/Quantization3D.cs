@@ -131,8 +131,6 @@ namespace CloudAE.Core.Geometry
 
 		public static UQuantization3D Create(Extent3D extent, double[][] testValues)
 		{
-			// THIS DOES NOT WORK YET!
-
 			// determine best scale factors
 			int pointsToTest = testValues[0].Length;
 			double[] scaleFactors = new double[3];

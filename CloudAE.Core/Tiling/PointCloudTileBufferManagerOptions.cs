@@ -18,6 +18,7 @@ namespace CloudAE.Core
 		public readonly PointCloudTileBufferManagerMode Mode;
 		public readonly FileOptions TilingFileOptions;
 		public readonly bool AllowSparseAllocation;
+		public readonly bool SupportsSegmentedProcessing;
 
 		public PointCloudTileBufferManagerOptions(PointCloudTileBufferManagerMode mode)
 		{
@@ -27,11 +28,13 @@ namespace CloudAE.Core
 			{
 				TilingFileOptions = FileOptions.SequentialScan | FileOptions.WriteThrough;
 				AllowSparseAllocation = true;
+				SupportsSegmentedProcessing = true;
 			}
 			else
 			{
 				TilingFileOptions = FileOptions.RandomAccess | FileOptions.WriteThrough;
 				AllowSparseAllocation = false;
+				SupportsSegmentedProcessing = false;
 			}
 		}
 

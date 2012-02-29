@@ -64,7 +64,7 @@ namespace CloudAE.Core
 				PointCloudTileBufferManagerOptions tileOptions = new PointCloudTileBufferManagerOptions(PROPERTY_TILE_MODE.Value);
 				long pointDataSize = (long)m_binarySource.Count * m_binarySource.PointSizeBytes;
 				long maxSegmentBytes = (long)PROPERTY_SEGMENT_SIZE.Value;
-				if (pointDataSize > maxSegmentBytes)
+				if (tileOptions.SupportsSegmentedProcessing && pointDataSize > maxSegmentBytes)
 				{
 					ProcessFileSegments(tileOptions, maxSegmentBytes, progressManager);
 				}
