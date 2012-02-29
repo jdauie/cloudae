@@ -15,6 +15,7 @@ namespace CloudAE.Core
 		private static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
 		private static readonly PropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;
 		private static readonly PropertyState<bool> PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION;
+		private static readonly PropertyState<ByteSizesSmall> PROPERTY_QUANTIZATION_MEMORY_LIMIT;
 
 		private PointCloudBinarySource m_source;
 		private PointCloudTileBufferManagerOptions m_options;
@@ -26,6 +27,7 @@ namespace CloudAE.Core
 			PROPERTY_DESIRED_TILE_COUNT           = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "DesiredTilePoints", 40000);
 			PROPERTY_MAX_TILES_FOR_ESTIMATION     = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "EstimationTilesMax", 10000);
 			PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION = Context.RegisterOption<bool>(Context.OptionCategory.Tiling, "ComputeOptimalQuantization", true);
+			PROPERTY_QUANTIZATION_MEMORY_LIMIT    = Context.RegisterOption<ByteSizesSmall>(Context.OptionCategory.Tiling, "QuantizationMemoryLimit", ByteSizesSmall.MB_16);
 		}
 		
 		public PointCloudTileManager(PointCloudBinarySource source, PointCloudTileBufferManagerOptions options)
@@ -170,6 +172,18 @@ namespace CloudAE.Core
 			long[] verticalValueCounts = new long[verticalValueIntervals + 1];
 			float intervalsOverRangeZ = (float)(verticalValueIntervals / extent.RangeZ);
 
+			// test precision
+			bool testPrecision = PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value;
+			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;
+			int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
+			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTest);
+
+			int testValuesIndex = 0;
+			double[][] testValues = new double[3][];
+			if (testPrecision)
+				for (int i = 0; i < 3; i++)
+					testValues[i] = new double[pointsToTest];
+
 			byte[] buffer = BufferManager.AcquireBuffer();
 
 			fixed (byte* inputBufferPtr = buffer)
@@ -193,6 +207,21 @@ namespace CloudAE.Core
 							Point3D* p = (Point3D*)(inputBufferPtr + i);
 							double differenceFromMean = ((*p).Z - statsGenerator.Mean);
 							sum += differenceFromMean * differenceFromMean;
+						}
+
+						if (testPrecision && testValuesIndex < pointsToTest)
+						{
+							for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
+							{
+								if (testValuesIndex >= pointsToTest)
+									break;
+
+								Point3D* p = (Point3D*)(inputBufferPtr + i);
+								testValues[0][testValuesIndex] = (*p).X;
+								testValues[1][testValuesIndex] = (*p).Y;
+								testValues[2][testValuesIndex] = (*p).Z;
+								++testValuesIndex;
+							}
 						}
 					}
 					else
@@ -240,6 +269,11 @@ namespace CloudAE.Core
 				statsGenerator.SetMean(mean, mode);
 			}
 
+			if (testPrecision && hasMean)
+			{
+				m_testQuantization = Quantization3D.Create(extent, testValues);
+			}
+
 			PointCloudTileDensity density = new PointCloudTileDensity(tileCounts, extent);
 			return density;
 		}
@@ -262,7 +296,7 @@ namespace CloudAE.Core
 
 			// test precision
 			bool testPrecision = PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value;
-			int maxBytesForPrecisionTest = 1 << 24; // 26->64MB
+			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;
 			int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
 			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTest);
 
@@ -361,51 +395,7 @@ namespace CloudAE.Core
 
 			if (testPrecision && hasMean)
 			{
-				// determine best scale factors
-				int digitsToRoundForLogComputation = 12;
-				double[] scaleFactors = new double[] { inputQuantization.ScaleFactorX, inputQuantization.ScaleFactorY, inputQuantization.ScaleFactorZ };
-				for (int i = 0; i < 3; i++)
-				{
-					int[] values = testValues[i];
-					Array.Sort<int>(values);
-					int min = values[0];
-					int max = values[pointsToTest - 1];
-					int range = max - min;
-
-					// determine the base of the scale factor
-					int scaleInverse = (int)Math.Ceiling(1 / scaleFactors[i]);
-					int scaleBase = FindBase(scaleInverse);
-					int scalePow = (int)Math.Round(Math.Log(scaleInverse, scaleBase), digitsToRoundForLogComputation);
-
-					// count differences
-					SortedList<uint, int> diffCounts = new SortedList<uint, int>();
-
-					for (int p = 1; p < pointsToTest; p++)
-					{
-						uint diff = (uint)(values[p] - values[p - 1]);
-						if (diffCounts.ContainsKey(diff))
-							++diffCounts[diff];
-						else
-							diffCounts.Add(diff, 1);
-					}
-
-					int differenceCount = diffCounts.Count;
-					double[] diffPow = new double[differenceCount];
-					for (int d = 1; d < differenceCount; d++)
-						diffPow[d] = Math.Log(diffCounts.Keys[d], scaleBase);
-
-					int nonZeroDiffPointCount = diffCounts.SkipWhile(kvp => kvp.Key == 0).Sum(kvp => kvp.Value);
-					double[] diffPowComponentRatio = new double[differenceCount];
-					for (int d = 1; d < differenceCount; d++)
-						diffPowComponentRatio[d] = diffPow[d] * diffCounts.Values[d] / nonZeroDiffPointCount;
-
-					// this rounding is a WAG
-					double componentSum = Math.Round(diffPowComponentRatio.Sum(), 4);
-					int compontentSumPow = (int)componentSum;
-					if (compontentSumPow > 1)
-						scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow - scalePow);
-				}
-				m_testQuantization = new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], Math.Floor(extent.MinX), Math.Floor(extent.MinY), Math.Floor(extent.MinZ));
+				m_testQuantization = Quantization3D.Create(extent, inputQuantization, testValues);
 			}
 
 			PointCloudTileDensity density = new PointCloudTileDensity(tileCounts, extent);
@@ -413,41 +403,6 @@ namespace CloudAE.Core
 		}
 
 		#endregion
-
-		private static int FindBase(int inverseScale)
-		{
-			// find factors
-			Dictionary<int, int> factors = new Dictionary<int, int>();
-
-			int currentFactorValue = 2;
-
-			int remainder = inverseScale;
-			while (remainder > 1)
-			{
-				if (remainder % currentFactorValue == 0)
-				{
-					remainder = remainder / currentFactorValue;
-					if (factors.ContainsKey(currentFactorValue))
-						++factors[currentFactorValue];
-					else
-						factors.Add(currentFactorValue, 1);
-				}
-				else
-				{
-					++currentFactorValue;
-				}
-			}
-
-			int smallestCount = factors.Values.Min();
-
-			int scaleBase = 1;
-			foreach (int factor in factors.Keys)
-			{
-				scaleBase *= (factor * (factors[factor] / smallestCount));
-			}
-
-			return scaleBase;
-		}
 
 		#region CreateTileCounts
 

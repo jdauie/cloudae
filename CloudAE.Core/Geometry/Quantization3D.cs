@@ -8,6 +8,8 @@ namespace CloudAE.Core.Geometry
 {
 	public abstract class Quantization3D : IQuantization3D, ISerializeBinary
 	{
+		private const int LOG_ROUNDING_PRECISION = 12;
+
 		public readonly double ScaleFactorX;
 		public readonly double ScaleFactorY;
 		public readonly double ScaleFactorZ;
@@ -76,6 +78,137 @@ namespace CloudAE.Core.Geometry
 				return new UQuantization3D(qScaleFactorX, qScaleFactorY, qScaleFactorZ, qOffsetX, qOffsetY, qOffsetZ);
 			else
 				return new SQuantization3D(qScaleFactorX, qScaleFactorY, qScaleFactorZ, qOffsetX, qOffsetY, qOffsetZ);
+		}
+
+		public static UQuantization3D Create(Extent3D extent, SQuantization3D inputQuantization, int[][] testValues)
+		{
+			// determine best scale factors
+			int pointsToTest = testValues[0].Length;
+			double[] scaleFactors = new double[] { inputQuantization.ScaleFactorX, inputQuantization.ScaleFactorY, inputQuantization.ScaleFactorZ };
+			for (int i = 0; i < 3; i++)
+			{
+				int[] values = testValues[i];
+				Array.Sort<int>(values);
+				int min = values[0];
+				int max = values[pointsToTest - 1];
+				int range = max - min;
+
+				// determine the base of the scale factor
+				int scaleInverse = (int)Math.Ceiling(1 / scaleFactors[i]);
+				int scaleBase = FindBase(scaleInverse);
+				int scalePow = (int)Math.Round(Math.Log(scaleInverse, scaleBase), LOG_ROUNDING_PRECISION);
+
+				// count differences
+				SortedList<uint, int> diffCounts = new SortedList<uint, int>();
+
+				for (int p = 1; p < pointsToTest; p++)
+				{
+					uint diff = (uint)(values[p] - values[p - 1]);
+					if (diffCounts.ContainsKey(diff))
+						++diffCounts[diff];
+					else
+						diffCounts.Add(diff, 1);
+				}
+
+				int differenceCount = diffCounts.Count;
+				double[] diffPow = new double[differenceCount];
+				for (int d = 1; d < differenceCount; d++)
+					diffPow[d] = Math.Log(diffCounts.Keys[d], scaleBase);
+
+				int nonZeroDiffPointCount = diffCounts.SkipWhile(kvp => kvp.Key == 0).Sum(kvp => kvp.Value);
+				double[] diffPowComponentRatio = new double[differenceCount];
+				for (int d = 1; d < differenceCount; d++)
+					diffPowComponentRatio[d] = diffPow[d] * diffCounts.Values[d] / nonZeroDiffPointCount;
+
+				// this rounding is a WAG
+				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 4);
+				int compontentSumPow = (int)componentSum;
+				if (compontentSumPow > 1)
+					scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow - scalePow);
+			}
+			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], Math.Floor(extent.MinX), Math.Floor(extent.MinY), Math.Floor(extent.MinZ));
+		}
+
+		public static UQuantization3D Create(Extent3D extent, double[][] testValues)
+		{
+			// THIS DOES NOT WORK YET!
+
+			// determine best scale factors
+			int pointsToTest = testValues[0].Length;
+			double[] scaleFactors = new double[3];
+			for (int i = 0; i < 3; i++)
+			{
+				double[] values = testValues[i];
+				Array.Sort<double>(values);
+				double min = values[0];
+				double max = values[pointsToTest - 1];
+				double range = max - min;
+
+				int scaleBase = 10;
+
+				// count differences
+				SortedList<double, int> diffCounts = new SortedList<double, int>();
+
+				for (int p = 1; p < pointsToTest; p++)
+				{
+					double diff = values[p] - values[p - 1];
+					if (diffCounts.ContainsKey(diff))
+						++diffCounts[diff];
+					else
+						diffCounts.Add(diff, 1);
+				}
+
+				int differenceCount = diffCounts.Count;
+				double[] diffPow = new double[differenceCount];
+				for (int d = 1; d < differenceCount; d++)
+					diffPow[d] = Math.Log(diffCounts.Keys[d], scaleBase);
+
+				int nonZeroDiffPointCount = diffCounts.SkipWhile(kvp => kvp.Key == 0).Sum(kvp => kvp.Value);
+				double[] diffPowComponentRatio = new double[differenceCount];
+				for (int d = 1; d < differenceCount; d++)
+					diffPowComponentRatio[d] = diffPow[d] * diffCounts.Values[d] / nonZeroDiffPointCount;
+
+				// this rounding is a WAG
+				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 4);
+				int compontentSumPow = (int)componentSum;
+				scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow);
+			}
+			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], Math.Floor(extent.MinX), Math.Floor(extent.MinY), Math.Floor(extent.MinZ));
+		}
+
+		private static int FindBase(int inverseScale)
+		{
+			// find factors
+			Dictionary<int, int> factors = new Dictionary<int, int>();
+
+			int currentFactorValue = 2;
+
+			int remainder = inverseScale;
+			while (remainder > 1)
+			{
+				if (remainder % currentFactorValue == 0)
+				{
+					remainder = remainder / currentFactorValue;
+					if (factors.ContainsKey(currentFactorValue))
+						++factors[currentFactorValue];
+					else
+						factors.Add(currentFactorValue, 1);
+				}
+				else
+				{
+					++currentFactorValue;
+				}
+			}
+
+			int smallestCount = factors.Values.Min();
+
+			int scaleBase = 1;
+			foreach (int factor in factors.Keys)
+			{
+				scaleBase *= (factor * (factors[factor] / smallestCount));
+			}
+
+			return scaleBase;
 		}
 
 		public abstract IQuantizedPoint3D Convert(Point3D point);
