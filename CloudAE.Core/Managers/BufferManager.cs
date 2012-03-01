@@ -22,8 +22,19 @@ namespace CloudAE.Core
 
 	public enum ByteSizesLarge : long
 	{
-		GB_2 = (long)1 << 31,
-		GB_4 = (long)1 << 32,
+		MB_1   = (long)1 << 20,
+		MB_2   = (long)1 << 21,
+		MB_4   = (long)1 << 22,
+		MB_8   = (long)1 << 23,
+		MB_16  = (long)1 << 24,
+		MB_32  = (long)1 << 25,
+		MB_64  = (long)1 << 26,
+		MB_128 = (long)1 << 27,
+		MB_256 = (long)1 << 28,
+		MB_512 = (long)1 << 29,
+		GB_1   = (long)1 << 30,
+		GB_2   = (long)1 << 31,
+		GB_4   = (long)1 << 32,
 	}
 
 	public static class BufferManager
