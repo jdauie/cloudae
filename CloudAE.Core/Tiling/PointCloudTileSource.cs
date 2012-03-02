@@ -435,12 +435,12 @@ namespace CloudAE.Core
 					if (quantizedGrid.Data[x, y] > 0) // ">" zero is not quite what I want here
 						grid.Data[x, y] = (float)(quantizedGrid.Data[x, y] * Quantization.ScaleFactorZ + Quantization.OffsetZ);
 
-			// TESTING
-			float[] values = grid.Data.Cast<float>().Where(v => v != grid.FillVal).ToArray();
-			Array.Sort<float>(values);
+			//// TESTING
+			//float[] values = grid.Data.Cast<float>().Where(v => v != grid.FillVal).ToArray();
+			//Array.Sort<float>(values);
 
-			// histogram analysis?
-			float groundVal = values[0];
+			//// histogram analysis?
+			//float groundVal = values[0];
 			//for (int i = 1; i < values.Length; i++)
 			//{
 			//    // while the gap is small, keep climbing
@@ -450,14 +450,14 @@ namespace CloudAE.Core
 			//        groundVal = values[i];
 			//}
 
-			for (int x = 0; x < grid.SizeX; x++)
-			{
-				for (int y = 0; y < grid.SizeY; y++)
-				{
-					if (grid.Data[x, y] > groundVal)
-						grid.Data[x, y] = groundVal;
-				}
-			}
+			//for (int x = 0; x < grid.SizeX; x++)
+			//{
+			//    for (int y = 0; y < grid.SizeY; y++)
+			//    {
+			//        if (grid.Data[x, y] > groundVal)
+			//            grid.Data[x, y] = groundVal;
+			//    }
+			//}
 		}
 
 		public System.Windows.Media.Media3D.MeshGeometry3D GenerateMesh(Grid<float> grid, Extent3D distributionExtent)
