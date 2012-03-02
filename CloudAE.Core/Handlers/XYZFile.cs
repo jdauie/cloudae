@@ -12,6 +12,10 @@ namespace CloudAE.Core
 {
 	class XYZFile : FileHandlerBase
 	{
+		private const int POINT_SIZE_BYTES = 3 * sizeof(double);
+		private const int POINTS_PER_BUFFER = BufferManager.BUFFER_SIZE_BYTES / POINT_SIZE_BYTES;
+		private const int USABLE_BYTES_PER_BUFFER = POINTS_PER_BUFFER * POINT_SIZE_BYTES;
+
 		public XYZFile(string path)
 			: base(path)
 		{
@@ -87,11 +91,11 @@ namespace CloudAE.Core
 							p[1] = y;
 							p[2] = z;
 
-							bufferIndex += BufferManager.POINT_SIZE_BYTES;
+							bufferIndex += POINT_SIZE_BYTES;
 							++pointCount;
 
 							// write usable buffer chunk
-							if (BufferManager.USABLE_BYTES_PER_BUFFER == bufferIndex)
+							if (USABLE_BYTES_PER_BUFFER == bufferIndex)
 							{
 								outputStream.Write(buffer, 0, bufferIndex);
 								bufferIndex = 0;
@@ -119,7 +123,7 @@ namespace CloudAE.Core
 
 			Extent3D extent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
 
-			PointCloudBinarySource source = new PointCloudBinarySource(binaryPath, pointCount, extent, null, 0, BufferManager.POINT_SIZE_BYTES, CompressionMethod.None);
+			PointCloudBinarySource source = new PointCloudBinarySource(binaryPath, pointCount, extent, null, 0, POINT_SIZE_BYTES, CompressionMethod.None);
 
 			return source;
 		}

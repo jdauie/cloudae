@@ -71,7 +71,7 @@ namespace CloudAE.Core
 			m_gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 			IntPtr pAddr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
 			m_pBuffer = (UQuantizedPoint3D*)pAddr.ToPointer();
-			m_pBufferEnd = m_pBuffer + (buffer.Length / BufferManager.QUANTIZED_POINT_SIZE_BYTES);
+			m_pBufferEnd = m_pBuffer + (buffer.Length / m_manager.TileSource.PointSizeBytes);
 		}
 
 		public void UnpinBuffer()
@@ -135,8 +135,8 @@ namespace CloudAE.Core
 			if (m_buffer == null)
 				throw new Exception("cannot flush inactive buffer");
 
-			long byteOffset = ((long)m_pointOffset + m_pointsWritten) * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
-			int bytesToWrite = m_currentPointIndex * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
+			long byteOffset = ((long)m_pointOffset + m_pointsWritten) * m_manager.TileSource.PointSizeBytes;
+			int bytesToWrite = m_currentPointIndex * m_manager.TileSource.PointSizeBytes;
 
 			WriteQuantized(outputStream, byteOffset, m_buffer, bytesToWrite);
 

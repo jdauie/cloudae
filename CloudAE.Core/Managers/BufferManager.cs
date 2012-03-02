@@ -41,21 +41,7 @@ namespace CloudAE.Core
 	{
 		public const int BUFFER_SIZE_BYTES = (int)ByteSizesSmall.MB_1;
 
-		public const int POINT_SIZE_BYTES = 3 * sizeof(double);
-
-		public const int POINTS_PER_BUFFER = BUFFER_SIZE_BYTES / POINT_SIZE_BYTES;
-
-		public const int USABLE_BYTES_PER_BUFFER = POINTS_PER_BUFFER * POINT_SIZE_BYTES;
-
-
 		public const int QUANTIZED_POINT_SIZE_BYTES = 3 * sizeof(int);
-
-		public const int QUANTIZED_POINTS_PER_BUFFER = BUFFER_SIZE_BYTES / QUANTIZED_POINT_SIZE_BYTES;
-
-		public const int USABLE_QUANTIZED_BYTES_PER_BUFFER = QUANTIZED_POINTS_PER_BUFFER * QUANTIZED_POINT_SIZE_BYTES;
-
-
-
 
 		private static readonly LinkedList<byte[]> c_availableBuffers;
 

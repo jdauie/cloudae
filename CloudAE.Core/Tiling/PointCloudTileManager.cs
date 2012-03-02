@@ -110,7 +110,7 @@ namespace CloudAE.Core
 			else
 				actualDensity = CountPoints(source, tileCounts, statsGenerator, progressManager);
 
-			PointCloudTileSet tileSet = new PointCloudTileSet(actualDensity, tileCounts);
+			PointCloudTileSet tileSet = new PointCloudTileSet(actualDensity, tileCounts, BufferManager.QUANTIZED_POINT_SIZE_BYTES);
 
 			//int[] testValidCounts = tileSet.Tiles.ToEnumerable<PointCloudTile>().Where(t => t.PointCount > 0).Select(t => t.PointCount).ToArray();
 			//Array.Sort(testValidCounts);

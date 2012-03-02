@@ -37,7 +37,7 @@ namespace CloudAE.Core
 			get { return this.Where(t => t.IsValid); }
 		}
 
-		public PointCloudTileSet(PointCloudTileDensity density, Grid<int> tileCounts)
+		public PointCloudTileSet(PointCloudTileDensity density, Grid<int> tileCounts, short pointSizeBytes)
 		{
 			Extent = density.Extent;
 			Density = density;
@@ -57,8 +57,8 @@ namespace CloudAE.Core
 				for (ushort y = 0; y < Rows; y++)
 				{
 					int tileCount = tileCounts.Data[x, y];
-					long byteOffset = (long)offset * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
-					int byteLength = tileCount * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
+					long byteOffset = (long)offset * pointSizeBytes;
+					int byteLength = tileCount * pointSizeBytes;
 
 					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount, byteOffset, byteLength, null, null);
 
@@ -117,8 +117,8 @@ namespace CloudAE.Core
 				{
 					int tileCount = tileSets.Sum(t => t.m_tiles[x, y].PointCount);
 
-					long byteOffset = (long)offset * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
-					int byteLength = tileCount * BufferManager.QUANTIZED_POINT_SIZE_BYTES;
+					long byteOffset = tileSets.Sum(t => t.m_tiles[x, y].StorageOffset);
+					int byteLength = tileSets.Sum(t => t.m_tiles[x, y].StorageSize);
 
 					UQuantizedExtent3D mergedExtent = tileSets.Select(s => s.m_tiles[x, y].QuantizedExtent).Union();
 					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount, byteOffset, byteLength, mergedExtent, null);
