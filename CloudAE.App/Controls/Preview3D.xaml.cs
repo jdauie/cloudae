@@ -135,6 +135,10 @@ namespace CloudAE.App
 		
 		private const bool USE_HIGH_RES_TEXTURE = true;
 		private const bool USE_LOW_RES_TEXTURE = true;
+		private const bool ENABLE_STITCHING = true;
+
+		private const bool ENABLE_HEIGHT_EXAGGERATION = false;
+		private const float HEIGHT_EXAGGERATION_FACTOR = 4.0f;
 
 		private const bool START_ORBIT = false;
 		
@@ -161,9 +165,6 @@ namespace CloudAE.App
 
 		private ushort m_gridDimensionLowRes;
 		private ushort m_gridDimensionHighRes;
-
-		private PointCollection m_gridTextureCoordsLowRes;
-		private PointCollection m_gridTextureCoordsHighRes;
 
 		private SolidColorBrush m_solidBrush;
 		private ImageBrush m_overviewTextureBrush;
@@ -301,9 +302,6 @@ namespace CloudAE.App
 				//m_gridDimensionLowRes = (ushort)20;
 				//m_gridDimensionHighRes = (ushort)40;
 
-				m_gridTextureCoordsLowRes = null;
-				m_gridTextureCoordsHighRes = null;
-
 				CloudAE.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
@@ -320,6 +318,9 @@ namespace CloudAE.App
 				foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
 				{
 					tileSource.LoadTileGrid(tile, m_buffer, m_gridLowRes, m_quantizedGridLowRes);
+					if (ENABLE_HEIGHT_EXAGGERATION)
+						m_gridLowRes.Multiply(HEIGHT_EXAGGERATION_FACTOR);
+
 					CloudAE.Core.Geometry.Extent3D tileExtent = tile.Extent;
 					MeshGeometry3D mesh = tileSource.GenerateMesh(m_gridLowRes, tileExtent);
 
@@ -367,17 +368,20 @@ namespace CloudAE.App
 				//}
 
 
-				int validStitchingIndex = 0;
-				foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
+				if (ENABLE_STITCHING)
 				{
-					TileInfo3D tileInfo = m_tileInfo[tile];
-					Model3DGroup stitchingGroup = GenerateTileStitching(tileSource, tileInfo);
+					int validStitchingIndex = 0;
+					foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
+					{
+						TileInfo3D tileInfo = m_tileInfo[tile];
+						Model3DGroup stitchingGroup = GenerateTileStitching(tileSource, tileInfo);
 
-					if (stitchingGroup != null)
-						++validStitchingIndex;
+						if (stitchingGroup != null)
+							++validStitchingIndex;
 
-					if (!m_progressManager.Update(1.0f, stitchingGroup))
-						break;
+						if (!m_progressManager.Update(1.0f, stitchingGroup))
+							break;
+					}
 				}
 			}
 		}
@@ -754,6 +758,9 @@ namespace CloudAE.App
 			{
 				TileInfo3D tileInfo = m_tileInfo[currentTile];
 				CurrentTileSource.LoadTileGrid(currentTile, m_buffer, m_gridHighRes, m_quantizedGridHighRes);
+				if (ENABLE_HEIGHT_EXAGGERATION)
+					m_gridHighRes.Multiply(HEIGHT_EXAGGERATION_FACTOR);
+
 				CloudAE.Core.Geometry.Extent3D tileExtent = currentTile.Extent;
 				MeshGeometry3D mesh = CurrentTileSource.GenerateMesh(m_gridHighRes, tileExtent);
 
@@ -790,7 +797,7 @@ namespace CloudAE.App
 
 
 			// go through the stitching groups and replace any empty ones with the appropriate stitching
-			if (isDirty)
+			if (ENABLE_STITCHING && isDirty)
 			{
 				PointCloudTile[] alteredTileArray = alteredTiles.Keys.ToArray();
 				foreach (PointCloudTile currentTile in alteredTileArray)

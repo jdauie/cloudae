@@ -81,4 +81,18 @@ namespace CloudAE.Core
 					Data[x, y] = fillVal;
 		}
 	}
+
+	public static class GridExtensions
+	{
+		public static void Multiply(this Grid<float> target, float value)
+		{
+			float[,] data = target.Data;
+			int sizeX = data.GetLength(0);
+			int sizeY = data.GetLength(1);
+
+			for (int x = 0; x < sizeX; x++)
+				for (int y = 0; y < sizeY; y++)
+					data[x, y] *= value;
+		}
+	}
 }
