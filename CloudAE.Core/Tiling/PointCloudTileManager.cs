@@ -431,6 +431,7 @@ namespace CloudAE.Core
 			Extent3D extent = source.Extent;
 
 			// median works better usually, but max is safer for substantially varying density
+			// (like terrestrial, although that requires a more thorough redesign)
 			//double tileArea = MAX_TILE_POINTS / density.MaxTileDensity;
 			double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MedianTileDensity;
 			double tileSide = Math.Sqrt(tileArea);

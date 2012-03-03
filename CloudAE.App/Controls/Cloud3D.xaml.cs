@@ -81,6 +81,8 @@ namespace CloudAE.App
 		{
 			InitializeComponent();
 
+			this.IsEnabled = false;
+
 			m_backgroundWorker = new ManagedBackgroundWorker();
 			m_backgroundWorker.WorkerReportsProgress = true;
 			m_backgroundWorker.WorkerSupportsCancellation = true;

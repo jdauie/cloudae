@@ -57,8 +57,12 @@ namespace CloudAE.App
 
 			foreach (ITileSourceControl control in c_controls)
 			{
+				UserControl userControl = control as UserControl;
+				if (!userControl.IsEnabled)
+					continue;
+
 				Grid grid = new Grid();
-				grid.Children.Add(control as UserControl);
+				grid.Children.Add(userControl);
 
 				Image tabIcon = new Image();
 				tabIcon.Source = control.Icon;
