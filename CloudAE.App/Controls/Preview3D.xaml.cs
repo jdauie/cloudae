@@ -125,7 +125,7 @@ namespace CloudAE.App
 	}
 
 	/// <summary>
-	/// Interaction logic for Preview3D.xaml
+	/// Interaction logic
 	/// </summary>
 	public partial class Preview3D : UserControl, ITileSourceControl
 	{
@@ -137,8 +137,8 @@ namespace CloudAE.App
 		private const bool USE_LOW_RES_TEXTURE = true;
 		private const bool ENABLE_STITCHING = true;
 
-		private const bool ENABLE_HEIGHT_EXAGGERATION = false;
-		private const float HEIGHT_EXAGGERATION_FACTOR = 4.0f;
+		private const bool ENABLE_HEIGHT_EXAGGERATION = true;
+		private float m_heightExaggerationFactor = 1.0f;
 
 		private const bool START_ORBIT = false;
 		
@@ -319,7 +319,7 @@ namespace CloudAE.App
 				{
 					tileSource.LoadTileGrid(tile, m_buffer, m_gridLowRes, m_quantizedGridLowRes);
 					if (ENABLE_HEIGHT_EXAGGERATION)
-						m_gridLowRes.Multiply(HEIGHT_EXAGGERATION_FACTOR);
+						m_gridLowRes.Multiply(m_heightExaggerationFactor);
 
 					CloudAE.Core.Geometry.Extent3D tileExtent = tile.Extent;
 					MeshGeometry3D mesh = tileSource.GenerateMesh(m_gridLowRes, tileExtent);
@@ -759,7 +759,7 @@ namespace CloudAE.App
 				TileInfo3D tileInfo = m_tileInfo[currentTile];
 				CurrentTileSource.LoadTileGrid(currentTile, m_buffer, m_gridHighRes, m_quantizedGridHighRes);
 				if (ENABLE_HEIGHT_EXAGGERATION)
-					m_gridHighRes.Multiply(HEIGHT_EXAGGERATION_FACTOR);
+					m_gridHighRes.Multiply(m_heightExaggerationFactor);
 
 				CloudAE.Core.Geometry.Extent3D tileExtent = currentTile.Extent;
 				MeshGeometry3D mesh = CurrentTileSource.GenerateMesh(m_gridHighRes, tileExtent);
@@ -904,6 +904,18 @@ namespace CloudAE.App
 						UpdateCurrentTile(tile);
 					}
 				}
+			}
+		}
+
+		private void OnHeightExaggerationValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+		{
+			m_heightExaggerationFactor = (float)e.NewValue;
+
+			PointCloudTileSource source = CurrentTileSource;
+			if (source != null)
+			{
+				CurrentTileSource = null;
+				CurrentTileSource = source;
 			}
 		}
 	}

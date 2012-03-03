@@ -132,6 +132,7 @@ namespace CloudAE.Core
 			}
 
 			Density = new PointCloudTileDensity(TileCount, this.Select(t => t.PointCount), Extent);
+			ValidTileCount = Density.ValidTileCount;
 		}
 
 		#region Serialization

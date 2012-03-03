@@ -28,6 +28,7 @@
                         <Image Source="/CloudAE.App;component/Icons/keyboard.png" VerticalAlignment="Center" />
                     </ToggleButton.Content>
                 </ToggleButton>
+                <Slider Height="20" Name="sliderHeightExaggeration" Minimum="1" Maximum="10" Interval="1" Width="50" ValueChanged="OnHeightExaggerationValueChanged" />
             </ToolBar>
         </ToolBarTray>
 
