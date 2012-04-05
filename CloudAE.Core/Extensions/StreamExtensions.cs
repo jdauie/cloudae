@@ -42,5 +42,55 @@ namespace CloudAE.Core
 		{
 			return new Statistics(reader);
 		}
+
+		public static SQuantization3D ReadSQuantization3D(this BinaryReader reader)
+		{
+			return new SQuantization3D(reader);
+		}
+
+		public static LASProjectID ReadLASProjectID(this BinaryReader reader)
+		{
+			return new LASProjectID(reader);
+		}
+
+		public static LASVersionInfo ReadLASVersionInfo(this BinaryReader reader)
+		{
+			return new LASVersionInfo(reader);
+		}
+
+		public static LASGlobalEncoding ReadLASGlobalEncoding(this BinaryReader reader)
+		{
+			return new LASGlobalEncoding(reader);
+		}
+
+		public static Extent3D ReadLASExtent3D(this BinaryReader reader)
+		{
+			double hMaxX = reader.ReadDouble();
+			double hMinX = reader.ReadDouble();
+			double hMaxY = reader.ReadDouble();
+			double hMinY = reader.ReadDouble();
+			double hMaxZ = reader.ReadDouble();
+			double hMinZ = reader.ReadDouble();
+
+			return new Extent3D(hMinX, hMinY, hMinZ, hMaxX, hMaxY, hMaxZ);
+		}
+
+		public static uint[] ReadUInt32Array(this BinaryReader reader, int count)
+		{
+			uint[] array = new uint[count];
+			for (int i = 0; i < count; i++)
+				array[i] = reader.ReadUInt32();
+
+			return array;
+		}
+
+		public static ulong[] ReadUInt64Array(this BinaryReader reader, int count)
+		{
+			ulong[] array = new ulong[count];
+			for (int i = 0; i < count; i++)
+				array[i] = reader.ReadUInt64();
+
+			return array;
+		}
 	}
 }

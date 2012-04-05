@@ -58,6 +58,7 @@
     <Compile Include="Geometry\Point2D.cs" />
     <Compile Include="Geometry\Polygon2D.cs" />
     <Compile Include="Geometry\PolygonBase.cs" />
+    <Compile Include="Handlers\LASHeader.cs" />
     <Compile Include="Managers\BufferManager.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="Attributes\ProductExtensionAttribute.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="Options\PropertyState.cs" />
     <Compile Include="Options\IPropertyState.cs" />
     <Compile Include="Options\PropertyName.cs" />
+    <Compile Include="Sources\IPointCloudBinarySourceEnumerable.cs" />
     <Compile Include="SystemInfo.cs" />
     <Compile Include="Utilities\EncodingConverter.cs" />
     <Compile Include="Utilities\PathUtil.cs" />

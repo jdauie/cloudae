@@ -9,7 +9,7 @@ using System.IO;
 
 namespace CloudAE.Core
 {
-	public class PointCloudBinarySource : PointCloudSource
+	public class PointCloudBinarySource : PointCloudSource, IPointCloudBinarySourceEnumerable
 	{
 		public const string FILE_EXTENSION = "bin";
 

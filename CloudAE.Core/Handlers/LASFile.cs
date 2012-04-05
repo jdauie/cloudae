@@ -9,87 +9,38 @@ using CloudAE.Core.Compression;
 
 namespace CloudAE.Core
 {
-	class LASFile : FileHandlerBase
+	class LASFile : FileHandlerBase, IPointCloudBinarySourceEnumerable
 	{
 		private const bool TRUST_HEADER_EXTENT = false;
+		
+		private LASHeader m_header;
 
-		private const int minimumSizeOfHeader = 221;
+		public long Count
+		{
+			get { return (long)m_header.PointCount; }
+		}
 
-		private const int pSignature = 0;
-		private const int pPointOffset = 96;
-		private const int pPointDataRecordLength = 105;
-		private const int pNumPointRecords = 107;
-		private const int pQuantizedScaleFactors = 131;
+		public long PointDataOffset
+		{
+			get { return m_header.OffsetToPointData; }
+		}
 
+		public short PointSizeBytes
+		{
+			get { return (short)m_header.PointDataRecordLength; }
+		}
 
-		private string m_path;
-
-		private readonly int m_pointCount;
-
-		public readonly int PointOffset;
-		public readonly short PointDataRecordLength;
-
-		public readonly SQuantization3D Quantization;
-
-		// not to be trusted
-		private Extent3D m_headerExtent;
+		public PointCloudBinarySourceEnumerator GetBlockEnumerator(byte[] buffer)
+		{
+			return new PointCloudBinarySourceEnumerator(this, buffer);
+		}
 
 		public unsafe LASFile(string path)
 			: base(path)
 		{
-			m_path = path;
-
-			using (FileStream inputStream = new FileStream(m_path, FileMode.Open, FileAccess.Read, FileShare.Read, minimumSizeOfHeader))
+			using (BinaryReader reader = new BinaryReader(File.OpenRead(FilePath)))
 			{
-				long inputLength = inputStream.Length;
-
-				if (inputLength < minimumSizeOfHeader)
-					throw new Exception("Invalid format: header too short");
-
-				byte[] inputBuffer = BufferManager.AcquireBuffer();
-
-				// read header
-				int bytesRead = inputStream.Read(inputBuffer, 0, BufferManager.BUFFER_SIZE_BYTES);
-
-				fixed (byte* inputBufferPtr = inputBuffer)
-				{
-					// check signature
-
-					int* pointOffsetPtr = (int*)(inputBufferPtr + pPointOffset);
-					PointOffset = pointOffsetPtr[0];
-
-					short* pointSizePtr = (short*)(inputBufferPtr + pPointDataRecordLength);
-					PointDataRecordLength = pointSizePtr[0];
-
-					int* pointCountPtr = (int*)(inputBufferPtr + pNumPointRecords);
-					m_pointCount = pointCountPtr[0];
-
-					double* quantizationPtr = (double*)(inputBufferPtr + pQuantizedScaleFactors);
-					double qScaleFactorX = quantizationPtr[0];
-					double qScaleFactorY = quantizationPtr[1];
-					double qScaleFactorZ = quantizationPtr[2];
-
-					double qOffsetX = quantizationPtr[3];
-					double qOffsetY = quantizationPtr[4];
-					double qOffsetZ = quantizationPtr[5];
-
-					Quantization = new SQuantization3D(qScaleFactorX, qScaleFactorY, qScaleFactorZ, qOffsetX, qOffsetY, qOffsetZ);
-
-					double maxX = quantizationPtr[6];
-					double minX = quantizationPtr[7];
-					double maxY = quantizationPtr[8];
-					double minY = quantizationPtr[9];
-					double maxZ = quantizationPtr[10];
-					double minZ = quantizationPtr[11];
-
-					m_headerExtent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
-
-					long pointDataRegionLength = inputLength - PointOffset;
-					if (pointDataRegionLength < PointDataRecordLength * m_pointCount)
-						throw new Exception("Invalid format: point data region is not the expected size");
-				}
-
-				BufferManager.ReleaseBuffer(inputBuffer);
+				m_header = new LASHeader(reader);
 			}
 		}
 
@@ -102,96 +53,77 @@ namespace CloudAE.Core
 		{
 			StringBuilder sb = new StringBuilder();
 
-			sb.AppendLine("LASF");
-			sb.AppendLine(String.Format("Points: {0:0,0}", m_pointCount));
-			sb.AppendLine(String.Format("Extent: {0}", m_headerExtent));
+			sb.AppendLine(LASHeader.FILE_SIGNATURE);
+			sb.AppendLine(String.Format("Points: {0:0,0}", m_header.PointCount));
+			sb.AppendLine(String.Format("Extent: {0}", m_header.Extent));
 			sb.AppendLine(String.Format("File Size: {0}", Size.ToSize()));
 			sb.AppendLine();
-			sb.AppendLine(String.Format("Point Size: {0} bytes", PointDataRecordLength));
+			sb.AppendLine(String.Format("Point Size: {0} bytes", m_header.PointDataRecordLength));
 			sb.AppendLine();
-			sb.AppendLine(String.Format("Offset X: {0}", Quantization.OffsetX));
-			sb.AppendLine(String.Format("Offset Y: {0}", Quantization.OffsetY));
-			sb.AppendLine(String.Format("Offset Z: {0}", Quantization.OffsetZ));
-			sb.AppendLine(String.Format("Scale X: {0}", Quantization.ScaleFactorX));
-			sb.AppendLine(String.Format("Scale Y: {0}", Quantization.ScaleFactorY));
-			sb.AppendLine(String.Format("Scale Z: {0}", Quantization.ScaleFactorZ));
+			sb.AppendLine(String.Format("Offset X: {0}", m_header.Quantization.OffsetX));
+			sb.AppendLine(String.Format("Offset Y: {0}", m_header.Quantization.OffsetY));
+			sb.AppendLine(String.Format("Offset Z: {0}", m_header.Quantization.OffsetZ));
+			sb.AppendLine(String.Format("Scale X: {0}", m_header.Quantization.ScaleFactorX));
+			sb.AppendLine(String.Format("Scale Y: {0}", m_header.Quantization.ScaleFactorY));
+			sb.AppendLine(String.Format("Scale Z: {0}", m_header.Quantization.ScaleFactorZ));
 
 			return sb.ToString();
 		}
 
 		public unsafe PointCloudBinarySource CreateLASToBinaryWrapper(ProgressManager progressManager)
 		{
-			Extent3D extent = m_headerExtent;
+			Extent3D extent = m_header.Extent;
 
 			if (!TRUST_HEADER_EXTENT)
 			{
 				Stopwatch stopwatch = new Stopwatch();
 				stopwatch.Start();
 
-				int pointCount = 0;
-				int bytesRead = 0;
-
 				int minX = 0, minY = 0, minZ = 0;
 				int maxX = 0, maxY = 0, maxZ = 0;
 
-				// determine usable buffer size
-				short pointDataRecordLength = PointDataRecordLength;
-				int pointsPerInputBuffer = BufferManager.BUFFER_SIZE_BYTES / pointDataRecordLength;
-				int usableBytesPerInputBuffer = pointsPerInputBuffer * pointDataRecordLength;
+				byte[] buffer = BufferManager.AcquireBuffer();
 
-				Point3D[] pointBuffer = new Point3D[pointsPerInputBuffer];
-
-				using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
+				fixed (byte* inputBufferPtr = buffer)
 				{
-					long inputLength = inputStream.Length;
-
-					inputStream.Seek(PointOffset, SeekOrigin.Begin);
-
-					byte[] inputBuffer = BufferManager.AcquireBuffer();
-
-					fixed (byte* inputBufferPtr = inputBuffer)
+					foreach (PointCloudBinarySourceEnumeratorChunk chunk in GetBlockEnumerator(buffer))
 					{
-						while ((bytesRead = inputStream.Read(inputBuffer, 0, usableBytesPerInputBuffer)) > 0)
+						if (minX == 0 && maxX == 0 && minY == 0 && maxY == 0)
 						{
-							for (int i = 0; i < bytesRead; i += pointDataRecordLength)
-							{
-								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
+							SQuantizedPoint3D* p = (SQuantizedPoint3D*)inputBufferPtr;
 
-								int x = (*p).X;
-								int y = (*p).Y;
-								int z = (*p).Z;
-
-								if (pointCount == 0)
-								{
-									minX = maxX = x;
-									minY = maxY = y;
-									minZ = maxZ = z;
-								}
-								else
-								{
-									if (x < minX) minX = x; else if (x > maxX) maxX = x;
-									if (y < minY) minY = y; else if (y > maxY) maxY = y;
-									if (z < minZ) minZ = z; else if (z > maxZ) maxZ = z;
-								}
-
-								++pointCount;
-							}
-
-							if (!progressManager.Update((float)inputStream.Position / inputLength))
-								break;
+							minX = maxX = (*p).X;
+							minY = maxY = (*p).Y;
+							minZ = maxZ = (*p).Z;
 						}
-					}
 
-					BufferManager.ReleaseBuffer(inputBuffer);
+						for (int i = 0; i < chunk.BytesRead; i += PointSizeBytes)
+						{
+							SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
+
+							int x = (*p).X;
+							int y = (*p).Y;
+							int z = (*p).Z;
+
+							if (x < minX) minX = x; else if (x > maxX) maxX = x;
+							if (y < minY) minY = y; else if (y > maxY) maxY = y;
+							if (z < minZ) minZ = z; else if (z > maxZ) maxZ = z;
+						}
+
+						if (!progressManager.Update(chunk.EnumeratorProgress))
+							break;
+					}
 				}
 
-				progressManager.Log(stopwatch, "Traversed {0:0,0} points", pointCount);
+				BufferManager.ReleaseBuffer(buffer);
+
+				progressManager.Log(stopwatch, "Traversed {0:0,0} points", Count);
 
 				SQuantizedExtent3D quantizedExtent = new SQuantizedExtent3D(minX, minY, minZ, maxX, maxY, maxZ);
-				extent = Quantization.Convert(quantizedExtent);
+				extent = m_header.Quantization.Convert(quantizedExtent);
 			}
 
-			PointCloudBinarySource source = new PointCloudBinarySource(FilePath, m_pointCount, extent, Quantization, PointOffset, PointDataRecordLength, CompressionMethod.None);
+			PointCloudBinarySource source = new PointCloudBinarySource(FilePath, Count, extent, m_header.Quantization, PointDataOffset, PointSizeBytes, CompressionMethod.None);
 
 			return source;
 		}

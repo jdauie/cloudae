@@ -8,14 +8,14 @@ namespace CloudAE.Core
 {
 	public class PointCloudBinarySourceEnumerator : IEnumerator<PointCloudBinarySourceEnumeratorChunk>, IEnumerable<PointCloudBinarySourceEnumeratorChunk>
 	{
-		PointCloudBinarySource m_source;
+		IPointCloudBinarySourceEnumerable m_source;
 		private FileStream m_stream;
 		private byte[] m_buffer;
 		private long m_endPosition;
 		private int m_currentBytesRead;
 		private int m_usableBytesPerBuffer;
 
-		public PointCloudBinarySourceEnumerator(PointCloudBinarySource source, byte[] buffer)
+		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceEnumerable source, byte[] buffer)
 		{
 			m_source = source;
 			m_buffer = buffer;

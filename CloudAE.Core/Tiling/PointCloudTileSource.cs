@@ -379,6 +379,8 @@ namespace CloudAE.Core
 		{
 			// convert ratio points to quantized points?
 			// create a region from the points and the distance param
+			// figure out which tiles intersect the region
+			// load tile points and check whether they are contained in the region
 			return null;
 		}
 

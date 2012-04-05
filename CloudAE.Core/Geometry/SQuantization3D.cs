@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace CloudAE.Core.Geometry
 {
@@ -9,6 +10,11 @@ namespace CloudAE.Core.Geometry
 	{
 		public SQuantization3D(double sfX, double sfY, double sfZ, double oX, double oY, double oZ)
 			: base(sfX, sfY, sfZ, oX, oY, oZ)
+		{
+		}
+
+		public SQuantization3D(BinaryReader reader)
+			: base(reader)
 		{
 		}
 
