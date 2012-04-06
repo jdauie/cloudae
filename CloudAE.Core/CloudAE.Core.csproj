@@ -76,6 +76,7 @@
     <Compile Include="Handlers\IHandlerCreator.cs" />
     <Compile Include="Handlers\LASCreator.cs" />
     <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
+    <Compile Include="Managers\ProgressManagerProcess.cs" />
     <Compile Include="Managers\ManagedBackgroundWorker.cs">
       <SubType>Component</SubType>
     </Compile>

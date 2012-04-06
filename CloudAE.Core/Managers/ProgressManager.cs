@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
 using System.Diagnostics;
 
 namespace CloudAE.Core
@@ -43,5 +39,10 @@ namespace CloudAE.Core
 		}
 
 		public abstract bool Update(float progressRatio, object userState);
+
+		public ProgressManagerProcess StartProcess(string name)
+		{
+			return new ProgressManagerProcess(this, name);
+		}
 	}
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace CloudAE.Core
 {
@@ -43,37 +44,68 @@ namespace CloudAE.Core
 
 		public const int QUANTIZED_POINT_SIZE_BYTES = 3 * sizeof(int);
 
+		// eventually, this should handle buffers of varying size,
+		// or at least deallocate abnormal-sized buffers
 		private static readonly LinkedList<byte[]> c_availableBuffers;
+
+		// the identifier should possibly be more than a string in the future
+		private static readonly Dictionary<byte[], string> c_usedBuffers;
 
 		static BufferManager()
 		{
 			c_availableBuffers = new LinkedList<byte[]>();
+			c_usedBuffers = new Dictionary<byte[], string>();
 		}
 
 		public static byte[] AcquireBuffer()
 		{
+			return AcquireBuffer(string.Empty);
+		}
+
+		public static byte[] AcquireBuffer(string name)
+		{
+			byte[] buffer = null;
 			lock (typeof(BufferManager))
 			{
 				if (c_availableBuffers.Count > 0)
 				{
-					byte[] buffer = c_availableBuffers.First.Value;
+					buffer = c_availableBuffers.First.Value;
 					c_availableBuffers.RemoveFirst();
-					return buffer;
 				}
 				else
 				{
-					return new byte[BUFFER_SIZE_BYTES];
+					buffer = new byte[BUFFER_SIZE_BYTES];
 				}
 			}
+			c_usedBuffers.Add(buffer, name);
+			return buffer;
 		}
 
 		public static void ReleaseBuffer(byte[] buffer)
 		{
-			// I should just add a dictionary of these instead
-			if (buffer.Length != BUFFER_SIZE_BYTES)
-				throw new Exception("attempted to release a buffer that does not belong");
+			lock (typeof(BufferManager))
+			{
+				if (!c_usedBuffers.ContainsKey(buffer))
+					throw new Exception("attempted to release a buffer that does not belong");
 
-			c_availableBuffers.AddLast(buffer);
+				c_usedBuffers.Remove(buffer);
+				c_availableBuffers.AddLast(buffer);
+			}
+		}
+
+		public static void ReleaseBuffers(string name)
+		{
+			lock (typeof(BufferManager))
+			{
+				byte[][] buffersToRelease = c_usedBuffers.Where(kvp => kvp.Value == name).Select(kvp => kvp.Key).ToArray();
+				foreach (byte[] buffer in buffersToRelease)
+					ReleaseBuffer(buffer);
+			}
+		}
+
+		internal static void Shutdown()
+		{
+			Debug.Assert(c_usedBuffers.Count == 0, String.Format("{0} buffers were not released", c_usedBuffers.Count));
 		}
 	}
 }

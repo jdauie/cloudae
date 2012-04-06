@@ -576,6 +576,8 @@ namespace CloudAE.Core
 
 		public static void Shutdown()
 		{
+			BufferManager.Shutdown();
+
 			WinConsole.DestroyConsole();
 		}
 
