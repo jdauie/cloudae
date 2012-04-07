@@ -280,9 +280,13 @@ namespace CloudAE.Core
 
 		private unsafe PointCloudTileDensity CountPointsQuantized(PointCloudBinarySource source, Grid<int> tileCounts, StatisticsGenerator statsGenerator, ProgressManager progressManager)
 		{
+#warning replace variance mechanism
+			// use http://www.johndcook.com/standard_deviation.html
+
 			bool hasMean = statsGenerator.HasMean;
 			double sum = 0;
 
+			short pointSizeBytes = source.PointSizeBytes;
 			Extent3D extent = source.Extent;
 			SQuantization3D inputQuantization = (SQuantization3D)source.Quantization;
 			SQuantizedExtent3D quantizedExtent = (SQuantizedExtent3D)inputQuantization.Convert(extent);
@@ -306,96 +310,107 @@ namespace CloudAE.Core
 				for (int i = 0; i < 3; i++)
 					testValues[i] = new int[pointsToTest];
 
-			byte[] buffer = BufferManager.AcquireBuffer();
-
-			fixed (byte* inputBufferPtr = buffer)
+			using (ProgressManagerProcess process = progressManager.StartProcess("CountPointsQuantized"))
 			{
-				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
+				byte[] buffer = process.AcquireBuffer();
+
+				fixed (byte* inputBufferPtr = buffer)
 				{
-					for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
+					foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
 					{
-						SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
-
-						++tileCounts.Data[
-							(int)(((long)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
-							(int)(((long)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
-						];
-					}
-
-					if (hasMean)
-					{
-						double offsetZMinusMean = inputQuantization.OffsetZ - statsGenerator.Mean;
-						for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
+						byte* pb = inputBufferPtr;
+						byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+						while (pb < pbEnd)
 						{
-							SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
+							SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
+							pb += pointSizeBytes;
 
-							double differenceFromMean = ((*p).Z * inputQuantization.ScaleFactorZ + offsetZMinusMean);
-							sum += differenceFromMean * differenceFromMean;
+							++tileCounts.Data[
+								(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
+								(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
+							];
 						}
 
-						if (testPrecision && testValuesIndex < pointsToTest)
+						if (hasMean)
 						{
-							for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
-							{
-								if (testValuesIndex >= pointsToTest)
-									break;
+							double offsetZMinusMean = inputQuantization.OffsetZ - statsGenerator.Mean;
 
-								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
-								testValues[0][testValuesIndex] = (*p).X;
-								testValues[1][testValuesIndex] = (*p).Y;
-								testValues[2][testValuesIndex] = (*p).Z;
-								++testValuesIndex;
+							pb = inputBufferPtr;
+							while (pb < pbEnd)
+							{
+								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
+								pb += pointSizeBytes;
+
+								double differenceFromMean = ((*p).Z * inputQuantization.ScaleFactorZ + offsetZMinusMean);
+								sum += differenceFromMean * differenceFromMean;
+							}
+
+							if (testPrecision && testValuesIndex < pointsToTest)
+							{
+								pb = inputBufferPtr;
+								while (pb < pbEnd)
+								{
+									if (testValuesIndex >= pointsToTest)
+										break;
+
+									SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
+									pb += pointSizeBytes;
+									testValues[0][testValuesIndex] = (*p).X;
+									testValues[1][testValuesIndex] = (*p).Y;
+									testValues[2][testValuesIndex] = (*p).Z;
+									++testValuesIndex;
+								}
 							}
 						}
-					}
-					else
-					{
-						for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
+						else
 						{
-							SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
-							sum += (*p).Z;
+							pb = inputBufferPtr;
+							while (pb < pbEnd)
+							{
+								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
+								pb += pointSizeBytes;
+								sum += (*p).Z;
 
-							++verticalValueCounts[(int)(((long)(*p).Z - quantizedExtent.MinZ) * intervalsOverRangeZ)];
+								++verticalValueCounts[(int)(((float)(*p).Z - quantizedExtent.MinZ) * intervalsOverRangeZ)];
+							}
 						}
+
+						if (!process.Update(chunk.EnumeratorProgress))
+							break;
 					}
-
-					if (!progressManager.Update(chunk.EnumeratorProgress))
-						break;
 				}
-			}
 
-			BufferManager.ReleaseBuffer(buffer);
+				// correct count overflows
+				for (int x = 0; x <= tileCounts.SizeX; x++)
+				{
+					tileCounts.Data[x, tileCounts.SizeY - 1] += tileCounts.Data[x, tileCounts.SizeY];
+					tileCounts.Data[x, tileCounts.SizeY] = 0;
+				}
+				for (int y = 0; y < tileCounts.SizeY; y++)
+				{
+					tileCounts.Data[tileCounts.SizeX - 1, y] += tileCounts.Data[tileCounts.SizeX, y];
+					tileCounts.Data[tileCounts.SizeX, y] = 0;
+				}
 
-			// correct count overflows
-			for (int x = 0; x <= tileCounts.SizeX; x++)
-			{
-				tileCounts.Data[x, tileCounts.SizeY - 1] += tileCounts.Data[x, tileCounts.SizeY];
-				tileCounts.Data[x, tileCounts.SizeY] = 0;
-			}
-			for (int y = 0; y < tileCounts.SizeY; y++)
-			{
-				tileCounts.Data[tileCounts.SizeX - 1, y] += tileCounts.Data[tileCounts.SizeX, y];
-				tileCounts.Data[tileCounts.SizeX, y] = 0;
-			}
+				// update stats
+				if (hasMean)
+				{
+					statsGenerator.SetVariance(sum / source.Count);
+				}
+				else
+				{
+					double mean = (sum / source.Count) * inputQuantization.ScaleFactorZ + inputQuantization.OffsetZ;
+					verticalValueCounts[verticalValueIntervals - 1] += verticalValueCounts[verticalValueIntervals];
+					verticalValueCounts[verticalValueIntervals] = 0;
+					int interval = verticalValueCounts.MaxIndex<long>();
+					double mode = extent.MinZ + extent.RangeZ * interval / verticalValueIntervals;
+					statsGenerator.SetMean(mean, mode);
+				}
 
-			// update stats
-			if (hasMean)
-			{
-				statsGenerator.SetVariance(sum / source.Count);
-			}
-			else
-			{
-				double mean = (sum / source.Count) * inputQuantization.ScaleFactorZ + inputQuantization.OffsetZ;
-				verticalValueCounts[verticalValueIntervals - 1] += verticalValueCounts[verticalValueIntervals];
-				verticalValueCounts[verticalValueIntervals] = 0;
-				int interval = verticalValueCounts.MaxIndex<long>();
-				double mode = extent.MinZ + extent.RangeZ * interval / verticalValueIntervals;
-				statsGenerator.SetMean(mean, mode);
-			}
-
-			if (testPrecision && hasMean)
-			{
-				m_testQuantization = Quantization3D.Create(extent, inputQuantization, testValues);
+				if (testPrecision && hasMean)
+				{
+					m_testQuantization = Quantization3D.Create(extent, inputQuantization, testValues);
+				}
 			}
 
 			PointCloudTileDensity density = new PointCloudTileDensity(tileCounts, extent);
@@ -495,6 +510,7 @@ namespace CloudAE.Core
 		{
 			Quantization3D inputQuantization = source.Quantization;
 
+			short pointSizeBytes = source.PointSizeBytes;
 			Extent3D extent = source.Extent;
 			SQuantizedExtent3D quantizedExtent = (SQuantizedExtent3D)inputQuantization.Convert(extent);
 
@@ -518,26 +534,24 @@ namespace CloudAE.Core
 
 			fixed (byte* inputBufferPtr = buffer)
 			{
-				UQuantizedPoint3D point;
 				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
 				{
-					for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
+					byte* pb = inputBufferPtr;
+					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					while (pb < pbEnd)
 					{
-						SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
+						SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
+						pb += pointSizeBytes;
 
-						int tileX = (int)(((long)(*p).X - quantizedExtent.MinX) * tilesOverRangeX);
-						if (tileX == tilesX) tileX = tilesX - 1;
-
-						int tileY = (int)(((long)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY);
-						if (tileY == tilesY) tileY = tilesY - 1;
-
-						point = new UQuantizedPoint3D(
-							(uint)((*p).X * scaleTranslationX + offsetTranslationX),
-							(uint)((*p).Y * scaleTranslationY + offsetTranslationY),
-							(uint)((*p).Z * scaleTranslationZ + offsetTranslationZ)
+						tileBufferManager.AddPoint(
+							new UQuantizedPoint3D(
+								(uint)((*p).X * scaleTranslationX + offsetTranslationX),
+								(uint)((*p).Y * scaleTranslationY + offsetTranslationY),
+								(uint)((*p).Z * scaleTranslationZ + offsetTranslationZ)
+							),
+							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
+							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
 						);
-
-						tileBufferManager.AddPoint(point, tileX, tileY);
 					}
 
 					if (!progressManager.Update(chunk.EnumeratorProgress))

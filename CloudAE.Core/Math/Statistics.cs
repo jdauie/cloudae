@@ -122,6 +122,10 @@ namespace CloudAE.Core
 			if (!HasMean)
 				throw new InvalidOperationException("Variance cannot be computed without Mean.");
 
+#warning this needs to be fixed for the segmented processing
+			//if (HasVariance)
+			//    throw new InvalidOperationException("Variance has already been set.");
+
 			if (variance < 0)
 				throw new ArgumentOutOfRangeException("variance", "The sum of the samples must be non-negative.");
 

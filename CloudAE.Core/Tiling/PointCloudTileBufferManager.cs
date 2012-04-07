@@ -17,6 +17,7 @@ namespace CloudAE.Core
 	/// The performance penalty of this mechanism is due to the random write operations.
 	/// Sequential should be much faster.
 	/// </summary>
+	[Obsolete]
 	class PointCloudTileBufferManager : IPointCloudTileBufferManager, IPropertyContainer
 	{
 		private static readonly PropertyState<ByteSizesSmall> PROPERTY_MAX_BUFFER_SIZE;

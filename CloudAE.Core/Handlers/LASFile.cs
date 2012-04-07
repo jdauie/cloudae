@@ -76,18 +76,20 @@ namespace CloudAE.Core
 
 			if (!TRUST_HEADER_EXTENT)
 			{
-				int minX = 0, minY = 0, minZ = 0;
-				int maxX = 0, maxY = 0, maxZ = 0;
-
 				using (ProgressManagerProcess process = progressManager.StartProcess("CalculateLASExtent"))
 				{
 					byte[] buffer = process.AcquireBuffer();
+
+					short pointSizeBytes = PointSizeBytes;
+
+					int minX = 0, minY = 0, minZ = 0;
+					int maxX = 0, maxY = 0, maxZ = 0;
 
 					fixed (byte* inputBufferPtr = buffer)
 					{
 						foreach (PointCloudBinarySourceEnumeratorChunk chunk in GetBlockEnumerator(buffer))
 						{
-							if (minX == 0 && maxX == 0 && minY == 0 && maxY == 0)
+							if (minX == 0 && maxX == 0)
 							{
 								SQuantizedPoint3D* p = (SQuantizedPoint3D*)inputBufferPtr;
 
@@ -96,17 +98,16 @@ namespace CloudAE.Core
 								minZ = maxZ = (*p).Z;
 							}
 
-							for (int i = 0; i < chunk.BytesRead; i += PointSizeBytes)
+							byte* pb = inputBufferPtr;
+							byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+							while(pb < pbEnd)
 							{
-								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(inputBufferPtr + i);
+								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
+								pb += pointSizeBytes;
 
-								int x = (*p).X;
-								int y = (*p).Y;
-								int z = (*p).Z;
-
-								if (x < minX) minX = x; else if (x > maxX) maxX = x;
-								if (y < minY) minY = y; else if (y > maxY) maxY = y;
-								if (z < minZ) minZ = z; else if (z > maxZ) maxZ = z;
+								if ((*p).X < minX) minX = (*p).X; else if ((*p).X > maxX) maxX = (*p).X;
+								if ((*p).Y < minY) minY = (*p).Y; else if ((*p).Y > maxY) maxY = (*p).Y;
+								if ((*p).Z < minZ) minZ = (*p).Z; else if ((*p).Z > maxZ) maxZ = (*p).Z;
 							}
 
 							if (!process.Update(chunk.EnumeratorProgress))
@@ -114,11 +115,11 @@ namespace CloudAE.Core
 						}
 					}
 
+					SQuantizedExtent3D quantizedExtent = new SQuantizedExtent3D(minX, minY, minZ, maxX, maxY, maxZ);
+					extent = m_header.Quantization.Convert(quantizedExtent);
+
 					process.Log("Traversed {0:0,0} points", Count);
 				}
-
-				SQuantizedExtent3D quantizedExtent = new SQuantizedExtent3D(minX, minY, minZ, maxX, maxY, maxZ);
-				extent = m_header.Quantization.Convert(quantizedExtent);
 			}
 
 			PointCloudBinarySource source = new PointCloudBinarySource(FilePath, Count, extent, m_header.Quantization, PointDataOffset, PointSizeBytes, CompressionMethod.None);
