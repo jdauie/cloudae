@@ -274,17 +274,7 @@ namespace CloudAE.Core
 
 		private unsafe PointCloudTileDensity CountPointsQuantized(PointCloudBinarySource source, Grid<int> tileCounts, StatisticsGenerator statsGenerator, ProgressManager progressManager)
 		{
-#warning replace variance mechanism
-			// use http://www.johndcook.com/standard_deviation.html
-
 			bool computeStats = (statsGenerator != null);
-			//double sum = 0;
-			//int m_n = 0;
-			//double m_oldM = 0;
-			//double m_newM = 0;
-			//double m_oldS = 0;
-			//double m_newS = 0;
-
 
 			short pointSizeBytes = source.PointSizeBytes;
 			Extent3D extent = source.Extent;
@@ -356,23 +346,6 @@ namespace CloudAE.Core
 								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
 								pb += pointSizeBytes;
 
-								//++m_n;
-
-								//if (m_n == 1)
-								//{
-								//    m_oldM = m_newM = (*p).Z;
-								//    m_oldS = 0.0;
-								//}
-								//else
-								//{
-								//    m_newM = m_oldM + ((*p).Z - m_oldM) / m_n;
-								//    m_newS = m_oldS + ((*p).Z - m_oldM) * ((*p).Z - m_newM);
-
-								//    // set up for next iteration
-								//    m_oldM = m_newM;
-								//    m_oldS = m_newS;
-								//}
-
 								++verticalValueCounts[((*p).Z >> verticalValueRightShift) - verticalValueScaledMin];
 							}
 
@@ -420,9 +393,6 @@ namespace CloudAE.Core
 					int interval = verticalValueCounts.MaxIndex<long>();
 					double mode = extent.MinZ + extent.RangeZ * verticalValueCenters[interval];
 
-					//double mean = m_newM * inputQuantization.ScaleFactorZ + inputQuantization.OffsetZ;
-					//double variance = m_newS / (m_n - 1) * Math.Pow(inputQuantization.ScaleFactorZ, 2);
-
 					int m_n = 0;
 					double m_oldM = 0;
 					double m_newM = 0;
@@ -457,13 +427,10 @@ namespace CloudAE.Core
 					double mean = m_newM;
 					double variance = m_newS / (m_n - 1);
 
-					statsGenerator.SetMean(mean, mode);
-					statsGenerator.SetVariance(variance);
-				}
+					statsGenerator.SetStatistics(mean, variance, mode);
 
-				if (testPrecision && computeStats)
-				{
-					m_testQuantization = Quantization3D.Create(extent, inputQuantization, testValues);
+					if (testPrecision)
+						m_testQuantization = Quantization3D.Create(extent, inputQuantization, testValues);
 				}
 			}
 
