@@ -111,6 +111,13 @@ namespace CloudAE.Core
 			m_count = sampleCount;
 		}
 
+		public void SetStatistics(double mean, double variance, double mode)
+		{
+			m_mean = mean;
+			m_variance = variance;
+			m_modeApprox = mode;
+		}
+
 		public void SetMean(double mean, double mode)
 		{
 			m_mean = mean;
@@ -122,9 +129,8 @@ namespace CloudAE.Core
 			if (!HasMean)
 				throw new InvalidOperationException("Variance cannot be computed without Mean.");
 
-#warning this needs to be fixed for the segmented processing
-			//if (HasVariance)
-			//    throw new InvalidOperationException("Variance has already been set.");
+			if (HasVariance)
+				throw new InvalidOperationException("Variance has already been set.");
 
 			if (variance < 0)
 				throw new ArgumentOutOfRangeException("variance", "The sum of the samples must be non-negative.");

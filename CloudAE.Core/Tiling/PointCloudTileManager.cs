@@ -285,6 +285,8 @@ namespace CloudAE.Core
 			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
 
+			
+
 			int verticalValueIntervalsPow = 10;
 			int verticalValueIntervals = (int)Math.Pow(2, verticalValueIntervalsPow);
 			long[] verticalValueCounts = new long[verticalValueIntervals + 1];
@@ -301,9 +303,11 @@ namespace CloudAE.Core
 			
 			// adjust intervals for "extended" range
 			double[] verticalValueCenters = new double[verticalValueIntervals];
-			for (int i = 0; i < verticalValueIntervals; i++)
-				verticalValueCenters[i] = Math.Min(verticalValueRangeExtended * (i + 0.5) / verticalValueIntervals / quantizedExtent.RangeZ, 1.0);
-
+			if (computeStats)
+			{
+				for (int i = 0; i < verticalValueIntervals; i++)
+					verticalValueCenters[i] = Math.Min(verticalValueRangeExtended * (i + 0.5) / verticalValueIntervals / quantizedExtent.RangeZ, 1.0);
+			}
 
 			// test precision
 			bool testPrecision = PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value;
@@ -313,9 +317,11 @@ namespace CloudAE.Core
 
 			int testValuesIndex = 0;
 			int[][] testValues = new int[3][];
-			if (testPrecision)
+			if (computeStats && testPrecision)
+			{
 				for (int i = 0; i < 3; i++)
 					testValues[i] = new int[pointsToTest];
+			}
 
 			using (ProgressManagerProcess process = progressManager.StartProcess("CountPointsQuantized"))
 			{
@@ -393,39 +399,20 @@ namespace CloudAE.Core
 					int interval = verticalValueCounts.MaxIndex<long>();
 					double mode = extent.MinZ + extent.RangeZ * verticalValueCenters[interval];
 
-					int m_n = 0;
-					double m_oldM = 0;
-					double m_newM = 0;
-					double m_oldS = 0;
-					double m_newS = 0;
+					double mean = 0;
+					double variance = 0;
+
+					// switch from ratio to world
+					for (int i = 0; i < verticalValueIntervals; i++)
+						verticalValueCenters[i] = verticalValueCenters[i] * extent.RangeZ + extent.MinZ;
+					
+					for (int i = 0; i < verticalValueIntervals; i++)
+						mean += (double)verticalValueCounts[i] / source.Count * verticalValueCenters[i];
 
 					for (int i = 0; i < verticalValueIntervals; i++)
-					{
-						long intervalCount = verticalValueCounts[i];
-						double intervalValue = extent.MinZ + extent.RangeZ * verticalValueCenters[i];
+						variance += (double)verticalValueCounts[i] * Math.Pow(verticalValueCenters[i] - mean, 2);
 
-						for (int j = 0; j < intervalCount; j++)
-						{
-							++m_n;
-							if (m_n == 1)
-							{
-								m_oldM = m_newM = intervalValue;
-								m_oldS = 0.0;
-							}
-							else
-							{
-								m_newM = m_oldM + (intervalValue - m_oldM) / m_n;
-								m_newS = m_oldS + (intervalValue - m_oldM) * (intervalValue - m_newM);
-
-								// set up for next iteration
-								m_oldM = m_newM;
-								m_oldS = m_newS;
-							}
-						}
-					}
-
-					double mean = m_newM;
-					double variance = m_newS / (m_n - 1);
+					variance /= (source.Count - 1);
 
 					statsGenerator.SetStatistics(mean, variance, mode);
 
