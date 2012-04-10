@@ -24,12 +24,12 @@ namespace CloudAE.Core
 
 		static PointCloudTileManager()
 		{
-			PROPERTY_DESIRED_TILE_COUNT           = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "DesiredTilePoints", 40000);
-			PROPERTY_MAX_TILES_FOR_ESTIMATION     = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "EstimationTilesMax", 10000);
+			PROPERTY_DESIRED_TILE_COUNT = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "DesiredTilePoints", 40000);
+			PROPERTY_MAX_TILES_FOR_ESTIMATION = Context.RegisterOption<int>(Context.OptionCategory.Tiling, "EstimationTilesMax", 10000);
 			PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION = Context.RegisterOption<bool>(Context.OptionCategory.Tiling, "ComputeOptimalQuantization", true);
-			PROPERTY_QUANTIZATION_MEMORY_LIMIT    = Context.RegisterOption<ByteSizesSmall>(Context.OptionCategory.Tiling, "QuantizationMemoryLimit", ByteSizesSmall.MB_16);
+			PROPERTY_QUANTIZATION_MEMORY_LIMIT = Context.RegisterOption<ByteSizesSmall>(Context.OptionCategory.Tiling, "QuantizationMemoryLimit", ByteSizesSmall.MB_16);
 		}
-		
+
 		public PointCloudTileManager(PointCloudBinarySource source, PointCloudTileBufferManagerOptions options)
 		{
 			m_source = source;
@@ -85,7 +85,7 @@ namespace CloudAE.Core
 		private unsafe PointCloudTileDensity EstimateDensity(PointCloudBinarySource source, StatisticsGenerator statsGenerator, ProgressManager progressManager)
 		{
 			Grid<int> tileCounts = CreateTileCountsForEstimation(source);
-			
+
 			PointCloudTileDensity density = null;
 
 			if (source.Quantization != null)
@@ -103,7 +103,7 @@ namespace CloudAE.Core
 			PointCloudTileDensity actualDensity = null;
 
 			if (source.Quantization != null)
-				actualDensity = CountPointsQuantized(source, tileCounts, statsGenerator, progressManager);
+				actualDensity = CountPointsQuantized(source, tileCounts, null, progressManager);
 			else
 				actualDensity = CountPoints(source, tileCounts, statsGenerator, progressManager);
 
@@ -139,7 +139,7 @@ namespace CloudAE.Core
 
 			if (progressManager.Update(1.0f))
 				tileSource.IsDirty = false;
-			
+
 			tileSource.WriteHeader();
 
 			return tileSource;
@@ -277,8 +277,14 @@ namespace CloudAE.Core
 #warning replace variance mechanism
 			// use http://www.johndcook.com/standard_deviation.html
 
-			bool hasMean = statsGenerator.HasMean;
-			double sum = 0;
+			bool computeStats = (statsGenerator != null);
+			//double sum = 0;
+			//int m_n = 0;
+			//double m_oldM = 0;
+			//double m_newM = 0;
+			//double m_oldS = 0;
+			//double m_newS = 0;
+
 
 			short pointSizeBytes = source.PointSizeBytes;
 			Extent3D extent = source.Extent;
@@ -288,9 +294,26 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
-			int verticalValueIntervals = 256;
+
+			int verticalValueIntervalsPow = 10;
+			int verticalValueIntervals = (int)Math.Pow(2, verticalValueIntervalsPow);
 			long[] verticalValueCounts = new long[verticalValueIntervals + 1];
-			float intervalsOverRangeZ = (float)verticalValueIntervals / quantizedExtent.RangeZ;
+
+			// map extended range (can this be too large to fit?)
+			int verticalValueRangePowCeil = (int)Math.Ceiling(Math.Log(quantizedExtent.RangeZ, 2));
+			uint verticalValueRangeExtended = (uint)Math.Pow(2, verticalValueRangePowCeil);
+
+			if (verticalValueIntervalsPow > verticalValueRangePowCeil)
+				throw new Exception("I did not expect this");
+
+			int verticalValueRightShift = verticalValueRangePowCeil - verticalValueIntervalsPow;
+			int verticalValueScaledMin = quantizedExtent.MinZ >> verticalValueRightShift;
+			
+			// adjust intervals for "extended" range
+			double[] verticalValueCenters = new double[verticalValueIntervals];
+			for (int i = 0; i < verticalValueIntervals; i++)
+				verticalValueCenters[i] = Math.Min(verticalValueRangeExtended * (i + 0.5) / verticalValueIntervals / quantizedExtent.RangeZ, 1.0);
+
 
 			// test precision
 			bool testPrecision = PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value;
@@ -325,18 +348,32 @@ namespace CloudAE.Core
 							];
 						}
 
-						if (hasMean)
+						if (computeStats)
 						{
-							double offsetZMinusMean = inputQuantization.OffsetZ - statsGenerator.Mean;
-
 							pb = inputBufferPtr;
 							while (pb < pbEnd)
 							{
 								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
 								pb += pointSizeBytes;
 
-								double differenceFromMean = ((*p).Z * inputQuantization.ScaleFactorZ + offsetZMinusMean);
-								sum += differenceFromMean * differenceFromMean;
+								//++m_n;
+
+								//if (m_n == 1)
+								//{
+								//    m_oldM = m_newM = (*p).Z;
+								//    m_oldS = 0.0;
+								//}
+								//else
+								//{
+								//    m_newM = m_oldM + ((*p).Z - m_oldM) / m_n;
+								//    m_newS = m_oldS + ((*p).Z - m_oldM) * ((*p).Z - m_newM);
+
+								//    // set up for next iteration
+								//    m_oldM = m_newM;
+								//    m_oldS = m_newS;
+								//}
+
+								++verticalValueCounts[((*p).Z >> verticalValueRightShift) - verticalValueScaledMin];
 							}
 
 							if (testPrecision && testValuesIndex < pointsToTest)
@@ -354,18 +391,6 @@ namespace CloudAE.Core
 									testValues[2][testValuesIndex] = (*p).Z;
 									++testValuesIndex;
 								}
-							}
-						}
-						else
-						{
-							pb = inputBufferPtr;
-							while (pb < pbEnd)
-							{
-								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
-								pb += pointSizeBytes;
-								sum += (*p).Z;
-
-								++verticalValueCounts[(int)(((float)(*p).Z - quantizedExtent.MinZ) * intervalsOverRangeZ)];
 							}
 						}
 
@@ -387,21 +412,56 @@ namespace CloudAE.Core
 				}
 
 				// update stats
-				if (hasMean)
+				if (computeStats)
 				{
-					statsGenerator.SetVariance(sum / source.Count);
-				}
-				else
-				{
-					double mean = (sum / source.Count) * inputQuantization.ScaleFactorZ + inputQuantization.OffsetZ;
 					verticalValueCounts[verticalValueIntervals - 1] += verticalValueCounts[verticalValueIntervals];
 					verticalValueCounts[verticalValueIntervals] = 0;
+
 					int interval = verticalValueCounts.MaxIndex<long>();
-					double mode = extent.MinZ + extent.RangeZ * interval / verticalValueIntervals;
+					double mode = extent.MinZ + extent.RangeZ * verticalValueCenters[interval];
+
+					//double mean = m_newM * inputQuantization.ScaleFactorZ + inputQuantization.OffsetZ;
+					//double variance = m_newS / (m_n - 1) * Math.Pow(inputQuantization.ScaleFactorZ, 2);
+
+					int m_n = 0;
+					double m_oldM = 0;
+					double m_newM = 0;
+					double m_oldS = 0;
+					double m_newS = 0;
+
+					for (int i = 0; i < verticalValueIntervals; i++)
+					{
+						long intervalCount = verticalValueCounts[i];
+						double intervalValue = extent.MinZ + extent.RangeZ * verticalValueCenters[i];
+
+						for (int j = 0; j < intervalCount; j++)
+						{
+							++m_n;
+							if (m_n == 1)
+							{
+								m_oldM = m_newM = intervalValue;
+								m_oldS = 0.0;
+							}
+							else
+							{
+								m_newM = m_oldM + (intervalValue - m_oldM) / m_n;
+								m_newS = m_oldS + (intervalValue - m_oldM) * (intervalValue - m_newM);
+
+								// set up for next iteration
+								m_oldM = m_newM;
+								m_oldS = m_newS;
+							}
+						}
+					}
+
+					double mean = m_newM;
+					double variance = m_newS / (m_n - 1);
+
 					statsGenerator.SetMean(mean, mode);
+					statsGenerator.SetVariance(variance);
 				}
 
-				if (testPrecision && hasMean)
+				if (testPrecision && computeStats)
 				{
 					m_testQuantization = Quantization3D.Create(extent, inputQuantization, testValues);
 				}
