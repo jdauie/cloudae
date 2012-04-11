@@ -62,10 +62,6 @@ namespace CloudAE.Core
 			m_sourceRightShift = m_sourceRangeExtendedPow - m_binCountPow;
 			m_sourceMinShifted = m_sourceMin >> m_sourceRightShift;
 
-			// THIS IS BROKEN FOR NEGATIVE MIN VALUES
-
-			// the bin array has empty space below the real bins
-			// and one extra at the top for overflow
 			m_bins = new long[m_binCount + 1];
 		}
 
