@@ -86,13 +86,18 @@ namespace CloudAE.Core
 	{
 		public static void Multiply(this Grid<float> target, float value)
 		{
+			Multiply(target, value, 0.0f);
+		}
+
+		public static void Multiply(this Grid<float> target, float value, float offset)
+		{
 			float[,] data = target.Data;
 			int sizeX = data.GetLength(0);
 			int sizeY = data.GetLength(1);
 
 			for (int x = 0; x < sizeX; x++)
 				for (int y = 0; y < sizeY; y++)
-					data[x, y] *= value;
+					data[x, y] = ((data[x, y] - offset) * value) + offset;
 		}
 	}
 }

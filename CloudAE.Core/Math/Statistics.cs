@@ -45,7 +45,7 @@ namespace CloudAE.Core
 			m_mean = validValues.Average();
 			m_variance = validValues.Average(v => Math.Pow(v - Mean, 2));
 			m_stdDev = Math.Sqrt(Variance);
-			//ModeApproximate
+			//m_modeApproximate
 		}
 
 		public Statistics(double mean, double variance, double mode)
@@ -54,15 +54,6 @@ namespace CloudAE.Core
 			m_variance = variance;
 			m_stdDev = Math.Sqrt(Variance);
 			m_modeApproximate = mode;
-		}
-
-		public Statistics(IEnumerable<Statistics> statsCollection)
-		{
-			// just average them for now
-			m_mean = statsCollection.Average(s => s.Mean);
-			m_variance = statsCollection.Average(s => s.Variance);
-			m_stdDev = Math.Sqrt(Variance);
-			m_modeApproximate = statsCollection.Average(s => s.ModeApproximate);
 		}
 
 		public Statistics(BinaryReader reader)

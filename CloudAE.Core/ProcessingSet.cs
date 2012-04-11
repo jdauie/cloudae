@@ -190,8 +190,7 @@ namespace CloudAE.Core
 				int largestTileCount = (int)(mergedTileSet.Max(t => t.PointCount));
 				byte[] inputBuffer = new byte[largestTileCount * tiledSegments[0].PointSizeBytes];
 
-				Statistics zStats = new Statistics(tiledSegments.Select(s => s.StatisticsZ));
-				PointCloudTileSource tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, zStats, CompressionMethod.None);
+				PointCloudTileSource tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].StatisticsZ, CompressionMethod.None);
 				tileSource.AllocateFile(tileOptions.AllowSparseAllocation);
 
 				using (FileStream outputStream = new FileStream(m_tiledPath, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, tileOptions.TilingFileOptions))

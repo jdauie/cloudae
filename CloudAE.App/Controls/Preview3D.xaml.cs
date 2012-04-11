@@ -319,7 +319,7 @@ namespace CloudAE.App
 				{
 					tileSource.LoadTileGrid(tile, m_buffer, m_gridLowRes, m_quantizedGridLowRes);
 					if (ENABLE_HEIGHT_EXAGGERATION)
-						m_gridLowRes.Multiply(m_heightExaggerationFactor);
+						m_gridLowRes.Multiply(m_heightExaggerationFactor, (float)centerOfMass.Z);
 
 					CloudAE.Core.Geometry.Extent3D tileExtent = tile.Extent;
 					MeshGeometry3D mesh = tileSource.GenerateMesh(m_gridLowRes, tileExtent);
@@ -752,6 +752,8 @@ namespace CloudAE.App
 				}
 			}
 
+			CloudAE.Core.Geometry.Point3D centerOfMass = CurrentTileSource.CenterOfMass;
+
 			PointCloudTile[] tilesToLoadArray = tilesToLoad.ToArray();
 			SortByDistanceFromTile(tilesToLoadArray, tile);
 			foreach (PointCloudTile currentTile in tilesToLoadArray)
@@ -759,7 +761,7 @@ namespace CloudAE.App
 				TileInfo3D tileInfo = m_tileInfo[currentTile];
 				CurrentTileSource.LoadTileGrid(currentTile, m_buffer, m_gridHighRes, m_quantizedGridHighRes);
 				if (ENABLE_HEIGHT_EXAGGERATION)
-					m_gridHighRes.Multiply(m_heightExaggerationFactor);
+					m_gridHighRes.Multiply(m_heightExaggerationFactor, (float)centerOfMass.Z);
 
 				CloudAE.Core.Geometry.Extent3D tileExtent = currentTile.Extent;
 				MeshGeometry3D mesh = CurrentTileSource.GenerateMesh(m_gridHighRes, tileExtent);

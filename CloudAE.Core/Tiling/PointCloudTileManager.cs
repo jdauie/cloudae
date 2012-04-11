@@ -102,6 +102,7 @@ namespace CloudAE.Core
 
 			PointCloudTileDensity actualDensity = null;
 
+			// this no longer does stats (for quantized) -- refactor
 			if (source.Quantization != null)
 				actualDensity = CountPointsQuantized(source, tileCounts, null, progressManager);
 			else
@@ -294,6 +295,10 @@ namespace CloudAE.Core
 			// map extended range (can this be too large to fit?)
 			int verticalValueRangePowCeil = (int)Math.Ceiling(Math.Log(quantizedExtent.RangeZ, 2));
 			uint verticalValueRangeExtended = (uint)Math.Pow(2, verticalValueRangePowCeil);
+			if (verticalValueRangePowCeil == 32)
+				verticalValueRangeExtended = uint.MaxValue;
+			else if (verticalValueRangePowCeil > 32)
+				throw new Exception("how is this possible");
 
 			if (verticalValueIntervalsPow > verticalValueRangePowCeil)
 				throw new Exception("I did not expect this");
@@ -396,8 +401,7 @@ namespace CloudAE.Core
 					verticalValueCounts[verticalValueIntervals - 1] += verticalValueCounts[verticalValueIntervals];
 					verticalValueCounts[verticalValueIntervals] = 0;
 
-					int interval = verticalValueCounts.MaxIndex<long>();
-					double mode = extent.MinZ + extent.RangeZ * verticalValueCenters[interval];
+					int intervalMax = verticalValueCounts.MaxIndex<long>();
 
 					double mean = 0;
 					double variance = 0;
@@ -413,6 +417,7 @@ namespace CloudAE.Core
 						variance += (double)verticalValueCounts[i] * Math.Pow(verticalValueCenters[i] - mean, 2);
 
 					variance /= (source.Count - 1);
+					double mode = verticalValueCenters[intervalMax];
 
 					statsGenerator.SetStatistics(mean, variance, mode);
 
