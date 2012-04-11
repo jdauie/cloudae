@@ -285,40 +285,17 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
-
-			
-
-			int verticalValueIntervalsPow = 10;
-			int verticalValueIntervals = (int)Math.Pow(2, verticalValueIntervalsPow);
-			long[] verticalValueCounts = new long[verticalValueIntervals + 1];
-
-			// map extended range (can this be too large to fit?)
-			int verticalValueRangePowCeil = (int)Math.Ceiling(Math.Log(quantizedExtent.RangeZ, 2));
-			uint verticalValueRangeExtended = (uint)Math.Pow(2, verticalValueRangePowCeil);
-			if (verticalValueRangePowCeil == 32)
-				verticalValueRangeExtended = uint.MaxValue;
-			else if (verticalValueRangePowCeil > 32)
-				throw new Exception("how is this possible");
-
-			if (verticalValueIntervalsPow > verticalValueRangePowCeil)
-				throw new Exception("I did not expect this");
-
-			int verticalValueRightShift = verticalValueRangePowCeil - verticalValueIntervalsPow;
-			int verticalValueScaledMin = quantizedExtent.MinZ >> verticalValueRightShift;
-			
-			// adjust intervals for "extended" range
-			double[] verticalValueCenters = new double[verticalValueIntervals];
-			if (computeStats)
-			{
-				for (int i = 0; i < verticalValueIntervals; i++)
-					verticalValueCenters[i] = Math.Min(verticalValueRangeExtended * (i + 0.5) / verticalValueIntervals / quantizedExtent.RangeZ, 1.0);
-			}
+			ScaledStatisticsMapping verticalValueMapping = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
+			long[] verticalValueCounts = verticalValueMapping.DestinationBins;
+			int verticalValueRightShift = verticalValueMapping.SourceRightShift;
+			int verticalValueMinShifted = verticalValueMapping.SourceMinShifted;
 
 			// test precision
 			bool testPrecision = PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value;
 			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;
 			int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
 			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTest);
+			// it would simplify things if the pointsToTest was a multiple of the points per block
 
 			int testValuesIndex = 0;
 			int[][] testValues = new int[3][];
@@ -357,7 +334,7 @@ namespace CloudAE.Core
 								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
 								pb += pointSizeBytes;
 
-								++verticalValueCounts[((*p).Z >> verticalValueRightShift) - verticalValueScaledMin];
+								++verticalValueCounts[((*p).Z >> verticalValueRightShift) - verticalValueMinShifted];
 							}
 
 							if (testPrecision && testValuesIndex < pointsToTest)
@@ -383,43 +360,12 @@ namespace CloudAE.Core
 					}
 				}
 
-				// correct count overflows
-				for (int x = 0; x <= tileCounts.SizeX; x++)
-				{
-					tileCounts.Data[x, tileCounts.SizeY - 1] += tileCounts.Data[x, tileCounts.SizeY];
-					tileCounts.Data[x, tileCounts.SizeY] = 0;
-				}
-				for (int y = 0; y < tileCounts.SizeY; y++)
-				{
-					tileCounts.Data[tileCounts.SizeX - 1, y] += tileCounts.Data[tileCounts.SizeX, y];
-					tileCounts.Data[tileCounts.SizeX, y] = 0;
-				}
+				tileCounts.CorrectCountOverflow();
 
-				// update stats
 				if (computeStats)
 				{
-					verticalValueCounts[verticalValueIntervals - 1] += verticalValueCounts[verticalValueIntervals];
-					verticalValueCounts[verticalValueIntervals] = 0;
-
-					int intervalMax = verticalValueCounts.MaxIndex<long>();
-
-					double mean = 0;
-					double variance = 0;
-
-					// switch from ratio to world
-					for (int i = 0; i < verticalValueIntervals; i++)
-						verticalValueCenters[i] = verticalValueCenters[i] * extent.RangeZ + extent.MinZ;
-					
-					for (int i = 0; i < verticalValueIntervals; i++)
-						mean += (double)verticalValueCounts[i] / source.Count * verticalValueCenters[i];
-
-					for (int i = 0; i < verticalValueIntervals; i++)
-						variance += (double)verticalValueCounts[i] * Math.Pow(verticalValueCenters[i] - mean, 2);
-
-					variance /= (source.Count - 1);
-					double mode = verticalValueCenters[intervalMax];
-
-					statsGenerator.SetStatistics(mean, variance, mode);
+					Statistics stats = verticalValueMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
+					statsGenerator.SetStatistics(stats.Mean, stats.Variance, stats.ModeApproximate);
 
 					if (testPrecision)
 						m_testQuantization = Quantization3D.Create(extent, inputQuantization, testValues);

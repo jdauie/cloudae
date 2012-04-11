@@ -80,6 +80,7 @@
     <Compile Include="Managers\ManagedBackgroundWorker.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Math\ScaledStatisticsMapping.cs" />
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />
     <Compile Include="ProcessingQueue.cs" />

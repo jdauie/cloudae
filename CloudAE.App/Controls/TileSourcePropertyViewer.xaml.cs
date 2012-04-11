@@ -53,7 +53,7 @@ namespace CloudAE.App
 					properties.Add(new ImmutablePropertyString("Quantization", "OffsetZ", string.Format("{0}", m_source.Quantization.OffsetZ)));
 					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorX", string.Format("{0}", m_source.Quantization.ScaleFactorX)));
 					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorY", string.Format("{0}", m_source.Quantization.ScaleFactorY)));
-					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorX", string.Format("{0}", m_source.Quantization.ScaleFactorZ)));
+					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorZ", string.Format("{0}", m_source.Quantization.ScaleFactorZ)));
 
 					properties.Add(new ImmutablePropertyString("Tiles", "Rows", m_source.TileSet.Rows));
 					properties.Add(new ImmutablePropertyString("Tiles", "Cols", m_source.TileSet.Cols));

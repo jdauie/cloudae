@@ -99,5 +99,22 @@ namespace CloudAE.Core
 				for (int y = 0; y < sizeY; y++)
 					data[x, y] = ((data[x, y] - offset) * value) + offset;
 		}
+
+		public static void CorrectCountOverflow(this Grid<int> target)
+		{
+			int[,] data = target.Data;
+
+			// correct count overflows
+			for (int x = 0; x <= target.SizeX; x++)
+			{
+				data[x, target.SizeY - 1] += data[x, target.SizeY];
+				data[x, target.SizeY] = 0;
+			}
+			for (int y = 0; y < target.SizeY; y++)
+			{
+				data[target.SizeX - 1, y] += data[target.SizeX, y];
+				data[target.SizeX, y] = 0;
+			}
+		}
 	}
 }

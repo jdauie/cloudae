@@ -88,7 +88,8 @@ namespace CloudAE.Core.Geometry
 			for (int i = 0; i < 3; i++)
 			{
 				int[] values = testValues[i];
-				Array.Sort<int>(values);
+				values.ParallelSort();
+				//Array.Sort<int>(values);
 				int min = values[0];
 				int max = values[pointsToTest - 1];
 				int range = max - min;
@@ -99,26 +100,31 @@ namespace CloudAE.Core.Geometry
 				int scalePow = (int)Math.Round(Math.Log(scaleInverse, scaleBase), LOG_ROUNDING_PRECISION);
 
 				// count differences
-				SortedList<uint, int> diffCounts = new SortedList<uint, int>();
-
+				Dictionary<uint, int> diffCountsLookup = new Dictionary<uint, int>();
 				for (int p = 1; p < pointsToTest; p++)
 				{
 					uint diff = (uint)(values[p] - values[p - 1]);
-					if (diffCounts.ContainsKey(diff))
-						++diffCounts[diff];
+					if (diffCountsLookup.ContainsKey(diff))
+						++diffCountsLookup[diff];
 					else
-						diffCounts.Add(diff, 1);
+						diffCountsLookup.Add(diff, 1);
 				}
 
-				int differenceCount = diffCounts.Count;
-				double[] diffPow = new double[differenceCount];
-				for (int d = 1; d < differenceCount; d++)
-					diffPow[d] = Math.Log(diffCounts.Keys[d], scaleBase);
+				int diffsLength = diffCountsLookup.Count - 1;
+				uint[] diffs = diffCountsLookup.Select(kvp => kvp.Key).Where(k => k > 0).ToArray();
+				int[] diffCounts = new int[diffsLength];
+				for (int d = 0; d < diffs.Length; d++)
+					diffCounts[d] = diffCountsLookup[diffs[d]];
 
-				int nonZeroDiffPointCount = diffCounts.SkipWhile(kvp => kvp.Key == 0).Sum(kvp => kvp.Value);
+				int differenceCount = diffs.Length;
+				double[] diffPow = new double[differenceCount];
+				for (int d = 0; d < differenceCount; d++)
+					diffPow[d] = Math.Log(diffs[d], scaleBase);
+
+				int nonZeroDiffPointCount = diffCounts.Sum();
 				double[] diffPowComponentRatio = new double[differenceCount];
-				for (int d = 1; d < differenceCount; d++)
-					diffPowComponentRatio[d] = diffPow[d] * diffCounts.Values[d] / nonZeroDiffPointCount;
+				for (int d = 0; d < differenceCount; d++)
+					diffPowComponentRatio[d] = diffPow[d] * diffCounts[d] / nonZeroDiffPointCount;
 
 				// this rounding is a WAG
 				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 4);
