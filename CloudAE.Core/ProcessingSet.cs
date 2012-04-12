@@ -174,6 +174,9 @@ namespace CloudAE.Core
 					PointCloudTileManager tileManager = new PointCloudTileManager(segments[i], tileOptions);
 					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, estimatedDensity, statsGenerator, progressManager);
 
+					// why is random faster for parallel reads? RAID?
+					//tiledSegments[i].OpenSequential();
+
 					GC.Collect();
 				}
 			}

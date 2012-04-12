@@ -242,6 +242,14 @@ namespace CloudAE.Core
 			}
 		}
 
+		public void OpenSequential()
+		{
+			if (m_inputStream == null)
+			{
+				m_inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+			}
+		}
+
 		public void Close()
 		{
 			if (m_inputStream != null)
