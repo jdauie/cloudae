@@ -54,11 +54,17 @@ namespace CloudAE.Core
 
 			m_activeBufferPriority = new LinkedList<PointCloudTileBuffer>();
 			
-			m_createdBuffers = new PointCloudTileBuffer[m_tileSet.Cols, m_tileSet.Rows];
+			m_createdBuffers = new PointCloudTileBuffer[m_tileSet.Cols + 1, m_tileSet.Rows + 1];
 			m_activeBuffers = new LinkedListNode<PointCloudTileBuffer>[m_tileSet.Cols, m_tileSet.Rows];
 
 			foreach (PointCloudTile tile in m_tileSet.ValidTiles)
 				m_createdBuffers[tile.Col, tile.Row] = new PointCloudTileBuffer(tile, this);
+
+			// buffer the edges for overflow
+			for (int x = 0; x < m_tileSet.Cols; x++)
+				m_createdBuffers[x, m_tileSet.Rows] = m_createdBuffers[x, m_tileSet.Rows - 1];
+			for (int y = 0; y <= m_tileSet.Rows; y++)
+				m_createdBuffers[m_tileSet.Cols, y] = m_createdBuffers[m_tileSet.Cols - 1, y];
 			
 			// allocate buffers
 			int maxIndividualBufferSize = m_tileSource.PointSizeBytes;
