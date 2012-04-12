@@ -119,12 +119,6 @@ namespace CloudAE.Core
 			StorageSize = storageSize;
 		}
 
-		//public PointCloudTile(PointCloudTile tile, UQuantizedExtent3D extent)
-		//    : this(tile)
-		//{
-		//    m_quantizedExtent = extent;
-		//}
-
 		public unsafe int ReadTile(FileStream inputStream, byte[] inputBuffer)
 		{
 			if (StorageSize > inputBuffer.Length)
