@@ -16,6 +16,15 @@ namespace CloudAE.Core
 		private const int POINTS_PER_BUFFER = BufferManager.BUFFER_SIZE_BYTES / POINT_SIZE_BYTES;
 		private const int USABLE_BYTES_PER_BUFFER = POINTS_PER_BUFFER * POINT_SIZE_BYTES;
 
+		private static double[] m_reciprocalPowersOfTen;
+
+		static XYZFile()
+		{
+			m_reciprocalPowersOfTen = new double[19];
+			for (int i = 0; i < m_reciprocalPowersOfTen.Length; i++)
+				m_reciprocalPowersOfTen[i] = 1.0 / Math.Pow(10, i);
+		}
+
 		public XYZFile(string path)
 			: base(path)
 		{
@@ -35,91 +44,126 @@ namespace CloudAE.Core
 
 		public unsafe PointCloudBinarySource ConvertTextToBinary(string binaryPath, ProgressManager progressManager)
 		{
-			Stopwatch stopwatch = new Stopwatch();
-			stopwatch.Start();
-
-			byte[] buffer = new byte[BufferManager.BUFFER_SIZE_BYTES];
-			int bufferIndex = 0;
-			int pointCount = 0;
-			int skipped = 0;
-
 			double minX = 0, minY = 0, minZ = 0;
 			double maxX = 0, maxY = 0, maxZ = 0;
-
-			fixed (byte* outputBufferPtr = buffer)
+			int pointCount = 0;
+			
+			using (ProgressManagerProcess process = progressManager.StartProcess("ConvertTextToBinary"))
 			{
-				using (FileStream outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES))
+				byte[] inputBuffer = process.AcquireBuffer();
+				byte[] outputBuffer = process.AcquireBuffer();
+				int bufferIndex = 0;
+				int skipped = 0;
+
+				fixed (byte* outputBufferPtr = outputBuffer, inputBufferPtr = inputBuffer)
 				{
-					FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES);
-					long inputLength = inputStream.Length;
-
-					long estimatedOutputLength = (long)(0.5 * inputLength);
-					outputStream.SetLength(estimatedOutputLength);
-
-					using (StreamReader reader = new StreamReader(inputStream))
+					using (FileStream outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.WriteThrough))
 					{
-						string line;
+						FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+						long inputLength = inputStream.Length;
 
-						double x = 0.0;
-						double y = 0.0;
-						double z = 0.0;
+						long estimatedOutputLength = (long)(0.5 * inputLength);
+						outputStream.SetLength(estimatedOutputLength);
 
-						while ((line = reader.ReadLine()) != null)
+						int i = 0;
+						bool lineStarted = false;
+						int lineStart = 0;
+						int bytesRead = 0;
+
+						int readStart = 0;
+
+						while ((bytesRead = inputStream.Read(inputBuffer, readStart, inputBuffer.Length - readStart)) > 0)
 						{
-							if (!ParseXYZFromLine(line, ref x, ref y, ref z))
+							bytesRead += readStart;
+							readStart = 0;
+							i = 0;
+
+							while (i < bytesRead)
 							{
-								++skipped;
-								continue;
-							}
+								lineStart = i;
+								lineStarted = false;
 
-							if (pointCount == 0)
-							{
-								minX = maxX = x;
-								minY = maxY = y;
-								minZ = maxZ = z;
-							}
-							else
-							{
-								if (x < minX) minX = x; else if (x > maxX) maxX = x;
-								if (y < minY) minY = y; else if (y > maxY) maxY = y;
-								if (z < minZ) minZ = z; else if (z > maxZ) maxZ = z;
-							}
+								// try to identify a line
+								while (i < bytesRead)
+								{
+									byte c = inputBuffer[i];
 
-							double* p = (double*)(outputBufferPtr + bufferIndex);
+									if (lineStarted)
+									{
+										if (c == '\r' || c == '\n')
+										{
+											break;
+										}
+									}
+									else
+									{
+										if (c != '\r' && c != '\n')
+										{
+											lineStart = i;
+											lineStarted = true;
+										}
+									}
 
-							p[0] = x;
-							p[1] = y;
-							p[2] = z;
+									++i;
+								}
 
-							bufferIndex += POINT_SIZE_BYTES;
-							++pointCount;
-
-							// write usable buffer chunk
-							if (USABLE_BYTES_PER_BUFFER == bufferIndex)
-							{
-								outputStream.Write(buffer, 0, bufferIndex);
-								bufferIndex = 0;
-
-								if (!progressManager.Update((float)inputStream.Position / inputLength))
+								// handle buffer overlap
+								if (i == bytesRead)
+								{
+									Array.Copy(inputBuffer, lineStart, inputBuffer, 0, i - lineStart);
+									readStart = i - lineStart;
 									break;
+								}
+
+								// this is just temporary -- it may get overwritten if this is not a valid parse
+								double* p = (double*)(outputBufferPtr + bufferIndex);
+
+								if (!ParseXYZFromLine(inputBufferPtr, lineStart, i, p))
+								{
+									++skipped;
+									continue;
+								}
+
+								if (pointCount == 0)
+								{
+									minX = maxX = p[0];
+									minY = maxY = p[1];
+									minZ = maxZ = p[2];
+								}
+								else
+								{
+									if (p[0] < minX) minX = p[0]; else if (p[0] > maxX) maxX = p[0];
+									if (p[1] < minY) minY = p[1]; else if (p[1] > maxY) maxY = p[1];
+									if (p[2] < minZ) minZ = p[2]; else if (p[2] > maxZ) maxZ = p[2];
+								}
+
+								bufferIndex += POINT_SIZE_BYTES;
+								++pointCount;
+
+								// write usable buffer chunk
+								if (USABLE_BYTES_PER_BUFFER == bufferIndex)
+								{
+									outputStream.Write(outputBuffer, 0, bufferIndex);
+									bufferIndex = 0;
+								}
 							}
+
+							if (!process.Update((float)inputStream.Position / inputLength))
+								break;
 						}
 
 						// write remaining buffer
 						if (bufferIndex > 0)
-						{
-							outputStream.Write(buffer, 0, bufferIndex);
-						}
+							outputStream.Write(outputBuffer, 0, bufferIndex);
 
-						progressManager.Update((float)inputStream.Position / inputLength);
+						if (outputStream.Length > outputStream.Position)
+							outputStream.SetLength(outputStream.Position);
 					}
-
-					outputStream.SetLength(outputStream.Position);
 				}
-			}
 
-			progressManager.Log("Skipped {0} lines", skipped);
-			progressManager.Log(stopwatch, "Copied {0:0,0} points", pointCount);
+				process.Log("Skipped {0} lines", skipped);
+				process.LogTime("Copied {0:0,0} points", pointCount);
+			}
 
 			Extent3D extent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
 
@@ -128,34 +172,65 @@ namespace CloudAE.Core
 			return source;
 		}
 
-		private bool ParseXYZFromLine(string line, ref double x, ref double y, ref double z)
+		private unsafe bool ParseXYZFromLine(byte* bufferPtr, int startPos, int endPos, double* xyz)
 		{
-			// get the first three floats
-			unsafe
+			for (int i = 0; i < 3; i++)
 			{
-				int length = line.Length;
-				int position = 0;
+				bool isValid = false;
+				long digits = 0;
 
-				fixed (char* characters = line)
+				int decimalSeperatorPosition = -1;
+				for (; startPos < endPos; ++startPos)
 				{
-					if (!ParseNextDoubleFromLine(characters, ref position, length, ref x)) return false;
-					if (!ParseNextDoubleFromLine(characters, ref position, length, ref y)) return false;
-					if (!ParseNextDoubleFromLine(characters, ref position, length, ref z)) return false;
+					byte c = bufferPtr[startPos];
+					if (c < '0' || c > '9')
+					{
+						if (c == '.')
+						{
+							decimalSeperatorPosition = startPos;
+							continue;
+						}
+						if (digits > 0)
+							break;
+					}
+					else
+					{
+						digits = 10 * digits + (c - '0');
+						isValid = true;
+					}
 				}
+
+				if (!isValid || digits < 0)
+				{
+					// no characters or too many (overflow)
+					return false;
+				}
+
+				xyz[i] = digits * m_reciprocalPowersOfTen[startPos - decimalSeperatorPosition - 1];
 			}
 
 			return true;
 		}
 
-		private unsafe bool ParseNextDoubleFromLine(char* characters, ref int position, int length, ref double value)
+		private unsafe bool ParseXYZFromLine(byte* bufferPtr, int startPos, int endPos, ref double x, ref double y, ref double z)
+		{
+			// get the first three floats
+			if (!ParseNextDoubleFromLine(bufferPtr, ref startPos, endPos, ref x)) return false;
+			if (!ParseNextDoubleFromLine(bufferPtr, ref startPos, endPos, ref y)) return false;
+			if (!ParseNextDoubleFromLine(bufferPtr, ref startPos, endPos, ref z)) return false;
+
+			return true;
+		}
+
+		private unsafe bool ParseNextDoubleFromLine(byte* characters, ref int position, int length, ref double value)
 		{
 			bool isValid = false;
+			long digits = 0;
 
-			value = 0.0;
 			int decimalSeperatorPosition = -1;
 			for (; position < length; ++position)
 			{
-				char c = characters[position];
+				byte c = characters[position];
 				if (c < '0' || c > '9')
 				{
 					if (c == '.')
@@ -163,20 +238,24 @@ namespace CloudAE.Core
 						decimalSeperatorPosition = position;
 						continue;
 					}
-					if (value > 0)
+					if (digits > 0)
 						break;
 				}
 				else
 				{
-					value = 10 * value + (c - '0');
+					digits = 10 * digits + (c - '0');
 					isValid = true;
 				}
 			}
 
-			if (value > 0.0 && decimalSeperatorPosition != -1)
+			if (digits > 0 && decimalSeperatorPosition != -1)
 			{
-				for (int i = decimalSeperatorPosition + 1; i < position; ++i)
-					value /= 10;
+				value = digits * m_reciprocalPowersOfTen[position - decimalSeperatorPosition - 1];
+			}
+			else if (digits < 0)
+			{
+				// overflow
+				isValid = false;
 			}
 
 			return isValid;

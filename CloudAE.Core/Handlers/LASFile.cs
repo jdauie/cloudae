@@ -118,7 +118,7 @@ namespace CloudAE.Core
 					SQuantizedExtent3D quantizedExtent = new SQuantizedExtent3D(minX, minY, minZ, maxX, maxY, maxZ);
 					extent = m_header.Quantization.Convert(quantizedExtent);
 
-					process.Log("Traversed {0:0,0} points", Count);
+					process.LogTime("Traversed {0:0,0} points", Count);
 				}
 			}
 
