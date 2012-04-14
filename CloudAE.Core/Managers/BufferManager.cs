@@ -46,25 +46,28 @@ namespace CloudAE.Core
 
 		// eventually, this should handle buffers of varying size,
 		// or at least deallocate abnormal-sized buffers
-		private static readonly LinkedList<byte[]> c_availableBuffers;
+		private static readonly LinkedList<BufferInstance> c_availableBuffers;
+		private static readonly Dictionary<byte[], BufferInstance> c_bufferMapping;
 
 		// the identifier should possibly be more than a string in the future
-		private static readonly Dictionary<byte[], string> c_usedBuffers;
+		private static readonly Dictionary<BufferInstance, string> c_usedBuffers;
+
 
 		static BufferManager()
 		{
-			c_availableBuffers = new LinkedList<byte[]>();
-			c_usedBuffers = new Dictionary<byte[], string>();
+			c_availableBuffers = new LinkedList<BufferInstance>();
+			c_bufferMapping = new Dictionary<byte[], BufferInstance>();
+			c_usedBuffers = new Dictionary<BufferInstance, string>();
 		}
 
-		public static byte[] AcquireBuffer()
+		public static BufferInstance AcquireBuffer()
 		{
 			return AcquireBuffer(string.Empty);
 		}
 
-		public static byte[] AcquireBuffer(string name)
+		public static BufferInstance AcquireBuffer(string name)
 		{
-			byte[] buffer = null;
+			BufferInstance buffer = null;
 			lock (typeof(BufferManager))
 			{
 				if (c_availableBuffers.Count > 0)
@@ -74,7 +77,9 @@ namespace CloudAE.Core
 				}
 				else
 				{
-					buffer = new byte[BUFFER_SIZE_BYTES];
+					byte[] b = new byte[BUFFER_SIZE_BYTES];
+					buffer = new BufferInstance(b);
+					c_bufferMapping.Add(b, buffer);
 				}
 			}
 			c_usedBuffers.Add(buffer, name);
@@ -85,11 +90,25 @@ namespace CloudAE.Core
 		{
 			lock (typeof(BufferManager))
 			{
+				if (!c_bufferMapping.ContainsKey(buffer))
+					throw new Exception("attempted to release a buffer that has no mapping");
+
+				ReleaseBuffer(c_bufferMapping[buffer]);
+			}
+		}
+
+		public static void ReleaseBuffer(BufferInstance buffer)
+		{
+			lock (typeof(BufferManager))
+			{
 				if (!c_usedBuffers.ContainsKey(buffer))
 					throw new Exception("attempted to release a buffer that does not belong");
 
 				c_usedBuffers.Remove(buffer);
 				c_availableBuffers.AddLast(buffer);
+
+				if (buffer.Pinned)
+					buffer.UnpinBuffer();
 			}
 		}
 
@@ -97,15 +116,27 @@ namespace CloudAE.Core
 		{
 			lock (typeof(BufferManager))
 			{
-				byte[][] buffersToRelease = c_usedBuffers.Where(kvp => kvp.Value == name).Select(kvp => kvp.Key).ToArray();
-				foreach (byte[] buffer in buffersToRelease)
+				ReleaseBuffers(c_usedBuffers.Where(kvp => kvp.Value == name).Select(kvp => kvp.Key).ToArray());
+			}
+		}
+
+		private static void ReleaseBuffers(BufferInstance[] buffers)
+		{
+			lock (typeof(BufferManager))
+			{
+				foreach (BufferInstance buffer in buffers)
 					ReleaseBuffer(buffer);
 			}
 		}
 
 		internal static void Shutdown()
 		{
-			Debug.Assert(c_usedBuffers.Count == 0, String.Format("{0} buffers were not released", c_usedBuffers.Count));
+			lock (typeof(BufferManager))
+			{
+				Debug.Assert(c_usedBuffers.Count == 0, String.Format("{0} buffers were not released", c_usedBuffers.Count));
+
+				ReleaseBuffers(c_usedBuffers.Keys.ToArray());
+			}
 		}
 	}
 }

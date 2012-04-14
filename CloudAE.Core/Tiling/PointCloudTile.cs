@@ -140,7 +140,7 @@ namespace CloudAE.Core
 
 			if (actuallyCompressed)
 			{
-				tempBuffer = BufferManager.AcquireBuffer();
+				tempBuffer = BufferManager.AcquireBuffer().Data;
 			}
 
 			int bytesRead = inputStream.Read(tempBuffer, 0, StorageSize);

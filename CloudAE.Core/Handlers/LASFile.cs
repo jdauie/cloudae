@@ -78,41 +78,38 @@ namespace CloudAE.Core
 			{
 				using (ProgressManagerProcess process = progressManager.StartProcess("CalculateLASExtent"))
 				{
-					byte[] buffer = process.AcquireBuffer();
+					BufferInstance buffer = process.AcquireBuffer(true);
 
 					short pointSizeBytes = PointSizeBytes;
 
 					int minX = 0, minY = 0, minZ = 0;
 					int maxX = 0, maxY = 0, maxZ = 0;
 
-					fixed (byte* inputBufferPtr = buffer)
+					foreach (PointCloudBinarySourceEnumeratorChunk chunk in GetBlockEnumerator(buffer.Data))
 					{
-						foreach (PointCloudBinarySourceEnumeratorChunk chunk in GetBlockEnumerator(buffer))
+						if (minX == 0 && maxX == 0)
 						{
-							if (minX == 0 && maxX == 0)
-							{
-								SQuantizedPoint3D* p = (SQuantizedPoint3D*)inputBufferPtr;
+							SQuantizedPoint3D* p = (SQuantizedPoint3D*)buffer.DataPtr;
 
-								minX = maxX = (*p).X;
-								minY = maxY = (*p).Y;
-								minZ = maxZ = (*p).Z;
-							}
-
-							byte* pb = inputBufferPtr;
-							byte* pbEnd = inputBufferPtr + chunk.BytesRead;
-							while(pb < pbEnd)
-							{
-								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
-								pb += pointSizeBytes;
-
-								if ((*p).X < minX) minX = (*p).X; else if ((*p).X > maxX) maxX = (*p).X;
-								if ((*p).Y < minY) minY = (*p).Y; else if ((*p).Y > maxY) maxY = (*p).Y;
-								if ((*p).Z < minZ) minZ = (*p).Z; else if ((*p).Z > maxZ) maxZ = (*p).Z;
-							}
-
-							if (!process.Update(chunk.EnumeratorProgress))
-								break;
+							minX = maxX = (*p).X;
+							minY = maxY = (*p).Y;
+							minZ = maxZ = (*p).Z;
 						}
+
+						byte* pb = buffer.DataPtr;
+						byte* pbEnd = pb + chunk.BytesRead;
+						while(pb < pbEnd)
+						{
+							SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
+							pb += pointSizeBytes;
+
+							if ((*p).X < minX) minX = (*p).X; else if ((*p).X > maxX) maxX = (*p).X;
+							if ((*p).Y < minY) minY = (*p).Y; else if ((*p).Y > maxY) maxY = (*p).Y;
+							if ((*p).Z < minZ) minZ = (*p).Z; else if ((*p).Z > maxZ) maxZ = (*p).Z;
+						}
+
+						if (!process.Update(chunk.EnumeratorProgress))
+							break;
 					}
 
 					SQuantizedExtent3D quantizedExtent = new SQuantizedExtent3D(minX, minY, minZ, maxX, maxY, maxZ);

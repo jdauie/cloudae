@@ -51,45 +51,22 @@ namespace CloudAE.Core
 			return m_progressManager.Update(progressRatio, userState);
 		}
 
-		public byte[] AcquireBuffer()
+		public BufferInstance AcquireBuffer()
 		{
 			return AcquireBuffer(false);
 		}
 
-		public byte[] AcquireBuffer(bool pin)
+		public BufferInstance AcquireBuffer(bool pin)
 		{
-			return BufferManager.AcquireBuffer(m_name);
+			BufferInstance buffer = BufferManager.AcquireBuffer(m_name);
+			if (pin)
+				buffer.PinBuffer();
+			return buffer;
 		}
 
 		public void ReleaseBuffer(byte[] buffer)
 		{
 			BufferManager.ReleaseBuffer(buffer);
 		}
-
-		//private void PinBuffer(byte[] buffer)
-		//{
-		//    //private GCHandle m_gcHandle;
-		//    //private UQuantizedPoint3D* m_pBuffer;
-		//    //private UQuantizedPoint3D* m_pBufferEnd;
-
-		//    UnpinBuffer();
-		//    m_gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-		//    IntPtr pAddr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
-		//    m_pBuffer = (UQuantizedPoint3D*)pAddr.ToPointer();
-		//    m_pBufferEnd = m_pBuffer + (buffer.Length / m_manager.TileSource.PointSizeBytes);
-		//}
-
-		//private void UnpinBuffer()
-		//{
-		//    m_pBuffer = null;
-		//    m_pBufferEnd = null;
-		//    if (m_gcHandle.IsAllocated)
-		//        m_gcHandle.Free();
-		//}
-	}
-
-	public class BufferInstance
-	{
-
 	}
 }

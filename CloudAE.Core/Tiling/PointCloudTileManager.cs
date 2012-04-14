@@ -179,7 +179,7 @@ namespace CloudAE.Core
 				for (int i = 0; i < 3; i++)
 					testValues[i] = new double[pointsToTest];
 
-			byte[] buffer = BufferManager.AcquireBuffer();
+			byte[] buffer = BufferManager.AcquireBuffer().Data;
 
 			fixed (byte* inputBufferPtr = buffer)
 			{
@@ -307,7 +307,7 @@ namespace CloudAE.Core
 
 			using (ProgressManagerProcess process = progressManager.StartProcess("CountPointsQuantized"))
 			{
-				byte[] buffer = process.AcquireBuffer();
+				byte[] buffer = process.AcquireBuffer().Data;
 
 				fixed (byte* inputBufferPtr = buffer)
 				{
@@ -432,7 +432,7 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tilesX / extent.RangeX;
 			double tilesOverRangeY = (double)tilesY / extent.RangeY;
 
-			byte[] buffer = BufferManager.AcquireBuffer();
+			byte[] buffer = BufferManager.AcquireBuffer().Data;
 
 			fixed (byte* inputBufferPtr = buffer)
 			{
@@ -489,7 +489,7 @@ namespace CloudAE.Core
 			double offsetTranslationY = (inputQuantization.OffsetY - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY;
 			double offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
 
-			byte[] buffer = BufferManager.AcquireBuffer();
+			byte[] buffer = BufferManager.AcquireBuffer().Data;
 
 			fixed (byte* inputBufferPtr = buffer)
 			{

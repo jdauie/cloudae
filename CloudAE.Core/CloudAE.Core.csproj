@@ -59,6 +59,7 @@
     <Compile Include="Geometry\Polygon2D.cs" />
     <Compile Include="Geometry\PolygonBase.cs" />
     <Compile Include="Handlers\LASHeader.cs" />
+    <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="Attributes\ProductExtensionAttribute.cs" />

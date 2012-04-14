@@ -47,118 +47,119 @@ namespace CloudAE.Core
 			double minX = 0, minY = 0, minZ = 0;
 			double maxX = 0, maxY = 0, maxZ = 0;
 			int pointCount = 0;
-			
+
 			using (ProgressManagerProcess process = progressManager.StartProcess("ConvertTextToBinary"))
 			{
-				byte[] inputBuffer = process.AcquireBuffer();
-				byte[] outputBuffer = process.AcquireBuffer();
+				BufferInstance inputBuffer = process.AcquireBuffer(true);
+				BufferInstance outputBuffer = process.AcquireBuffer(true);
+
+				byte* inputBufferPtr = inputBuffer.DataPtr;
+				byte* outputBufferPtr = outputBuffer.DataPtr;
+
 				int bufferIndex = 0;
 				int skipped = 0;
 
-				fixed (byte* outputBufferPtr = outputBuffer, inputBufferPtr = inputBuffer)
+				using (FileStream outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.WriteThrough))
 				{
-					using (FileStream outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.WriteThrough))
+					FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+					long inputLength = inputStream.Length;
+
+					long estimatedOutputLength = (long)(0.5 * inputLength);
+					outputStream.SetLength(estimatedOutputLength);
+
+					int i = 0;
+					bool lineStarted = false;
+					int lineStart = 0;
+					int bytesRead = 0;
+
+					int readStart = 0;
+
+					while ((bytesRead = inputStream.Read(inputBuffer.Data, readStart, inputBuffer.Length - readStart)) > 0)
 					{
-						FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
-						long inputLength = inputStream.Length;
+						bytesRead += readStart;
+						readStart = 0;
+						i = 0;
 
-						long estimatedOutputLength = (long)(0.5 * inputLength);
-						outputStream.SetLength(estimatedOutputLength);
-
-						int i = 0;
-						bool lineStarted = false;
-						int lineStart = 0;
-						int bytesRead = 0;
-
-						int readStart = 0;
-
-						while ((bytesRead = inputStream.Read(inputBuffer, readStart, inputBuffer.Length - readStart)) > 0)
+						while (i < bytesRead)
 						{
-							bytesRead += readStart;
-							readStart = 0;
-							i = 0;
+							lineStart = i;
+							lineStarted = false;
 
+							// try to identify a line
 							while (i < bytesRead)
 							{
-								lineStart = i;
-								lineStarted = false;
+								byte c = inputBufferPtr[i];
 
-								// try to identify a line
-								while (i < bytesRead)
+								if (lineStarted)
 								{
-									byte c = inputBuffer[i];
-
-									if (lineStarted)
+									if (c == '\r' || c == '\n')
 									{
-										if (c == '\r' || c == '\n')
-										{
-											break;
-										}
+										break;
 									}
-									else
-									{
-										if (c != '\r' && c != '\n')
-										{
-											lineStart = i;
-											lineStarted = true;
-										}
-									}
-
-									++i;
-								}
-
-								// handle buffer overlap
-								if (i == bytesRead)
-								{
-									Array.Copy(inputBuffer, lineStart, inputBuffer, 0, i - lineStart);
-									readStart = i - lineStart;
-									break;
-								}
-
-								// this is just temporary -- it may get overwritten if this is not a valid parse
-								double* p = (double*)(outputBufferPtr + bufferIndex);
-
-								if (!ParseXYZFromLine(inputBufferPtr, lineStart, i, p))
-								{
-									++skipped;
-									continue;
-								}
-
-								if (pointCount == 0)
-								{
-									minX = maxX = p[0];
-									minY = maxY = p[1];
-									minZ = maxZ = p[2];
 								}
 								else
 								{
-									if (p[0] < minX) minX = p[0]; else if (p[0] > maxX) maxX = p[0];
-									if (p[1] < minY) minY = p[1]; else if (p[1] > maxY) maxY = p[1];
-									if (p[2] < minZ) minZ = p[2]; else if (p[2] > maxZ) maxZ = p[2];
+									if (c != '\r' && c != '\n')
+									{
+										lineStart = i;
+										lineStarted = true;
+									}
 								}
 
-								bufferIndex += POINT_SIZE_BYTES;
-								++pointCount;
-
-								// write usable buffer chunk
-								if (USABLE_BYTES_PER_BUFFER == bufferIndex)
-								{
-									outputStream.Write(outputBuffer, 0, bufferIndex);
-									bufferIndex = 0;
-								}
+								++i;
 							}
 
-							if (!process.Update((float)inputStream.Position / inputLength))
+							// handle buffer overlap
+							if (i == bytesRead)
+							{
+								Array.Copy(inputBuffer.Data, lineStart, inputBuffer.Data, 0, i - lineStart);
+								readStart = i - lineStart;
 								break;
+							}
+
+							// this may get overwritten if this is not a valid parse
+							double* p = (double*)(outputBufferPtr + bufferIndex);
+
+							if (!ParseXYZFromLine(inputBufferPtr, lineStart, i, p))
+							{
+								++skipped;
+								continue;
+							}
+
+							if (pointCount == 0)
+							{
+								minX = maxX = p[0];
+								minY = maxY = p[1];
+								minZ = maxZ = p[2];
+							}
+							else
+							{
+								if (p[0] < minX) minX = p[0]; else if (p[0] > maxX) maxX = p[0];
+								if (p[1] < minY) minY = p[1]; else if (p[1] > maxY) maxY = p[1];
+								if (p[2] < minZ) minZ = p[2]; else if (p[2] > maxZ) maxZ = p[2];
+							}
+
+							bufferIndex += POINT_SIZE_BYTES;
+							++pointCount;
+
+							// write usable buffer chunk
+							if (USABLE_BYTES_PER_BUFFER == bufferIndex)
+							{
+								outputStream.Write(outputBuffer.Data, 0, bufferIndex);
+								bufferIndex = 0;
+							}
 						}
 
-						// write remaining buffer
-						if (bufferIndex > 0)
-							outputStream.Write(outputBuffer, 0, bufferIndex);
-
-						if (outputStream.Length > outputStream.Position)
-							outputStream.SetLength(outputStream.Position);
+						if (!process.Update((float)inputStream.Position / inputLength))
+							break;
 					}
+
+					// write remaining buffer
+					if (bufferIndex > 0)
+						outputStream.Write(outputBuffer.Data, 0, bufferIndex);
+
+					if (outputStream.Length > outputStream.Position)
+						outputStream.SetLength(outputStream.Position);
 				}
 
 				process.Log("Skipped {0} lines", skipped);
