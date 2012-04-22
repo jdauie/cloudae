@@ -140,6 +140,7 @@ namespace CloudAE.Core
 
 			if (actuallyCompressed)
 			{
+#warning acquire without release
 				tempBuffer = BufferManager.AcquireBuffer().Data;
 			}
 

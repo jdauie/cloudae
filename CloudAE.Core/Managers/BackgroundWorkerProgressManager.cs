@@ -28,14 +28,22 @@ namespace CloudAE.Core
 
 		public override bool Update(float progressRatio, object userState)
 		{
-			if ((m_worker.CancellationPending == true))
-			{
-				m_args.Cancel = true;
+			if (IsCanceled())
 				return false;
-			}
 
 			m_worker.ReportProgress((int)(100 * progressRatio), userState);
 			return true;
+		}
+
+		public override bool IsCanceled()
+		{
+			if ((m_worker.CancellationPending == true))
+			{
+				m_args.Cancel = true;
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

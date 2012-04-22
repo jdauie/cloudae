@@ -307,57 +307,55 @@ namespace CloudAE.Core
 
 			using (ProgressManagerProcess process = progressManager.StartProcess("CountPointsQuantized"))
 			{
-				byte[] buffer = process.AcquireBuffer().Data;
+				BufferInstance buffer = process.AcquireBuffer(true);
+				byte* inputBufferPtr = buffer.DataPtr;
 
-				fixed (byte* inputBufferPtr = buffer)
+				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer.Data))
 				{
-					foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
+					byte* pb = inputBufferPtr;
+					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					while (pb < pbEnd)
 					{
-						byte* pb = inputBufferPtr;
-						byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+						SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
+						pb += pointSizeBytes;
+
+						++tileCounts.Data[
+							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
+							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
+						];
+					}
+
+					if (computeStats)
+					{
+						pb = inputBufferPtr;
 						while (pb < pbEnd)
 						{
 							SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
 							pb += pointSizeBytes;
 
-							++tileCounts.Data[
-								(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
-								(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
-							];
+							++verticalValueCounts[((*p).Z >> verticalValueRightShift) - verticalValueMinShifted];
 						}
 
-						if (computeStats)
+						if (testPrecision && testValuesIndex < pointsToTest)
 						{
 							pb = inputBufferPtr;
 							while (pb < pbEnd)
 							{
+								if (testValuesIndex >= pointsToTest)
+									break;
+
 								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
 								pb += pointSizeBytes;
-
-								++verticalValueCounts[((*p).Z >> verticalValueRightShift) - verticalValueMinShifted];
-							}
-
-							if (testPrecision && testValuesIndex < pointsToTest)
-							{
-								pb = inputBufferPtr;
-								while (pb < pbEnd)
-								{
-									if (testValuesIndex >= pointsToTest)
-										break;
-
-									SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
-									pb += pointSizeBytes;
-									testValues[0][testValuesIndex] = (*p).X;
-									testValues[1][testValuesIndex] = (*p).Y;
-									testValues[2][testValuesIndex] = (*p).Z;
-									++testValuesIndex;
-								}
+								testValues[0][testValuesIndex] = (*p).X;
+								testValues[1][testValuesIndex] = (*p).Y;
+								testValues[2][testValuesIndex] = (*p).Z;
+								++testValuesIndex;
 							}
 						}
-
-						if (!process.Update(chunk.EnumeratorProgress))
-							break;
 					}
+
+					if (!process.Update(chunk.EnumeratorProgress))
+						break;
 				}
 
 				tileCounts.CorrectCountOverflow();
@@ -489,11 +487,12 @@ namespace CloudAE.Core
 			double offsetTranslationY = (inputQuantization.OffsetY - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY;
 			double offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
 
-			byte[] buffer = BufferManager.AcquireBuffer().Data;
-
-			fixed (byte* inputBufferPtr = buffer)
+			using (ProgressManagerProcess process = progressManager.StartProcess("CountPointsQuantized"))
 			{
-				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
+				BufferInstance buffer = process.AcquireBuffer(true);
+				byte* inputBufferPtr = buffer.DataPtr;
+
+				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer.Data))
 				{
 					byte* pb = inputBufferPtr;
 					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
@@ -513,12 +512,10 @@ namespace CloudAE.Core
 						);
 					}
 
-					if (!progressManager.Update(chunk.EnumeratorProgress))
+					if (!process.Update(chunk.EnumeratorProgress))
 						break;
 				}
 			}
-
-			BufferManager.ReleaseBuffer(buffer);
 		}
 
 		#endregion

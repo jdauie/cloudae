@@ -41,6 +41,11 @@ namespace CloudAE.Core
 			m_progressManager.Log(m_stopwatch, value, args);
 		}
 
+		public bool IsCanceled()
+		{
+			return m_progressManager.IsCanceled();
+		}
+
 		public bool Update(float progressRatio)
 		{
 			return m_progressManager.Update(progressRatio);

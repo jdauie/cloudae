@@ -40,6 +40,8 @@ namespace CloudAE.Core
 
 		public abstract bool Update(float progressRatio, object userState);
 
+		public abstract bool IsCanceled();
+
 		public ProgressManagerProcess StartProcess(string name)
 		{
 			return new ProgressManagerProcess(this, name);
