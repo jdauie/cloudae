@@ -133,6 +133,7 @@ namespace CloudAE.Core
 		{
 			lock (typeof(BufferManager))
 			{
+#warning I don't run in debug much -- I need a proper log file for this kind of thing
 				Debug.Assert(c_usedBuffers.Count == 0, String.Format("{0} buffers were not released", c_usedBuffers.Count));
 
 				ReleaseBuffers(c_usedBuffers.Keys.ToArray());
