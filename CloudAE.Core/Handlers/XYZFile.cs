@@ -212,54 +212,5 @@ namespace CloudAE.Core
 
 			return true;
 		}
-
-		private unsafe bool ParseXYZFromLine(byte* bufferPtr, int startPos, int endPos, ref double x, ref double y, ref double z)
-		{
-			// get the first three floats
-			if (!ParseNextDoubleFromLine(bufferPtr, ref startPos, endPos, ref x)) return false;
-			if (!ParseNextDoubleFromLine(bufferPtr, ref startPos, endPos, ref y)) return false;
-			if (!ParseNextDoubleFromLine(bufferPtr, ref startPos, endPos, ref z)) return false;
-
-			return true;
-		}
-
-		private unsafe bool ParseNextDoubleFromLine(byte* characters, ref int position, int length, ref double value)
-		{
-			bool isValid = false;
-			long digits = 0;
-
-			int decimalSeperatorPosition = -1;
-			for (; position < length; ++position)
-			{
-				byte c = characters[position];
-				if (c < '0' || c > '9')
-				{
-					if (c == '.')
-					{
-						decimalSeperatorPosition = position;
-						continue;
-					}
-					if (digits > 0)
-						break;
-				}
-				else
-				{
-					digits = 10 * digits + (c - '0');
-					isValid = true;
-				}
-			}
-
-			if (digits > 0 && decimalSeperatorPosition != -1)
-			{
-				value = digits * m_reciprocalPowersOfTen[position - decimalSeperatorPosition - 1];
-			}
-			else if (digits < 0)
-			{
-				// overflow
-				isValid = false;
-			}
-
-			return isValid;
-		}
 	}
 }
