@@ -108,7 +108,7 @@ namespace CloudAE.Core
 							if ((*p).Z < minZ) minZ = (*p).Z; else if ((*p).Z > maxZ) maxZ = (*p).Z;
 						}
 
-						if (!process.Update(chunk.EnumeratorProgress))
+						if (!process.Update(chunk))
 							break;
 					}
 

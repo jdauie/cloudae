@@ -138,7 +138,7 @@ namespace CloudAE.Core
 				tileSource.QuantizedExtent = newQuantizedExtent;
 			}
 
-			if (progressManager.Update(1.0f))
+			if (!progressManager.IsCanceled())
 				tileSource.IsDirty = false;
 
 			tileSource.WriteHeader();
@@ -155,13 +155,10 @@ namespace CloudAE.Core
 			bool hasMean = statsGenerator.HasMean;
 			double sum = 0;
 
-			int tilesX = tileCounts.SizeX;
-			int tilesY = tileCounts.SizeY;
-
 			Extent3D extent = source.Extent;
 
-			double tilesOverRangeX = (double)tilesX / extent.RangeX;
-			double tilesOverRangeY = (double)tilesY / extent.RangeY;
+			double tilesOverRangeX = (double)tileCounts.SizeX / extent.RangeX;
+			double tilesOverRangeY = (double)tileCounts.SizeY / extent.RangeY;
 
 			int verticalValueIntervals = 256;
 			long[] verticalValueCounts = new long[verticalValueIntervals + 1];
@@ -179,11 +176,12 @@ namespace CloudAE.Core
 				for (int i = 0; i < 3; i++)
 					testValues[i] = new double[pointsToTest];
 
-			byte[] buffer = BufferManager.AcquireBuffer().Data;
-
-			fixed (byte* inputBufferPtr = buffer)
+			using (ProgressManagerProcess process = progressManager.StartProcess("CountPoints"))
 			{
-				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
+				BufferInstance buffer = process.AcquireBuffer(true);
+				byte* inputBufferPtr = buffer.DataPtr;
+
+				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer.Data))
 				{
 					for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
 					{
@@ -230,24 +228,12 @@ namespace CloudAE.Core
 						}
 					}
 
-					if (!progressManager.Update(chunk.EnumeratorProgress))
+					if (!process.Update(chunk))
 						break;
 				}
 			}
 
-			BufferManager.ReleaseBuffer(buffer);
-
-			// correct count overflows
-			for (int x = 0; x <= tileCounts.SizeX; x++)
-			{
-				tileCounts.Data[x, tileCounts.SizeY - 1] += tileCounts.Data[x, tileCounts.SizeY];
-				tileCounts.Data[x, tileCounts.SizeY] = 0;
-			}
-			for (int y = 0; y < tileCounts.SizeY; y++)
-			{
-				tileCounts.Data[tileCounts.SizeX - 1, y] += tileCounts.Data[tileCounts.SizeX, y];
-				tileCounts.Data[tileCounts.SizeX, y] = 0;
-			}
+			tileCounts.CorrectCountOverflow();
 
 			// update stats
 			if (hasMean)
@@ -354,7 +340,7 @@ namespace CloudAE.Core
 						}
 					}
 
-					if (!process.Update(chunk.EnumeratorProgress))
+					if (!process.Update(chunk))
 						break;
 				}
 
@@ -454,7 +440,7 @@ namespace CloudAE.Core
 						);
 					}
 
-					if (!progressManager.Update(chunk.EnumeratorProgress))
+					if (!process.Update(chunk))
 						break;
 				}
 			}
@@ -507,7 +493,7 @@ namespace CloudAE.Core
 						);
 					}
 
-					if (!process.Update(chunk.EnumeratorProgress))
+					if (!process.Update(chunk))
 						break;
 				}
 			}

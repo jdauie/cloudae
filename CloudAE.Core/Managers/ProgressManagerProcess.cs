@@ -51,6 +51,11 @@ namespace CloudAE.Core
 			return m_progressManager.Update(progressRatio);
 		}
 
+		public bool Update(IProgress progress)
+		{
+			return m_progressManager.Update(progress.Progress);
+		}
+
 		public bool Update(float progressRatio, object userState)
 		{
 			return m_progressManager.Update(progressRatio, userState);

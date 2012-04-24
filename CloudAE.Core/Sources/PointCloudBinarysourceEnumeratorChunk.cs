@@ -5,15 +5,21 @@ using System.Text;
 
 namespace CloudAE.Core
 {
-	public class PointCloudBinarySourceEnumeratorChunk
+	public class PointCloudBinarySourceEnumeratorChunk : IProgress
 	{
-		public readonly float EnumeratorProgress;
 		public readonly int BytesRead;
+
+		private readonly float m_progress;
+
+		public float Progress
+		{
+			get { return m_progress; }
+		}
 
 		public PointCloudBinarySourceEnumeratorChunk(int bytesRead, float progress)
 		{
 			BytesRead = bytesRead;
-			EnumeratorProgress = progress;
+			m_progress = progress;
 		}
 	}
 }
