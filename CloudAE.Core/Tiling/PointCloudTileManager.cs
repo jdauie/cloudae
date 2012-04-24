@@ -280,8 +280,8 @@ namespace CloudAE.Core
 			bool testPrecision = PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value;
 			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;
 			int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
-			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTest);
-			// it would simplify things if the pointsToTest was a multiple of the points per block
+			int maxPointsForPrecisionTestBlockAligned = (maxPointsForPrecisionTest / source.PointsPerBuffer) * source.PointsPerBuffer;
+			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTestBlockAligned);
 
 			int testValuesIndex = 0;
 			int[][] testValues = new int[3][];
@@ -327,9 +327,6 @@ namespace CloudAE.Core
 							pb = inputBufferPtr;
 							while (pb < pbEnd)
 							{
-								if (testValuesIndex >= pointsToTest)
-									break;
-
 								SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
 								pb += pointSizeBytes;
 								testValues[0][testValuesIndex] = (*p).X;

@@ -129,7 +129,7 @@ namespace CloudAE.App
 					GeometryModel3D geometryModel = new GeometryModel3D(mesh, material);
 					geometryModel.Freeze();
 
-					if (!m_progressManager.Update((float)tile.ValidIndex / tileSource.TileSet.ValidTileCount, geometryModel))
+					if (!m_progressManager.Update(tile, geometryModel))
 					    break;
 				}
 			}

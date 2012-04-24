@@ -18,6 +18,7 @@ namespace CloudAE.Core
 		private readonly CompressionMethod m_compression;
 		private readonly ICompressor m_compressor;
 		private readonly short m_pointSizeBytes;
+		private readonly int m_pointsPerBuffer;
 		private readonly int m_usableBytesPerBuffer;
 
 		private long m_pointDataOffset;
@@ -55,6 +56,11 @@ namespace CloudAE.Core
 			get { return m_usableBytesPerBuffer; }
 		}
 
+		public int PointsPerBuffer
+		{
+			get { return m_pointsPerBuffer; }
+		}
+
 		public long PointDataOffset
 		{
 			get { return m_pointDataOffset; }
@@ -79,8 +85,8 @@ namespace CloudAE.Core
 			m_compressor = CompressionFactory.GetCompressor(Compression);
 			PointDataOffset = dataOffset;
 			m_pointSizeBytes = pointSizeBytes;
-			int pointsPerInputBuffer = BufferManager.BUFFER_SIZE_BYTES / pointSizeBytes;
-			m_usableBytesPerBuffer = pointsPerInputBuffer * pointSizeBytes;
+			m_pointsPerBuffer = BufferManager.BUFFER_SIZE_BYTES / pointSizeBytes;
+			m_usableBytesPerBuffer = m_pointsPerBuffer * pointSizeBytes;
 		}
 
 		public PointCloudBinarySourceEnumerator GetBlockEnumerator(byte[] buffer)

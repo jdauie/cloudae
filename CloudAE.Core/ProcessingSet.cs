@@ -212,7 +212,7 @@ namespace CloudAE.Core
 									outputStream.Write(inputBuffer, 0, segmentTile.StorageSize);
 								}
 							}
-							if (!process.Update((float)tile.ValidIndex / tileSource.TileSet.ValidTileCount))
+							if (!process.Update(tile))
 								break;
 						}
 					}

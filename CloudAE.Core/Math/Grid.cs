@@ -116,5 +116,38 @@ namespace CloudAE.Core
 				data[target.SizeX, y] = 0;
 			}
 		}
+
+		public static void CorrectMaxOverflow(this Grid<uint> target)
+		{
+			uint[,] data = target.Data;
+
+			// correct max overflows
+			for (int x = 0; x <= target.SizeX; x++)
+			{
+				data[x, target.SizeY - 1] = Math.Max(data[x, target.SizeY], data[x, target.SizeY - 1]);
+				data[x, target.SizeY] = 0;
+			}
+			for (int y = 0; y < target.SizeY; y++)
+			{
+				data[target.SizeX - 1, y] = Math.Max(data[target.SizeX, y], data[target.SizeX - 1, y]);
+				data[target.SizeX, y] = 0;
+			}
+		}
+
+		public static void CopyToUnquantized(this Grid<uint> target, Grid<float> output, Quantization3D quantization, Extent3D extent)
+		{
+			uint[,] data0 = target.Data;
+			float[,] data1 = output.Data;
+
+			float scaleFactorZ = (float)quantization.ScaleFactorZ;
+			float adjustedOffset = (float)(quantization.OffsetZ - extent.MinZ);
+
+			// ">" zero is not quite what I want here
+			// it could lose some min values (not important for now)
+			for (int x = 0; x < target.SizeX; x++)
+				for (int y = 0; y < target.SizeY; y++)
+					if (data0[x, y] > 0)
+						data1[x, y] = data0[x, y] * scaleFactorZ + adjustedOffset;
+		}
 	}
 }

@@ -47,6 +47,10 @@ namespace CloudAE.Core.Geometry
 			writer.Write(OffsetZ);
 		}
 
+		/// <summary>
+		/// This should only be called if it is not feasible to evaluate the 
+		/// input data to determine what the actual scale factor should be.
+		/// </summary>
 		public static Quantization3D Create(Extent3D extent, bool unsigned)
 		{
 			double qOffsetX = extent.MidpointX;
@@ -59,9 +63,6 @@ namespace CloudAE.Core.Geometry
 				qOffsetY = extent.MinY;
 				qOffsetZ = extent.MinZ;
 			}
-
-			// this is a stupid way to do this
-			// I need to get the precision evaluation working
 
 			double pow2to32 = Math.Pow(2, 32);
 			double logBase = 10; // this value effects debugging and compressibility

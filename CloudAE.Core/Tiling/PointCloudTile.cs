@@ -13,7 +13,7 @@ namespace CloudAE.Core
 	/// <summary>
 	/// This used to be a struct, but it is too large now -- performance was getting degraded.
 	/// </summary>
-	public class PointCloudTile
+	public class PointCloudTile : IProgress
 	{
 		public readonly PointCloudTileSource TileSource;
 
@@ -30,6 +30,8 @@ namespace CloudAE.Core
 
 		private UQuantizedExtent3D m_quantizedExtent;
 		private Extent3D m_extent;
+
+		private readonly float m_progress;
 
 		public Extent3D Extent
 		{
@@ -61,14 +63,14 @@ namespace CloudAE.Core
 			}
 		}
 
-		//public int Index
-		//{
-		//    get { return Col * TileSource.TileSet.Rows + Row; }
-		//}
-
 		public bool IsValid
 		{
 			get { return PointCount > 0; }
+		}
+
+		public float Progress
+		{
+			get { return m_progress; }
 		}
 
 		public PointCloudTile(ushort col, ushort row, int validIndex, int offset, int count, long storageOffset, int storageSize, UQuantizedExtent3D extent, PointCloudTileSource tileSource)
@@ -87,6 +89,7 @@ namespace CloudAE.Core
 			ValidIndex = validIndex;
 
 			m_quantizedExtent = extent;
+			m_progress = (float)ValidIndex / TileSource.TileSet.ValidTileCount;
 		}
 
 		public PointCloudTile(PointCloudTile tile, PointCloudTileSource tileSource)
@@ -105,6 +108,7 @@ namespace CloudAE.Core
 			ValidIndex = tile.ValidIndex;
 
 			m_quantizedExtent = tile.m_quantizedExtent;
+			m_progress = (float)ValidIndex / TileSource.TileSet.ValidTileCount;
 		}
 
 		public PointCloudTile(PointCloudTile tile)

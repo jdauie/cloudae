@@ -31,7 +31,7 @@ namespace CloudAE.Core
 			get
 			{
 				PointCloudTile tile = m_tileEnumerator.Current;
-				return new PointCloudTileSourceEnumeratorChunk(tile, (float)tile.ValidIndex / m_validTileCount);
+				return new PointCloudTileSourceEnumeratorChunk(tile);
 			}
 		}
 

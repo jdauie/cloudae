@@ -5,15 +5,18 @@ using System.Text;
 
 namespace CloudAE.Core
 {
-	public class PointCloudTileSourceEnumeratorChunk
+	public class PointCloudTileSourceEnumeratorChunk : IProgress
 	{
 		public readonly PointCloudTile Tile;
-		public readonly float EnumeratorProgress;
 
-		public PointCloudTileSourceEnumeratorChunk(PointCloudTile tile, float progress)
+		public float Progress
+		{
+			get { return Tile.Progress; }
+		}
+
+		public PointCloudTileSourceEnumeratorChunk(PointCloudTile tile)
 		{
 			Tile = tile;
-			EnumeratorProgress = progress;
 		}
 	}
 }

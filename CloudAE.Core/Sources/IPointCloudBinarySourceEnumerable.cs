@@ -10,6 +10,8 @@ namespace CloudAE.Core
 		long Count { get; }
 		long PointDataOffset { get; }
 		short PointSizeBytes { get; }
+		int UsableBytesPerBuffer { get; }
+		int PointsPerBuffer { get; }
 		PointCloudBinarySourceEnumerator GetBlockEnumerator(byte[] buffer);
 	}
 }

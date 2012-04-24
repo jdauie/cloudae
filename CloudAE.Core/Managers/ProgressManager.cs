@@ -43,6 +43,11 @@ namespace CloudAE.Core
 			return Update(progress.Progress, null);
 		}
 
+		public bool Update(IProgress progress, object userState)
+		{
+			return Update(progress.Progress, userState);
+		}
+
 		public abstract bool Update(float progressRatio, object userState);
 
 		public abstract bool IsCanceled();

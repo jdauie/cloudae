@@ -347,7 +347,7 @@ namespace CloudAE.App
 					m_meshTileMap.Add(geometryModel, tile);
 					//m_lowResMap.Add(tile, geometryModel);
 
-					if (!m_progressManager.Update((float)tile.ValidIndex / tileSource.TileSet.ValidTileCount, geometryModel))
+					if (!m_progressManager.Update(tile, geometryModel))
 					    break;
 				}
 

@@ -433,41 +433,8 @@ namespace CloudAE.Core
 				}
 			}
 
-			// correct edge overflows
-			for (int x = 0; x <= grid.SizeX; x++)
-				quantizedGrid.Data[x, grid.SizeY - 1] = Math.Max(quantizedGrid.Data[x, grid.SizeY], quantizedGrid.Data[x, grid.SizeY - 1]);
-			for (int y = 0; y < grid.SizeY; y++)
-				quantizedGrid.Data[grid.SizeX - 1, y] = Math.Max(quantizedGrid.Data[grid.SizeX, y], quantizedGrid.Data[grid.SizeX - 1, y]);
-
-			// transform quantized values
-			for (int x = 0; x < grid.SizeX; x++)
-				for (int y = 0; y < grid.SizeY; y++)
-					if (quantizedGrid.Data[x, y] > 0) // ">" zero is not quite what I want here
-						grid.Data[x, y] = (float)(quantizedGrid.Data[x, y] * Quantization.ScaleFactorZ + Quantization.OffsetZ);
-
-			//// TESTING
-			//float[] values = grid.Data.Cast<float>().Where(v => v != grid.FillVal).ToArray();
-			//Array.Sort<float>(values);
-
-			//// histogram analysis?
-			//float groundVal = values[0];
-			//for (int i = 1; i < values.Length; i++)
-			//{
-			//    // while the gap is small, keep climbing
-			//    float diff = values[i] - groundVal;
-
-			//    if (diff < 20.0f)
-			//        groundVal = values[i];
-			//}
-
-			//for (int x = 0; x < grid.SizeX; x++)
-			//{
-			//    for (int y = 0; y < grid.SizeY; y++)
-			//    {
-			//        if (grid.Data[x, y] > groundVal)
-			//            grid.Data[x, y] = groundVal;
-			//    }
-			//}
+			quantizedGrid.CorrectMaxOverflow();
+			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
 		}
 
 		public System.Windows.Media.Media3D.MeshGeometry3D GenerateMesh(Grid<float> grid, Extent3D distributionExtent)
@@ -508,11 +475,6 @@ namespace CloudAE.Core
 						int topPosition = currentPosition - 1;
 						int leftPosition = currentPosition - grid.SizeY;
 						int topleftPosition = leftPosition - 1;
-
-						//System.Windows.Media.Media3D.Point3D cuPoint = geometry.Positions[currentPosition];
-						//System.Windows.Media.Media3D.Point3D lfPoint = geometry.Positions[leftPosition];
-						//System.Windows.Media.Media3D.Point3D tpPoint = geometry.Positions[topPosition];
-						//System.Windows.Media.Media3D.Point3D tlPoint = geometry.Positions[topleftPosition];
 
 						if (grid.Data[x - 1, y] != fillVal && grid.Data[x, y - 1] != fillVal)
 						{
@@ -590,19 +552,6 @@ namespace CloudAE.Core
 
 			return geometry;
 		}
-
-		//public unsafe System.Windows.Media.Media3D.MeshGeometry3D LoadTileMesh(PointCloudTile tile, byte[] inputBuffer)
-		//{
-		//    return LoadTileGridMesh(tile, inputBuffer);
-		//}
-
-		//public unsafe System.Windows.Media.Media3D.MeshGeometry3D LoadTileGridMesh(PointCloudTile tile, byte[] inputBuffer)
-		//{
-		//    Grid<float> grid = LoadTileGrid(tile, inputBuffer, 100);
-		//    System.Windows.Media.Media3D.MeshGeometry3D mesh = GenerateMesh(grid, tile.Extent);
-
-		//    return mesh;
-		//}
 
 		public unsafe System.Windows.Media.Media3D.MeshGeometry3D LoadTileMeshDelaunayIncremental(PointCloudTile tile, byte[] inputBuffer)
 		{
@@ -833,7 +782,7 @@ namespace CloudAE.Core
 
 						compressedCount += bytesToWrite;
 
-						if (!progressManager.Update((float)tile.ValidIndex / TileSet.ValidTileCount))
+						if (!progressManager.Update(tile))
 							break;
 					}
 				}
@@ -1141,22 +1090,13 @@ namespace CloudAE.Core
 							quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
 					}
 
-					if (!progressManager.Update(chunk.EnumeratorProgress))
+					if (!progressManager.Update(chunk))
 						break;
 				}
 			}
 
-			// correct edge overflows
-			for (int x = 0; x <= grid.SizeX; x++)
-				quantizedGrid.Data[x, grid.SizeY - 1] = Math.Max(quantizedGrid.Data[x, grid.SizeY], quantizedGrid.Data[x, grid.SizeY - 1]);
-			for (int y = 0; y < grid.SizeY; y++)
-				quantizedGrid.Data[grid.SizeX - 1, y] = Math.Max(quantizedGrid.Data[grid.SizeX, y], quantizedGrid.Data[grid.SizeX - 1, y]);
-
-			// transform quantized values
-			for (int x = 0; x < grid.SizeX; x++)
-				for (int y = 0; y < grid.SizeY; y++)
-					if (quantizedGrid.Data[x, y] > 0) // ">" zero is not quite what I want here
-						grid.Data[x, y] = (float)(quantizedGrid.Data[x, y] * Quantization.ScaleFactorZ + Quantization.OffsetZ - Extent.MinZ);
+			quantizedGrid.CorrectMaxOverflow();
+			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
 
 			m_pixelGrid = grid;
 		}

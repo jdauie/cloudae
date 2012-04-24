@@ -23,8 +23,7 @@ namespace CloudAE.Core
 
 			m_endPosition = m_source.PointDataOffset + (long)m_source.Count * m_source.PointSizeBytes;
 
-			int pointsPerInputBuffer = BufferManager.BUFFER_SIZE_BYTES / m_source.PointSizeBytes;
-			m_usableBytesPerBuffer = pointsPerInputBuffer * m_source.PointSizeBytes;
+			m_usableBytesPerBuffer = m_source.UsableBytesPerBuffer;
 
 			Reset();
 		}

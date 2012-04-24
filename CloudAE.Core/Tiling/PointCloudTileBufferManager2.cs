@@ -64,7 +64,7 @@ namespace CloudAE.Core
 					tileBuffer.Flush(m_outputStream);
 					tileBuffer.DeactivateBuffer();
 
-					if (!process.Update((float)tile.ValidIndex / m_tileSet.ValidTileCount))
+					if (!process.Update(tile))
 						break;
 				}
 			}
