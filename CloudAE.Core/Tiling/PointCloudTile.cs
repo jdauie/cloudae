@@ -138,11 +138,9 @@ namespace CloudAE.Core
 			// if there is no compression, just read into the input buffer
 			byte[] tempBuffer = inputBuffer;
 
+#warning should this have an ID?
 			if (actuallyCompressed)
-			{
-#warning acquire without release
 				tempBuffer = BufferManager.AcquireBuffer().Data;
-			}
 
 			int bytesRead = inputStream.Read(tempBuffer, 0, StorageSize);
 			Debug.Assert(bytesRead == StorageSize);

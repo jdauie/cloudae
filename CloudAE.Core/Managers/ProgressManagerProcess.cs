@@ -10,13 +10,13 @@ namespace CloudAE.Core
 	public class ProgressManagerProcess : IDisposable
 	{
 		private readonly ProgressManager m_progressManager;
-		private readonly string m_name;
 		private readonly Stopwatch m_stopwatch;
+		private readonly Identity m_id;
 
 		public ProgressManagerProcess(ProgressManager progressManager, string name)
 		{
 			m_progressManager = progressManager;
-			m_name = name;
+			m_id = IdentityManager.AcquireIdentity(name, IdentityType.Process);
 			m_stopwatch = new Stopwatch();
 
 			m_progressManager.Update(0.0f);
@@ -28,7 +28,7 @@ namespace CloudAE.Core
 			m_stopwatch.Stop();
 			m_progressManager.Update(100.0f);
 
-			BufferManager.ReleaseBuffers(m_name);
+			BufferManager.ReleaseBuffers(m_id);
 		}
 
 		public void Log(string value, params object[] args)
@@ -63,15 +63,7 @@ namespace CloudAE.Core
 
 		public BufferInstance AcquireBuffer(bool pin)
 		{
-			BufferInstance buffer = BufferManager.AcquireBuffer(m_name);
-			if (pin)
-				buffer.PinBuffer();
-			return buffer;
-		}
-
-		public void ReleaseBuffer(byte[] buffer)
-		{
-			BufferManager.ReleaseBuffer(buffer);
+			return BufferManager.AcquireBuffer(m_id, pin);
 		}
 	}
 }

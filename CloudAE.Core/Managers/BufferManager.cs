@@ -49,25 +49,32 @@ namespace CloudAE.Core
 		private static readonly LinkedList<BufferInstance> c_availableBuffers;
 		private static readonly Dictionary<byte[], BufferInstance> c_bufferMapping;
 
-		// the identifier should possibly be more than a string in the future
-		private static readonly Dictionary<BufferInstance, string> c_usedBuffers;
+		private static readonly Dictionary<BufferInstance, Identity> c_usedBuffers;
 
 
 		static BufferManager()
 		{
 			c_availableBuffers = new LinkedList<BufferInstance>();
 			c_bufferMapping = new Dictionary<byte[], BufferInstance>();
-			c_usedBuffers = new Dictionary<BufferInstance, string>();
+			c_usedBuffers = new Dictionary<BufferInstance, Identity>();
 		}
 
 		public static BufferInstance AcquireBuffer()
 		{
-			return AcquireBuffer(string.Empty);
+#warning I don't like needing this
+			Identity id = IdentityManager.AcquireIdentity(string.Empty);
+			return AcquireBuffer(id);
 		}
 
-		public static BufferInstance AcquireBuffer(string name)
+		public static BufferInstance AcquireBuffer(Identity id)
+		{
+			return AcquireBuffer(id, false);
+		}
+
+		public static BufferInstance AcquireBuffer(Identity id, bool pin)
 		{
 			BufferInstance buffer = null;
+
 			lock (typeof(BufferManager))
 			{
 				if (c_availableBuffers.Count > 0)
@@ -81,8 +88,12 @@ namespace CloudAE.Core
 					buffer = new BufferInstance(b);
 					c_bufferMapping.Add(b, buffer);
 				}
+				c_usedBuffers.Add(buffer, id);
+
+				if (pin)
+					buffer.PinBuffer();
 			}
-			c_usedBuffers.Add(buffer, name);
+
 			return buffer;
 		}
 
@@ -112,11 +123,11 @@ namespace CloudAE.Core
 			}
 		}
 
-		public static void ReleaseBuffers(string name)
+		public static void ReleaseBuffers(Identity id)
 		{
 			lock (typeof(BufferManager))
 			{
-				ReleaseBuffers(c_usedBuffers.Where(kvp => kvp.Value == name).Select(kvp => kvp.Key).ToArray());
+				ReleaseBuffers(c_usedBuffers.Where(kvp => kvp.Value == id).Select(kvp => kvp.Key).ToArray());
 			}
 		}
 

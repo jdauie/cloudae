@@ -420,47 +420,44 @@ namespace CloudAE.Core
 
 		private unsafe void TilePointStream(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
 		{
+			short pointSizeBytes = source.PointSizeBytes;
 			Extent3D extent = source.Extent;
 
 			Quantization3D outputQuantization = tileBufferManager.TileSource.Quantization;
 			PointCloudTileSet tileSet = tileBufferManager.TileSource.TileSet;
-			int tilesX = tileSet.Cols;
-			int tilesY = tileSet.Rows;
 
-			double tilesOverRangeX = (double)tilesX / extent.RangeX;
-			double tilesOverRangeY = (double)tilesY / extent.RangeY;
+			double tilesOverRangeX = (double)tileSet.Cols / extent.RangeX;
+			double tilesOverRangeY = (double)tileSet.Rows / extent.RangeY;
 
-			byte[] buffer = BufferManager.AcquireBuffer().Data;
-
-			fixed (byte* inputBufferPtr = buffer)
+			using (ProgressManagerProcess process = progressManager.StartProcess("TilePointStream"))
 			{
-				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer))
+				BufferInstance buffer = process.AcquireBuffer(true);
+				byte* inputBufferPtr = buffer.DataPtr;
+
+				foreach (PointCloudBinarySourceEnumeratorChunk chunk in source.GetBlockEnumerator(buffer.Data))
 				{
-					for (int i = 0; i < chunk.BytesRead; i += source.PointSizeBytes)
+					byte* pb = inputBufferPtr;
+					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					while (pb < pbEnd)
 					{
-						Point3D* p = (Point3D*)(inputBufferPtr + i);
+						Point3D* p = (Point3D*)(pb);
+						pb += pointSizeBytes;
 
-						int tileX = (int)(((*p).X - extent.MinX) * tilesOverRangeX);
-						if (tileX == tilesX) tileX = tilesX - 1;
-
-						int tileY = (int)(((*p).Y - extent.MinY) * tilesOverRangeY);
-						if (tileY == tilesY) tileY = tilesY - 1;
-
-						UQuantizedPoint3D uqPoint = new UQuantizedPoint3D(
-							(uint)(((*p).X - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX),
-							(uint)(((*p).Y - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY),
-							(uint)(((*p).Z - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ)
+						tileBufferManager.AddPoint(
+							new UQuantizedPoint3D(
+								(uint)(((*p).X - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX),
+								(uint)(((*p).Y - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY),
+								(uint)(((*p).Z - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ)
+							),
+							(int)(((*p).X - extent.MinX) * tilesOverRangeX),
+							(int)(((*p).Y - extent.MinY) * tilesOverRangeY)
 						);
-
-						tileBufferManager.AddPoint(uqPoint, tileX, tileY);
 					}
 
 					if (!progressManager.Update(chunk.EnumeratorProgress))
 						break;
 				}
 			}
-
-			BufferManager.ReleaseBuffer(buffer);
 		}
 
 		private unsafe void TilePointStreamQuantized(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
@@ -473,11 +470,9 @@ namespace CloudAE.Core
 
 			Quantization3D outputQuantization = tileBufferManager.TileSource.Quantization;
 			PointCloudTileSet tileSet = tileBufferManager.TileSource.TileSet;
-			int tilesX = tileSet.Cols;
-			int tilesY = tileSet.Rows;
 
-			double tilesOverRangeX = (double)tilesX / quantizedExtent.RangeX;
-			double tilesOverRangeY = (double)tilesY / quantizedExtent.RangeY;
+			double tilesOverRangeX = (double)tileSet.Cols / quantizedExtent.RangeX;
+			double tilesOverRangeY = (double)tileSet.Rows / quantizedExtent.RangeY;
 
 			double scaleTranslationX = inputQuantization.ScaleFactorX / outputQuantization.ScaleFactorX;
 			double scaleTranslationY = inputQuantization.ScaleFactorY / outputQuantization.ScaleFactorY;
@@ -487,7 +482,7 @@ namespace CloudAE.Core
 			double offsetTranslationY = (inputQuantization.OffsetY - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY;
 			double offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
 
-			using (ProgressManagerProcess process = progressManager.StartProcess("CountPointsQuantized"))
+			using (ProgressManagerProcess process = progressManager.StartProcess("TilePointStreamQuantized"))
 			{
 				BufferInstance buffer = process.AcquireBuffer(true);
 				byte* inputBufferPtr = buffer.DataPtr;
