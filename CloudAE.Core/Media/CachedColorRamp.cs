@@ -7,7 +7,7 @@ namespace CloudAE.Core
 {
 	/// <summary>
 	/// Pre-calculated color ramp.
-	/// Defined for a specified size and input range.
+	/// Stretched for a specified size and input range.
 	/// Uses the 2^n mapping mechanism.
 	/// </summary>
 	class CachedColorRamp
