@@ -122,6 +122,7 @@ namespace CloudAE.Core
 			if (optimalQuantization == null)
 				optimalQuantization = Quantization3D.Create(tileSet.Extent, true);
 
+#warning this point size is incorrect for unquantized inputs
 			PointCloudTileSource tileSource = new PointCloudTileSource(path, tileSet, optimalQuantization, source.PointSizeBytes, zStats, CompressionMethod.None);
 			tileSource.AllocateFile(m_options.AllowSparseAllocation);
 
