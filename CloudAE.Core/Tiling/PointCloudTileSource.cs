@@ -26,7 +26,7 @@ namespace CloudAE.Core
 		private const string FILE_IDENTIFIER = "TPBF";
 		private const string FILE_IDENTIFIER_DIRTY = "TPBD";
 		private const int FILE_VERSION_MAJOR = 1;
-		private const int FILE_VERSION_MINOR = 9;
+		private const int FILE_VERSION_MINOR = 10;
 
 		private readonly PointCloudTileSet m_tileSet;
 		private readonly Statistics m_statisticsZ;
@@ -137,13 +137,13 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, Statistics zStats, CompressionMethod compression)
-			: this(file, tileSet, quantization, 0, zStats, compression)
+		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, short pointSizeBytes, Statistics zStats, CompressionMethod compression)
+			: this(file, tileSet, quantization, 0, pointSizeBytes, zStats, compression)
 		{
 		}
 
-		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, Statistics zStats, CompressionMethod compression)
-			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, BufferManager.QUANTIZED_POINT_SIZE_BYTES, compression)
+		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats, CompressionMethod compression)
+			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, pointSizeBytes, compression)
 		{
 			m_tileSet = new PointCloudTileSet(tileSet, this);
 			m_statisticsZ = zStats;
@@ -168,6 +168,7 @@ namespace CloudAE.Core
 		public static PointCloudTileSource Open(string file)
 		{
 			long pointDataOffset;
+			short pointSizeBytes;
 			CompressionMethod compression;
 
 			UQuantization3D quantization;
@@ -186,6 +187,7 @@ namespace CloudAE.Core
 					throw new OpenFailedException(file, "File version does not match.");
 
 				pointDataOffset = reader.ReadInt64();
+				pointSizeBytes = reader.ReadInt16();
 				compression = (CompressionMethod)reader.ReadInt32();
 
 				quantization = reader.ReadUQuantization3D();
@@ -193,7 +195,7 @@ namespace CloudAE.Core
 				tileSet = reader.ReadTileSet();
 			}
 
-			PointCloudTileSource source = new PointCloudTileSource(file, tileSet, quantization, pointDataOffset, zStats, compression);
+			PointCloudTileSource source = new PointCloudTileSource(file, tileSet, quantization, pointDataOffset, pointSizeBytes, zStats, compression);
 
 			return source;
 		}
@@ -208,6 +210,7 @@ namespace CloudAE.Core
 			writer.Write(FILE_VERSION_MAJOR);
 			writer.Write(FILE_VERSION_MINOR);
 			writer.Write(PointDataOffset);
+			writer.Write(PointSizeBytes);
 			writer.Write((int)Compression);
 			writer.Write(Quantization);
 			writer.Write(StatisticsZ);
@@ -661,7 +664,7 @@ namespace CloudAE.Core
 
 			string outputTempFile = ProcessingSet.GetTemporaryCompressedTileSourceName(FilePath);
 
-			PointCloudTileSource tempTileSource = new PointCloudTileSource(outputTempFile, TileSet, Quantization, StatisticsZ, compressionMethod);
+			PointCloudTileSource tempTileSource = new PointCloudTileSource(outputTempFile, TileSet, Quantization, PointSizeBytes, StatisticsZ, compressionMethod);
 
 			double compressionRatio = 0.0;
 			double pretendCompressionRatio = 0.0;

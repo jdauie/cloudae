@@ -188,7 +188,7 @@ namespace CloudAE.Core
 				int largestTileCount = (int)(mergedTileSet.Max(t => t.PointCount));
 				byte[] inputBuffer = new byte[largestTileCount * tiledSegments[0].PointSizeBytes];
 
-				PointCloudTileSource tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].StatisticsZ, CompressionMethod.None);
+				PointCloudTileSource tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ, CompressionMethod.None);
 
 				using (ProgressManagerProcess process = progressManager.StartProcess("MergeTileSegments"))
 				{

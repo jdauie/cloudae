@@ -108,7 +108,7 @@ namespace CloudAE.Core
 			else
 				actualDensity = CountPoints(source, tileCounts, statsGenerator, progressManager);
 
-			PointCloudTileSet tileSet = new PointCloudTileSet(actualDensity, tileCounts, BufferManager.QUANTIZED_POINT_SIZE_BYTES);
+			PointCloudTileSet tileSet = new PointCloudTileSet(actualDensity, tileCounts, source.PointSizeBytes);
 
 			return tileSet;
 		}
@@ -122,7 +122,7 @@ namespace CloudAE.Core
 			if (optimalQuantization == null)
 				optimalQuantization = Quantization3D.Create(tileSet.Extent, true);
 
-			PointCloudTileSource tileSource = new PointCloudTileSource(path, tileSet, optimalQuantization, zStats, CompressionMethod.None);
+			PointCloudTileSource tileSource = new PointCloudTileSource(path, tileSet, optimalQuantization, source.PointSizeBytes, zStats, CompressionMethod.None);
 			tileSource.AllocateFile(m_options.AllowSparseAllocation);
 
 			using (FileStream outputStream = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, m_options.TilingFileOptions))

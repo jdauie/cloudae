@@ -123,8 +123,10 @@
                 </TabItem>
                 <TabItem Header="Properties" x:Name="tabItemProperties">
                     <Grid>
-                        <local:TileSourcePropertyViewer x:Name="propertyViewer" />
-                    </Grid>
+						<ScrollViewer>
+							<local:TileSourcePropertyViewer x:Name="propertyViewer" />
+						</ScrollViewer>
+					</Grid>
                 </TabItem>
             </TabControl>
 		</Grid>
