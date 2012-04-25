@@ -31,7 +31,7 @@ namespace CloudAE.Core
 		private UQuantizedExtent3D m_quantizedExtent;
 		private Extent3D m_extent;
 
-		private readonly float m_progress;
+		private float? m_progress;
 
 		public Extent3D Extent
 		{
@@ -70,12 +70,21 @@ namespace CloudAE.Core
 
 		public float Progress
 		{
-			get { return m_progress; }
+			get
+			{
+				if (!m_progress.HasValue)
+				{
+					if (TileSource != null && TileSource.TileSet != null)
+						m_progress = (float)ValidIndex / TileSource.TileSet.ValidTileCount;
+				}
+
+				return m_progress.Value;
+			}
 		}
 
-		public PointCloudTile(ushort col, ushort row, int validIndex, int offset, int count, long storageOffset, int storageSize, UQuantizedExtent3D extent, PointCloudTileSource tileSource)
+		public PointCloudTile(ushort col, ushort row, int validIndex, int offset, int count, long storageOffset, int storageSize, UQuantizedExtent3D extent)
 		{
-			TileSource = tileSource;
+			TileSource = null;
 
 			Row = row;
 			Col = col;
@@ -89,7 +98,6 @@ namespace CloudAE.Core
 			ValidIndex = validIndex;
 
 			m_quantizedExtent = extent;
-			m_progress = (float)ValidIndex / TileSource.TileSet.ValidTileCount;
 		}
 
 		public PointCloudTile(PointCloudTile tile, PointCloudTileSource tileSource)
@@ -108,7 +116,6 @@ namespace CloudAE.Core
 			ValidIndex = tile.ValidIndex;
 
 			m_quantizedExtent = tile.m_quantizedExtent;
-			m_progress = (float)ValidIndex / TileSource.TileSet.ValidTileCount;
 		}
 
 		public PointCloudTile(PointCloudTile tile)

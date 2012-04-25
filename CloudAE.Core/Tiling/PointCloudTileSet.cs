@@ -60,7 +60,7 @@ namespace CloudAE.Core
 					long byteOffset = (long)offset * pointSizeBytes;
 					int byteLength = tileCount * pointSizeBytes;
 
-					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount, byteOffset, byteLength, null, null);
+					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount, byteOffset, byteLength, null);
 
 					if (tileCount > 0)
 					{
@@ -121,7 +121,7 @@ namespace CloudAE.Core
 					int byteLength = tileSets.Sum(t => t.m_tiles[x, y].StorageSize);
 
 					UQuantizedExtent3D mergedExtent = tileSets.Select(s => s.m_tiles[x, y].QuantizedExtent).Union();
-					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount, byteOffset, byteLength, mergedExtent, null);
+					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount, byteOffset, byteLength, mergedExtent);
 
 					if (tileCount > 0)
 					{
@@ -161,7 +161,7 @@ namespace CloudAE.Core
 					int tileStorageSize = reader.ReadInt32();
 					UQuantizedExtent3D quantizedExtent = reader.ReadUQuantizedExtent3D();
 
-					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, pointOffset, tilePointCount, storageOffset, tileStorageSize, quantizedExtent, null);
+					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, pointOffset, tilePointCount, storageOffset, tileStorageSize, quantizedExtent);
 
 					if (tilePointCount > 0)
 					{
