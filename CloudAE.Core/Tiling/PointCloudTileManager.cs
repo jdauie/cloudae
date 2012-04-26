@@ -17,8 +17,8 @@ namespace CloudAE.Core
 		private static readonly PropertyState<bool> PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION;
 		private static readonly PropertyState<ByteSizesSmall> PROPERTY_QUANTIZATION_MEMORY_LIMIT;
 
-		private PointCloudBinarySource m_source;
-		private PointCloudTileBufferManagerOptions m_options;
+		private readonly PointCloudBinarySource m_source;
+		private readonly PointCloudTileBufferManagerOptions m_options;
 
 		private UQuantization3D m_testQuantization;
 
