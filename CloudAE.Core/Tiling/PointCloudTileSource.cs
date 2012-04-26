@@ -1084,8 +1084,13 @@ namespace CloudAE.Core
 			{
 				foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(inputBuffer))
 				{
-					for (UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr, end = p + chunk.Tile.PointCount; p < end; ++p)
+					byte* pb = inputBufferPtr;
+					byte* pbEnd = inputBufferPtr + chunk.Tile.StorageSize;
+					while (pb < pbEnd)
 					{
+						UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
+						pb += PointSizeBytes;
+
 						int pixelX = (int)(((*p).X - minX) * pixelsOverRangeX);
 						int pixelY = (int)(((*p).Y - minY) * pixelsOverRangeY);
 

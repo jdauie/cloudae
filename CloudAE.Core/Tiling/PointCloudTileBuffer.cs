@@ -16,6 +16,7 @@ namespace CloudAE.Core
 
 		private readonly int m_pointOffset;
 		private readonly int m_pointCount;
+		private readonly int m_pointSizeBytes;
 
 		private readonly IPointCloudTileBufferManager m_manager;
 
@@ -24,8 +25,8 @@ namespace CloudAE.Core
 		private int m_currentPointIndex;
 
 		private GCHandle m_gcHandle;
-		private UQuantizedPoint3D* m_pBuffer;
-		private UQuantizedPoint3D* m_pBufferEnd;
+		private byte* m_pBuffer;
+		private byte* m_pBufferEnd;
 
 		private uint m_minX;
 		private uint m_minY;
@@ -39,10 +40,11 @@ namespace CloudAE.Core
 			Col = tile.Col;
 			Row = tile.Row;
 
+			m_manager = manager;
+
 			m_pointOffset = tile.PointOffset;
 			m_pointCount = tile.PointCount;
-
-			m_manager = manager;
+			m_pointSizeBytes = m_manager.TileSource.PointSizeBytes;
 
 			m_pointsWritten = 0;
 			m_currentPointIndex = 0;
@@ -60,6 +62,8 @@ namespace CloudAE.Core
 			}
 			else
 			{
+				// theoretically, this could cause a problem computing the extent 
+				// (for a small number of points) -- I don't care right now.
 				m_minZ = uint.MaxValue;
 				m_maxZ = uint.MinValue;
 			}
@@ -70,8 +74,8 @@ namespace CloudAE.Core
 			UnpinBuffer();
 			m_gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 			IntPtr pAddr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
-			m_pBuffer = (UQuantizedPoint3D*)pAddr.ToPointer();
-			m_pBufferEnd = m_pBuffer + (buffer.Length / m_manager.TileSource.PointSizeBytes);
+			m_pBuffer = (byte*)pAddr.ToPointer();
+			m_pBufferEnd = m_pBuffer + buffer.Length;
 		}
 
 		public void UnpinBuffer()
@@ -96,10 +100,14 @@ namespace CloudAE.Core
 			if (point.Y < m_minY) m_minY = point.Y; else if (point.Y > m_maxY) m_maxY = point.Y;
 			if (point.Z < m_minZ) m_minZ = point.Z; else if (point.Z > m_maxZ) m_maxZ = point.Z;
 
-			(*m_pBuffer) = point;
+			// add attribute support here
+			UQuantizedPoint3D* p = (UQuantizedPoint3D*)m_pBuffer;
+			(*p) = point;
 
 			++m_currentPointIndex;
-			++m_pBuffer;
+			m_pBuffer += m_pointSizeBytes;
+
+			// all the return checks are unnecessary for tiling method 2
 
 			// buffer is full
 			if (m_pBuffer == m_pBufferEnd)
