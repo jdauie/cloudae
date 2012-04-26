@@ -16,6 +16,7 @@ namespace CloudAE.Core
 	/// <summary>
 	/// The performance penalty of this mechanism is due to the random write operations.
 	/// Sequential should be much faster.
+	/// However, I am keeping this code because it could be faster on a solid-state disk.
 	/// </summary>
 	[Obsolete]
 	class PointCloudTileBufferManager : IPointCloudTileBufferManager, IPropertyContainer

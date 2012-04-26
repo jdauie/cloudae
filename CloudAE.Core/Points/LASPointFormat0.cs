@@ -6,18 +6,36 @@ using System.Runtime.InteropServices;
 
 namespace CloudAE.Core.Geometry
 {
+	/// <summary>
+	/// Point Data Record Format 0 contains the core 20 bytes 
+	/// that are shared by Point Data Record Formats 0 to 5.
+	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public struct LASPointFormat0 : IQuantizedPoint3D
 	{
-		public int X;
-		public int Y;
-		public int Z;
-		public ushort Intensity;
-		public byte Options;
-		public byte Classifications;
-		public sbyte ScanAngleRank;
-		public byte UserData;
-		public ushort PointSourceID;
+		private int m_x;
+		private int m_y;
+		private int m_z;
+		private ushort m_intensity;
+		private byte m_options;
+		private byte m_classifications;
+		private sbyte m_scanAngleRank;
+		private byte m_userData;
+		private ushort m_pointSourceID;
+
+		#region Properties
+
+		public int X { get { return m_x; } }
+		public int Y { get { return m_y; } }
+		public int Z { get { return m_z; } }
+		public ushort Intensity { get { return m_intensity; } }
+		public byte Options { get { return m_options; } }
+		public byte Classifications { get { return m_classifications; } }
+		public sbyte ScanAngleRank { get { return m_scanAngleRank; } }
+		public byte UserData { get { return m_userData; } }
+		public ushort PointSourceID { get { return m_pointSourceID; } }
+
+		#endregion
 
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
