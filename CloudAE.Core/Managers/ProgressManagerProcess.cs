@@ -13,14 +13,27 @@ namespace CloudAE.Core
 		private readonly Stopwatch m_stopwatch;
 		private readonly Identity m_id;
 
-		public ProgressManagerProcess(ProgressManager progressManager, string name)
+		private readonly ProgressManagerProcess m_parent;
+		private readonly List<ProgressManagerProcess> m_children;
+
+		public ProgressManagerProcess Parent
+		{
+			get { return m_parent; }
+		}
+
+		public ProgressManagerProcess(ProgressManager progressManager, ProgressManagerProcess parent, string name)
 		{
 			m_progressManager = progressManager;
 			m_id = IdentityManager.AcquireIdentity(name, IdentityType.Process);
 			m_stopwatch = new Stopwatch();
 
+			m_parent = parent;
+			m_children = new List<ProgressManagerProcess>();
+
 			m_progressManager.Update(0.0f);
 			m_stopwatch.Start();
+
+			Context.WriteLine(string.Format("{0} -> Start", m_id));
 		}
 
 		public void Dispose()
@@ -29,6 +42,10 @@ namespace CloudAE.Core
 			m_progressManager.Update(100.0f);
 
 			BufferManager.ReleaseBuffers(m_id);
+
+			m_progressManager.EndProcess(this);
+
+			Context.WriteLine(string.Format("{0} -> End", m_id));
 		}
 
 		public void Log(string value, params object[] args)
@@ -61,6 +78,11 @@ namespace CloudAE.Core
 			return m_progressManager.Update(progressRatio, userState);
 		}
 
+		/// <summary>
+		/// Can these buffers be left available for use by scoped child processes?
+		/// Obviously, I don't have a mechanism for that now.
+		/// </summary>
+		/// <returns></returns>
 		public BufferInstance AcquireBuffer()
 		{
 			return AcquireBuffer(false);
@@ -69,6 +91,17 @@ namespace CloudAE.Core
 		public BufferInstance AcquireBuffer(bool pin)
 		{
 			return BufferManager.AcquireBuffer(m_id, pin);
+		}
+
+		public ProgressManagerProcess StartProcess(string name)
+		{
+			ProgressManagerProcess process = new ProgressManagerProcess(m_progressManager, this, name);
+			return process;
+		}
+
+		public void Add(ProgressManagerProcess process)
+		{
+			m_children.Add(process);
 		}
 	}
 }

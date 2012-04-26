@@ -422,17 +422,20 @@ namespace CloudAE.Core
 
 			fixed (byte* inputBufferPtr = inputBuffer)
 			{
-				UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
-
 				int bytesRead = tile.ReadTile(m_inputStream, inputBuffer);
 
-				for (int i = 0; i < tile.PointCount; i++)
+				byte* pb = inputBufferPtr;
+				byte* pbEnd = inputBufferPtr + tile.StorageSize;
+				while (pb < pbEnd)
 				{
-					uint pixelX = (uint)((p[i].X - quantizedExtent.MinX) / cellSizeX);
-					uint pixelY = (uint)((p[i].Y - quantizedExtent.MinY) / cellSizeY);
+					UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
+					pb += PointSizeBytes;
 
-					if (p[i].Z > quantizedGrid.Data[pixelX, pixelY])
-						quantizedGrid.Data[pixelX, pixelY] = p[i].Z;
+					int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
+					int pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
+
+					if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
+						quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
 				}
 			}
 

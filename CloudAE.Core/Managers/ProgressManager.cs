@@ -8,6 +8,8 @@ namespace CloudAE.Core
 		private Action<string> m_logAction;
 		private object m_userState;
 
+		private ProgressManagerProcess m_currentProcess;
+
 		public object UserState
 		{
 			get { return m_userState; }
@@ -54,7 +56,19 @@ namespace CloudAE.Core
 
 		public ProgressManagerProcess StartProcess(string name)
 		{
-			return new ProgressManagerProcess(this, name);
+			ProgressManagerProcess process = null;
+
+			if (m_currentProcess != null)
+				process = m_currentProcess.StartProcess(name);
+			else
+				process = new ProgressManagerProcess(this, null, name);
+
+			return process;
+		}
+
+		public void EndProcess(ProgressManagerProcess process)
+		{
+			m_currentProcess = process.Parent;
 		}
 	}
 }

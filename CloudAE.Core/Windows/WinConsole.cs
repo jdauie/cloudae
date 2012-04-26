@@ -251,8 +251,7 @@ namespace CloudAE.Core.Windows
 			if (Initialized)
 				return;
 
-			//if (!SystemUtilities.UserInteractiveMode)
-			//    return;
+#warning don't create in non-interactive mode
 
 			const short bufferWidth = 100;
 			const short bufferHeight = 900;
@@ -337,12 +336,15 @@ namespace CloudAE.Core.Windows
 
 			if (trimmedValue.StartsWith("["))
 			{
-				using (WinConsoleColorHandler.Handle(WinConsoleColor.White))
-					Console.Write(value.Substring(0, value.Length - trimmedValue.Length + 1));
-				using (WinConsoleColorHandler.Handle(WinConsoleColor.Green))
-					Console.Write(trimmedValue.Substring(1, trimmedValue.Length - 2));
-				using (WinConsoleColorHandler.Handle(WinConsoleColor.White))
-					Console.WriteLine(value.Substring(value.Length - 1));
+				if (trimmedValue.EndsWith("]"))
+				{
+					using (WinConsoleColorHandler.Handle(WinConsoleColor.White))
+						Console.Write(value.Substring(0, value.Length - trimmedValue.Length + 1));
+					using (WinConsoleColorHandler.Handle(WinConsoleColor.Green))
+						Console.Write(trimmedValue.Substring(1, trimmedValue.Length - 2));
+					using (WinConsoleColorHandler.Handle(WinConsoleColor.White))
+						Console.WriteLine(value.Substring(value.Length - 1));
+				}
 			}
 			else if (trimmedValue.StartsWith("+ ") || trimmedValue.StartsWith("- ") || trimmedValue.StartsWith("x "))
 			{
