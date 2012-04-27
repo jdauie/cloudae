@@ -6,6 +6,11 @@ using System.IO;
 
 namespace CloudAE.Core
 {
+	/// <summary>
+	/// Additional supported records:
+	/// User ID/Record ID
+	/// LASF_Spec/65535		Waveform data packets
+	/// </summary>
 	public class LASEVLR
 	{
 		private readonly ushort m_reserved;

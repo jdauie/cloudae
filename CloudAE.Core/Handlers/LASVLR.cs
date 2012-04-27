@@ -6,6 +6,21 @@ using System.IO;
 
 namespace CloudAE.Core
 {
+	/// <summary>
+	/// Supported records:
+	/// User ID/Record ID
+	/// LASF_Projection/2111	OGC MATH TRANSFORM WKT RECORD
+	/// LASF_Projection/2112	OGC COORDINATE SYSTEM WKT
+	/// LASF_Projection/34735	GeoKeyDirectoryTag
+	/// LASF_Projection/34736	GeoDoubleParamsTag Record
+	/// LASF_Projection/34737	GeoAsciiParamsTag Record
+	/// LASF_Spec/0				Classification lookup
+	/// LASF_Spec/3				Text area description
+	/// LASF_Spec/4				Extra bytes
+	/// LASF_Spec/7				Superseded
+	/// LASF_Spec/n				Waveform packet descriptor
+	///		where 99 < n < 355
+	/// </summary>
 	public class LASVLR : ISerializeBinary
 	{
 		private readonly ushort m_reserved;
