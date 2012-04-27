@@ -53,7 +53,7 @@ namespace CloudAE.Core
 		{
 			using (BinaryReader reader = new BinaryReader(File.OpenRead(FilePath)))
 			{
-				m_header = new LASHeader(reader);
+				m_header = reader.ReadLASHeader();
 			}
 
 			int pointSizeBytes = PointSizeBytes;

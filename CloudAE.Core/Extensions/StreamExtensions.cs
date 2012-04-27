@@ -13,6 +13,18 @@ namespace CloudAE.Core
 			obj.Serialize(writer);
 		}
 
+		public static void Write(this BinaryWriter writer, uint[] array)
+		{
+			for (int i = 0; i < array.Length; i++)
+				writer.Write(array[i]);
+		}
+
+		public static void Write(this BinaryWriter writer, ulong[] array)
+		{
+			for (int i = 0; i < array.Length; i++)
+				writer.Write(array[i]);
+		}
+
 		public static Extent3D ReadExtent3D(this BinaryReader reader)
 		{
 			return new Extent3D(reader);
@@ -63,6 +75,16 @@ namespace CloudAE.Core
 			return new LASGlobalEncoding(reader);
 		}
 
+		public static LASVLR ReadLASVLR(this BinaryReader reader)
+		{
+			return new LASVLR(reader);
+		}
+
+		public static LASEVLR ReadLASEVLR(this BinaryReader reader)
+		{
+			return new LASEVLR(reader);
+		}
+
 		public static Extent3D ReadLASExtent3D(this BinaryReader reader)
 		{
 			double hMaxX = reader.ReadDouble();
@@ -73,6 +95,11 @@ namespace CloudAE.Core
 			double hMinZ = reader.ReadDouble();
 
 			return new Extent3D(hMinX, hMinY, hMinZ, hMaxX, hMaxY, hMaxZ);
+		}
+
+		public static LASHeader ReadLASHeader(this BinaryReader reader)
+		{
+			return new LASHeader(reader);
 		}
 
 		public static uint[] ReadUInt32Array(this BinaryReader reader, int count)

@@ -10,17 +10,17 @@ namespace CloudAE.Core
 {
 	public enum LASVersion : ushort
 	{
-		LAS_1_0 = (1 << 8) + 0,
-		LAS_1_1 = (1 << 8) + 1,
-		LAS_1_2 = (1 << 8) + 2,
-		LAS_1_3 = (1 << 8) + 3,
-		LAS_1_4 = (1 << 8) + 4
+		LAS_1_0 = (1 << 8) | 0,
+		LAS_1_1 = (1 << 8) | 1,
+		LAS_1_2 = (1 << 8) | 2,
+		LAS_1_3 = (1 << 8) | 3,
+		LAS_1_4 = (1 << 8) | 4
 	}
 
 	/// <summary>
 	/// Project ID replaces GUID data beginning in LAS 1.4
 	/// </summary>
-	public class LASProjectID
+	public class LASProjectID : ISerializeBinary
 	{
 		private readonly byte[] m_data;
 		//private readonly Guid m_guid;
@@ -30,9 +30,14 @@ namespace CloudAE.Core
 			m_data = reader.ReadBytes(16);
 			//m_guid = new Guid(m_data);
 		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(m_data);
+		}
 	}
 
-	public class LASVersionInfo
+	public class LASVersionInfo : ISerializeBinary
 	{
 		private readonly byte m_versionMajor;
 		private readonly byte m_versionMinor;
@@ -67,9 +72,14 @@ namespace CloudAE.Core
 
 			m_maxSupportedVersion = (LASVersion)versions[versionIndex];
 		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+
+		}
 	}
 
-	public class LASGlobalEncoding
+	public class LASGlobalEncoding : ISerializeBinary
 	{
 		private readonly ushort m_globalEncoding;
 
@@ -87,9 +97,14 @@ namespace CloudAE.Core
 			ReturnNumbersSynthetic      = (m_globalEncoding & (1 << 3)) != 0;
 			WKT                         = (m_globalEncoding & (1 << 4)) != 0;
 		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(m_globalEncoding);
+		}
 	}
 
-	class LASHeader
+	public class LASHeader : ISerializeBinary
 	{
 		public const string FILE_SIGNATURE = "LASF";
 
@@ -228,6 +243,43 @@ namespace CloudAE.Core
 			ulong pointDataRegionLength = (ulong)length - hOffsetToPointData;
 			if (pointDataRegionLength < hPointDataRecordLength * PointCount)
 				throw new Exception("Invalid format: point data region is not the expected size");
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(ASCIIEncoding.ASCII.GetBytes(FILE_SIGNATURE));
+			writer.Write(hFileSourceID);
+			writer.Write(m_globalEncoding);
+			writer.Write(m_projectID);
+			writer.Write(m_version);
+
+			writer.Write(hSystemIdentifier.ToUnsafeAsciiBytes(32));
+			writer.Write(hGeneratingSoftware.ToUnsafeAsciiBytes(32));
+			writer.Write(hFileCreationDayOfYear);
+			writer.Write(hFileCreationYear);
+			writer.Write(hHeaderSize);
+			writer.Write(hOffsetToPointData);
+
+			writer.Write(hNumberOfVariableLengthRecords);
+			writer.Write(hPointDataRecordFormat);
+			writer.Write(hPointDataRecordLength);
+			writer.Write(hLegacyNumberOfPointRecords);
+			writer.Write(hLegacyNumberOfPointsByReturn);
+			writer.Write(m_quantization);
+			writer.Write(m_extent);
+
+			if (m_version.Version >= LASVersion.LAS_1_3)
+			{
+				writer.Write(hStartOfFirstExtendedVariableLengthRecord);
+			}
+
+			if (m_version.Version >= LASVersion.LAS_1_4)
+			{
+				writer.Write(hStartOfFirstExtendedVariableLengthRecord);
+				writer.Write(hNumberOfExtendedVariableLengthRecords);
+				writer.Write(hNumberOfPointRecords);
+				writer.Write(hNumberOfPointsByReturn);
+			}
 		}
 	}
 }

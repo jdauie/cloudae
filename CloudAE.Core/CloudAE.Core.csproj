@@ -53,12 +53,15 @@
   <ItemGroup>
     <Compile Include="Collections\ObservableQueue.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\WindowExtensions.cs" />
     <Compile Include="Geometry\Polygon2DConvex.cs" />
     <Compile Include="Geometry\Point2D.cs" />
     <Compile Include="Geometry\Polygon2D.cs" />
     <Compile Include="Geometry\PolygonBase.cs" />
+    <Compile Include="Handlers\LASEVLR.cs" />
     <Compile Include="Handlers\LASHeader.cs" />
+    <Compile Include="Handlers\LASVLR.cs" />
     <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />
     <Compile Include="Cache.cs" />
