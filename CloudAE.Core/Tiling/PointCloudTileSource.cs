@@ -1109,6 +1109,10 @@ namespace CloudAE.Core
 			quantizedGrid.CorrectMaxOverflow();
 			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
 
+			
+			// test
+			//CachedColorRamp cachedRamp = new CachedColorRamp(ColorRamp.PredefinedColorRamps.Elevation1, QuantizedExtent.MinZ, QuantizedExtent.MaxZ, StatisticsZ.ConvertToQuantized(Quantization as UQuantization3D), true, 1000);
+
 			m_pixelGrid = grid;
 		}
 

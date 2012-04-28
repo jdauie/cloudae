@@ -30,6 +30,7 @@ namespace CloudAE.Core
 			m_description = reader.ReadBytes(32).UnsafeAsciiBytesToString();
 
 			// this data could be massive...that would be strange, but legal
+			// I should only read records that are recognized
 			//m_data = reader.ReadBytes(m_recordLengthAfterHeader);
 		}
 

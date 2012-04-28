@@ -70,6 +70,71 @@ namespace CloudAE.Core
 			writer.Write(Variance);
 			writer.Write(ModeApproximate);
 		}
+
+		public QuantizedStatistics ConvertToQuantized(UQuantization3D quantization)
+		{
+			uint mean = (uint)((m_mean - quantization.OffsetZ) / quantization.ScaleFactorZ);
+			uint variance = (uint)(m_variance / quantization.ScaleFactorZ);
+			uint mode = (uint)((m_modeApproximate - quantization.OffsetZ) / quantization.ScaleFactorZ);
+
+			return new QuantizedStatistics(mean, variance, mode);
+		}
+	}
+
+	public class QuantizedStatistics : ISerializeBinary
+	{
+		public readonly uint m_mean;
+		public readonly uint m_stdDev;
+		public readonly uint m_variance;
+
+		public readonly uint m_modeApproximate;
+
+		#region Properties
+
+		public uint Mean
+		{
+			get { return m_mean; }
+		}
+
+		public uint StdDev
+		{
+			get { return m_stdDev; }
+		}
+
+		public uint Variance
+		{
+			get { return m_variance; }
+		}
+
+		public uint ModeApproximate
+		{
+			get { return m_modeApproximate; }
+		}
+
+		#endregion
+
+		public QuantizedStatistics(uint mean, uint variance, uint mode)
+		{
+			m_mean = mean;
+			m_variance = variance;
+			m_stdDev = (uint)Math.Sqrt(Variance);
+			m_modeApproximate = mode;
+		}
+
+		public QuantizedStatistics(BinaryReader reader)
+		{
+			m_mean = reader.ReadUInt32();
+			m_variance = reader.ReadUInt32();
+			m_stdDev = (uint)Math.Sqrt(Variance);
+			m_modeApproximate = reader.ReadUInt32();
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(Mean);
+			writer.Write(Variance);
+			writer.Write(ModeApproximate);
+		}
 	}
 
 	public class StatisticsGenerator
