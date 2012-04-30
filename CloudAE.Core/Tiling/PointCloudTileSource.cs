@@ -37,6 +37,7 @@ namespace CloudAE.Core
 		private bool m_isDirty;
 
 		private Grid<float> m_pixelGrid;
+		private Grid<uint> m_pixelGridQuantized;
 		private PreviewImage m_preview;
 
 		private System.Windows.Media.Imaging.BitmapImage m_icon;
@@ -985,6 +986,9 @@ namespace CloudAE.Core
 		{
 			if (Preview == null || Preview.ColorHandler != ramp || Preview.UseStdDevStretch != useStdDevStretch)
 			{
+				// test
+				//CachedColorRamp cachedRamp = new CachedColorRamp(ColorRamp.PredefinedColorRamps.Elevation1, QuantizedExtent.MinZ, QuantizedExtent.MaxZ, StatisticsZ.ConvertToQuantized(Quantization as UQuantization3D), true, 1000);
+
 				BitmapSource source = GeneratePreviewImage(m_pixelGrid, ramp, useStdDevStretch);
 				Preview = new PreviewImage(source, ramp, useStdDevStretch);
 			}
@@ -1108,15 +1112,44 @@ namespace CloudAE.Core
 
 			quantizedGrid.CorrectMaxOverflow();
 			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
-
 			
-			// test
-			//CachedColorRamp cachedRamp = new CachedColorRamp(ColorRamp.PredefinedColorRamps.Elevation1, QuantizedExtent.MinZ, QuantizedExtent.MaxZ, StatisticsZ.ConvertToQuantized(Quantization as UQuantization3D), true, 1000);
-
+			m_pixelGridQuantized = quantizedGrid;
 			m_pixelGrid = grid;
 		}
 
 		private unsafe BitmapSource CreateBitmapSource(Grid<float> grid, double rangeZ, bool useStdDevStretch, IColorHandler colorHandler)
+		{
+			ColorRamp ramp = colorHandler as ColorRamp;
+			ColorMapDistinct map = colorHandler as ColorMapDistinct;
+
+			WriteableBitmap bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
+			bmp.Lock();
+			int pBackBuffer = (int)bmp.BackBuffer;
+			int* p = (int*)pBackBuffer;
+
+			if (map != null)
+			{
+				CreateColorBufferMap(grid, p, map);
+			}
+			else
+			{
+				if (ramp == null)
+					ramp = ColorRamp.PredefinedColorRamps.Grayscale;
+
+				if (useStdDevStretch)
+					CreateColorBufferStdDev(grid, p, ramp);
+				else
+					CreateColorBufferFull(grid, p, rangeZ, ramp);
+			}
+
+			bmp.AddDirtyRect(new System.Windows.Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight));
+			bmp.Unlock();
+			bmp.Freeze();
+
+			return bmp;
+		}
+
+		private unsafe BitmapSource CreateBitmapSource(Grid<uint> grid, UQuantizedExtent3D extent, bool useStdDevStretch, IColorHandler colorHandler)
 		{
 			ColorRamp ramp = colorHandler as ColorRamp;
 			ColorMapDistinct map = colorHandler as ColorMapDistinct;
