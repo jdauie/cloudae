@@ -8,14 +8,13 @@ using System.Drawing;
 namespace CloudAE.Core
 {
 	/// <summary>
-	/// Pre-calculated color ramp.
-	/// Stretched for a specified size and input range.
-	/// Uses the 2^n mapping mechanism.
-	/// 
-	/// supports std dev stretch
+	/// Pre-calculated color ramp using the 2^n mapping mechanism.
+	/// Stretched for a specified size and input range (including std dev stretch).
 	/// </summary>
 	class CachedColorRamp
 	{
+		private const bool SCALE_DESIRED_BINS_TO_SOURCE_RANGE = false;
+
 		private readonly ColorRamp m_ramp;
 
 		private readonly uint m_realMin;
@@ -53,6 +52,9 @@ namespace CloudAE.Core
 
 		public CachedColorRamp(ColorRamp ramp, uint min, uint max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
 		{
+			if (useStdDevStretch && stats == null)
+				throw new ArgumentException("There must be a stats argument if stretching is enabled.");
+
 			m_ramp = ramp;
 			m_binCountDesired = desiredDestinationBins;
 
@@ -75,7 +77,10 @@ namespace CloudAE.Core
 
 			// stretch desired destination bins over adjusted range,
 			// and determine how many total bins are required at that scale
-			double totalBinsEstimate = (double)desiredDestinationBins;// *(m_realMax + 1) / m_sourceRange;
+			double totalBinsEstimate = (double)desiredDestinationBins;
+			if (SCALE_DESIRED_BINS_TO_SOURCE_RANGE)
+				totalBinsEstimate = totalBinsEstimate * (m_realMax + 1) / m_sourceRange;
+
 			m_binCountPow = (int)Math.Ceiling(Math.Log(totalBinsEstimate, 2));
 			m_binCount = (int)Math.Pow(2, m_binCountPow);
 

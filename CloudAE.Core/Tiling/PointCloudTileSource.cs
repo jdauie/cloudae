@@ -1137,7 +1137,7 @@ namespace CloudAE.Core
 				if (ramp == null)
 					ramp = ColorRamp.PredefinedColorRamps.Grayscale;
 
-				CachedColorRamp cachedRamp = new CachedColorRamp(ramp, extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, 1000);
+				CachedColorRamp cachedRamp = ramp.CreateCachedRamp(extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, 1000);
 				int[] rampBins = cachedRamp.DestinationBins;
 				int sourceRightShift = cachedRamp.SourceRightShift;
 
@@ -1151,12 +1151,10 @@ namespace CloudAE.Core
 						// flip y-axis
 						uint z = grid.Data[c, rr];
 
-						(*p) = transparent;
-
 						if (z != grid.FillVal)
-						{
 							(*p) = rampBins[z >> sourceRightShift];
-						}
+						else
+							(*p) = transparent;
 
 						++p;
 					}

@@ -136,6 +136,12 @@ namespace CloudAE.Core
 				throw new NotImplementedException("The specified ColorRamp does not return a useful mapping.");
 		}
 
+		public CachedColorRamp CreateCachedRamp(uint min, uint max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
+		{
+			CachedColorRamp cachedRamp = new CachedColorRamp(this, min, max, stats, useStdDevStretch, 1000);
+			return cachedRamp;
+		}
+
 		/// <summary>
 		/// Creates the map.
 		/// </summary>
