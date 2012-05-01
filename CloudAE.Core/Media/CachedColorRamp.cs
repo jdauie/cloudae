@@ -11,7 +11,7 @@ namespace CloudAE.Core
 	/// Pre-calculated color ramp using the 2^n mapping mechanism.
 	/// Stretched for a specified size and input range (including std dev stretch).
 	/// </summary>
-	class CachedColorRamp
+	public class CachedColorRamp
 	{
 		private const bool SCALE_DESIRED_BINS_TO_SOURCE_RANGE = false;
 
