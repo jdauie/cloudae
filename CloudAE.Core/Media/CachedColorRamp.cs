@@ -39,7 +39,17 @@ namespace CloudAE.Core
 
 		private readonly int m_sourceRightShift;
 
-		private readonly Color[] m_bins;
+		private readonly int[] m_bins;
+
+		public int[] DestinationBins
+		{
+			get { return m_bins; }
+		}
+
+		public int SourceRightShift
+		{
+			get { return m_sourceRightShift; }
+		}
 
 		public CachedColorRamp(ColorRamp ramp, uint min, uint max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
 		{
@@ -52,8 +62,8 @@ namespace CloudAE.Core
 			if (useStdDevStretch)
 			{
 				uint stdDevMultiple = 2 * stats.StdDev;
-				m_sourceMin = Math.Max(m_realMin, stats.m_mean - stdDevMultiple);
-				m_sourceMax = Math.Min(m_realMax, stats.m_mean + stdDevMultiple);
+				m_sourceMin = (uint)Math.Max(m_realMin, (long)stats.m_mean - stdDevMultiple);
+				m_sourceMax = (uint)Math.Min(m_realMax, (long)stats.m_mean + stdDevMultiple);
 			}
 			else
 			{
@@ -65,7 +75,7 @@ namespace CloudAE.Core
 
 			// stretch desired destination bins over adjusted range,
 			// and determine how many total bins are required at that scale
-			double totalBinsEstimate = (double)desiredDestinationBins * (m_realMax + 1) / m_sourceRange;
+			double totalBinsEstimate = (double)desiredDestinationBins;// *(m_realMax + 1) / m_sourceRange;
 			m_binCountPow = (int)Math.Ceiling(Math.Log(totalBinsEstimate, 2));
 			m_binCount = (int)Math.Pow(2, m_binCountPow);
 
@@ -89,17 +99,20 @@ namespace CloudAE.Core
 			m_sourceMinShifted = m_sourceMin >> m_sourceRightShift;
 			m_sourceMaxShifted = m_sourceMax >> m_sourceRightShift;
 
-			m_bins = new Color[m_binCount + 1];
+			m_bins = new int[m_binCount + 1];
 
 			for (uint i = m_realMinShifted; i < m_sourceMinShifted; i++)
-				m_bins[i] = ramp.GetColor(0.0);
+				m_bins[i] = ramp.GetColor(0.0).ToArgb();
 			for (uint i = m_sourceMaxShifted + 1; i <= m_realMaxShifted + 1; i++)
-				m_bins[i] = ramp.GetColor(1.0);
+				m_bins[i] = ramp.GetColor(1.0).ToArgb();
+
+			uint destinationRange = m_sourceMaxShifted - m_sourceMinShifted + 1;
 
 			for (uint i = m_sourceMinShifted; i <= m_sourceMaxShifted; i++)
 			{
-				double ratio = (i - m_sourceMinShifted + 0.5) / m_sourceRange;
-				m_bins[i] = ramp.GetColor(ratio);
+				//double ratio = (i - m_sourceMinShifted + 0.5) / m_sourceRange;
+				double ratio = (double)(i - m_sourceMinShifted) / destinationRange;
+				m_bins[i] = ramp.GetColor(ratio).ToArgb();
 			}
 		}
 	}

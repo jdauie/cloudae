@@ -986,37 +986,36 @@ namespace CloudAE.Core
 		{
 			if (Preview == null || Preview.ColorHandler != ramp || Preview.UseStdDevStretch != useStdDevStretch)
 			{
-				// test
-				//CachedColorRamp cachedRamp = new CachedColorRamp(ColorRamp.PredefinedColorRamps.Elevation1, QuantizedExtent.MinZ, QuantizedExtent.MaxZ, StatisticsZ.ConvertToQuantized(Quantization as UQuantization3D), true, 1000);
-
-				BitmapSource source = GeneratePreviewImage(m_pixelGrid, ramp, useStdDevStretch);
+				BitmapSource source = GeneratePreviewImage(m_pixelGridQuantized, ramp, useStdDevStretch);
 				Preview = new PreviewImage(source, ramp, useStdDevStretch);
 			}
 			return Preview.Image;
 		}
 
-		private BitmapSource GeneratePreviewImage(Grid<float> grid, ColorRamp ramp, bool useStdDevStretch)
+		private BitmapSource GeneratePreviewImage(Grid<uint> grid, ColorRamp ramp, bool useStdDevStretch)
 		{
-			BitmapSource bmp = CreateBitmapSource(grid, Extent.RangeZ, useStdDevStretch, ramp);
+			BitmapSource bmp = CreateBitmapSource(grid, QuantizedExtent, StatisticsZ.ConvertToQuantized(Quantization as UQuantization3D), useStdDevStretch, ramp);
 			//BitmapSource bmp = CreateSegmentationBitmap(grid);
 			//BitmapSource bmp = CreatePlaneFittingBitmap(grid);
 
 			return bmp;
 		}
 
-		private BitmapSource CreatePlaneFittingBitmap(Grid<float> grid)
+		private BitmapSource CreatePlaneFittingBitmap(Grid<uint> grid)
 		{
-			float[,] gridValues = new float[grid.SizeX, grid.SizeY];
+			//float[,] gridValues = new float[grid.SizeX, grid.SizeY];
 
-			ComputeGridSlopeSurfaceComponent(grid, gridValues);
+			//ComputeGridSlopeSurfaceComponent(grid, gridValues);
 
-			for (int x = 0; x < grid.SizeX; x++)
-				for (int y = 0; y < grid.SizeY; y++)
-					grid.Data[x, y] = gridValues[x, y];
+			//for (int x = 0; x < grid.SizeX; x++)
+			//    for (int y = 0; y < grid.SizeY; y++)
+			//        grid.Data[x, y] = gridValues[x, y];
 
-			BitmapSource bmp = CreateBitmapSource(grid, 1.0, false, null);
+			//BitmapSource bmp = CreateBitmapSource(grid, 1.0, false, null);
 
-			return bmp;
+			//return bmp;
+
+			return null;
 		}
 
 		private static void ComputeGridSlopeSurfaceComponent(Grid<float> grid, float[,] gridValues)
@@ -1050,17 +1049,19 @@ namespace CloudAE.Core
 
 		private BitmapSource CreateSegmentationBitmap(Grid<float> grid)
 		{
-			uint[,] gridClasses = new uint[grid.SizeX, grid.SizeY];
+			//uint[,] gridClasses = new uint[grid.SizeX, grid.SizeY];
 
-			uint currentClassIndex = Segmentation.ClassifyTile(grid, gridClasses, 1.00f, 1, 10, grid.FillVal, NeighborhoodType.FourNeighbors);
+			//uint currentClassIndex = Segmentation.ClassifyTile(grid, gridClasses, 1.00f, 1, 10, grid.FillVal, NeighborhoodType.FourNeighbors);
 
-			for (int x = 0; x < grid.SizeX; x++)
-				for (int y = 0; y < grid.SizeY; y++)
-					grid.Data[x, y] = gridClasses[x, y];
+			//for (int x = 0; x < grid.SizeX; x++)
+			//    for (int y = 0; y < grid.SizeY; y++)
+			//        grid.Data[x, y] = gridClasses[x, y];
 
-			BitmapSource bmp = CreateBitmapSource(grid, currentClassIndex, false, new ColorMapDistinct());
+			//BitmapSource bmp = CreateBitmapSource(grid, currentClassIndex, false, new ColorMapDistinct());
 
-			return bmp;
+			//return bmp;
+
+			return null;
 		}
 
 		public void GeneratePreviewGrid(ProgressManager progressManager)
@@ -1117,7 +1118,7 @@ namespace CloudAE.Core
 			m_pixelGrid = grid;
 		}
 
-		private unsafe BitmapSource CreateBitmapSource(Grid<float> grid, double rangeZ, bool useStdDevStretch, IColorHandler colorHandler)
+		private unsafe BitmapSource CreateBitmapSource(Grid<uint> grid, UQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler)
 		{
 			ColorRamp ramp = colorHandler as ColorRamp;
 			ColorMapDistinct map = colorHandler as ColorMapDistinct;
@@ -1136,42 +1137,30 @@ namespace CloudAE.Core
 				if (ramp == null)
 					ramp = ColorRamp.PredefinedColorRamps.Grayscale;
 
-				if (useStdDevStretch)
-					CreateColorBufferStdDev(grid, p, ramp);
-				else
-					CreateColorBufferFull(grid, p, rangeZ, ramp);
-			}
+				CachedColorRamp cachedRamp = new CachedColorRamp(ramp, extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, 1000);
+				int[] rampBins = cachedRamp.DestinationBins;
+				int sourceRightShift = cachedRamp.SourceRightShift;
 
-			bmp.AddDirtyRect(new System.Windows.Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight));
-			bmp.Unlock();
-			bmp.Freeze();
+				int transparent = Color.Transparent.ToArgb();
 
-			return bmp;
-		}
+				for (int r = 0; r < grid.SizeY; r++)
+				{
+					int rr = grid.SizeY - r - 1;
+					for (int c = 0; c < grid.SizeX; c++)
+					{
+						// flip y-axis
+						uint z = grid.Data[c, rr];
 
-		private unsafe BitmapSource CreateBitmapSource(Grid<uint> grid, UQuantizedExtent3D extent, bool useStdDevStretch, IColorHandler colorHandler)
-		{
-			ColorRamp ramp = colorHandler as ColorRamp;
-			ColorMapDistinct map = colorHandler as ColorMapDistinct;
+						(*p) = transparent;
 
-			WriteableBitmap bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
-			bmp.Lock();
-			int pBackBuffer = (int)bmp.BackBuffer;
-			int* p = (int*)pBackBuffer;
+						if (z != grid.FillVal)
+						{
+							(*p) = rampBins[z >> sourceRightShift];
+						}
 
-			if (map != null)
-			{
-				CreateColorBufferMap(grid, p, map);
-			}
-			else
-			{
-				if (ramp == null)
-					ramp = ColorRamp.PredefinedColorRamps.Grayscale;
-
-				if (useStdDevStretch)
-					CreateColorBufferStdDev(grid, p, ramp);
-				else
-					CreateColorBufferFull(grid, p, rangeZ, ramp);
+						++p;
+					}
+				}
 			}
 
 			bmp.AddDirtyRect(new System.Windows.Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight));
@@ -1183,77 +1172,19 @@ namespace CloudAE.Core
 
 		#region Color Buffer Methods
 
-		private unsafe void CreateColorBufferStdDev(Grid<float> grid, int* p, ColorRamp ramp)
-		{
-			float devFromMean = (float)(2 * StatisticsZ.StdDev);
-			float stdDevOffset = (float)(StatisticsZ.Mean - Extent.MinZ - devFromMean);
-			if (stdDevOffset < 0) stdDevOffset = 0;
-			float rangeZ = 2 * devFromMean;
-
-			for (int r = 0; r < grid.SizeY; r++)
-			{
-				for (int c = 0; c < grid.SizeX; c++)
-				{
-					// flip y-axis
-					float z = grid.Data[c, grid.SizeY - r - 1];
-
-					Color color = Color.Transparent;
-
-					if (z != grid.FillVal)
-					{
-						z -= stdDevOffset;
-
-						if (z < 0) z = 0; else if (z > rangeZ) z = rangeZ;
-						double ratio = z / rangeZ;
-
-						color = ramp.GetColor(ratio);
-					}
-
-					(*p) = color.ToArgb();
-					++p;
-				}
-			}
-		}
-
-		private unsafe void CreateColorBufferFull(Grid<float> grid, int* p, double rangeZ, ColorRamp ramp)
+		private unsafe void CreateColorBufferMap(Grid<uint> grid, int* p, ColorMapDistinct map)
 		{
 			for (int r = 0; r < grid.SizeY; r++)
 			{
 				for (int c = 0; c < grid.SizeX; c++)
 				{
 					// flip y-axis
-					float z = grid.Data[c, grid.SizeY - r - 1];
+					uint z = grid.Data[c, grid.SizeY - r - 1];
 
 					Color color = Color.Transparent;
 
 					if (z != grid.FillVal)
-					{
-						double ratio = z / rangeZ;
-
-						if (ratio < 0) ratio = 0.0f; else if (ratio > 1) ratio = 1.0f;
-
-						color = ramp.GetColor(ratio);
-					}
-
-					(*p) = color.ToArgb();
-					++p;
-				}
-			}
-		}
-
-		private unsafe void CreateColorBufferMap(Grid<float> grid, int* p, ColorMapDistinct map)
-		{
-			for (int r = 0; r < grid.SizeY; r++)
-			{
-				for (int c = 0; c < grid.SizeX; c++)
-				{
-					// flip y-axis
-					float z = grid.Data[c, grid.SizeY - r - 1];
-
-					Color color = Color.Transparent;
-
-					if (z != grid.FillVal)
-						color = map.GetColor((uint)z);
+						color = map.GetColor(z);
 
 					(*p) = color.ToArgb();
 					++p;

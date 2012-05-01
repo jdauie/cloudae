@@ -74,7 +74,8 @@ namespace CloudAE.Core
 		public QuantizedStatistics ConvertToQuantized(UQuantization3D quantization)
 		{
 			uint mean = (uint)((m_mean - quantization.OffsetZ) / quantization.ScaleFactorZ);
-			uint variance = (uint)(m_variance / quantization.ScaleFactorZ);
+			uint stdDev = (uint)(m_stdDev / quantization.ScaleFactorZ);
+			uint variance = stdDev * stdDev;
 			uint mode = (uint)((m_modeApproximate - quantization.OffsetZ) / quantization.ScaleFactorZ);
 
 			return new QuantizedStatistics(mean, variance, mode);
