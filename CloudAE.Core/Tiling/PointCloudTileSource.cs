@@ -1125,7 +1125,7 @@ namespace CloudAE.Core
 
 			WriteableBitmap bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
 			bmp.Lock();
-			int pBackBuffer = (int)bmp.BackBuffer;
+			IntPtr pBackBuffer = bmp.BackBuffer;
 			int* p = (int*)pBackBuffer;
 
 			if (map != null)
