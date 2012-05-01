@@ -1138,8 +1138,6 @@ namespace CloudAE.Core
 					ramp = ColorRamp.PredefinedColorRamps.Grayscale;
 
 				CachedColorRamp cachedRamp = ramp.CreateCachedRamp(extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, 1000);
-				int[] rampBins = cachedRamp.DestinationBins;
-				int sourceRightShift = cachedRamp.SourceRightShift;
 
 				int transparent = Color.Transparent.ToArgb();
 
@@ -1152,7 +1150,7 @@ namespace CloudAE.Core
 						uint z = grid.Data[c, rr];
 
 						if (z != grid.FillVal)
-							(*p) = rampBins[z >> sourceRightShift];
+							(*p) = cachedRamp.DestinationBins[z >> cachedRamp.SourceRightShift];
 						else
 							(*p) = transparent;
 
