@@ -167,20 +167,33 @@ namespace CloudAE.Core
 				}
 
 				// decode deltas and offsets
+				// if I decide to pursue compression, this pinning can be optimized
 				fixed (byte* inputBufferPtr = inputBuffer)
 				{
-					UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
+					//UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
 
-					p[0].X += m_quantizedExtent.MinX;
-					p[0].Y += m_quantizedExtent.MinY;
-					p[0].Z += m_quantizedExtent.MinZ;
+					//p[0].X += m_quantizedExtent.MinX;
+					//p[0].Y += m_quantizedExtent.MinY;
+					//p[0].Z += m_quantizedExtent.MinZ;
 
-					for (int i = 1; i < PointCount; i++)
+					//for (int i = 1; i < PointCount; i++)
+					//{
+					//    p[i].X += p[i - 1].X;
+					//    //p[i].X += m_quantizedExtent.MinX;
+					//    p[i].Y += m_quantizedExtent.MinY;
+					//    p[i].Z += m_quantizedExtent.MinZ;
+					//}
+
+					byte* pb = inputBufferPtr;
+					byte* pbEnd = inputBufferPtr + bytesRead;
+					while (pb < pbEnd)
 					{
-						p[i].X += p[i - 1].X;
-						//p[i].X += m_quantizedExtent.MinX;
-						p[i].Y += m_quantizedExtent.MinY;
-						p[i].Z += m_quantizedExtent.MinZ;
+						UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
+						pb += TileSource.PointSizeBytes;
+
+						(*p).X += m_quantizedExtent.MinX;
+						(*p).Y += m_quantizedExtent.MinY;
+						(*p).Z += m_quantizedExtent.MinZ;
 					}
 				}
 			}

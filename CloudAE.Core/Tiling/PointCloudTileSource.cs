@@ -660,8 +660,6 @@ namespace CloudAE.Core
 		public unsafe PointCloudTileSource CompressTileSource(CompressionMethod compressionMethod, ProgressManager progressManager)
 		{
 			int maxIndividualBufferSize = TileSet.Density.MaxTileCount * PointSizeBytes;
-			//if (maxIndividualBufferSize > BufferManager.BUFFER_SIZE_BYTES)
-			//    throw new Exception("tile size was not anticipated to be larger than buffer size");
 
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
@@ -689,8 +687,6 @@ namespace CloudAE.Core
 
 				fixed (byte* inputBufferPtr = inputBuffer)
 				{
-					UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
-
 					foreach (PointCloudTile tile in this.TileSet.ValidTiles)
 					{
 						int bytesRead = tile.ReadTile(inputStream, inputBuffer);
@@ -705,31 +701,36 @@ namespace CloudAE.Core
 						uint rangeZ = qExtent.RangeZ;
 
 						// remove offsets
-						for (int i = 0; i < tile.PointCount; i++)
+						byte* pb = inputBufferPtr;
+						byte* pbEnd = inputBufferPtr + bytesRead;
+						while (pb < pbEnd)
 						{
-							p[i].X -= qExtent.MinX;
-							p[i].Y -= qExtent.MinY;
-							p[i].Z -= qExtent.MinZ;
+							UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
+							pb += PointSizeBytes;
+
+							(*p).X -= qExtent.MinX;
+							(*p).Y -= qExtent.MinY;
+							(*p).Z -= qExtent.MinZ;
 						}
 
-						if (sortGrid)
-						{
-							SortOnGrid(p, tile.PointCount, qExtent);
+						//if (sortGrid)
+						//{
+						//    SortOnGrid(p, tile.PointCount, qExtent);
 
-							rangeX = 0;
-							rangeY = 0;
+						//    rangeX = 0;
+						//    rangeY = 0;
 
-							for (int i = 0; i < tile.PointCount; i++)
-							{
-								rangeX = Math.Max(rangeX, p[i].X);
-								rangeY = Math.Max(rangeY, p[i].Y);
-							}
-						}
+						//    for (int i = 0; i < tile.PointCount; i++)
+						//    {
+						//        rangeX = Math.Max(rangeX, p[i].X);
+						//        rangeY = Math.Max(rangeY, p[i].Y);
+						//    }
+						//}
 
-						if (sortComponent)
-						{
-							rangeX = SortAndDeltaEncode(p, tile.PointCount);
-						}
+						//if (sortComponent)
+						//{
+						//    rangeX = SortAndDeltaEncode(inputBufferPtr, tile.PointCount);
+						//}
 
 						if (checkBitCompaction)
 						{
@@ -738,7 +739,9 @@ namespace CloudAE.Core
 							int yBits = (int)Math.Ceiling(Math.Log(rangeY, 2));
 							int zBits = (int)Math.Ceiling(Math.Log(rangeZ, 2));
 
-							pretendCompressionRatio += (double)tile.PointCount * (xBits + yBits + zBits) / (PointSizeBytes * 8);
+							int otherBits = (PointSizeBytes - sizeof(UQuantizedPoint3D)) * 8;
+
+							pretendCompressionRatio += (double)tile.PointCount * (xBits + yBits + zBits + otherBits) / (PointSizeBytes * 8);
 						}
 
 						//// check the values

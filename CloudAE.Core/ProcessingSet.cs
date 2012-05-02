@@ -90,7 +90,7 @@ namespace CloudAE.Core
 				else
 				{
 					// step 4
-					// this is broken right now
+					// this is just for testing at present
 					//CompressTileSource(progressManager);
 
 					progressManager.Log(stopwatchTotal, "=> Processing Completed");
