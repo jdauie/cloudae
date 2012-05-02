@@ -140,7 +140,7 @@ namespace CloudAE.Core
 			float[,] data1 = output.Data;
 
 			float scaleFactorZ = (float)quantization.ScaleFactorZ;
-			float adjustedOffset = (float)(quantization.OffsetZ - extent.MinZ);
+			float adjustedOffset = (float)(extent != null ? quantization.OffsetZ - extent.MinZ : quantization.OffsetZ);
 
 			// ">" zero is not quite what I want here
 			// it could lose some min values (not important for now)

@@ -417,7 +417,7 @@ namespace CloudAE.Core
 			double cellSizeX = (double)quantizedExtent.RangeX / grid.SizeX;
 			double cellSizeY = (double)quantizedExtent.RangeY / grid.SizeY;
 
-			grid.FillVal = (float)tile.Extent.MinZ - 1;
+			grid.FillVal = -1.0f;
 			grid.Reset();
 			quantizedGrid.Reset();
 
@@ -454,6 +454,7 @@ namespace CloudAE.Core
 			// subtract midpoint to center around (0,0,0)
 			Extent3D centeringExtent = Extent;
 			Point3D centerOfMass = CenterOfMass;
+			double centerOfMassMinusMin = centerOfMass.Z - Extent.MinZ;
 
 			System.Windows.Media.Media3D.Point3DCollection positions = new System.Windows.Media.Media3D.Point3DCollection(grid.CellCount);
 			System.Windows.Media.Int32Collection indices = new System.Windows.Media.Int32Collection(2 * (grid.SizeX - 1) * (grid.SizeY - 1));
@@ -464,7 +465,7 @@ namespace CloudAE.Core
 			{
 				for (int y = 0; y < grid.SizeY; y++)
 				{
-					double value = grid.Data[x, y] - centerOfMass.Z;
+					double value = grid.Data[x, y] - centerOfMassMinusMin;
 
 					double xCoord = ((double)x / grid.SizeX) * distributionExtent.RangeX + distributionExtent.MinX - distributionExtent.MidpointX;
 					double yCoord = ((double)y / grid.SizeY) * distributionExtent.RangeY + distributionExtent.MinY - distributionExtent.MidpointY;
