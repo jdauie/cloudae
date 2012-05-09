@@ -28,6 +28,7 @@
                         <Image Source="/CloudAE.App;component/Icons/color_wheel.png" VerticalAlignment="Center" />
                     </ToggleButton.Content>
                 </ToggleButton>
+                <Slider Height="20" Name="sliderQuality" Minimum="2" Maximum="100" Value="100" Interval="1" Width="50" ValueChanged="OnQualityValueChanged" />
             </ToolBar>
 		</ToolBarTray>
 

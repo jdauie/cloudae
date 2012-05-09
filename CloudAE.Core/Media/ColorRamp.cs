@@ -138,7 +138,7 @@ namespace CloudAE.Core
 
 		public CachedColorRamp CreateCachedRamp(uint min, uint max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
 		{
-			CachedColorRamp cachedRamp = new CachedColorRamp(this, min, max, stats, useStdDevStretch, 1000);
+			CachedColorRamp cachedRamp = new CachedColorRamp(this, min, max, stats, useStdDevStretch, desiredDestinationBins);
 			return cachedRamp;
 		}
 

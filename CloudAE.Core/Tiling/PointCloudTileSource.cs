@@ -986,19 +986,19 @@ namespace CloudAE.Core
 			return maxX;
 		}
 
-		public BitmapSource GeneratePreviewImage(ColorRamp ramp, bool useStdDevStretch)
+		public BitmapSource GeneratePreviewImage(ColorRamp ramp, bool useStdDevStretch, int quality)
 		{
-			if (Preview == null || Preview.ColorHandler != ramp || Preview.UseStdDevStretch != useStdDevStretch)
+			if (Preview == null || Preview.ColorHandler != ramp || Preview.UseStdDevStretch != useStdDevStretch || Preview.Quality != quality)
 			{
-				BitmapSource source = GeneratePreviewImage(m_pixelGridQuantized, ramp, useStdDevStretch);
-				Preview = new PreviewImage(source, ramp, useStdDevStretch);
+				BitmapSource source = GeneratePreviewImage(m_pixelGridQuantized, ramp, useStdDevStretch, quality);
+				Preview = new PreviewImage(source, ramp, useStdDevStretch, quality);
 			}
 			return Preview.Image;
 		}
 
-		private BitmapSource GeneratePreviewImage(Grid<uint> grid, ColorRamp ramp, bool useStdDevStretch)
+		private BitmapSource GeneratePreviewImage(Grid<uint> grid, ColorRamp ramp, bool useStdDevStretch, int quality)
 		{
-			BitmapSource bmp = CreateBitmapSource(grid, QuantizedExtent, StatisticsZ.ConvertToQuantized(Quantization as UQuantization3D), useStdDevStretch, ramp);
+			BitmapSource bmp = CreateBitmapSource(grid, QuantizedExtent, StatisticsZ.ConvertToQuantized(Quantization as UQuantization3D), useStdDevStretch, ramp, quality);
 			//BitmapSource bmp = CreateSegmentationBitmap(grid);
 			//BitmapSource bmp = CreatePlaneFittingBitmap(grid);
 
@@ -1122,7 +1122,7 @@ namespace CloudAE.Core
 			m_pixelGrid = grid;
 		}
 
-		private unsafe BitmapSource CreateBitmapSource(Grid<uint> grid, UQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler)
+		private unsafe BitmapSource CreateBitmapSource(Grid<uint> grid, UQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler, int quality)
 		{
 			ColorRamp ramp = colorHandler as ColorRamp;
 			ColorMapDistinct map = colorHandler as ColorMapDistinct;
@@ -1141,7 +1141,10 @@ namespace CloudAE.Core
 				if (ramp == null)
 					ramp = ColorRamp.PredefinedColorRamps.Grayscale;
 
-				CachedColorRamp cachedRamp = ramp.CreateCachedRamp(extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, 1000);
+				float qualityRatio = (float)quality / 100;
+				int rampSize = (int)(qualityRatio * 300);
+				
+				CachedColorRamp cachedRamp = ramp.CreateCachedRamp(extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, rampSize);
 
 				int transparent = Color.Transparent.ToArgb();
 

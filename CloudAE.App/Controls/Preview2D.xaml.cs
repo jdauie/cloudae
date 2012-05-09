@@ -97,6 +97,18 @@ namespace CloudAE.App
 			}
 		}
 
+		private int CurrentColorQuality
+		{
+			get
+			{
+				int quality = (int)sliderQuality.Maximum;
+				if (CurrentTileSource.Preview != null)
+					quality = CurrentTileSource.Preview.Quality;
+
+				return quality;
+			}
+		}
+
 		static Preview2D()
 		{
 			List<ColorRamp> controls = RegisterColorHandlers();
@@ -137,7 +149,7 @@ namespace CloudAE.App
 			{
 				PointCloudTileSource source = CurrentTileSource;
 				if (source != null)
-					previewImage.Source = source.GeneratePreviewImage(ramp, CurrentColorUseStdDev);
+					previewImage.Source = source.GeneratePreviewImage(ramp, CurrentColorUseStdDev, CurrentColorQuality);
 			}
 		}
 
@@ -148,7 +160,18 @@ namespace CloudAE.App
 			{
 				PointCloudTileSource source = CurrentTileSource;
 				if (source != null)
-					previewImage.Source = source.GeneratePreviewImage(CurrentColorRamp, useStdDev.Value);
+					previewImage.Source = source.GeneratePreviewImage(CurrentColorRamp, useStdDev.Value, CurrentColorQuality);
+			}
+		}
+
+		private void OnQualityValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+		{
+			int quality = (int)e.NewValue;
+			if (quality > 0)
+			{
+				PointCloudTileSource source = CurrentTileSource;
+				if (source != null)
+					previewImage.Source = source.GeneratePreviewImage(source.Preview.ColorHandler as ColorRamp, CurrentColorUseStdDev, quality);
 			}
 		}
 
