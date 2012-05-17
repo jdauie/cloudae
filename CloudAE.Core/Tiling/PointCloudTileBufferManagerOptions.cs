@@ -26,7 +26,7 @@ namespace CloudAE.Core
 
 			if (Mode == PointCloudTileBufferManagerMode.OptimizeForLargeFile)
 			{
-				TilingFileOptions = FileOptions.SequentialScan | FileOptions.WriteThrough;
+				TilingFileOptions = FileOptions.RandomAccess | FileOptions.WriteThrough;
 				AllowSparseAllocation = true;
 				SupportsSegmentedProcessing = true;
 			}
