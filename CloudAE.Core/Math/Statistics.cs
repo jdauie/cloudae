@@ -75,10 +75,9 @@ namespace CloudAE.Core
 		{
 			uint mean = (uint)((m_mean - quantization.OffsetZ) / quantization.ScaleFactorZ);
 			uint stdDev = (uint)(m_stdDev / quantization.ScaleFactorZ);
-			uint variance = stdDev * stdDev;
 			uint mode = (uint)((m_modeApproximate - quantization.OffsetZ) / quantization.ScaleFactorZ);
 
-			return new QuantizedStatistics(mean, variance, mode);
+			return new QuantizedStatistics(mean, stdDev, mode);
 		}
 	}
 
@@ -86,7 +85,7 @@ namespace CloudAE.Core
 	{
 		public readonly uint m_mean;
 		public readonly uint m_stdDev;
-		public readonly uint m_variance;
+		public readonly ulong m_variance;
 
 		public readonly uint m_modeApproximate;
 
@@ -102,7 +101,7 @@ namespace CloudAE.Core
 			get { return m_stdDev; }
 		}
 
-		public uint Variance
+		public ulong Variance
 		{
 			get { return m_variance; }
 		}
@@ -114,26 +113,26 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public QuantizedStatistics(uint mean, uint variance, uint mode)
+		public QuantizedStatistics(uint mean, uint stdDev, uint mode)
 		{
 			m_mean = mean;
-			m_variance = variance;
-			m_stdDev = (uint)Math.Sqrt(Variance);
+			m_stdDev = stdDev;
+			m_variance = (ulong)Math.Pow(m_stdDev, 2);
 			m_modeApproximate = mode;
 		}
 
 		public QuantizedStatistics(BinaryReader reader)
 		{
 			m_mean = reader.ReadUInt32();
-			m_variance = reader.ReadUInt32();
-			m_stdDev = (uint)Math.Sqrt(Variance);
+			m_stdDev = reader.ReadUInt32();
+			m_variance = (ulong)Math.Pow(Variance, 2);
 			m_modeApproximate = reader.ReadUInt32();
 		}
 
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(Mean);
-			writer.Write(Variance);
+			writer.Write(StdDev);
 			writer.Write(ModeApproximate);
 		}
 	}
