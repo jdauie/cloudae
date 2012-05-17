@@ -30,6 +30,11 @@ namespace CloudAE.Core
 			PROPERTY_QUANTIZATION_MEMORY_LIMIT = Context.RegisterOption<ByteSizesSmall>(Context.OptionCategory.Tiling, "QuantizationMemoryLimit", ByteSizesSmall.MB_16);
 		}
 
+		public UQuantization3D TestQuantization
+		{
+			get { return m_testQuantization; }
+		}
+
 		public PointCloudTileManager(PointCloudBinarySource source, PointCloudTileBufferManagerOptions options)
 		{
 			m_source = source;
@@ -45,10 +50,10 @@ namespace CloudAE.Core
 			StatisticsGenerator statsGenerator = new StatisticsGenerator(m_source.Count);
 			PointCloudTileDensity estimatedDensity = AnalyzePointFile(statsGenerator, progressManager);
 
-			return TilePointFile(tiledPath, estimatedDensity, statsGenerator, progressManager);
+			return TilePointFile(tiledPath, estimatedDensity, statsGenerator, m_testQuantization, progressManager);
 		}
 
-		public PointCloudTileSource TilePointFile(string tiledPath, PointCloudTileDensity estimatedDensity, StatisticsGenerator statsGenerator, ProgressManager progressManager)
+		public PointCloudTileSource TilePointFile(string tiledPath, PointCloudTileDensity estimatedDensity, StatisticsGenerator statsGenerator, Quantization3D quantization, ProgressManager progressManager)
 		{
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
@@ -59,7 +64,7 @@ namespace CloudAE.Core
 
 			// pass 3
 			Statistics zStats = statsGenerator.Create();
-			PointCloudTileSource tileSource = TilePoints(m_source, tiledPath, tileSet, zStats, progressManager);
+			PointCloudTileSource tileSource = TilePoints(m_source, tiledPath, tileSet, zStats, quantization, progressManager);
 			progressManager.Log(stopwatch, "Finished Tiling");
 
 			return tileSource;
@@ -113,17 +118,16 @@ namespace CloudAE.Core
 			return tileSet;
 		}
 
-		private unsafe PointCloudTileSource TilePoints(PointCloudBinarySource source, string path, PointCloudTileSet tileSet, Statistics zStats, ProgressManager progressManager)
+		private unsafe PointCloudTileSource TilePoints(PointCloudBinarySource source, string path, PointCloudTileSet tileSet, Statistics zStats, Quantization3D quantization, ProgressManager progressManager)
 		{
 			if (File.Exists(path))
 				File.Delete(path);
 
-			Quantization3D optimalQuantization = m_testQuantization;
-			if (optimalQuantization == null)
-				optimalQuantization = Quantization3D.Create(tileSet.Extent, true);
+			if (quantization == null)
+				quantization = Quantization3D.Create(tileSet.Extent, true);
 
 #warning this point size is incorrect for unquantized inputs
-			PointCloudTileSource tileSource = new PointCloudTileSource(path, tileSet, optimalQuantization, source.PointSizeBytes, zStats, CompressionMethod.None);
+			PointCloudTileSource tileSource = new PointCloudTileSource(path, tileSet, quantization, source.PointSizeBytes, zStats, CompressionMethod.None);
 			tileSource.AllocateFile(m_options.AllowSparseAllocation);
 
 			using (FileStream outputStream = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, m_options.TilingFileOptions))
