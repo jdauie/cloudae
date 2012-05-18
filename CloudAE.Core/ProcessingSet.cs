@@ -51,50 +51,50 @@ namespace CloudAE.Core
 
 			if (m_tileSource == null)
 			{
-				Stopwatch stopwatchTotal = new Stopwatch();
-				stopwatchTotal.Start();
-
-				// step 0
-				if (!m_isInputPathLocal)
-					CopyFileToLocalDrive(progressManager);
-
-				// step 1
-				m_binarySource = m_inputHandler.GenerateBinarySource(progressManager);
-
-				// step 2,3
-				PointCloudTileBufferManagerOptions tileOptions = new PointCloudTileBufferManagerOptions(PROPERTY_TILE_MODE.Value);
-				long pointDataSize = (long)m_binarySource.Count * m_binarySource.PointSizeBytes;
-				long maxSegmentBytes = (long)PROPERTY_SEGMENT_SIZE.Value;
-				if (tileOptions.SupportsSegmentedProcessing && pointDataSize > maxSegmentBytes)
+				using (ProgressManagerProcess process = progressManager.StartProcess("ProcessSet"))
 				{
-					ProcessFileSegments(tileOptions, maxSegmentBytes, progressManager);
-				}
-				else
-				{
-					PointCloudTileManager tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
-					m_tileSource = tileManager.TilePointFile(m_tiledPath, progressManager);
-				}
+					// step 0
+					if (!m_isInputPathLocal)
+						CopyFileToLocalDrive(progressManager);
 
-				GC.Collect();
+					// step 1
+					m_binarySource = m_inputHandler.GenerateBinarySource(progressManager);
 
-				if (m_binarySource.FilePath != m_inputHandler.FilePath || !m_isInputPathLocal)
-					File.Delete(m_binarySource.FilePath);
+					// step 2,3
+					PointCloudTileBufferManagerOptions tileOptions = new PointCloudTileBufferManagerOptions(PROPERTY_TILE_MODE.Value);
+					long pointDataSize = (long)m_binarySource.Count * m_binarySource.PointSizeBytes;
+					long maxSegmentBytes = (long)PROPERTY_SEGMENT_SIZE.Value;
+					if (tileOptions.SupportsSegmentedProcessing && pointDataSize > maxSegmentBytes)
+					{
+						ProcessFileSegments(tileOptions, maxSegmentBytes, progressManager);
+					}
+					else
+					{
+						PointCloudTileManager tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
+						m_tileSource = tileManager.TilePointFile(m_tiledPath, progressManager);
+					}
 
-				if (m_tileSource.IsDirty)
-				{
-					m_tileSource.Close();
-					File.Delete(m_tileSource.FilePath);
-					m_tileSource = null;
+					GC.Collect();
 
-					progressManager.Log(stopwatchTotal, "=> Processing Cancelled");
-				}
-				else
-				{
-					// step 4
-					// this is just for testing at present
-					//CompressTileSource(progressManager);
+					if (m_binarySource.FilePath != m_inputHandler.FilePath || !m_isInputPathLocal)
+						File.Delete(m_binarySource.FilePath);
 
-					progressManager.Log(stopwatchTotal, "=> Processing Completed");
+					if (m_tileSource.IsDirty)
+					{
+						m_tileSource.Close();
+						File.Delete(m_tileSource.FilePath);
+						m_tileSource = null;
+
+						process.LogTime("=> Processing Cancelled");
+					}
+					else
+					{
+						// step 4
+						// this is just for testing at present
+						//CompressTileSource(progressManager);
+
+						process.LogTime("=> Processing Completed");
+					}
 				}
 			}
 
@@ -166,13 +166,14 @@ namespace CloudAE.Core
 			}
 
 			// step 2
+			using (ProgressManagerProcess process = progressManager.StartProcess("ProcessTileSegments"))
 			{
 				// tile chunks seperately, using the same tile boundaries
 				tiledSegments = new PointCloudTileSource[segments.Length];
 				for (int i = 0; i < segments.Length; i++)
 				{
 					string tiledSegmentPath = GetTileSourcePath(m_binarySource.FilePath, i);
-					progressManager.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
+					process.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
 
 					PointCloudTileManager tileManager = new PointCloudTileManager(segments[i], tileOptions);
 					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, estimatedDensity, statsGenerator, quantization, progressManager);
@@ -185,7 +186,10 @@ namespace CloudAE.Core
 			}
 
 			// step 3
+			using (ProgressManagerProcess process = progressManager.StartProcess("MergeTileSegments"))
 			{
+				process.Log("Merging {0} Segments", segments.Length);
+
 				// reassemble tiled files
 				PointCloudTileSet mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
 				int largestTileCount = (int)(mergedTileSet.Max(t => t.PointCount));
@@ -196,61 +200,56 @@ namespace CloudAE.Core
 
 				PointCloudTileSource tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ, CompressionMethod.None);
 
-				using (ProgressManagerProcess process = progressManager.StartProcess("MergeTileSegments"))
+				tileSource.AllocateFile(tileOptions.AllowSparseAllocation);
+
+				using (FileStream outputStream = new FileStream(m_tiledPath, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, tileOptions.TilingFileOptions))
 				{
-					process.Log("Merging {0} Segments", segments.Length);
+					outputStream.Seek(tileSource.PointDataOffset, SeekOrigin.Begin);
 
-					tileSource.AllocateFile(tileOptions.AllowSparseAllocation);
-
-					using (FileStream outputStream = new FileStream(m_tiledPath, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, tileOptions.TilingFileOptions))
+					// go through tiles and write at the correct offset
+					foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
 					{
-						outputStream.Seek(tileSource.PointDataOffset, SeekOrigin.Begin);
-
-						// go through tiles and write at the correct offset
-						foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
+						for (int i = 0; i < tiledSegments.Length; i++)
 						{
-							for (int i = 0; i < tiledSegments.Length; i++)
+							PointCloudTile segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
+							if (segmentTile.IsValid)
 							{
-								PointCloudTile segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
-								if (segmentTile.IsValid)
-								{
-									tiledSegments[i].LoadTile(segmentTile, inputBuffer);
-									outputStream.Write(inputBuffer, 0, segmentTile.StorageSize);
+								tiledSegments[i].LoadTile(segmentTile, inputBuffer);
+								outputStream.Write(inputBuffer, 0, segmentTile.StorageSize);
 
-									//if (largeBufferPos + segmentTile.StorageSize > largeBuffer.Length)
-									//{
-									//    outputStream.Write(largeBuffer, 0, largeBufferPos);
-									//    largeBufferPos = 0;
-									//}
+								//if (largeBufferPos + segmentTile.StorageSize > largeBuffer.Length)
+								//{
+								//    outputStream.Write(largeBuffer, 0, largeBufferPos);
+								//    largeBufferPos = 0;
+								//}
 
-									//Buffer.BlockCopy(inputBuffer, 0, largeBuffer, largeBufferPos, segmentTile.StorageSize);
-									//largeBufferPos += segmentTile.StorageSize;
-								}
+								//Buffer.BlockCopy(inputBuffer, 0, largeBuffer, largeBufferPos, segmentTile.StorageSize);
+								//largeBufferPos += segmentTile.StorageSize;
 							}
-							if (!process.Update(tile))
-								break;
 						}
-
-						//if (largeBufferPos > 0)
-						//    outputStream.Write(largeBuffer, 0, largeBufferPos);
+						if (!process.Update(tile))
+							break;
 					}
 
-					for (int i = 0; i < tiledSegments.Length; i++)
-					{
-						tiledSegments[i].Close();
-						File.Delete(tiledSegments[i].FilePath);
-					}
+					//if (largeBufferPos > 0)
+					//    outputStream.Write(largeBuffer, 0, largeBufferPos);
+				}
 
-					if (!process.IsCanceled())
-					{
-						tileSource.IsDirty = false;
-						tileSource.WriteHeader();
-					}
+				for (int i = 0; i < tiledSegments.Length; i++)
+				{
+					tiledSegments[i].Close();
+					File.Delete(tiledSegments[i].FilePath);
+				}
 
-					process.LogTime("Merged Tiled Segments");
+				if (!process.IsCanceled())
+				{
+					tileSource.IsDirty = false;
+					tileSource.WriteHeader();
 				}
 
 				m_tileSource = tileSource;
+
+				process.LogTime("Merged Tiled Segments");
 			}
 		}
 
