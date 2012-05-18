@@ -253,7 +253,7 @@ namespace CloudAE.Core.Windows
 
 #warning don't create in non-interactive mode
 
-			const short bufferWidth = 100;
+			const short bufferWidth = 200;
 			const short bufferHeight = 900;
 
 			bool success = NativeMethods.AllocConsole();
@@ -277,7 +277,7 @@ namespace CloudAE.Core.Windows
 				IntPtr.Zero
 			);
 
-			NativeMethods.Coord size = new NativeMethods.Coord(bufferHeight, bufferWidth);
+			NativeMethods.Coord size = new NativeMethods.Coord(bufferWidth, bufferHeight);
 			BufferSize = size;
 
 			bool result = NativeMethods.SetConsoleActiveScreenBuffer(c_buffer);
@@ -345,6 +345,8 @@ namespace CloudAE.Core.Windows
 					using (WinConsoleColorHandler.Handle(WinConsoleColor.White))
 						Console.WriteLine(value.Substring(value.Length - 1));
 				}
+				else
+					Console.WriteLine(value);
 			}
 			else if (trimmedValue.StartsWith("+ ") || trimmedValue.StartsWith("- ") || trimmedValue.StartsWith("x "))
 			{
