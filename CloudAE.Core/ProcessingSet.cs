@@ -191,6 +191,9 @@ namespace CloudAE.Core
 				int largestTileCount = (int)(mergedTileSet.Max(t => t.PointCount));
 				byte[] inputBuffer = new byte[largestTileCount * tiledSegments[0].PointSizeBytes];
 
+				//byte[] largeBuffer = new byte[(int)ByteSizesSmall.MB_256];
+				//int largeBufferPos = 0;
+
 				PointCloudTileSource tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ, CompressionMethod.None);
 
 				using (ProgressManagerProcess process = progressManager.StartProcess("MergeTileSegments"))
@@ -213,11 +216,23 @@ namespace CloudAE.Core
 								{
 									tiledSegments[i].LoadTile(segmentTile, inputBuffer);
 									outputStream.Write(inputBuffer, 0, segmentTile.StorageSize);
+
+									//if (largeBufferPos + segmentTile.StorageSize > largeBuffer.Length)
+									//{
+									//    outputStream.Write(largeBuffer, 0, largeBufferPos);
+									//    largeBufferPos = 0;
+									//}
+
+									//Buffer.BlockCopy(inputBuffer, 0, largeBuffer, largeBufferPos, segmentTile.StorageSize);
+									//largeBufferPos += segmentTile.StorageSize;
 								}
 							}
 							if (!process.Update(tile))
 								break;
 						}
+
+						//if (largeBufferPos > 0)
+						//    outputStream.Write(largeBuffer, 0, largeBufferPos);
 					}
 
 					for (int i = 0; i < tiledSegments.Length; i++)
