@@ -42,8 +42,6 @@ namespace CloudAE.Core
 	{
 		public const int BUFFER_SIZE_BYTES = (int)ByteSizesSmall.MB_1;
 
-		public const int QUANTIZED_POINT_SIZE_BYTES = 3 * sizeof(int);
-
 		// eventually, this should handle buffers of varying size,
 		// or at least deallocate abnormal-sized buffers
 		private static readonly LinkedList<BufferInstance> c_availableBuffers;
@@ -51,9 +49,12 @@ namespace CloudAE.Core
 
 		private static readonly Dictionary<BufferInstance, Identity> c_usedBuffers;
 
+		private static readonly Identity c_id;
 
 		static BufferManager()
 		{
+			c_id = IdentityManager.AcquireIdentity(typeof(BufferManager).Name);
+
 			c_availableBuffers = new LinkedList<BufferInstance>();
 			c_bufferMapping = new Dictionary<byte[], BufferInstance>();
 			c_usedBuffers = new Dictionary<BufferInstance, Identity>();
@@ -61,9 +62,10 @@ namespace CloudAE.Core
 
 		public static BufferInstance AcquireBuffer()
 		{
-#warning I don't like needing this
-			Identity id = IdentityManager.AcquireIdentity(string.Empty);
-			return AcquireBuffer(id);
+			// Since we don't know what this is used for, the manager itself will take ownership.
+			// These will not get cleaned up until the application exits, which is not a problem
+			// for now since there is only one usage (which should be addressed differently).
+			return AcquireBuffer(c_id);
 		}
 
 		public static BufferInstance AcquireBuffer(Identity id)
