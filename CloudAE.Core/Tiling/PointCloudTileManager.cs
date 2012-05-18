@@ -428,18 +428,20 @@ namespace CloudAE.Core
 					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
 					while (pb < pbEnd)
 					{
-						Point3D* p = (Point3D*)(pb);
-						pb += pointSizeBytes;
+						Point3D* p = (Point3D*)pb;
 
-						tileBufferManager.AddPoint(
-							new UQuantizedPoint3D(
-								(uint)(((*p).X - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX),
-								(uint)(((*p).Y - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY),
-								(uint)(((*p).Z - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ)
-							),
-							(int)(((*p).X - extent.MinX) * tilesOverRangeX),
-							(int)(((*p).Y - extent.MinY) * tilesOverRangeY)
-						);
+						int tileX = (int)(((*p).X - extent.MinX) * tilesOverRangeX);
+						int tileY = (int)(((*p).Y - extent.MinY) * tilesOverRangeY);
+
+						UQuantizedPoint3D* p2 = (UQuantizedPoint3D*)pb;
+
+						(*p2).X = (uint)(((*p).X - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX);
+						(*p2).Y = (uint)(((*p).Y - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY);
+						(*p2).Z = (uint)(((*p).Z - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ);
+
+						tileBufferManager.AddPoint(pb, tileX, tileY);
+
+						pb += pointSizeBytes;
 					}
 
 					if (!process.Update(chunk))
@@ -482,17 +484,19 @@ namespace CloudAE.Core
 					while (pb < pbEnd)
 					{
 						SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
-						pb += pointSizeBytes;
 
-						tileBufferManager.AddPoint(
-							new UQuantizedPoint3D(
-								(uint)((*p).X * scaleTranslationX + offsetTranslationX),
-								(uint)((*p).Y * scaleTranslationY + offsetTranslationY),
-								(uint)((*p).Z * scaleTranslationZ + offsetTranslationZ)
-							),
-							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
-							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
-						);
+						int tileX = (int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX);
+						int tileY = (int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY);
+
+						UQuantizedPoint3D* p2 = (UQuantizedPoint3D*)(pb);
+
+						(*p2).X = (uint)((*p).X * scaleTranslationX + offsetTranslationX);
+						(*p2).Y = (uint)((*p).Y * scaleTranslationY + offsetTranslationY);
+						(*p2).Z = (uint)((*p).Z * scaleTranslationZ + offsetTranslationZ);
+
+						tileBufferManager.AddPoint(pb, tileX, tileY);
+
+						pb += pointSizeBytes;
 					}
 
 					if (!process.Update(chunk))

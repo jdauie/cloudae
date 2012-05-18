@@ -89,20 +89,21 @@ namespace CloudAE.Core
 		/// <summary>
 		/// Adds the point.
 		/// </summary>
-		/// <param name="point">The point.</param>
+		/// <param name="p">The point.</param>
 		/// <returns>true if the buffer is full or the tile is complete; otherwise false</returns>
-		public unsafe bool AddPoint(UQuantizedPoint3D point)
+		public unsafe bool AddPoint(byte* p)
 		{
 			if (m_buffer == null)
 				throw new Exception("cannot add to inactive buffer");
 
-			if (point.X < m_minX) m_minX = point.X; else if (point.X > m_maxX) m_maxX = point.X;
-			if (point.Y < m_minY) m_minY = point.Y; else if (point.Y > m_maxY) m_maxY = point.Y;
-			if (point.Z < m_minZ) m_minZ = point.Z; else if (point.Z > m_maxZ) m_maxZ = point.Z;
+			UQuantizedPoint3D* point = (UQuantizedPoint3D*)p;
 
-			// add attribute support here
-			UQuantizedPoint3D* p = (UQuantizedPoint3D*)m_pBuffer;
-			(*p) = point;
+			if ((*point).X < m_minX) m_minX = (*point).X; else if ((*point).X > m_maxX) m_maxX = (*point).X;
+			if ((*point).Y < m_minY) m_minY = (*point).Y; else if ((*point).Y > m_maxY) m_maxY = (*point).Y;
+			if ((*point).Z < m_minZ) m_minZ = (*point).Z; else if ((*point).Z > m_maxZ) m_maxZ = (*point).Z;
+
+			for (int i = 0; i < m_pointSizeBytes; i++)
+				m_pBuffer[i] = p[i];
 
 			++m_currentPointIndex;
 			m_pBuffer += m_pointSizeBytes;

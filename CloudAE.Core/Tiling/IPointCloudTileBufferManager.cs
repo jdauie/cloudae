@@ -7,7 +7,7 @@ using System.IO;
 
 namespace CloudAE.Core
 {
-	public interface IPointCloudTileBufferManager
+	public unsafe interface IPointCloudTileBufferManager
 	{
 		/// <summary>
 		/// Gets the tile source.
@@ -22,10 +22,10 @@ namespace CloudAE.Core
 		/// Adds the point to the tiling, but provides no guarantee
 		/// about when the point will be written to disk.
 		/// </summary>
-		/// <param name="point">The point.</param>
+		/// <param name="p">The point.</param>
 		/// <param name="tileX">The tile X.</param>
 		/// <param name="tileY">The tile Y.</param>
-		void AddPoint(UQuantizedPoint3D point, int tileX, int tileY);
+		void AddPoint(byte* p, int tileX, int tileY);
 		
 		/// <summary>
 		/// Finalizes the tiles.

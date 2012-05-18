@@ -10,7 +10,7 @@ namespace CloudAE.Core
 	/// <summary>
 	/// This is intended to test sequential output by not flushing until the end.
 	/// </summary>
-	class PointCloudTileBufferManager2 : IPointCloudTileBufferManager, IPropertyContainer
+	unsafe class PointCloudTileBufferManager2 : IPointCloudTileBufferManager, IPropertyContainer
 	{
 		private readonly PointCloudTileSource m_tileSource;
 
@@ -46,9 +46,9 @@ namespace CloudAE.Core
 				m_createdBuffers[m_tileSet.Cols, y] = m_createdBuffers[m_tileSet.Cols - 1, y];
 		}
 
-		public void AddPoint(UQuantizedPoint3D point, int tileX, int tileY)
+		public void AddPoint(byte* p, int tileX, int tileY)
 		{
-			m_createdBuffers[tileX, tileY].AddPoint(point);
+			m_createdBuffers[tileX, tileY].AddPoint(p);
 		}
 
 		public UQuantizedExtent3D FinalizeTiles(ProgressManager progressManager)

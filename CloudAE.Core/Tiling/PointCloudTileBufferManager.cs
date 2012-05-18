@@ -19,7 +19,7 @@ namespace CloudAE.Core
 	/// However, I am keeping this code because it could be faster on a solid-state disk.
 	/// </summary>
 	[Obsolete]
-	class PointCloudTileBufferManager : IPointCloudTileBufferManager, IPropertyContainer
+	unsafe class PointCloudTileBufferManager : IPointCloudTileBufferManager, IPropertyContainer
 	{
 		private static readonly PropertyState<ByteSizesSmall> PROPERTY_MAX_BUFFER_SIZE;
 		private static readonly PropertyState<PointCloudTileBufferSizeMode> PROPERTY_BUFFER_SIZE_MODE;
@@ -94,17 +94,17 @@ namespace CloudAE.Core
 				m_dataBuffers.AddLast(new byte[maxIndividualBufferSize]);
 		}
 
-		public void AddPoint(UQuantizedPoint3D point, int tileX, int tileY)
+		public void AddPoint(byte* p, int tileX, int tileY)
 		{
-			PointCloudTileBuffer tileBuffer = m_createdBuffers[tileX, tileY];
+			//PointCloudTileBuffer tileBuffer = m_createdBuffers[tileX, tileY];
 
-			ActivateBuffer(tileBuffer);
+			//ActivateBuffer(tileBuffer);
 
-			if (tileBuffer.AddPoint(point))
-			{
-				// buffer is full or tile is complete
-				FlushTileBuffer(tileBuffer);
-			}
+			//if (tileBuffer.AddPoint(point))
+			//{
+			//    // buffer is full or tile is complete
+			//    FlushTileBuffer(tileBuffer);
+			//}
 		}
 
 		private void ActivateBuffer(PointCloudTileBuffer tileBuffer)
