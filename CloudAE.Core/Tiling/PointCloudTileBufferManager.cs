@@ -96,15 +96,15 @@ namespace CloudAE.Core
 
 		public void AddPoint(byte* p, int tileX, int tileY)
 		{
-			//PointCloudTileBuffer tileBuffer = m_createdBuffers[tileX, tileY];
+			PointCloudTileBuffer tileBuffer = m_createdBuffers[tileX, tileY];
 
-			//ActivateBuffer(tileBuffer);
+			ActivateBuffer(tileBuffer);
 
-			//if (tileBuffer.AddPoint(point))
-			//{
-			//    // buffer is full or tile is complete
-			//    FlushTileBuffer(tileBuffer);
-			//}
+			if (tileBuffer.AddPoint(p))
+			{
+				// buffer is full or tile is complete
+				FlushTileBuffer(tileBuffer);
+			}
 		}
 
 		private void ActivateBuffer(PointCloudTileBuffer tileBuffer)
