@@ -33,7 +33,14 @@ namespace CloudAE.Core
 			m_progressManager.Update(0.0f);
 			m_stopwatch.Start();
 
-			Context.WriteLine(string.Format("{0} -> Start", m_id));
+			int i = 0;
+			ProgressManagerProcess proc = this;
+			while ((proc = proc.Parent) != null)
+				i++;
+
+			//Context.WriteLine(string.Format("{0}{1} -> Start", string.Empty.PadRight(2 * i), m_id));
+			//Context.WriteLine("{0}{1} {2}", string.Empty.PadRight(2 * i), m_id, "{");
+			Context.WriteLine("{0}{1}", string.Empty.PadRight(2 * i), m_id);
 		}
 
 		public void Dispose()
@@ -43,9 +50,15 @@ namespace CloudAE.Core
 
 			BufferManager.ReleaseBuffers(m_id);
 
+			//int i = 0;
+			//ProgressManagerProcess proc = this;
+			//while ((proc = proc.Parent) != null)
+			//    i++;
+
 			m_progressManager.EndProcess(this);
 
-			Context.WriteLine(string.Format("{0} -> End", m_id));
+			//Context.WriteLine(string.Format("{0}{1} -> End", string.Empty.PadRight(2 * i), m_id));
+			//Context.WriteLine("{0}{1}", string.Empty.PadRight(2 * i), "}");
 		}
 
 		public void Log(string value, params object[] args)

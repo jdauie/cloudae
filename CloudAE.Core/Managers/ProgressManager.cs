@@ -56,14 +56,12 @@ namespace CloudAE.Core
 
 		public ProgressManagerProcess StartProcess(string name)
 		{
-			ProgressManagerProcess process = null;
-
 			if (m_currentProcess != null)
-				process = m_currentProcess.StartProcess(name);
+				m_currentProcess = m_currentProcess.StartProcess(name);
 			else
-				process = new ProgressManagerProcess(this, null, name);
+				m_currentProcess = new ProgressManagerProcess(this, null, name);
 
-			return process;
+			return m_currentProcess;
 		}
 
 		public void EndProcess(ProgressManagerProcess process)

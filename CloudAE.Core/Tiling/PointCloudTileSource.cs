@@ -289,7 +289,8 @@ namespace CloudAE.Core
 
 				stopwatch.Stop();
 
-				Context.WriteLine("Allocated {1}MB in {0}ms", stopwatch.ElapsedMilliseconds, outputLength / (int)ByteSizesSmall.MB_1);
+				if (!allowSparse)
+					Context.WriteLine("Allocated {1} in {0}ms", stopwatch.ElapsedMilliseconds, outputLength.ToSize());
 			}
 		}
 

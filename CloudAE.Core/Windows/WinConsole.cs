@@ -343,10 +343,26 @@ namespace CloudAE.Core.Windows
 					using (WinConsoleColorHandler.Handle(WinConsoleColor.Green))
 						Console.Write(trimmedValue.Substring(1, trimmedValue.Length - 2));
 					using (WinConsoleColorHandler.Handle(WinConsoleColor.White))
-						Console.WriteLine(value.Substring(value.Length - 1));
+						Console.WriteLine("]");
 				}
 				else
-					Console.WriteLine(value);
+				{
+					int endBracketIndex = trimmedValue.IndexOf(']');
+					if (endBracketIndex > -1)
+					{
+						using (WinConsoleColorHandler.Handle(WinConsoleColor.Green))
+							Console.Write(value.Substring(0, value.Length - trimmedValue.Length + 1));
+						using (WinConsoleColorHandler.Handle(WinConsoleColor.Red))
+							Console.Write(trimmedValue.Substring(1, endBracketIndex - 1));
+						using (WinConsoleColorHandler.Handle(WinConsoleColor.Green))
+							Console.Write("]");
+						Console.WriteLine(trimmedValue.Substring(endBracketIndex + 1));
+					}
+					else
+					{
+						Console.WriteLine(value);
+					}
+				}
 			}
 			else if (trimmedValue.StartsWith("+ ") || trimmedValue.StartsWith("- ") || trimmedValue.StartsWith("x "))
 			{
@@ -381,8 +397,6 @@ namespace CloudAE.Core.Windows
 					Console.WriteLine(value);
 				}
 			}
-
-			
 		}
 	}
 }
