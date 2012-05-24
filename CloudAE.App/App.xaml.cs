@@ -22,13 +22,24 @@ namespace CloudAE.App
 
 			// handle any args
 			// (e.g. inputs, silent, scripts?)
-
-			ShowMainWindow();
+			
+			if (true)
+			{
+				ShowMainWindow();
+			}
+			else
+			{
+				ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
+				// do stuff
+				Shutdown();
+			}
 		}
 
 		private void ShowMainWindow()
 		{
 			MainWindow window = new MainWindow();
+			ShutdownMode = System.Windows.ShutdownMode.OnMainWindowClose;
+			MainWindow = window;
 			window.Show();
 		}
 
@@ -37,6 +48,11 @@ namespace CloudAE.App
 			base.OnExit(e);
 
 			Context.Shutdown();
+		}
+
+		private void ParseArgs()
+		{
+
 		}
 	}
 }
