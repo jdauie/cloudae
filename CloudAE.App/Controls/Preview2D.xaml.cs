@@ -206,7 +206,7 @@ namespace CloudAE.App
 				return;
 
 			List<PointCloudTile> tilesToLoad = new List<PointCloudTile>();
-			int pointsToLoad = 0;
+			//int pointsToLoad = 0;
 
 			int radius = 4;
 
@@ -225,7 +225,7 @@ namespace CloudAE.App
 						if (!m_loadedTiles.ContainsKey(currentTile))
 						{
 							tilesToLoad.Add(currentTile);
-							pointsToLoad += currentTile.PointCount;
+							//pointsToLoad += currentTile.PointCount;
 
 							System.Windows.Shapes.Rectangle rect = CreateTileRectangle(currentTile, previewImage, previewImageGrid);
 							m_loadedTiles.Add(currentTile, rect);
@@ -254,13 +254,13 @@ namespace CloudAE.App
 			for (int i = 0; i < loadedTiles.Length; i++)
 				loadedPoints += loadedTiles[i].PointCount;
 
-			int potentialTotalPoints = loadedPoints + pointsToLoad;
+			int potentialTotalPoints = loadedPoints;// +pointsToLoad;
 
 			if (potentialTotalPoints > totalAllowedPoints)
 			{
 				int pointsToDrop = potentialTotalPoints - totalAllowedPoints;
 				int i = 0;
-				while(pointsToDrop > 0)
+				while(pointsToDrop > 0 && i < loadedTiles.Length)
 				{
 					PointCloudTile currentTile = loadedTiles[i];
 					System.Windows.Shapes.Rectangle rect = m_loadedTiles[currentTile];
