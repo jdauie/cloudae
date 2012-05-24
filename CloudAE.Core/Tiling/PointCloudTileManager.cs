@@ -490,6 +490,7 @@ namespace CloudAE.Core
 
 						UQuantizedPoint3D* p2 = (UQuantizedPoint3D*)(pb);
 
+						// stomp on existing values since they are the same size
 						(*p2).X = (uint)((*p).X * scaleTranslationX + offsetTranslationX);
 						(*p2).Y = (uint)((*p).Y * scaleTranslationY + offsetTranslationY);
 						(*p2).Z = (uint)((*p).Z * scaleTranslationZ + offsetTranslationZ);
