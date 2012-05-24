@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Win32;
+using System.ComponentModel;
 
 namespace CloudAE.Core
 {
@@ -46,9 +47,16 @@ namespace CloudAE.Core
 			}
 			set
 			{
+				bool isDefault = IsDefault;
+
 				m_value = value;
 				m_hasValue = true;
 				PropertyManager.SetProperty(this);
+
+				OnPropertyChanged("Value");
+
+				if (isDefault != IsDefault)
+					OnPropertyChanged("IsDefault");
 			}
 		}
 
@@ -107,5 +115,18 @@ namespace CloudAE.Core
 			// this hits the registry at present
 			return String.Format("{0} = {1}", m_propertyName, Value);
 		}
+
+		#region INotifyPropertyChanged Members
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		protected void OnPropertyChanged(string name)
+		{
+			PropertyChangedEventHandler handler = PropertyChanged;
+			if (handler != null)
+				handler(this, new PropertyChangedEventArgs(name));
+		}
+
+		#endregion
 	}
 }
