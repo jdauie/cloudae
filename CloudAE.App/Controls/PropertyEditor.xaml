@@ -10,7 +10,7 @@
         <DataGrid x:Name="propertyGrid" AutoGenerateColumns="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding Property, Mode=OneWay}" />
-                <DataGridTextColumn Header="Value" Binding="{Binding Value, Mode=OneWay}" />
+                <DataGridTextColumn Header="Value" Binding="{Binding Value, Mode=TwoWay}" />
                 <DataGridTextColumn Header="Type" Binding="{Binding Type, Mode=OneWay}" />
                 <DataGridTextColumn Header="IsDefault" Binding="{Binding IsDefault, Mode=OneWay}" />
             </DataGrid.Columns>
