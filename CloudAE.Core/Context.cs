@@ -293,6 +293,9 @@ namespace CloudAE.Core
 
 		public static void AddToProcessingQueue(string[] paths)
 		{
+			if (paths == null || paths.Length == 0)
+				return;
+
 			List<string> skipped = new List<string>();
 			foreach (string path in paths.OrderBy(p => p))
 			{
