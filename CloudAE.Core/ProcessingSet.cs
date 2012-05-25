@@ -182,6 +182,10 @@ namespace CloudAE.Core
 					//tiledSegments[i].OpenSequential();
 
 					GC.Collect();
+
+					// do I want to switch to an abort mechanism instead?
+					//if (process.IsCanceled())
+					//    break;
 				}
 			}
 
