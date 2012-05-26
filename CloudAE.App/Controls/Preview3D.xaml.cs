@@ -157,7 +157,9 @@ namespace CloudAE.App
 		private Model3DCollection m_tileModelCollection;
 		private Model3DCollection m_stitchingModelCollection;
 
-		private byte[] m_buffer;
+		private readonly Identity m_id;
+
+		private BufferInstance m_buffer;
 		private Grid<uint> m_quantizedGridLowRes;
 		private Grid<float> m_gridLowRes;
 		private Grid<uint> m_quantizedGridHighRes;
@@ -226,6 +228,8 @@ namespace CloudAE.App
 		public Preview3D()
 		{
 			InitializeComponent();
+
+			m_id = IdentityManager.AcquireIdentity(GetType().Name);
 
 			m_tileInfo = new Dictionary<PointCloudTile, TileInfo3D>();
 			//m_lowResMap = new Dictionary<PointCloudTile, Model3D>();
@@ -306,7 +310,8 @@ namespace CloudAE.App
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				// load tiles
-				m_buffer = new byte[tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes];
+				int maxBufferSize = tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes;
+				m_buffer = BufferManager.AcquireBuffer(m_id, maxBufferSize, true);
 				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.ValidTiles.First(), m_gridDimensionLowRes);
 				m_gridLowRes = gridsLowRes.Value;
 				m_quantizedGridLowRes = gridsLowRes.Key;

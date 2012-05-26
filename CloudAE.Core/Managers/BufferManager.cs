@@ -47,7 +47,7 @@ namespace CloudAE.Core
 
 		// eventually, this should handle buffers of varying size,
 		// or at least deallocate abnormal-sized buffers
-		private static readonly LinkedList<BufferInstance> c_availableBuffers;
+		private static readonly Dictionary<int, LinkedList<BufferInstance>> c_availableBuffersBySize;
 		private static readonly Dictionary<byte[], BufferInstance> c_bufferMapping;
 
 		private static readonly Dictionary<BufferInstance, Identity> c_usedBuffers;
@@ -58,9 +58,26 @@ namespace CloudAE.Core
 		{
 			c_id = IdentityManager.AcquireIdentity(typeof(BufferManager).Name);
 
-			c_availableBuffers = new LinkedList<BufferInstance>();
+			c_availableBuffersBySize = new Dictionary<int, LinkedList<BufferInstance>>();
+			c_availableBuffersBySize.Add(BUFFER_SIZE_BYTES, new LinkedList<BufferInstance>());
 			c_bufferMapping = new Dictionary<byte[], BufferInstance>();
 			c_usedBuffers = new Dictionary<BufferInstance, Identity>();
+		}
+
+		private static LinkedList<BufferInstance> GetAvailableBuffers(int size, bool createIfNecessary)
+		{
+			if (c_availableBuffersBySize.ContainsKey(size))
+			{
+				return c_availableBuffersBySize[size];
+			}
+			else if (createIfNecessary)
+			{
+				LinkedList<BufferInstance> newBufferList = new LinkedList<BufferInstance>();
+				c_availableBuffersBySize.Add(size, newBufferList);
+				return newBufferList;
+			}
+
+			return null;
 		}
 
 		public static BufferInstance AcquireBuffer()
@@ -68,28 +85,41 @@ namespace CloudAE.Core
 			// Since we don't know what this is used for, the manager itself will take ownership.
 			// These will not get cleaned up until the application exits, which is not a problem
 			// for now since there is only one usage (which should be addressed differently).
-			return AcquireBuffer(c_id);
+			return AcquireBuffer(c_id, BUFFER_SIZE_BYTES, false);
 		}
 
 		public static BufferInstance AcquireBuffer(Identity id)
 		{
-			return AcquireBuffer(id, false);
+			return AcquireBuffer(id, BUFFER_SIZE_BYTES, false);
 		}
 
 		public static BufferInstance AcquireBuffer(Identity id, bool pin)
 		{
+			return AcquireBuffer(id, BUFFER_SIZE_BYTES, pin);
+		}
+
+		public static BufferInstance AcquireBuffer(Identity id, int size)
+		{
+			return AcquireBuffer(id, size, false);
+		}
+
+		public static BufferInstance AcquireBuffer(Identity id, int size, bool pin)
+		{
+			// make sure size is reasonable
+
 			BufferInstance buffer = null;
 
 			lock (typeof(BufferManager))
 			{
-				if (c_availableBuffers.Count > 0)
+				LinkedList<BufferInstance> availableBuffers = GetAvailableBuffers(size, false);
+				if (availableBuffers != null && availableBuffers.Count > 0)
 				{
-					buffer = c_availableBuffers.First.Value;
-					c_availableBuffers.RemoveFirst();
+					buffer = availableBuffers.First.Value;
+					availableBuffers.RemoveFirst();
 				}
 				else
 				{
-					byte[] b = new byte[BUFFER_SIZE_BYTES];
+					byte[] b = new byte[size];
 					buffer = new BufferInstance(b);
 					c_bufferMapping.Add(b, buffer);
 				}
@@ -118,10 +148,12 @@ namespace CloudAE.Core
 			lock (typeof(BufferManager))
 			{
 				if (!c_usedBuffers.ContainsKey(buffer))
-					throw new Exception("attempted to release a buffer that does not belong");
+					throw new Exception("attempted to release a buffer that is not in use");
 
 				c_usedBuffers.Remove(buffer);
-				c_availableBuffers.AddLast(buffer);
+
+				LinkedList<BufferInstance> bufferList = GetAvailableBuffers(buffer.Length, true);
+				bufferList.AddLast(buffer);
 
 				if (buffer.Pinned)
 					buffer.UnpinBuffer();

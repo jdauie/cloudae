@@ -409,7 +409,7 @@ namespace CloudAE.Core
 			return new KeyValuePair<Grid<uint>, Grid<float>>(quantizedGrid, grid);
 		}
 
-		public unsafe void LoadTileGrid(PointCloudTile tile, byte[] inputBuffer, Grid<float> grid, Grid<uint> quantizedGrid)
+		public unsafe void LoadTileGrid(PointCloudTile tile, BufferInstance inputBuffer, Grid<float> grid, Grid<uint> quantizedGrid)
 		{
 			Open();
 
@@ -422,23 +422,22 @@ namespace CloudAE.Core
 			grid.Reset();
 			quantizedGrid.Reset();
 
-			fixed (byte* inputBufferPtr = inputBuffer)
+			byte* inputBufferPtr = inputBuffer.DataPtr;
+			
+			int bytesRead = tile.ReadTile(m_inputStream, inputBuffer.Data);
+
+			byte* pb = inputBufferPtr;
+			byte* pbEnd = inputBufferPtr + tile.StorageSize;
+			while (pb < pbEnd)
 			{
-				int bytesRead = tile.ReadTile(m_inputStream, inputBuffer);
+				UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
+				pb += PointSizeBytes;
 
-				byte* pb = inputBufferPtr;
-				byte* pbEnd = inputBufferPtr + tile.StorageSize;
-				while (pb < pbEnd)
-				{
-					UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
-					pb += PointSizeBytes;
+				int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
+				int pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
 
-					int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
-					int pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
-
-					if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
-						quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
-				}
+				if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
+					quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
 			}
 
 			quantizedGrid.CorrectMaxOverflow();
