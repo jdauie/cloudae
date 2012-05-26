@@ -54,8 +54,7 @@ namespace CloudAE.Core.Util
 			}
 			else
 			{
-				IList<string> commandLineArgs = GetCommandLineArgs();
-				SignalFirstInstance(channelName, commandLineArgs);
+				SignalFirstInstance(channelName, GetCommandLineArgs());
 			}
 
 			return firstInstance;
@@ -87,14 +86,14 @@ namespace CloudAE.Core.Util
 		/// Gets command line args.
 		/// </summary>
 		/// <returns>List of command line arg strings.</returns>
-		private static IList<string> GetCommandLineArgs()
+		private static string[] GetCommandLineArgs()
 		{
-			List<string> args = null;
+			string[] args = null;
 			if (AppDomain.CurrentDomain.ActivationContext == null)
-				args = Environment.GetCommandLineArgs().Skip(1).ToList();
+				args = Environment.GetCommandLineArgs().Skip(1).ToArray();
 
 			if (args == null)
-				args = new List<string>();
+				args = new string[] { };
 
 			return args;
 		}
@@ -111,7 +110,7 @@ namespace CloudAE.Core.Util
 
 			props["name"] = channelName;
 			props["portName"] = channelName;
-			props["exclusiveAddressUse"] = "false";
+			props["exclusiveAddressUse"] = "true";
 
 			m_channel = new IpcServerChannel(props, serverProvider);
 
@@ -130,7 +129,7 @@ namespace CloudAE.Core.Util
 		/// <param name="args">
 		/// Command line arguments for the second instance, passed to the first instance to take appropriate action.
 		/// </param>
-		private static void SignalFirstInstance(string channelName, IList<string> args)
+		private static void SignalFirstInstance(string channelName, string[] args)
 		{
 			IpcClientChannel secondInstanceChannel = new IpcClientChannel();
 			ChannelServices.RegisterChannel(secondInstanceChannel, true);
@@ -157,7 +156,7 @@ namespace CloudAE.Core.Util
 		/// <returns>Always null.</returns>
 		private static object ActivateFirstInstanceCallback(object arg)
 		{
-			IList<string> args = arg as IList<string>;
+			string[] args = arg as string[];
 			ActivateFirstInstance(args.ToArray());
 			return null;
 		}

@@ -42,10 +42,8 @@ namespace CloudAE.App
 
 		protected override void OnExit(ExitEventArgs e)
 		{
-			base.OnExit(e);
-
 			SingleInstance.Cleanup();
-
+			base.OnExit(e);
 			Context.Shutdown();
 		}
 
