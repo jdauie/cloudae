@@ -1118,6 +1118,8 @@ namespace CloudAE.Core
 					break;
 			}
 
+			BufferManager.ReleaseBuffer(inputBuffer);
+
 			quantizedGrid.CorrectMaxOverflow();
 			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
 			

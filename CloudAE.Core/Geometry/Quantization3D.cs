@@ -133,6 +133,10 @@ namespace CloudAE.Core.Geometry
 				if (compontentSumPow > 1)
 					scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow - scalePow);
 			}
+
+			if (scaleFactors[0] != scaleFactors[1])
+				throw new Exception("The X and Y scale factors should be the same. X = {0}, Y = {1}");
+
 			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], Math.Floor(extent.MinX), Math.Floor(extent.MinY), Math.Floor(extent.MinZ));
 		}
 
@@ -178,6 +182,10 @@ namespace CloudAE.Core.Geometry
 				int compontentSumPow = (int)componentSum;
 				scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow);
 			}
+
+			if (scaleFactors[0] != scaleFactors[1])
+				throw new Exception("The X and Y scale factors should be the same. X = {0}, Y = {1}");
+
 			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], Math.Floor(extent.MinX), Math.Floor(extent.MinY), Math.Floor(extent.MinZ));
 		}
 

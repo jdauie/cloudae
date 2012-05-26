@@ -242,6 +242,8 @@ namespace CloudAE.Core
 					//    outputStream.Write(largeBuffer, 0, largeBufferPos);
 				}
 
+				BufferManager.ReleaseBuffer(inputBuffer);
+
 				for (int i = 0; i < tiledSegments.Length; i++)
 				{
 					tiledSegments[i].Close();

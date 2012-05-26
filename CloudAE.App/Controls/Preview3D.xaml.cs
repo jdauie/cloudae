@@ -216,10 +216,17 @@ namespace CloudAE.App
 
 				viewport.Children.Clear();
 
+				if (m_buffer != null)
+				{
+					BufferManager.ReleaseBuffer(m_buffer);
+					m_buffer = null;
+				}
+
 				m_currentTileSource = value;
 
 				if (m_currentTileSource != null)
 				{
+					m_buffer = BufferManager.AcquireBuffer(m_id, m_currentTileSource.MaxTileBufferSize, true);
 					LoadPreview3D();
 				}
 			}
@@ -310,7 +317,6 @@ namespace CloudAE.App
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				// load tiles
-				m_buffer = BufferManager.AcquireBuffer(m_id, tileSource.MaxTileBufferSize, true);
 				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.ValidTiles.First(), m_gridDimensionLowRes);
 				m_gridLowRes = gridsLowRes.Value;
 				m_quantizedGridLowRes = gridsLowRes.Key;
