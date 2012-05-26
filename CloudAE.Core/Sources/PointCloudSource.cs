@@ -8,6 +8,8 @@ namespace CloudAE.Core
 {
 	public abstract class PointCloudSource
 	{
+		private readonly Identity m_id;
+
 		private readonly string m_filePath;
 		
 		private readonly string m_name;
@@ -21,9 +23,16 @@ namespace CloudAE.Core
 		{
 			get { return m_name; }
 		}
+
+		protected Identity ID
+		{
+			get { return m_id; }
+		}
 		
 		public PointCloudSource(string file)
 		{
+			m_id = IdentityManager.AcquireIdentity(GetType().Name);
+
 			m_filePath = file;
 			m_name = Path.GetFileName(FilePath);
 		}
