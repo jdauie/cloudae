@@ -136,6 +136,11 @@ namespace CloudAE.Core
 			}
 		}
 
+		public int MaxTileBufferSize
+		{
+			get { return TileSet.Density.MaxTileCount * PointSizeBytes; }
+		}
+
 		#endregion
 
 		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, short pointSizeBytes, Statistics zStats, CompressionMethod compression)

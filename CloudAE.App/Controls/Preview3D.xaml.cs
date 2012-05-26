@@ -141,6 +141,8 @@ namespace CloudAE.App
 		private float m_heightExaggerationFactor = 1.0f;
 
 		private const bool START_ORBIT = false;
+
+		private readonly Identity m_id;
 		
 		private ProgressManager m_progressManager;
 		private ManagedBackgroundWorker m_backgroundWorker;
@@ -156,8 +158,6 @@ namespace CloudAE.App
 
 		private Model3DCollection m_tileModelCollection;
 		private Model3DCollection m_stitchingModelCollection;
-
-		private readonly Identity m_id;
 
 		private BufferInstance m_buffer;
 		private Grid<uint> m_quantizedGridLowRes;
@@ -310,8 +310,7 @@ namespace CloudAE.App
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				// load tiles
-				int maxBufferSize = tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes;
-				m_buffer = BufferManager.AcquireBuffer(m_id, maxBufferSize, true);
+				m_buffer = BufferManager.AcquireBuffer(m_id, tileSource.MaxTileBufferSize, true);
 				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.ValidTiles.First(), m_gridDimensionLowRes);
 				m_gridLowRes = gridsLowRes.Value;
 				m_quantizedGridLowRes = gridsLowRes.Key;

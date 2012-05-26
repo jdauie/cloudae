@@ -17,6 +17,8 @@ namespace CloudAE.Core
 		private static readonly PropertyState<ByteSizesLarge> PROPERTY_SEGMENT_SIZE;
 		private static readonly PropertyState<bool> PROPERTY_REUSE_TILING;
 
+		private readonly Identity m_id;
+
 		private readonly FileHandlerBase m_inputHandler;
 		private PointCloudBinarySource m_binarySource;
 		private PointCloudTileSource m_tileSource;
@@ -33,10 +35,10 @@ namespace CloudAE.Core
 
 		public ProcessingSet(FileHandlerBase inputFile)
 		{
+			m_id = IdentityManager.AcquireIdentity(GetType().Name);
+
 			m_inputHandler = inputFile;
-
 			m_isInputPathLocal = PathUtil.IsLocalPath(m_inputHandler.FilePath);
-
 			m_tiledPath = PointCloudTileSource.GetTileSourcePath(m_inputHandler.FilePath);
 
 			Directory.CreateDirectory(Path.GetDirectoryName(m_tiledPath));
@@ -197,7 +199,8 @@ namespace CloudAE.Core
 				// reassemble tiled files
 				PointCloudTileSet mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
 				int largestTileCount = (int)(mergedTileSet.Max(t => t.PointCount));
-				byte[] inputBuffer = new byte[largestTileCount * tiledSegments[0].PointSizeBytes];
+				int largestTileSize = largestTileCount * tiledSegments[0].PointSizeBytes;
+				BufferInstance inputBuffer = BufferManager.AcquireBuffer(m_id, largestTileSize, false);
 
 				//byte[] largeBuffer = new byte[(int)ByteSizesSmall.MB_256];
 				//int largeBufferPos = 0;
@@ -218,8 +221,8 @@ namespace CloudAE.Core
 							PointCloudTile segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
 							if (segmentTile.IsValid)
 							{
-								tiledSegments[i].LoadTile(segmentTile, inputBuffer);
-								outputStream.Write(inputBuffer, 0, segmentTile.StorageSize);
+								tiledSegments[i].LoadTile(segmentTile, inputBuffer.Data);
+								outputStream.Write(inputBuffer.Data, 0, segmentTile.StorageSize);
 
 								//if (largeBufferPos + segmentTile.StorageSize > largeBuffer.Length)
 								//{
