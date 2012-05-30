@@ -47,7 +47,7 @@ namespace CloudAE.Core
 
 		// eventually, this should handle buffers of varying size,
 		// or at least deallocate abnormal-sized buffers
-		private static readonly Dictionary<int, LinkedList<BufferInstance>> c_availableBuffersBySize;
+		private static readonly Dictionary<int, Stack<BufferInstance>> c_availableBuffersBySize;
 		private static readonly Dictionary<byte[], BufferInstance> c_bufferMapping;
 
 		private static readonly Dictionary<BufferInstance, Identity> c_usedBuffers;
@@ -58,13 +58,13 @@ namespace CloudAE.Core
 		{
 			c_id = IdentityManager.AcquireIdentity(typeof(BufferManager).Name);
 
-			c_availableBuffersBySize = new Dictionary<int, LinkedList<BufferInstance>>();
-			c_availableBuffersBySize.Add(BUFFER_SIZE_BYTES, new LinkedList<BufferInstance>());
+			c_availableBuffersBySize = new Dictionary<int, Stack<BufferInstance>>();
+			c_availableBuffersBySize.Add(BUFFER_SIZE_BYTES, new Stack<BufferInstance>());
 			c_bufferMapping = new Dictionary<byte[], BufferInstance>();
 			c_usedBuffers = new Dictionary<BufferInstance, Identity>();
 		}
 
-		private static LinkedList<BufferInstance> GetAvailableBuffers(int size, bool createIfNecessary)
+		private static Stack<BufferInstance> GetAvailableBuffers(int size, bool createIfNecessary)
 		{
 			if (c_availableBuffersBySize.ContainsKey(size))
 			{
@@ -72,7 +72,7 @@ namespace CloudAE.Core
 			}
 			else if (createIfNecessary)
 			{
-				LinkedList<BufferInstance> newBufferList = new LinkedList<BufferInstance>();
+				Stack<BufferInstance> newBufferList = new Stack<BufferInstance>();
 				c_availableBuffersBySize.Add(size, newBufferList);
 				return newBufferList;
 			}
@@ -111,11 +111,10 @@ namespace CloudAE.Core
 
 			lock (typeof(BufferManager))
 			{
-				LinkedList<BufferInstance> availableBuffers = GetAvailableBuffers(size, false);
+				Stack<BufferInstance> availableBuffers = GetAvailableBuffers(size, false);
 				if (availableBuffers != null && availableBuffers.Count > 0)
 				{
-					buffer = availableBuffers.First.Value;
-					availableBuffers.RemoveFirst();
+					buffer = availableBuffers.Pop();
 				}
 				else
 				{
@@ -152,8 +151,8 @@ namespace CloudAE.Core
 
 				c_usedBuffers.Remove(buffer);
 
-				LinkedList<BufferInstance> bufferList = GetAvailableBuffers(buffer.Length, true);
-				bufferList.AddLast(buffer);
+				Stack<BufferInstance> bufferList = GetAvailableBuffers(buffer.Length, true);
+				bufferList.Push(buffer);
 
 				if (buffer.Pinned)
 					buffer.UnpinBuffer();
