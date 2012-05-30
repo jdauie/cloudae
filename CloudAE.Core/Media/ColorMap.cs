@@ -8,7 +8,7 @@ namespace CloudAE.Core
 {
 	public class ColorMapDistinct : IColorHandler
 	{
-		Color[] m_colors;
+		private readonly Color[] m_colors;
 
 		public string Name
 		{
@@ -19,7 +19,7 @@ namespace CloudAE.Core
 		{
 			m_colors = Enum.GetNames(typeof(KnownColor))
 				.Where(item => !item.StartsWith("Control"))
-				.Select(item => Color.FromName(item)).ToArray();
+				.Select(Color.FromName).ToArray();
 		}
 
 		public Color GetColor(uint value)

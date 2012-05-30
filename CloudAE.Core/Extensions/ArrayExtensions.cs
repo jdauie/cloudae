@@ -56,10 +56,7 @@ namespace CloudAE.Core
 				buckets[bucket][bucketPositions[bucket]++] = target[i];
 			}
 
-			Parallel.ForEach(buckets.Where(b => b.Length > 0), bucket =>
-			{
-				Array.Sort<int>(bucket);
-			});
+			Parallel.ForEach(buckets.Where(b => b.Length > 0), Array.Sort<int>);
 
 			// copy back
 			int position = 0;

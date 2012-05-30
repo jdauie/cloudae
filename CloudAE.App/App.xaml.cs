@@ -49,7 +49,7 @@ namespace CloudAE.App
 
 		private void HandleArgs(string[] args)
 		{
-			string[] paths = args.Where(a => File.Exists(a)).ToArray();
+			string[] paths = args.Where(File.Exists).ToArray();
 			if (paths.Length > 0)
 				Context.AddToProcessingQueue(paths);
 		}

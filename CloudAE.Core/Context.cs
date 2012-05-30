@@ -435,7 +435,7 @@ namespace CloudAE.Core
 			ProcessLoadedTypes(
 				0,
 				processName,
-				t => baseType.IsAssignableFrom(t),
+				baseType.IsAssignableFrom,
 				t => !t.IsAbstract,
 				t => System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle)
 			);

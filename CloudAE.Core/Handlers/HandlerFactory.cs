@@ -59,7 +59,7 @@ namespace CloudAE.Core
 			Context.ProcessLoadedTypes(
 				1,
 				"Handlers",
-				t => baseType.IsAssignableFrom(t),
+				baseType.IsAssignableFrom,
 				t => !t.IsAbstract,
 				t => creators.Add(Activator.CreateInstance(t) as IHandlerCreator)
 			);

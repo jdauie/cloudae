@@ -32,7 +32,7 @@ namespace CloudAE.Core.Compression
 			Context.ProcessLoadedTypes(
 				1,
 				"Compressors",
-				t => baseType.IsAssignableFrom(t),
+				baseType.IsAssignableFrom,
 				t => !t.IsAbstract,
 				t => compressors.Add(Activator.CreateInstance(t) as ICompressor)
 			);

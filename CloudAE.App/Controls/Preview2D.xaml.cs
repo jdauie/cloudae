@@ -134,7 +134,7 @@ namespace CloudAE.App
 			Context.ProcessLoadedTypes(
 				2,
 				"ColorRamps",
-				t => baseType.IsAssignableFrom(t),
+				baseType.IsAssignableFrom,
 				t => !t.IsAbstract,
 				t => instances.Add(ColorRamp.LoadMap(t))
 			);
