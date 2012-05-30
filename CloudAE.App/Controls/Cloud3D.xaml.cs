@@ -105,7 +105,7 @@ namespace CloudAE.App
 
 			if (tileSource != null)
 			{
-				Action<string> logAction = new Action<string>(delegate(string value) { Context.WriteLine(value); });
+				Action<string> logAction = value => Context.WriteLine(value);
 				m_progressManager = new BackgroundWorkerProgressManager(m_backgroundWorker, e, logAction);
 
 				CloudAE.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;

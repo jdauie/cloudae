@@ -27,7 +27,7 @@ namespace CloudAE.Core
 		public FlyMotionController()
 		{
 			m_timer = new Timer(10);
-			m_timer.Elapsed += new ElapsedEventHandler(OnTimerElapsed);
+			m_timer.Elapsed += OnTimerElapsed;
 
 			m_transform = new Transform3DGroup();
 			m_transform.Children.Add(m_scale);

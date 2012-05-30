@@ -250,9 +250,7 @@ namespace CloudAE.App
 
 			// drop loaded tiles that are the farthest from the center
 			int totalAllowedPoints = MAX_BUFFER_SIZE_BYTES / CurrentTileSource.PointSizeBytes;
-			int loadedPoints = 0;
-			for (int i = 0; i < loadedTiles.Length; i++)
-				loadedPoints += loadedTiles[i].PointCount;
+			int loadedPoints = loadedTiles.Sum(t => t.PointCount);
 
 			int potentialTotalPoints = loadedPoints;// +pointsToLoad;
 

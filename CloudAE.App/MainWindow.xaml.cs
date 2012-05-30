@@ -87,7 +87,7 @@ namespace CloudAE.App
 
 			m_tabItemOnStarted = tabItemLog;
 			m_tabItemOnSelection = tabControl.Items.OfType<TabItem>()
-				.Where(t => t.Tag != null && typeof(Preview2D).IsAssignableFrom(t.Tag.GetType())).FirstOrDefault();
+				.FirstOrDefault(t => t.Tag != null && typeof(Preview2D).IsInstanceOfType(t.Tag));
 
 			if(m_tabItemOnSelection == null)
 				throw new Exception("Required control not available.");
@@ -148,10 +148,7 @@ namespace CloudAE.App
 
 		private void OnLog(string value)
 		{
-			Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate()
-			{
-				logViewer.AppendLine(value);
-			}));
+			Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() => logViewer.AppendLine(value)));
 		}
 
 		private void OnProcessingStarted(FileHandlerBase inputHandler)

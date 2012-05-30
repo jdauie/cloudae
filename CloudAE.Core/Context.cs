@@ -81,7 +81,7 @@ namespace CloudAE.Core
 			}
 			else
 			{
-				c_writeLineAction = delegate(string s, object[] args) { Trace.WriteLine(string.Format(s, args)); };
+				c_writeLineAction = (s, args) => Trace.WriteLine(string.Format(s, args));
 			}
 
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();

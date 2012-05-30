@@ -302,7 +302,7 @@ namespace CloudAE.App
 			{
 				previewImageGrid.MouseMove -= OnViewportGridMouseMove;
 
-				Action<string> logAction = new Action<string>(delegate(string value) { Context.WriteLine(value); });
+				Action<string> logAction = value => Context.WriteLine(value);
 				m_progressManager = new BackgroundWorkerProgressManager(m_backgroundWorker, e, logAction);
 
 				m_gridDimensionLowRes = (ushort)Math.Sqrt(VERTEX_COUNT_FAST / tileSource.TileSet.ValidTileCount);
@@ -726,9 +726,7 @@ namespace CloudAE.App
 
 			// drop loaded tiles that are the farthest from the center
 			int totalAllowedPoints = MAX_BUFFER_SIZE_BYTES / CurrentTileSource.PointSizeBytes;
-			int loadedPoints = 0;
-			for (int i = 0; i < loadedTiles.Length; i++)
-				loadedPoints += loadedTiles[i].PointCount;
+			int loadedPoints = loadedTiles.Sum(t => t.PointCount);
 
 			int potentialTotalPoints = loadedPoints + pointsToLoad;
 

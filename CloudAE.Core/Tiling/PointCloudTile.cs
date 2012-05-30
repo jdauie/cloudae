@@ -214,11 +214,9 @@ namespace CloudAE.Core
 
 		public override bool Equals(object obj)
 		{
-			if (obj is PointCloudTile)
-			{
-				PointCloudTile tile = (PointCloudTile)obj;
+			var tile = obj as PointCloudTile;
+			if (tile != null)
 				return (tile.Row == Row && tile.Col == Col);
-			}
 			return false;
 		}
 	}
