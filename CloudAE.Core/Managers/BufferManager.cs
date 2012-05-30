@@ -83,8 +83,6 @@ namespace CloudAE.Core
 		public static BufferInstance AcquireBuffer()
 		{
 			// Since we don't know what this is used for, the manager itself will take ownership.
-			// These will not get cleaned up until the application exits, which is not a problem
-			// for now since there is only one usage (which should be addressed differently).
 			return AcquireBuffer(c_id, BUFFER_SIZE_BYTES, false);
 		}
 
