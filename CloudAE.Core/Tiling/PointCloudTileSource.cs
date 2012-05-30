@@ -913,7 +913,7 @@ namespace CloudAE.Core
 			for (int i = 0; i < count; i++)
 				points[i] = p[i];
 
-			int gridSize = 32;
+			const int gridSize = 32;
 			int gridCellDimensionX = (int)Math.Ceiling((double)quantizedExtent.RangeX / gridSize);
 			int gridCellDimensionY = (int)Math.Ceiling((double)quantizedExtent.RangeY / gridSize);
 
@@ -1085,9 +1085,9 @@ namespace CloudAE.Core
 
 		private unsafe void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
 		{
-			float fillVal = -1.0f;
-			Grid<float> grid = new Grid<float>(Extent, maxPreviewDimension, fillVal, true);
-			Grid<uint> quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, Extent, true);
+			const float fillVal = -1.0f;
+			var grid = new Grid<float>(Extent, maxPreviewDimension, fillVal, true);
+			var quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, Extent, true);
 
 			double pixelsOverRangeX = (double)grid.SizeX / QuantizedExtent.RangeX;
 			double pixelsOverRangeY = (double)grid.SizeY / QuantizedExtent.RangeY;

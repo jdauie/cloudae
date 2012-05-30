@@ -5,8 +5,8 @@ namespace CloudAE.Core
 {
 	public abstract class ProgressManager
 	{
-		private Action<string> m_logAction;
-		private object m_userState;
+		private readonly Action<string> m_logAction;
+		private readonly object m_userState;
 
 		private ProgressManagerProcess m_currentProcess;
 
@@ -15,7 +15,7 @@ namespace CloudAE.Core
 			get { return m_userState; }
 		}
 
-		public ProgressManager(object userState, Action<string> logAction)
+		protected ProgressManager(object userState, Action<string> logAction)
 		{
 			m_userState = userState;
 			m_logAction = logAction;

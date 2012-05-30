@@ -14,7 +14,7 @@ namespace CloudAE.Core
 				inputLength = length;
 
 			byte[] buffer = new byte[length];
-			ASCIIEncoding.ASCII.GetBytes(input, 0, inputLength, buffer, 0);
+			Encoding.ASCII.GetBytes(input, 0, inputLength, buffer, 0);
 
 			return buffer;
 		}

@@ -17,7 +17,7 @@ namespace CloudAE.Core.Geometry
 		public readonly double OffsetY;
 		public readonly double OffsetZ;
 
-		public Quantization3D(double sfX, double sfY, double sfZ, double oX, double oY, double oZ)
+		protected Quantization3D(double sfX, double sfY, double sfZ, double oX, double oY, double oZ)
 		{
 			ScaleFactorX = sfX;
 			ScaleFactorY = sfY;
@@ -27,7 +27,7 @@ namespace CloudAE.Core.Geometry
 			OffsetZ = oZ;
 		}
 
-		public Quantization3D(BinaryReader reader)
+		protected Quantization3D(BinaryReader reader)
 		{
 			ScaleFactorX = reader.ReadDouble();
 			ScaleFactorY = reader.ReadDouble();
@@ -65,7 +65,7 @@ namespace CloudAE.Core.Geometry
 			}
 
 			double pow2to32 = Math.Pow(2, 32);
-			double logBase = 10; // this value effects debugging and compressibility
+			const double logBase = 10; // this value effects debugging and compressibility
 
 			int precisionMaxX = (int)Math.Floor(Math.Log(pow2to32 / (extent.RangeX), logBase));
 			int precisionMaxY = (int)Math.Floor(Math.Log(pow2to32 / (extent.RangeY), logBase));

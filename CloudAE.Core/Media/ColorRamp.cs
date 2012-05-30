@@ -128,7 +128,7 @@ namespace CloudAE.Core
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ColorRamp"/> class.
 		/// </summary>
-		public ColorRamp()
+		protected ColorRamp()
 		{
 			m_map = CreateMap();
 

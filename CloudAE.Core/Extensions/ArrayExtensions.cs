@@ -18,14 +18,14 @@ namespace CloudAE.Core
 		{
 			int nullLocation = Array.IndexOf<byte>(buffer, 0);
 			if (nullLocation > -1)
-				return ASCIIEncoding.ASCII.GetString(buffer, 0, nullLocation);
+				return Encoding.ASCII.GetString(buffer, 0, nullLocation);
 			else
-				return ASCIIEncoding.ASCII.GetString(buffer);
+				return Encoding.ASCII.GetString(buffer);
 		}
 
 		public static void ParallelSort(this int[] target)
 		{
-			int bucketCountPow = 2;
+			const int bucketCountPow = 2;
 			int bucketCount = (int)Math.Pow(2, bucketCountPow);
 
 			// get range for shifting

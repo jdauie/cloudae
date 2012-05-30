@@ -7,12 +7,12 @@ namespace CloudAE.Core
 {
 	public abstract class IgnorableException : Exception
 	{
-		public IgnorableException(string message)
+		protected IgnorableException(string message)
 			: base(message)
 		{
 		}
 
-		public IgnorableException(string message, Exception innerException)
+		protected IgnorableException(string message, Exception innerException)
 			: base(message, innerException)
 		{
 		}

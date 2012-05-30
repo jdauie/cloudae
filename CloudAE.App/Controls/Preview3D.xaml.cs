@@ -589,7 +589,7 @@ namespace CloudAE.App
 			if ((e.Cancelled == true))
 			{
 			}
-			else if (!(e.Error == null))
+			else if (e.Error != null)
 			{
 			}
 			else

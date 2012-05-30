@@ -237,7 +237,7 @@ namespace CloudAE.Core
 			{
 				OnProcessingProgressChanged(0);
 			}
-			else if (!(e.Error == null)) { }
+			else if (e.Error != null) { }
 			else
 			{
 				// success

@@ -14,7 +14,7 @@ namespace CloudAE.Core.Geometry
 			get { return m_points.Length < 3; }
 		}
 
-		public PolygonBase(IEnumerable<T> points)
+		protected PolygonBase(IEnumerable<T> points)
 		{
 			m_points = points.ToArray();
 		}

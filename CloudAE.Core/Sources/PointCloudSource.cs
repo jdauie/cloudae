@@ -28,8 +28,8 @@ namespace CloudAE.Core
 		{
 			get { return m_id; }
 		}
-		
-		public PointCloudSource(string file)
+
+		protected PointCloudSource(string file)
 		{
 			m_id = IdentityManager.AcquireIdentity(GetType().Name);
 
