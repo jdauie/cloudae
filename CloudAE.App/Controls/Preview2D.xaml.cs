@@ -293,7 +293,7 @@ namespace CloudAE.App
 				distanceToCenter2[i] = (float)(Math.Pow(tiles[i].Col - centerTile.Col, 2) + Math.Pow(tiles[i].Row - centerTile.Row, 2));
 			}
 
-			Array.Sort<float, PointCloudTile>(distanceToCenter2, tiles);
+			Array.Sort(distanceToCenter2, tiles);
 		}
 
 		private System.Windows.Shapes.Rectangle CreateTileRectangle(PointCloudTile tile, FrameworkElement image, Panel grid)

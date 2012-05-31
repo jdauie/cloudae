@@ -37,43 +37,43 @@ namespace CloudAE.Core
 		public static bool ShowConsole
 		{
 			get { return m_showConsole; }
-			set { m_showConsole = AttemptToAssignValue<bool>(value); }
+			set { m_showConsole = AttemptToAssignValue(value); }
 		}
 
 		public static bool EnableInstrumentation
 		{
 			get { return m_enableInstrumentation; }
-			set { m_enableInstrumentation = AttemptToAssignValue<bool>(value); }
+			set { m_enableInstrumentation = AttemptToAssignValue(value); }
 		}
 
 		public static bool EnableExtensionDiscovery
 		{
 			get { return m_enableExtensionDiscovery; }
-			set { m_enableExtensionDiscovery = AttemptToAssignValue<bool>(value); }
+			set { m_enableExtensionDiscovery = AttemptToAssignValue(value); }
 		}
 
 		public static bool EnableFactoryDiscovery
 		{
 			get { return m_enableFactoryDiscovery; }
-			set { m_enableFactoryDiscovery = AttemptToAssignValue<bool>(value); }
+			set { m_enableFactoryDiscovery = AttemptToAssignValue(value); }
 		}
 
 		public static bool EnablePropertyDiscovery
 		{
 			get { return m_enablePropertyDiscovery; }
-			set { m_enablePropertyDiscovery = AttemptToAssignValue<bool>(value); }
+			set { m_enablePropertyDiscovery = AttemptToAssignValue(value); }
 		}
 
 		public static bool StorePropertyRegistration
 		{
 			get { return m_storePropertyRegistration; }
-			set { m_storePropertyRegistration = AttemptToAssignValue<bool>(value); }
+			set { m_storePropertyRegistration = AttemptToAssignValue(value); }
 		}
 
 		public static bool ShowAbstractTypesDuringDiscovery
 		{
 			get { return m_showAbstractTypesDuringDiscovery; }
-			set { m_showAbstractTypesDuringDiscovery = AttemptToAssignValue<bool>(value); }
+			set { m_showAbstractTypesDuringDiscovery = AttemptToAssignValue(value); }
 		}
 
 		static Config()

@@ -28,9 +28,9 @@ namespace CloudAE.Core
 
 		static ProcessingSet()
 		{
-			PROPERTY_TILE_MODE = Context.RegisterOption<PointCloudTileBufferManagerMode>(Context.OptionCategory.Tiling, "Mode", PointCloudTileBufferManagerMode.OptimizeForLargeFile);
-			PROPERTY_SEGMENT_SIZE = Context.RegisterOption<ByteSizesLarge>(Context.OptionCategory.Tiling, "MaxSegmentSize", ByteSizesLarge.GB_2);
-			PROPERTY_REUSE_TILING = Context.RegisterOption<bool>(Context.OptionCategory.Tiling, "UseCache", true);
+			PROPERTY_TILE_MODE = Context.RegisterOption(Context.OptionCategory.Tiling, "Mode", PointCloudTileBufferManagerMode.OptimizeForLargeFile);
+			PROPERTY_SEGMENT_SIZE = Context.RegisterOption(Context.OptionCategory.Tiling, "MaxSegmentSize", ByteSizesLarge.GB_2);
+			PROPERTY_REUSE_TILING = Context.RegisterOption(Context.OptionCategory.Tiling, "UseCache", true);
 		}
 
 		public ProcessingSet(FileHandlerBase inputFile)
@@ -53,7 +53,7 @@ namespace CloudAE.Core
 
 			if (m_tileSource == null)
 			{
-				using (ProgressManagerProcess process = progressManager.StartProcess("ProcessSet"))
+				using (var process = progressManager.StartProcess("ProcessSet"))
 				{
 					// step 0
 					if (!m_isInputPathLocal)
@@ -63,7 +63,7 @@ namespace CloudAE.Core
 					m_binarySource = m_inputHandler.GenerateBinarySource(progressManager);
 
 					// step 2,3
-					PointCloudTileBufferManagerOptions tileOptions = new PointCloudTileBufferManagerOptions(PROPERTY_TILE_MODE.Value);
+					var tileOptions = new PointCloudTileBufferManagerOptions(PROPERTY_TILE_MODE.Value);
 					long pointDataSize = (long)m_binarySource.Count * m_binarySource.PointSizeBytes;
 					long maxSegmentBytes = (long)PROPERTY_SEGMENT_SIZE.Value;
 					if (tileOptions.SupportsSegmentedProcessing && pointDataSize > maxSegmentBytes)
@@ -72,7 +72,7 @@ namespace CloudAE.Core
 					}
 					else
 					{
-						PointCloudTileManager tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
+						var tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
 						m_tileSource = tileManager.TilePointFile(m_tiledPath, progressManager);
 					}
 
@@ -168,7 +168,7 @@ namespace CloudAE.Core
 			}
 
 			// step 2
-			using (ProgressManagerProcess process = progressManager.StartProcess("ProcessTileSegments"))
+			using (var process = progressManager.StartProcess("ProcessTileSegments"))
 			{
 				// tile chunks seperately, using the same tile boundaries
 				tiledSegments = new PointCloudTileSource[segments.Length];
@@ -177,7 +177,7 @@ namespace CloudAE.Core
 					string tiledSegmentPath = GetTileSourcePath(m_binarySource.FilePath, i);
 					process.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
 
-					PointCloudTileManager tileManager = new PointCloudTileManager(segments[i], tileOptions);
+					var tileManager = new PointCloudTileManager(segments[i], tileOptions);
 					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, estimatedDensity, statsGenerator, quantization, progressManager);
 
 					// why is random faster for parallel reads? RAID?
@@ -192,7 +192,7 @@ namespace CloudAE.Core
 			}
 
 			// step 3
-			using (ProgressManagerProcess process = progressManager.StartProcess("MergeTileSegments"))
+			using (var process = progressManager.StartProcess("MergeTileSegments"))
 			{
 				process.Log("Merging {0} Segments", segments.Length);
 
@@ -212,14 +212,14 @@ namespace CloudAE.Core
 						outputStream.Seek(tileSource.PointDataOffset, SeekOrigin.Begin);
 
 						// go through tiles and write at the correct offset
-						foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
+						foreach (var tile in tileSource.TileSet.ValidTiles)
 						{
 							for (int i = 0; i < tiledSegments.Length; i++)
 							{
-								PointCloudTile segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
+								var segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
 								if (segmentTile.IsValid)
 								{
-									tiledSegments[i].LoadTile(segmentTile, inputBuffer.Data);
+									segmentTile.TileSource.LoadTile(segmentTile, inputBuffer.Data);
 									outputStream.Write(inputBuffer.Data, 0, segmentTile.StorageSize);
 								}
 							}

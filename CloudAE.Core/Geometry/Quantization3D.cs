@@ -148,10 +148,10 @@ namespace CloudAE.Core.Geometry
 			for (int i = 0; i < 3; i++)
 			{
 				double[] values = testValues[i];
-				Array.Sort<double>(values);
-				double min = values[0];
-				double max = values[pointsToTest - 1];
-				double range = max - min;
+				Array.Sort(values);
+				//double min = values[0];
+				//double max = values[pointsToTest - 1];
+				//double range = max - min;
 
 				int scaleBase = 10;
 

@@ -58,7 +58,7 @@ namespace CloudAE.Core
 			m_versionCombined = (ushort)((m_versionMajor << 8) + m_versionMinor);
 			ushort[] versions = (ushort[])Enum.GetValues(typeof(LASVersion));
 
-			int versionIndex = Array.IndexOf<ushort>(versions, m_versionCombined);
+			int versionIndex = Array.IndexOf(versions, m_versionCombined);
 
 			if (versionIndex < 0)
 			{

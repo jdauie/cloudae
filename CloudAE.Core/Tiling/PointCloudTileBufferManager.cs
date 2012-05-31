@@ -42,8 +42,8 @@ namespace CloudAE.Core
 
 		static PointCloudTileBufferManager()
 		{
-			PROPERTY_MAX_BUFFER_SIZE = Context.RegisterOption<ByteSizesSmall>(Context.OptionCategory.Tiling, "BufferManagerMaxBufferSize", ByteSizesSmall.MB_512);
-			PROPERTY_BUFFER_SIZE_MODE = Context.RegisterOption<PointCloudTileBufferSizeMode>(Context.OptionCategory.Tiling, "BufferManagerSizeMode", PointCloudTileBufferSizeMode.Median);
+			PROPERTY_MAX_BUFFER_SIZE = Context.RegisterOption(Context.OptionCategory.Tiling, "BufferManagerMaxBufferSize", ByteSizesSmall.MB_512);
+			PROPERTY_BUFFER_SIZE_MODE = Context.RegisterOption(Context.OptionCategory.Tiling, "BufferManagerSizeMode", PointCloudTileBufferSizeMode.Median);
 		}
 
 		public PointCloudTileBufferManager(PointCloudTileSource tileSource, FileStream outputStream)

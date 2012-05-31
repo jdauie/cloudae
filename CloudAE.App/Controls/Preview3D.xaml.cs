@@ -895,21 +895,21 @@ namespace CloudAE.App
 				distanceToCenter2[i] = (float)(Math.Pow(tiles[i].Col - centerTile.Col, 2) + Math.Pow(tiles[i].Row - centerTile.Row, 2));
 			}
 
-			Array.Sort<float, PointCloudTile>(distanceToCenter2, tiles);
+			Array.Sort(distanceToCenter2, tiles);
 		}
 
 		private void OnViewportGridMouseMove(object sender, MouseEventArgs e)
 		{
 			if (Keyboard.IsKeyDown(Key.LeftCtrl))
 			{
-				RayMeshGeometry3DHitTestResult result = (RayMeshGeometry3DHitTestResult)VisualTreeHelper.HitTest(viewport, e.GetPosition(viewport));
+				var result = (RayMeshGeometry3DHitTestResult)VisualTreeHelper.HitTest(viewport, e.GetPosition(viewport));
 
 				if (result != null)
 				{
-					GeometryModel3D model = result.ModelHit as GeometryModel3D;
+					var model = result.ModelHit as GeometryModel3D;
 					if (model != null && m_meshTileMap.ContainsKey(model))
 					{
-						PointCloudTile tile = m_meshTileMap[model];
+						var tile = m_meshTileMap[model];
 
 						UpdateCurrentTile(tile);
 					}

@@ -100,7 +100,7 @@ namespace CloudAE.Core
 
 			variance /= (count - 1);
 			
-			int intervalMax = verticalValueCounts.MaxIndex<long>();
+			int intervalMax = verticalValueCounts.MaxIndex();
 			double mode = verticalValueCenters[intervalMax];
 
 			return new Statistics(mean, variance, mode);

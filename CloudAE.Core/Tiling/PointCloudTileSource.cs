@@ -919,8 +919,8 @@ namespace CloudAE.Core
 			int gridCellDimensionX = (int)Math.Ceiling((double)quantizedExtent.RangeX / gridSize);
 			int gridCellDimensionY = (int)Math.Ceiling((double)quantizedExtent.RangeY / gridSize);
 
-			UQuantizedPoint3DGridComparer comparer = new UQuantizedPoint3DGridComparer(gridSize, gridCellDimensionX, gridCellDimensionY);
-			Array.Sort<UQuantizedPoint3D>(points, comparer);
+			var comparer = new UQuantizedPoint3DGridComparer(gridSize, gridCellDimensionX, gridCellDimensionY);
+			Array.Sort(points, comparer);
 
 			// find the cells
 			// (obviously, this can be optimized)

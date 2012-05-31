@@ -46,7 +46,7 @@ namespace CloudAE.Core
 			double maxX = 0, maxY = 0, maxZ = 0;
 			int pointCount = 0;
 
-			using (ProgressManagerProcess process = progressManager.StartProcess("ConvertTextToBinary"))
+			using (var process = progressManager.StartProcess("ConvertTextToBinary"))
 			{
 				BufferInstance inputBuffer = process.AcquireBuffer(true);
 				BufferInstance outputBuffer = process.AcquireBuffer(true);
@@ -57,9 +57,9 @@ namespace CloudAE.Core
 				int bufferIndex = 0;
 				int skipped = 0;
 
-				using (FileStream outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.WriteThrough))
+				using (var outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.WriteThrough))
 				{
-					FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+					var inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
 					long inputLength = inputStream.Length;
 
 					long estimatedOutputLength = (long)(0.5 * inputLength);

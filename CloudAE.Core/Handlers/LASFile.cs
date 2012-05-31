@@ -93,7 +93,7 @@ namespace CloudAE.Core
 
 			if (!TRUST_HEADER_EXTENT)
 			{
-				using (ProgressManagerProcess process = progressManager.StartProcess("CalculateLASExtent"))
+				using (var process = progressManager.StartProcess("CalculateLASExtent"))
 				{
 					BufferInstance buffer = process.AcquireBuffer(true);
 
@@ -102,7 +102,7 @@ namespace CloudAE.Core
 					int minX = 0, minY = 0, minZ = 0;
 					int maxX = 0, maxY = 0, maxZ = 0;
 
-					foreach (PointCloudBinarySourceEnumeratorChunk chunk in GetBlockEnumerator(buffer.Data))
+					foreach (var chunk in GetBlockEnumerator(buffer.Data))
 					{
 						if (minX == 0 && maxX == 0)
 						{

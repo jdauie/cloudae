@@ -53,11 +53,11 @@ namespace CloudAE.Core
 
 		public UQuantizedExtent3D FinalizeTiles(ProgressManager progressManager)
 		{
-			using (ProgressManagerProcess process = progressManager.StartProcess("FinalizeTiles"))
+			using (var process = progressManager.StartProcess("FinalizeTiles"))
 			{
-				foreach (PointCloudTile tile in m_tileSet.ValidTiles)
+				foreach (var tile in m_tileSet.ValidTiles)
 				{
-					PointCloudTileBuffer tileBuffer = m_createdBuffers[tile.Col, tile.Row];
+					var tileBuffer = m_createdBuffers[tile.Col, tile.Row];
 
 					m_tileSet[tile.Col, tile.Row].QuantizedExtent = tileBuffer.GetExtent();
 
@@ -69,7 +69,7 @@ namespace CloudAE.Core
 				}
 			}
 
-			UQuantizedExtent3D newQuantizedExtent = m_tileSet.ValidTiles.Select(t => t.QuantizedExtent).Union();
+			var newQuantizedExtent = m_tileSet.ValidTiles.Select(t => t.QuantizedExtent).Union();
 			return newQuantizedExtent;
 		}
 	}

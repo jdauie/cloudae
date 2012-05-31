@@ -25,8 +25,8 @@ namespace CloudAE.App
 
 		private PointCloudTileSource m_currentTileSource;
 
-		private TabItem m_tabItemOnStarted;
-		private TabItem m_tabItemOnSelection;
+		private readonly TabItem m_tabItemOnStarted;
+		private readonly TabItem m_tabItemOnSelection;
 
 		public PointCloudTileSource CurrentTileSource
 		{
@@ -36,7 +36,7 @@ namespace CloudAE.App
 
 		static MainWindow()
 		{
-			SWITCH_TO_LOG_TAB_ON_PROCESSING_START = Context.RegisterOption<bool>(Context.OptionCategory.App, "SwitchToLogTabOnProcessingStart", true);
+			SWITCH_TO_LOG_TAB_ON_PROCESSING_START = Context.RegisterOption(Context.OptionCategory.App, "SwitchToLogTabOnProcessingStart", true);
 
 			List<ITileSourceControl> controls = RegisterControls();
 			c_controls = controls.OrderBy(c => c.Index).ToArray();
@@ -97,7 +97,7 @@ namespace CloudAE.App
 
 		private static List<ITileSourceControl> RegisterControls()
 		{
-			List<ITileSourceControl> controls = new List<ITileSourceControl>();
+			var controls = new List<ITileSourceControl>();
 			Type baseType0 = typeof(ITileSourceControl);
 			Type baseType1 = typeof(UserControl);
 
@@ -114,15 +114,15 @@ namespace CloudAE.App
 
 		private void OnRemoveButtonClick(object sender, RoutedEventArgs e)
 		{
-			PointCloudTileSource tileSource = ContentList.SelectedItem as PointCloudTileSource;
+			var tileSource = ContentList.SelectedItem as PointCloudTileSource;
 			if (tileSource != null)
 				RemoveTileSource(tileSource);
 		}
 
 		private void OnRemoveAllButtonClick(object sender, RoutedEventArgs e)
 		{
-			List<PointCloudTileSource> sources = ContentList.Items.Cast<PointCloudTileSource>().ToList();
-			foreach (PointCloudTileSource tileSource in sources)
+			var sources = ContentList.Items.Cast<PointCloudTileSource>().ToList();
+			foreach (var tileSource in sources)
 				RemoveTileSource(tileSource);
 		}
 
@@ -135,13 +135,10 @@ namespace CloudAE.App
 
 		private void OnBrowseButtonClick(object sender, RoutedEventArgs e)
 		{
-			OpenFileDialog dialog = HandlerFactory.GetOpenDialog();
+			var dialog = HandlerFactory.GetOpenDialog();
 
 			if (dialog.ShowDialog(this) == true)
-			{
-				string[] inputFiles = dialog.FileNames;
-				Context.AddToProcessingQueue(inputFiles);
-			}
+				Context.AddToProcessingQueue(dialog.FileNames);
 		}
 
 		#region Context Event Handlers
@@ -239,11 +236,6 @@ namespace CloudAE.App
 			UpdateSelection((sender as ListBoxItem).Content as PointCloudTileSource);
 		}
 
-		private void OnPerformanceButtonClick(object sender, RoutedEventArgs e)
-		{
-			textBlockPreview.Text = PerformanceManager.GetString();
-		}
-
 		private void OnTabControlSelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
 			if (e.Source is TabControl)
@@ -263,7 +255,7 @@ namespace CloudAE.App
 
 			foreach (TabItem tabItem in tabControl.Items)
 			{
-				ITileSourceControl control = tabItem.Tag as ITileSourceControl;
+				var control = tabItem.Tag as ITileSourceControl;
 				if (control != null)
 				{
 					tabItem.IsEnabled = enableTileControls;
@@ -300,7 +292,7 @@ namespace CloudAE.App
 
 		private void OnListDrop(object sender, DragEventArgs e)
 		{
-			string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+			var files = (string[])e.Data.GetData(DataFormats.FileDrop);
 			Context.AddToProcessingQueue(files);
 		}
 
