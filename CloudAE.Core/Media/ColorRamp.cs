@@ -138,7 +138,7 @@ namespace CloudAE.Core
 
 		public CachedColorRamp CreateCachedRamp(uint min, uint max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
 		{
-			CachedColorRamp cachedRamp = new CachedColorRamp(this, min, max, stats, useStdDevStretch, desiredDestinationBins);
+			var cachedRamp = new CachedColorRamp(this, min, max, stats, useStdDevStretch, desiredDestinationBins);
 			return cachedRamp;
 		}
 
@@ -169,11 +169,11 @@ namespace CloudAE.Core
 				Color minColor = m_map[mapScaleMin];
 				Color maxColor = m_map[mapScaleMin + 1];
 
-				byte R = (byte)GetValueBetween(minColor.R, maxColor.R, remainder);
-				byte G = (byte)GetValueBetween(minColor.G, maxColor.G, remainder);
-				byte B = (byte)GetValueBetween(minColor.B, maxColor.B, remainder);
+				byte r = (byte)GetValueBetween(minColor.R, maxColor.R, remainder);
+				byte g = (byte)GetValueBetween(minColor.G, maxColor.G, remainder);
+				byte b = (byte)GetValueBetween(minColor.B, maxColor.B, remainder);
 
-				color = Color.FromArgb(R, G, B);
+				color = Color.FromArgb(r, g, b);
 			}
 
 			return color;

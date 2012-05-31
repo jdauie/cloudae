@@ -461,8 +461,8 @@ namespace CloudAE.Core
 			Point3D centerOfMass = CenterOfMass;
 			double centerOfMassMinusMin = centerOfMass.Z - Extent.MinZ;
 
-			System.Windows.Media.Media3D.Point3DCollection positions = new System.Windows.Media.Media3D.Point3DCollection(grid.CellCount);
-			System.Windows.Media.Int32Collection indices = new System.Windows.Media.Int32Collection(2 * (grid.SizeX - 1) * (grid.SizeY - 1));
+			var positions = new System.Windows.Media.Media3D.Point3DCollection(grid.CellCount);
+			var indices = new System.Windows.Media.Int32Collection(2 * (grid.SizeX - 1) * (grid.SizeY - 1));
 			
 			float fillVal = grid.FillVal;
 
@@ -478,7 +478,7 @@ namespace CloudAE.Core
 					xCoord += (distributionExtent.MidpointX - centeringExtent.MidpointX);
 					yCoord += (distributionExtent.MidpointY - centeringExtent.MidpointY);
 
-					System.Windows.Media.Media3D.Point3D point = new System.Windows.Media.Media3D.Point3D(xCoord, yCoord, value);
+					var point = new System.Windows.Media.Media3D.Point3D(xCoord, yCoord, value);
 					positions.Add(point);
 
 					if (x > 0 && y > 0)
@@ -523,7 +523,7 @@ namespace CloudAE.Core
 				}
 			}
 
-			System.Windows.Media.Media3D.Vector3DCollection normals = new System.Windows.Media.Media3D.Vector3DCollection(positions.Count);
+			var normals = new System.Windows.Media.Media3D.Vector3DCollection(positions.Count);
 
 			for (int i = 0; i < positions.Count; i++)
 				normals.Add(new System.Windows.Media.Media3D.Vector3D(0, 0, 0));
@@ -547,7 +547,7 @@ namespace CloudAE.Core
 			{
 				if (normals[i].Length > 0)
 				{
-					System.Windows.Media.Media3D.Vector3D normal = normals[i];
+					var normal = normals[i];
 					normal.Normalize();
 
 					// the fact that this is necessary means I am doing something wrong
@@ -557,11 +557,13 @@ namespace CloudAE.Core
 					normals[i] = normal;
 				}
 			}
-			
-			System.Windows.Media.Media3D.MeshGeometry3D geometry = new System.Windows.Media.Media3D.MeshGeometry3D();
-			geometry.Positions = positions;
-			geometry.TriangleIndices = indices;
-			geometry.Normals = normals;
+
+			var geometry = new System.Windows.Media.Media3D.MeshGeometry3D
+			{
+				Positions = positions, 
+				TriangleIndices = indices, 
+				Normals = normals
+			};
 
 			return geometry;
 		}
@@ -1075,7 +1077,7 @@ namespace CloudAE.Core
 
 		public void GeneratePreviewGrid(ProgressManager progressManager)
 		{
-			Stopwatch stopwatch = new Stopwatch();
+			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 
 			GeneratePreviewPixelGrid(MAX_PREVIEW_DIMENSION, progressManager);
@@ -1129,10 +1131,10 @@ namespace CloudAE.Core
 
 		private unsafe BitmapSource CreateBitmapSource(Grid<uint> grid, UQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler, int quality)
 		{
-			ColorRamp ramp = colorHandler as ColorRamp;
-			ColorMapDistinct map = colorHandler as ColorMapDistinct;
+			var ramp = colorHandler as ColorRamp;
+			var map = colorHandler as ColorMapDistinct;
 
-			WriteableBitmap bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
+			var bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
 			bmp.Lock();
 			IntPtr pBackBuffer = bmp.BackBuffer;
 			int* p = (int*)pBackBuffer;
@@ -1149,7 +1151,7 @@ namespace CloudAE.Core
 				float qualityRatio = (float)quality / 100;
 				int rampSize = (int)(qualityRatio * 300);
 				
-				CachedColorRamp cachedRamp = ramp.CreateCachedRamp(extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, rampSize);
+				var cachedRamp = ramp.CreateCachedRamp(extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, rampSize);
 
 				int transparent = Color.Transparent.ToArgb();
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
@@ -13,32 +12,21 @@ namespace CloudAE.Core
 
 		public readonly T[,] Data;
 
-		private T m_fillVal;
-		private Extent2D m_extent;
-
 		public int CellCount
 		{
-			get { return (int)SizeX * SizeY; }
+			get { return SizeX * SizeY; }
 		}
 
-		public T FillVal
-		{
-			get { return m_fillVal; }
-			set { m_fillVal = value; }
-		}
+		public T FillVal { get; set; }
 
-		public Extent2D Extent
-		{
-			get { return m_extent; }
-			set { m_extent = value; }
-		}
+		public Extent2D Extent { get; private set; }
 
 		public Grid(ushort sizeX, ushort sizeY, Extent2D extent, bool bufferEdge)
 		{
 			SizeX = sizeX;
 			SizeY = sizeY;
 
-			m_extent = extent;
+			Extent = extent;
 
 			int edgeBufferSize = bufferEdge ? 1 : 0;
 
@@ -52,8 +40,8 @@ namespace CloudAE.Core
 			SizeX = maxDimension;
 			SizeY = maxDimension;
 
-			m_extent = extent;
-			double aspect = m_extent.Aspect;
+			Extent = extent;
+			double aspect = Extent.Aspect;
 			if (aspect > 1)
 				SizeY = (ushort)Math.Max((double)SizeX / aspect, minDimension);
 			else

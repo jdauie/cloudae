@@ -72,7 +72,7 @@ namespace CloudAE.Core
 			}
 			else if (createIfNecessary)
 			{
-				Stack<BufferInstance> newBufferList = new Stack<BufferInstance>();
+				var newBufferList = new Stack<BufferInstance>();
 				c_availableBuffersBySize.Add(size, newBufferList);
 				return newBufferList;
 			}

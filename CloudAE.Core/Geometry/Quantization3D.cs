@@ -101,7 +101,7 @@ namespace CloudAE.Core.Geometry
 				int scalePow = (int)Math.Round(Math.Log(scaleInverse, scaleBase), LOG_ROUNDING_PRECISION);
 
 				// count differences
-				Dictionary<uint, int> diffCountsLookup = new Dictionary<uint, int>();
+				var diffCountsLookup = new Dictionary<uint, int>();
 				for (int p = 1; p < pointsToTest; p++)
 				{
 					uint diff = (uint)(values[p] - values[p - 1]);
@@ -156,7 +156,7 @@ namespace CloudAE.Core.Geometry
 				int scaleBase = 10;
 
 				// count differences
-				SortedList<double, int> diffCounts = new SortedList<double, int>();
+				var diffCounts = new SortedList<double, int>();
 
 				for (int p = 1; p < pointsToTest; p++)
 				{
@@ -192,7 +192,7 @@ namespace CloudAE.Core.Geometry
 		private static int FindBase(int inverseScale)
 		{
 			// find factors
-			Dictionary<int, int> factors = new Dictionary<int, int>();
+			var factors = new Dictionary<int, int>();
 
 			int currentFactorValue = 2;
 
@@ -217,9 +217,7 @@ namespace CloudAE.Core.Geometry
 
 			int scaleBase = 1;
 			foreach (int factor in factors.Keys)
-			{
 				scaleBase *= (factor * (factors[factor] / smallestCount));
-			}
 
 			return scaleBase;
 		}

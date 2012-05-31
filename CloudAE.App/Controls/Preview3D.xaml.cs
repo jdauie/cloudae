@@ -586,7 +586,7 @@ namespace CloudAE.App
 
 		private void OnBackgroundRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			if ((e.Cancelled == true))
+			if ((e.Cancelled))
 			{
 			}
 			else if (e.Error != null)

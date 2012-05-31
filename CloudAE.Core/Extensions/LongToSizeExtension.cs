@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Markup;
@@ -16,7 +15,7 @@ namespace CloudAE.Core
 
 		static LongToSizeExtension()
 		{
-			Units = new List<string>() { "B", "KB", "MB", "GB", "TB" };
+			Units = new List<string> { "B", "KB", "MB", "GB", "TB" };
 		}
 
 		/// <summary>

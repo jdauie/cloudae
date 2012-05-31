@@ -48,19 +48,20 @@ namespace CloudAE.Core
 		private static readonly string c_baseDirectory;
 		private static readonly Type[] c_loadedTypes;
 
-		private static Action<string, object[]> c_writeLineAction;
+		private static readonly Action<string, object[]> c_writeLineAction;
 
-		private static Dictionary<string, FileHandlerBase> c_loadedPaths;
-		private static Dictionary<PointCloudTileSource, FileHandlerBase> c_sources;
-		private static ProcessingQueue c_queue;
-		private static ManagedBackgroundWorker c_backgroundWorker;
+		private static readonly Dictionary<string, FileHandlerBase> c_loadedPaths;
+		private static readonly Dictionary<PointCloudTileSource, FileHandlerBase> c_sources;
+		private static readonly ProcessingQueue c_queue;
+		private static readonly ManagedBackgroundWorker c_backgroundWorker;
+		
 		private static bool c_isProcessing;
 
 		static Context()
 		{
 			Config.ContextStarted = true;
 
-			Stopwatch stopwatch = new Stopwatch();
+			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 
 			// this should go somewhere on startup
@@ -214,11 +215,11 @@ namespace CloudAE.Core
 
 		private static void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
 		{
-			FileHandlerBase inputHandler = e.Argument as FileHandlerBase;
+			var inputHandler = e.Argument as FileHandlerBase;
 			ProgressManager progressManager = new BackgroundWorkerProgressManager(c_backgroundWorker, e, inputHandler, OnLog);
 			
-			ProcessingSet processingSet = new ProcessingSet(inputHandler);
-			PointCloudTileSource tileSource = processingSet.Process(progressManager);
+			var processingSet = new ProcessingSet(inputHandler);
+			var tileSource = processingSet.Process(progressManager);
 
 			if (tileSource != null)
 			{
@@ -230,10 +231,17 @@ namespace CloudAE.Core
 
 		private static void OnBackgroundRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			FileHandlerBase inputHandler = (sender as ManagedBackgroundWorker).Manager.UserState as FileHandlerBase;
+			var worker = (sender as ManagedBackgroundWorker);
+			if (worker == null)
+				return;
+
+			var inputHandler = worker.Manager.UserState as FileHandlerBase;
+			if (inputHandler == null)
+				return;
+
 			PointCloudTileSource tileSource = null;
 
-			if ((e.Cancelled == true))
+			if ((e.Cancelled))
 			{
 				OnProcessingProgressChanged(0);
 			}
@@ -389,7 +397,7 @@ namespace CloudAE.Core
 			String path = c_baseDirectory;
 			if (Directory.Exists(path))
 			{
-				string[] files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+				var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
 
 				foreach (string file in files)
 				{

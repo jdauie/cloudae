@@ -37,7 +37,7 @@ namespace CloudAE.Core
 
 		public override bool IsCanceled()
 		{
-			if ((m_worker.CancellationPending == true))
+			if ((m_worker.CancellationPending))
 			{
 				m_args.Cancel = true;
 				return true;
