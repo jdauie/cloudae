@@ -45,6 +45,8 @@ namespace CloudAE.Core
 	{
 		public const int BUFFER_SIZE_BYTES = (int)ByteSizesSmall.MB_1;
 
+		private const bool UNPIN_ON_RELEASE = true;
+
 		// eventually, this should handle buffers of varying size,
 		// or at least deallocate abnormal-sized buffers
 		private static readonly Dictionary<int, Stack<BufferInstance>> c_availableBuffersBySize;
@@ -121,10 +123,10 @@ namespace CloudAE.Core
 					c_bufferMapping.Add(b, buffer);
 				}
 				c_usedBuffers.Add(buffer, id);
-
-				if (pin)
-					buffer.PinBuffer();
 			}
+
+			if (pin && !buffer.Pinned)
+				buffer.PinBuffer();
 
 			return buffer;
 		}
@@ -151,10 +153,10 @@ namespace CloudAE.Core
 
 				Stack<BufferInstance> bufferList = GetAvailableBuffers(buffer.Length, true);
 				bufferList.Push(buffer);
-
-				if (buffer.Pinned)
-					buffer.UnpinBuffer();
 			}
+
+			if (UNPIN_ON_RELEASE && buffer.Pinned)
+				buffer.UnpinBuffer();
 		}
 
 		public static void ReleaseBuffers(Identity id)
@@ -169,8 +171,17 @@ namespace CloudAE.Core
 		{
 			lock (typeof(BufferManager))
 			{
-				foreach (BufferInstance buffer in buffers)
+				foreach (var buffer in buffers)
 					ReleaseBuffer(buffer);
+			}
+		}
+
+		private static void ForceUnpinBuffers()
+		{
+			lock (typeof(BufferManager))
+			{
+				foreach (var buffer in c_availableBuffersBySize.SelectMany(s => s.Value))
+					buffer.UnpinBuffer();
 			}
 		}
 
@@ -182,6 +193,8 @@ namespace CloudAE.Core
 				Debug.Assert(c_usedBuffers.Count == 0, String.Format("{0} buffers were not released", c_usedBuffers.Count));
 
 				ReleaseBuffers(c_usedBuffers.Keys.ToArray());
+
+				ForceUnpinBuffers();
 			}
 		}
 	}

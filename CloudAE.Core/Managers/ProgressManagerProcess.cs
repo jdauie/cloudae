@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.ComponentModel;
 using System.Diagnostics;
 
 namespace CloudAE.Core
@@ -108,7 +106,7 @@ namespace CloudAE.Core
 
 		public ProgressManagerProcess StartProcess(string name)
 		{
-			ProgressManagerProcess process = new ProgressManagerProcess(m_progressManager, this, name);
+			var process = new ProgressManagerProcess(m_progressManager, this, name);
 			return process;
 		}
 
