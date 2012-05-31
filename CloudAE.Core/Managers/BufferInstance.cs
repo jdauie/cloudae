@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 
 namespace CloudAE.Core
 {
-	public unsafe class BufferInstance
+	public unsafe class BufferInstance : IDisposable
 	{
-		public byte[] m_data;
-		public byte* m_dataPtr;
-		public byte* m_dataEndPtr;
-		public bool m_pinned;
-		public int m_length;
+		private readonly byte[] m_data;
+		private readonly int m_length;
+		private byte* m_dataPtr;
+		private byte* m_dataEndPtr;
+		private bool m_pinned;
 
 		private GCHandle m_gcHandle;
 
@@ -65,5 +62,14 @@ namespace CloudAE.Core
 			if (m_gcHandle.IsAllocated)
 				m_gcHandle.Free();
 		}
+
+		#region IDisposable Members
+
+		public void Dispose()
+		{
+			BufferManager.ReleaseBuffer(this);
+		}
+
+		#endregion
 	}
 }

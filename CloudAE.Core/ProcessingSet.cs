@@ -197,52 +197,37 @@ namespace CloudAE.Core
 				process.Log("Merging {0} Segments", segments.Length);
 
 				// reassemble tiled files
-				PointCloudTileSet mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
+				var mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
 				int largestTileCount = (int)(mergedTileSet.Max(t => t.PointCount));
 				int largestTileSize = largestTileCount * tiledSegments[0].PointSizeBytes;
-				BufferInstance inputBuffer = BufferManager.AcquireBuffer(m_id, largestTileSize, false);
 
-				//byte[] largeBuffer = new byte[(int)ByteSizesSmall.MB_256];
-				//int largeBufferPos = 0;
-
-				PointCloudTileSource tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ, CompressionMethod.None);
+				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ, CompressionMethod.None);
 
 				tileSource.AllocateFile(tileOptions.AllowSparseAllocation);
 
-				using (FileStream outputStream = new FileStream(m_tiledPath, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, tileOptions.TilingFileOptions))
+				using (BufferInstance inputBuffer = BufferManager.AcquireBuffer(m_id, largestTileSize, false))
 				{
-					outputStream.Seek(tileSource.PointDataOffset, SeekOrigin.Begin);
-
-					// go through tiles and write at the correct offset
-					foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
+					using (var outputStream = new FileStream(m_tiledPath, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, tileOptions.TilingFileOptions))
 					{
-						for (int i = 0; i < tiledSegments.Length; i++)
+						outputStream.Seek(tileSource.PointDataOffset, SeekOrigin.Begin);
+
+						// go through tiles and write at the correct offset
+						foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
 						{
-							PointCloudTile segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
-							if (segmentTile.IsValid)
+							for (int i = 0; i < tiledSegments.Length; i++)
 							{
-								tiledSegments[i].LoadTile(segmentTile, inputBuffer.Data);
-								outputStream.Write(inputBuffer.Data, 0, segmentTile.StorageSize);
-
-								//if (largeBufferPos + segmentTile.StorageSize > largeBuffer.Length)
-								//{
-								//    outputStream.Write(largeBuffer, 0, largeBufferPos);
-								//    largeBufferPos = 0;
-								//}
-
-								//Buffer.BlockCopy(inputBuffer, 0, largeBuffer, largeBufferPos, segmentTile.StorageSize);
-								//largeBufferPos += segmentTile.StorageSize;
+								PointCloudTile segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
+								if (segmentTile.IsValid)
+								{
+									tiledSegments[i].LoadTile(segmentTile, inputBuffer.Data);
+									outputStream.Write(inputBuffer.Data, 0, segmentTile.StorageSize);
+								}
 							}
+							if (!process.Update(tile))
+								break;
 						}
-						if (!process.Update(tile))
-							break;
 					}
-
-					//if (largeBufferPos > 0)
-					//    outputStream.Write(largeBuffer, 0, largeBufferPos);
 				}
-
-				BufferManager.ReleaseBuffer(inputBuffer);
 
 				for (int i = 0; i < tiledSegments.Length; i++)
 				{
@@ -271,7 +256,6 @@ namespace CloudAE.Core
 					progressManager.Log("Loading from Cache: {0}", Path.GetFileNameWithoutExtension(m_tiledPath));
 					try
 					{
-						// I should update the header reader/writer to have a dirty flag (to make sure the file wasn't partially written)
 						m_tileSource = PointCloudTileSource.Open(m_tiledPath);
 					}
 					catch
