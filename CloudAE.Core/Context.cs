@@ -71,7 +71,7 @@ namespace CloudAE.Core
 				throw new NotSupportedException();
 			}
 
-			AppDomain appDomain = AppDomain.CurrentDomain;
+			var appDomain = AppDomain.CurrentDomain;
 
 			c_baseDirectory = appDomain.BaseDirectory;
 
@@ -119,11 +119,11 @@ namespace CloudAE.Core
 				SystemInfo.Write();
 
 			stopwatch.Stop();
-			Context.WriteLine("[Startup]");
-			Context.WriteLine("  Discover   : {0}ms", startupElapsed);
-			Context.WriteLine("  Instrument : {0}ms", stopwatch.ElapsedMilliseconds);
-			Context.WriteLine("  Total      : {0}ms", stopwatch.ElapsedMilliseconds + startupElapsed);
-			Context.WriteLine();
+			WriteLine("[Startup]");
+			WriteLine("  Discover   : {0}ms", startupElapsed);
+			WriteLine("  Instrument : {0}ms", stopwatch.ElapsedMilliseconds);
+			WriteLine("  Total      : {0}ms", stopwatch.ElapsedMilliseconds + startupElapsed);
+			WriteLine();
 		}
 
 		#region Events
@@ -317,10 +317,10 @@ namespace CloudAE.Core
 			// if it is already in sources and none of the others were valid
 			if (skipped.Count > 0)
 			{
-				Context.WriteLine();
-				Context.WriteLine("[Skipped]");
+				WriteLine();
+				WriteLine("[Skipped]");
 				foreach (string path in skipped)
-					Context.WriteLine("  {0}", path);
+					WriteLine("  {0}", path);
 			}
 		}
 
@@ -390,7 +390,7 @@ namespace CloudAE.Core
 		/// </summary>
 		private static void RegisterExtensions()
 		{
-			Context.WriteLine("[Extensions]");
+			WriteLine("[Extensions]");
 
 			var assemblyLookup = AppDomain.CurrentDomain.GetAssemblyLocationLookup();
 
@@ -423,7 +423,7 @@ namespace CloudAE.Core
 					{
 						result = 'x';
 					}
-					Context.WriteLine(" {0} {1}", result, Path.GetFileNameWithoutExtension(assemblyPath));
+					WriteLine(" {0} {1}", result, Path.GetFileNameWithoutExtension(assemblyPath));
 				}
 			}
 		}
@@ -453,7 +453,7 @@ namespace CloudAE.Core
 		{
 			string padding = "".PadRight(level * 2);
 
-			Context.WriteLine("{0}[{1}]", padding, processName);
+			WriteLine("{0}[{1}]", padding, processName);
 
 			var types = GetLoadedTypes(consider);
 			foreach (Type type in types)
@@ -473,7 +473,7 @@ namespace CloudAE.Core
 				}
 
 				if (Config.ShowAbstractTypesDuringDiscovery || result != '-')
-					Context.WriteLine("{0} {1} {2}", padding, result, type.Name);
+					WriteLine("{0} {1} {2}", padding, result, type.Name);
 			}
 		}
 
@@ -485,7 +485,7 @@ namespace CloudAE.Core
 			if (string.IsNullOrWhiteSpace(name))
 				throw new ArgumentException("Option registration is empty.", "name");
 
-			if (name.IndexOfAny(new char[] { '.', '\\', ' ' }) > 0)
+			if (name.IndexOfAny(new[] { '.', '\\', ' ' }) > 0)
 				throw new ArgumentException("Option registration contains invalid characters.", "name");
 
 			string categoryName = Enum.GetName(typeof(OptionCategory), category);
@@ -500,12 +500,12 @@ namespace CloudAE.Core
 					throw new Exception("Duplicate option registration with a different type for {0}.");
 
 				Debug.Assert(false, "Duplicate option registration");
-				Context.WriteLine("Duplicate option registration: ", propertyName);
+				WriteLine("Duplicate option registration: ", propertyName);
 			}
 			else
 			{
 				Type actualType = typeof(T);
-				Type type = actualType.IsEnum ? type = Enum.GetUnderlyingType(actualType) : actualType;
+				Type type = actualType.IsEnum ? Enum.GetUnderlyingType(actualType) : actualType;
 
 				TypeCode typeCode = Type.GetTypeCode(type);
 

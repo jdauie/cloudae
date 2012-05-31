@@ -50,7 +50,7 @@ namespace CloudAE.Core.Windows
 
 		private static IntPtr c_buffer;
 
-		private static WinConsoleStateHandler c_rect;
+		private static readonly WinConsoleStateHandler c_rect;
 
 		#region Properties
 
@@ -177,7 +177,7 @@ namespace CloudAE.Core.Windows
 				IntPtr buffer = Buffer;
 				if (buffer != IntPtr.Zero)
 				{
-					NativeMethods.SmallRect rect = new NativeMethods.SmallRect(0, 0, (short)(value.X - 1), (short)(value.Y - 1));
+					var rect = new NativeMethods.SmallRect(0, 0, (short)(value.X - 1), (short)(value.Y - 1));
 					NativeMethods.SetConsoleWindowInfo(buffer, true, ref rect);
 				}
 			}
@@ -277,7 +277,7 @@ namespace CloudAE.Core.Windows
 				IntPtr.Zero
 			);
 
-			NativeMethods.Coord size = new NativeMethods.Coord(bufferWidth, bufferHeight);
+			var size = new NativeMethods.Coord(bufferWidth, bufferHeight);
 			BufferSize = size;
 
 			bool result = NativeMethods.SetConsoleActiveScreenBuffer(c_buffer);
@@ -373,7 +373,7 @@ namespace CloudAE.Core.Windows
 			}
 			else
 			{
-				int separatorIndex = value.IndexOfAny(new char[] { ':', '=' });
+				int separatorIndex = value.IndexOfAny(new[] { ':', '=' });
 				if (separatorIndex > 0 && separatorIndex < value.Length - 1 && value[separatorIndex + 1] == ' ')
 				{
 					string[] segments = value.Substring(0, separatorIndex).Split('.');
