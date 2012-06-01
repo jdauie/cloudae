@@ -15,14 +15,17 @@ namespace CloudAE.Core
 
 		public static void Write(this BinaryWriter writer, uint[] array)
 		{
-			for (int i = 0; i < array.Length; i++)
-				writer.Write(array[i]);
+			for (int i = 0; i < array.Length; i++) writer.Write(array[i]);
 		}
 
 		public static void Write(this BinaryWriter writer, ulong[] array)
 		{
-			for (int i = 0; i < array.Length; i++)
-				writer.Write(array[i]);
+			for (int i = 0; i < array.Length; i++) writer.Write(array[i]);
+		}
+
+		public static void Write(this BinaryWriter writer, double[] array)
+		{
+			for (int i = 0; i < array.Length; i++) writer.Write(array[i]);
 		}
 
 		public static Extent3D ReadExtent3D(this BinaryReader reader)
@@ -104,19 +107,22 @@ namespace CloudAE.Core
 
 		public static uint[] ReadUInt32Array(this BinaryReader reader, int count)
 		{
-			uint[] array = new uint[count];
-			for (int i = 0; i < count; i++)
-				array[i] = reader.ReadUInt32();
-
+			var array = new uint[count];
+			for (int i = 0; i < count; i++) array[i] = reader.ReadUInt32();
 			return array;
 		}
 
 		public static ulong[] ReadUInt64Array(this BinaryReader reader, int count)
 		{
-			ulong[] array = new ulong[count];
-			for (int i = 0; i < count; i++)
-				array[i] = reader.ReadUInt64();
+			var array = new ulong[count];
+			for (int i = 0; i < count; i++) array[i] = reader.ReadUInt64();
+			return array;
+		}
 
+		public static double[] ReadDoubleArray(this BinaryReader reader, int count)
+		{
+			var array = new double[count];
+			for (int i = 0; i < count; i++) array[i] = reader.ReadDouble();
 			return array;
 		}
 	}
