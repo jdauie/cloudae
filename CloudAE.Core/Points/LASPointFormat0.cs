@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using CloudAE.Core.Handlers;
 
 namespace CloudAE.Core.Geometry
 {
@@ -36,6 +37,12 @@ namespace CloudAE.Core.Geometry
 		public ushort PointSourceID { get { return m_pointSourceID; } }
 
 		#endregion
+
+		public void Create()
+		{
+			var attributeSet = new LASPointAttributeSet();
+			attributeSet.Add(new LASPointAttribute<uint>());
+		}
 
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
