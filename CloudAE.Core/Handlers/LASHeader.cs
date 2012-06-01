@@ -110,43 +110,43 @@ namespace CloudAE.Core
 
 		private static readonly Dictionary<LASVersion, ushort> c_minHeaderSize;
 
-		private readonly ushort hFileSourceID;
+		private readonly ushort m_fileSourceID;
 
 		private readonly LASGlobalEncoding m_globalEncoding;
 		private readonly LASProjectID m_projectID;
 		private readonly LASVersionInfo m_version;
 
-		private readonly string hSystemIdentifier;
-		private readonly string hGeneratingSoftware;
-		private readonly ushort hFileCreationDayOfYear;
-		private readonly ushort hFileCreationYear;
+		private readonly string m_systemIdentifier;
+		private readonly string m_generatingSoftware;
+		private readonly ushort m_fileCreationDayOfYear;
+		private readonly ushort m_fileCreationYear;
 
-		private readonly ushort hHeaderSize;
-		private readonly uint hOffsetToPointData;
+		private readonly ushort m_headerSize;
+		private readonly uint m_offsetToPointData;
 
-		private readonly uint hNumberOfVariableLengthRecords;
-		private readonly byte hPointDataRecordFormat;
-		private readonly ushort hPointDataRecordLength;
-		private readonly uint hLegacyNumberOfPointRecords;
-		private readonly uint[] hLegacyNumberOfPointsByReturn;
+		private readonly uint m_numberOfVariableLengthRecords;
+		private readonly byte m_pointDataRecordFormat;
+		private readonly ushort m_pointDataRecordLength;
+		private readonly uint m_legacyNumberOfPointRecords;
+		private readonly uint[] m_legacyNumberOfPointsByReturn;
 
 		private readonly SQuantization3D m_quantization;
 		private readonly Extent3D m_extent;
 
 		// LAS 1.3
-		private readonly ulong hStartOfWaveformDataPacketRecord;
+		private readonly ulong m_startOfWaveformDataPacketRecord;
 
 		// LAS 1.4
-		private readonly ulong hStartOfFirstExtendedVariableLengthRecord;
-		private readonly uint hNumberOfExtendedVariableLengthRecords;
-		private readonly ulong hNumberOfPointRecords;
-		private readonly ulong[] hNumberOfPointsByReturn;
+		private readonly ulong m_startOfFirstExtendedVariableLengthRecord;
+		private readonly uint m_numberOfExtendedVariableLengthRecords;
+		private readonly ulong m_numberOfPointRecords;
+		private readonly ulong[] m_numberOfPointsByReturn;
 
 		#region Properties
 
 		public ulong PointCount
 		{
-			get { return hNumberOfPointRecords; }
+			get { return m_numberOfPointRecords; }
 		}
 
 		public SQuantization3D Quantization
@@ -161,12 +161,12 @@ namespace CloudAE.Core
 
 		public uint OffsetToPointData
 		{
-			get { return hOffsetToPointData; }
+			get { return m_offsetToPointData; }
 		}
 
 		public ushort PointDataRecordLength
 		{
-			get { return hPointDataRecordLength; }
+			get { return m_pointDataRecordLength; }
 		}
 
 		#endregion
@@ -188,97 +188,97 @@ namespace CloudAE.Core
 			if (length < c_minHeaderSize[LASVersion.LAS_1_0])
 				throw new Exception("Invalid format: header too short");
 
-			if (ASCIIEncoding.ASCII.GetString(reader.ReadBytes(FILE_SIGNATURE.Length)) != FILE_SIGNATURE)
+			if (Encoding.ASCII.GetString(reader.ReadBytes(FILE_SIGNATURE.Length)) != FILE_SIGNATURE)
 				throw new Exception("Invalid format: signature does not match");
 
-			hFileSourceID = reader.ReadUInt16();
+			m_fileSourceID = reader.ReadUInt16();
 
 			m_globalEncoding = reader.ReadLASGlobalEncoding();
 			m_projectID = reader.ReadLASProjectID();
 			m_version = reader.ReadLASVersionInfo();
 			
-			hSystemIdentifier = reader.ReadBytes(32).UnsafeAsciiBytesToString();
-			hGeneratingSoftware = reader.ReadBytes(32).UnsafeAsciiBytesToString();
-			hFileCreationDayOfYear = reader.ReadUInt16();
-			hFileCreationYear = reader.ReadUInt16();
+			m_systemIdentifier = reader.ReadBytes(32).UnsafeAsciiBytesToString();
+			m_generatingSoftware = reader.ReadBytes(32).UnsafeAsciiBytesToString();
+			m_fileCreationDayOfYear = reader.ReadUInt16();
+			m_fileCreationYear = reader.ReadUInt16();
 
-			hHeaderSize = reader.ReadUInt16();
-			hOffsetToPointData = reader.ReadUInt32();
+			m_headerSize = reader.ReadUInt16();
+			m_offsetToPointData = reader.ReadUInt32();
 
 			ushort minHeaderSize = c_minHeaderSize[m_version.Version];
 			if (length < minHeaderSize)
 				throw new Exception("Invalid format: header too short for version");
-			if(minHeaderSize > hHeaderSize)
+			if(minHeaderSize > m_headerSize)
 				throw new Exception("Invalid format: header size incorrect");
 
-			hNumberOfVariableLengthRecords = reader.ReadUInt32();
-			hPointDataRecordFormat = reader.ReadByte();
-			hPointDataRecordLength = reader.ReadUInt16();
-			hLegacyNumberOfPointRecords = reader.ReadUInt32();
-			hLegacyNumberOfPointsByReturn = reader.ReadUInt32Array(5);
+			m_numberOfVariableLengthRecords = reader.ReadUInt32();
+			m_pointDataRecordFormat = reader.ReadByte();
+			m_pointDataRecordLength = reader.ReadUInt16();
+			m_legacyNumberOfPointRecords = reader.ReadUInt32();
+			m_legacyNumberOfPointsByReturn = reader.ReadUInt32Array(5);
 
 			m_quantization = reader.ReadSQuantization3D();
 			m_extent = reader.ReadLASExtent3D();
 
 			if (m_version.Version >= LASVersion.LAS_1_3)
 			{
-				hStartOfWaveformDataPacketRecord = reader.ReadUInt64();
+				m_startOfWaveformDataPacketRecord = reader.ReadUInt64();
 			}
 
 			if (m_version.Version >= LASVersion.LAS_1_4)
 			{
-				hStartOfFirstExtendedVariableLengthRecord = reader.ReadUInt64();
-				hNumberOfExtendedVariableLengthRecords = reader.ReadUInt32();
-				hNumberOfPointRecords = reader.ReadUInt64();
-				hNumberOfPointsByReturn = reader.ReadUInt64Array(15);
+				m_startOfFirstExtendedVariableLengthRecord = reader.ReadUInt64();
+				m_numberOfExtendedVariableLengthRecords = reader.ReadUInt32();
+				m_numberOfPointRecords = reader.ReadUInt64();
+				m_numberOfPointsByReturn = reader.ReadUInt64Array(15);
 			}
 			else
 			{
-				hNumberOfPointRecords = hLegacyNumberOfPointRecords;
-				hNumberOfPointsByReturn = new ulong[15];
-				for (int i = 0; i < hLegacyNumberOfPointsByReturn.Length; i++)
-					hNumberOfPointsByReturn[i] = hLegacyNumberOfPointsByReturn[i];
+				m_numberOfPointRecords = m_legacyNumberOfPointRecords;
+				m_numberOfPointsByReturn = new ulong[15];
+				for (int i = 0; i < m_legacyNumberOfPointsByReturn.Length; i++)
+					m_numberOfPointsByReturn[i] = m_legacyNumberOfPointsByReturn[i];
 			}
 
-			ulong pointDataRegionLength = (ulong)length - hOffsetToPointData;
-			if (pointDataRegionLength < hPointDataRecordLength * PointCount)
+			ulong pointDataRegionLength = (ulong)length - m_offsetToPointData;
+			if (pointDataRegionLength < m_pointDataRecordLength * PointCount)
 				throw new Exception("Invalid format: point data region is not the expected size");
 		}
 
 		public void Serialize(BinaryWriter writer)
 		{
-			writer.Write(ASCIIEncoding.ASCII.GetBytes(FILE_SIGNATURE));
-			writer.Write(hFileSourceID);
+			writer.Write(Encoding.ASCII.GetBytes(FILE_SIGNATURE));
+			writer.Write(m_fileSourceID);
 			writer.Write(m_globalEncoding);
 			writer.Write(m_projectID);
 			writer.Write(m_version);
 
-			writer.Write(hSystemIdentifier.ToUnsafeAsciiBytes(32));
-			writer.Write(hGeneratingSoftware.ToUnsafeAsciiBytes(32));
-			writer.Write(hFileCreationDayOfYear);
-			writer.Write(hFileCreationYear);
-			writer.Write(hHeaderSize);
-			writer.Write(hOffsetToPointData);
+			writer.Write(m_systemIdentifier.ToUnsafeAsciiBytes(32));
+			writer.Write(m_generatingSoftware.ToUnsafeAsciiBytes(32));
+			writer.Write(m_fileCreationDayOfYear);
+			writer.Write(m_fileCreationYear);
+			writer.Write(m_headerSize);
+			writer.Write(m_offsetToPointData);
 
-			writer.Write(hNumberOfVariableLengthRecords);
-			writer.Write(hPointDataRecordFormat);
-			writer.Write(hPointDataRecordLength);
-			writer.Write(hLegacyNumberOfPointRecords);
-			writer.Write(hLegacyNumberOfPointsByReturn);
+			writer.Write(m_numberOfVariableLengthRecords);
+			writer.Write(m_pointDataRecordFormat);
+			writer.Write(m_pointDataRecordLength);
+			writer.Write(m_legacyNumberOfPointRecords);
+			writer.Write(m_legacyNumberOfPointsByReturn);
 			writer.Write(m_quantization);
 			writer.Write(m_extent);
 
 			if (m_version.Version >= LASVersion.LAS_1_3)
 			{
-				writer.Write(hStartOfFirstExtendedVariableLengthRecord);
+				writer.Write(m_startOfFirstExtendedVariableLengthRecord);
 			}
 
 			if (m_version.Version >= LASVersion.LAS_1_4)
 			{
-				writer.Write(hStartOfFirstExtendedVariableLengthRecord);
-				writer.Write(hNumberOfExtendedVariableLengthRecords);
-				writer.Write(hNumberOfPointRecords);
-				writer.Write(hNumberOfPointsByReturn);
+				writer.Write(m_startOfFirstExtendedVariableLengthRecord);
+				writer.Write(m_numberOfExtendedVariableLengthRecords);
+				writer.Write(m_numberOfPointRecords);
+				writer.Write(m_numberOfPointsByReturn);
 			}
 		}
 	}
