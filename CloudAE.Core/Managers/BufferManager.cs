@@ -47,8 +47,6 @@ namespace CloudAE.Core
 
 		private const bool UNPIN_ON_RELEASE = true;
 
-		// eventually, this should handle buffers of varying size,
-		// or at least deallocate abnormal-sized buffers
 		private static readonly Dictionary<int, Stack<BufferInstance>> c_availableBuffersBySize;
 		private static readonly Dictionary<byte[], BufferInstance> c_bufferMapping;
 
