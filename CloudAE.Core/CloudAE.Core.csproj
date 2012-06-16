@@ -134,6 +134,7 @@
     <Compile Include="Options\PropertyName.cs" />
     <Compile Include="Sources\IPointCloudBinarySourceEnumerable.cs" />
     <Compile Include="SystemInfo.cs" />
+    <Compile Include="Tiling\PointCloudTileTree.cs" />
     <Compile Include="Utilities\EncodingConverter.cs" />
     <Compile Include="Utilities\PathUtil.cs" />
     <Compile Include="Managers\PerformanceManager.cs" />
