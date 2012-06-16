@@ -825,53 +825,6 @@ namespace CloudAE.Core
 			return newTileSource;
 		}
 
-		private void golombEncode(string source, string dest)
-		{
-			// limited to Rice coding
-			//const int M = 2;
-			//const int log2M = 1;
-
-			//IntReader intreader(source);
-			//BitWriter bitwriter(dest);
-			//while(intreader.hasLeft())
-			//{
-			//    int num = intreader.getInt();
-			//    int q = num / M;
-			//    for (int i = 0 ; i < q; i++)
-			//    bitwriter.putBit(true);   // write q ones
-			//    bitwriter.putBit(false);      // write one zero
-			//    int v = 1;
-			//    for (int i = 0 ; i < log2M; i++)
-			//    {            
-			//    bitwriter.putBit( v & num );  
-			//    v = v << 1;         
-			//    }
-			//}
-			//bitwriter.close();
-			//intreader.close();
-		}
-
-		void golombDecode(string source, string dest, int M)
-		{
-			//BitReader bitreader(source);
-			//IntWriter intwriter(dest);
-			//int q = 0;
-			//int nr = 0;
-			//while (bitreader.hasLeft())
-			//{
-			//nr = 0;
-			//q = 0;
-			//while (bitreader.getBit()) q++;     // potentially dangerous with malformed files.
-			//for (int a = 0; a < log2(M); a++)   // read out the sequential log2(M) bits
-			//if (bitreader.getBit())
-			//nr += 1 << a;
-			//nr += q*M;                          // add the bits and the multiple of M
-			//intwriter.putInt(nr);               // write out the value
-			//}
-			//bitreader.close();
-			//intwriter.close();
-		}
-
 		private unsafe void QuickSort(UQuantizedPoint3D* a, int i, int j)
 		{
 			if (i < j)
