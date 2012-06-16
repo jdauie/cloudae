@@ -11,36 +11,44 @@ namespace CloudAE.Core.Tiling
 	// IPROPERTYCONTAINER is only for testing!!!!
 	class PointCloudTileTree : IEnumerable<PointCloudTile2>, IPropertyContainer
 	{
-		private PointCloudTileTreeNode m_rootNode;
+		private readonly PointCloudTileTreeNode m_rootNode;
+
+		private readonly PointCloudTile2[,] m_grid;
+
+		private readonly ushort m_gridX;
+		private readonly ushort m_gridY;
+
+		private readonly ushort m_gridTreeBasePow;
+		private readonly ushort m_gridTreeBaseSize;
 
 		static PointCloudTileTree()
 		{
 			// test
-			var tree = new PointCloudTileTree();
+			//var tree = new PointCloudTileTree();
 
 
 		}
 
-		public PointCloudTileTree()
+		public PointCloudTileTree(PointCloudTileDensity density, Grid<int> tileCounts, short pointSizeBytes)
 		{
-			ushort gridX = 8;
-			ushort gridY = 10;
-			
-			var grid = new PointCloudTile2[gridX, gridY];
+			m_gridX = 8;
+			m_gridY = 10;
 
-			for (ushort x = 0; x < gridX; x++)
-				for (ushort y = 0; y < gridY; y++)
-					grid[x, y] = new PointCloudTile2(x, y);
+			m_grid = new PointCloudTile2[m_gridX, m_gridY];
+
+			for (ushort x = 0; x < m_gridX; x++)
+				for (ushort y = 0; y < m_gridY; y++)
+					m_grid[x, y] = new PointCloudTile2(x, y);
 
 
-			ushort gridTreeBasePow = (ushort)Math.Ceiling(Math.Log(Math.Max(gridX, gridY), 2));
-			ushort gridTreeBaseSize = (ushort)Math.Pow(2, gridTreeBasePow);
+			m_gridTreeBasePow = (ushort)Math.Ceiling(Math.Log(Math.Max(m_gridX, m_gridY), 2));
+			m_gridTreeBaseSize = (ushort)Math.Pow(2, m_gridTreeBasePow);
 
-			PointCloudTileTreeNode[][,] gridTreeLevels = new PointCloudTileTreeNode[gridTreeBasePow + 1][,];
+			PointCloudTileTreeNode[][,] gridTreeLevels = new PointCloudTileTreeNode[m_gridTreeBasePow + 1][,];
 
-			for (int gridTreeLevel = 0; gridTreeLevel <= gridTreeBasePow; gridTreeLevel++)
+			for (int gridTreeLevel = 0; gridTreeLevel <= m_gridTreeBasePow; gridTreeLevel++)
 			{
-				ushort gridTreeLevelSize = (ushort)(gridTreeBaseSize / Math.Pow(2, gridTreeLevel));
+				ushort gridTreeLevelSize = (ushort)(m_gridTreeBaseSize / Math.Pow(2, gridTreeLevel));
 				var levelNodes = new PointCloudTileTreeNode[gridTreeLevelSize, gridTreeLevelSize];
 				gridTreeLevels[gridTreeLevel] = levelNodes;
 
@@ -50,8 +58,8 @@ namespace CloudAE.Core.Tiling
 					{
 						if (gridTreeLevel == 0)
 						{
-							if (x < gridX && y < gridY)
-								levelNodes[x, y] = new PointCloudTileTreeNode(grid[x, y]);
+							if (x < m_gridX && y < m_gridY)
+								levelNodes[x, y] = new PointCloudTileTreeNode(m_grid[x, y]);
 						}
 						else
 						{
@@ -73,7 +81,7 @@ namespace CloudAE.Core.Tiling
 				}
 			}
 
-			m_rootNode = gridTreeLevels[gridTreeBasePow][0, 0];
+			m_rootNode = gridTreeLevels[m_gridTreeBasePow][0, 0];
 
 			// this is the new tile order
 			//foreach (var tile in this)
