@@ -55,6 +55,11 @@ namespace CloudAE.Core.Geometry
 			writer.Write(MaxY);
 		}
 
+		public bool Contains(uint x, uint y)
+		{
+			return (x >= MinX && x <= MaxX && y >= MinY && y <= MaxY);
+		}
+
 		//public unsafe UQuantizedExtent2D(UQuantizedPoint3D* p, int count)
 		//{
 		//    MinX = uint.MaxValue;
