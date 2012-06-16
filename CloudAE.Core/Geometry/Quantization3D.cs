@@ -91,9 +91,6 @@ namespace CloudAE.Core.Geometry
 				int[] values = testValues[i];
 				values.ParallelSort();
 				//Array.Sort<int>(values);
-				int min = values[0];
-				int max = values[pointsToTest - 1];
-				int range = max - min;
 
 				// determine the base of the scale factor
 				int scaleInverse = (int)Math.Ceiling(1 / scaleFactors[i]);
@@ -149,11 +146,8 @@ namespace CloudAE.Core.Geometry
 			{
 				double[] values = testValues[i];
 				Array.Sort(values);
-				//double min = values[0];
-				//double max = values[pointsToTest - 1];
-				//double range = max - min;
 
-				int scaleBase = 10;
+				const int scaleBase = 10;
 
 				// count differences
 				var diffCounts = new SortedList<double, int>();
