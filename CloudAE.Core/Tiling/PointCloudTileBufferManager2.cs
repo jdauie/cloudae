@@ -58,8 +58,6 @@ namespace CloudAE.Core
 				{
 					var tileBuffer = m_createdBuffers[tile.Col, tile.Row];
 
-					m_tileSet[tile.Col, tile.Row].QuantizedExtent = tileBuffer.GetExtent();
-
 					tileBuffer.Flush(m_outputStream);
 					tileBuffer.DeactivateBuffer();
 

@@ -535,7 +535,6 @@ namespace CloudAE.Core
 					while (pb < pbEnd)
 					{
 						SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
-
 						UQuantizedPoint3D* p2 = (UQuantizedPoint3D*)(pb);
 
 						// stomp on existing values since they are the same size
@@ -543,10 +542,13 @@ namespace CloudAE.Core
 						(*p2).Y = (uint)((*p).Y * scaleTranslationY + offsetTranslationY);
 						(*p2).Z = (uint)((*p).Z * scaleTranslationZ + offsetTranslationZ);
 
-						int tileX = (int)(((double)(*p2).X - quantizedExtent.MinX) * tilesOverRangeX);
-						int tileY = (int)(((double)(*p2).Y - quantizedExtent.MinY) * tilesOverRangeY);
+						//int tileX = (int)(((double)(*p2).X - quantizedExtent.MinX) * tilesOverRangeX);
+						//int tileY = (int)(((double)(*p2).Y - quantizedExtent.MinY) * tilesOverRangeY);
 
-						tileBufferManager.AddPoint(pb, tileX, tileY);
+						tileBufferManager.AddPoint(pb,
+							(int)(((double)(*p2).X - quantizedExtent.MinX) * tilesOverRangeX), 
+							(int)(((double)(*p2).Y - quantizedExtent.MinY) * tilesOverRangeY)
+						);
 
 						pb += pointSizeBytes;
 					}

@@ -26,14 +26,6 @@ namespace CloudAE.Core
 
 		private GCHandle m_gcHandle;
 		private byte* m_pBuffer;
-		private byte* m_pBufferEnd;
-
-		private uint m_minX;
-		private uint m_minY;
-		private uint m_minZ;
-		private uint m_maxX;
-		private uint m_maxY;
-		private uint m_maxZ;
 
 		public PointCloudTileBuffer(PointCloudTile tile, IPointCloudTileBufferManager manager)
 		{
@@ -48,25 +40,6 @@ namespace CloudAE.Core
 
 			m_pointsWritten = 0;
 			m_currentPointIndex = 0;
-
-			UQuantizedExtent3D computedExtent = tile.QuantizedExtent;
-			m_minX = computedExtent.MinX;
-			m_minY = computedExtent.MinY;
-			m_maxX = computedExtent.MaxX;
-			m_maxY = computedExtent.MaxY;
-
-			if (m_pointCount == 0)
-			{
-				m_minZ = computedExtent.MinZ;
-				m_maxZ = computedExtent.MaxZ;
-			}
-			else
-			{
-				// theoretically, this could cause a problem computing the extent 
-				// (for a small number of points) -- I don't care right now.
-				m_minZ = uint.MaxValue;
-				m_maxZ = uint.MinValue;
-			}
 		}
 
 		public void PinBuffer(byte[] buffer)
@@ -75,13 +48,11 @@ namespace CloudAE.Core
 			m_gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 			IntPtr pAddr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
 			m_pBuffer = (byte*)pAddr.ToPointer();
-			m_pBufferEnd = m_pBuffer + buffer.Length;
 		}
 
 		public void UnpinBuffer()
 		{
 			m_pBuffer = null;
-			m_pBufferEnd = null;
 			if (m_gcHandle.IsAllocated)
 				m_gcHandle.Free();
 		}
@@ -91,36 +62,16 @@ namespace CloudAE.Core
 		/// </summary>
 		/// <param name="p">The point.</param>
 		/// <returns>true if the buffer is full or the tile is complete; otherwise false</returns>
-		public bool AddPoint(byte* p)
+		public void AddPoint(byte* p)
 		{
 			if (m_buffer == null)
 				throw new Exception("cannot add to inactive buffer");
-
-			UQuantizedPoint3D* point = (UQuantizedPoint3D*)p;
-
-			if ((*point).X < m_minX) m_minX = (*point).X; else if ((*point).X > m_maxX) m_maxX = (*point).X;
-			if ((*point).Y < m_minY) m_minY = (*point).Y; else if ((*point).Y > m_maxY) m_maxY = (*point).Y;
-			if ((*point).Z < m_minZ) m_minZ = (*point).Z; else if ((*point).Z > m_maxZ) m_maxZ = (*point).Z;
 
 			for (int i = 0; i < m_pointSizeBytes; i++)
 				m_pBuffer[i] = p[i];
 
 			++m_currentPointIndex;
 			m_pBuffer += m_pointSizeBytes;
-
-			// all the return checks are unnecessary for tiling method 2
-
-			// buffer is full
-			//if (m_pBuffer == m_pBufferEnd)
-			//	return true;
-
-			// tile is complete
-			//if (m_pointsWritten + m_currentPointIndex == m_pointCount)
-			//	return true;
-
-			//return false;
-
-			return true;
 		}
 
 		public void ActivateBuffer(byte[] buffer)
@@ -169,11 +120,6 @@ namespace CloudAE.Core
 				outputStream.Write(pointBuffer, bytesToWrite - bytesRemaining, bytesInThisChunk);
 				bytesRemaining -= bytesInThisChunk;
 			}
-		}
-
-		public UQuantizedExtent3D GetExtent()
-		{
-			return new UQuantizedExtent3D(m_minX, m_minY, m_minZ, m_maxX, m_maxY, m_maxZ);
 		}
 
 		/// <summary>

@@ -54,11 +54,6 @@ namespace CloudAE.Core
 
 				return m_quantizedExtent;
 			}
-			set
-			{
-				m_quantizedExtent = value;
-				m_extent = null;
-			}
 		}
 
 		public bool IsValid
