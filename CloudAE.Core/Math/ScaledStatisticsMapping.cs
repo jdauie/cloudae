@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
@@ -96,7 +93,7 @@ namespace CloudAE.Core
 
 			double variance = 0;
 			for (int i = 0; i < verticalValueCounts.Length; i++)
-				variance += (double)verticalValueCounts[i] * Math.Pow(verticalValueCenters[i] - mean, 2);
+				variance += verticalValueCounts[i] * Math.Pow(verticalValueCenters[i] - mean, 2);
 
 			variance /= (count - 1);
 			

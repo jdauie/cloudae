@@ -96,7 +96,6 @@ namespace CloudAE.Core
 
 			PointCloudTileDensity actualDensity = null;
 
-			// this no longer does stats (for quantized) -- refactor
 			if (source.Quantization != null)
 				actualDensity = CountPointsQuantized2(source, tileCounts, analysis.Quantization, progressManager);
 			//else
@@ -441,6 +440,8 @@ namespace CloudAE.Core
 			//double tileArea = MAX_TILE_POINTS / density.MaxTileDensity;
 			double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MedianTileDensity;
 			double tileSide = Math.Sqrt(tileArea);
+
+#warning this results in non-square tiles
 
 			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
 			ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
