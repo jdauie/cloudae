@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Diagnostics;
 using CloudAE.Core.Geometry;
-using CloudAE.Core.Compression;
 
 namespace CloudAE.Core
 {
@@ -16,7 +14,7 @@ namespace CloudAE.Core
 		private readonly int m_pointsPerBuffer;
 		private readonly int m_usableBytesPerBuffer;
 		
-		private LASHeader m_header;
+		private readonly LASHeader m_header;
 
 		public long Count
 		{
@@ -48,10 +46,10 @@ namespace CloudAE.Core
 			return new PointCloudBinarySourceEnumerator(this, buffer);
 		}
 
-		public unsafe LASFile(string path)
+		public LASFile(string path)
 			: base(path)
 		{
-			using (BinaryReader reader = new BinaryReader(File.OpenRead(FilePath)))
+			using (var reader = new BinaryReader(File.OpenRead(FilePath)))
 			{
 				m_header = reader.ReadLASHeader();
 			}
@@ -68,7 +66,7 @@ namespace CloudAE.Core
 
 		public override string GetPreview()
 		{
-			StringBuilder sb = new StringBuilder();
+			var sb = new StringBuilder();
 
 			sb.AppendLine(LASHeader.FILE_SIGNATURE);
 			sb.AppendLine(String.Format("Points: {0:0,0}", m_header.PointCount));

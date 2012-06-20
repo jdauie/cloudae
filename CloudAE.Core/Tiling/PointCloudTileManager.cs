@@ -6,7 +6,6 @@ using System.IO;
 using System.Diagnostics;
 
 using CloudAE.Core.Geometry;
-using CloudAE.Core.Compression;
 
 namespace CloudAE.Core
 {

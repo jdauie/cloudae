@@ -4,7 +4,6 @@ using System.Linq;
 using System.IO;
 
 using CloudAE.Core.Geometry;
-using CloudAE.Core.Compression;
 
 namespace CloudAE.Core
 {
