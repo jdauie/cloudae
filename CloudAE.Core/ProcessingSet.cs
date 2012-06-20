@@ -6,14 +6,12 @@ using System.IO;
 using System.Diagnostics;
 
 using CloudAE.Core.Util;
-using CloudAE.Core.Compression;
 using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
 	public class ProcessingSet : IPropertyContainer
 	{
-		private static readonly PropertyState<PointCloudTileBufferManagerMode> PROPERTY_TILE_MODE;
 		private static readonly PropertyState<ByteSizesLarge> PROPERTY_SEGMENT_SIZE;
 		private static readonly PropertyState<bool> PROPERTY_REUSE_TILING;
 
@@ -28,7 +26,6 @@ namespace CloudAE.Core
 
 		static ProcessingSet()
 		{
-			PROPERTY_TILE_MODE = Context.RegisterOption(Context.OptionCategory.Tiling, "Mode", PointCloudTileBufferManagerMode.OptimizeForLargeFile);
 			PROPERTY_SEGMENT_SIZE = Context.RegisterOption(Context.OptionCategory.Tiling, "MaxSegmentSize", ByteSizesLarge.GB_2);
 			PROPERTY_REUSE_TILING = Context.RegisterOption(Context.OptionCategory.Tiling, "UseCache", true);
 		}
@@ -63,8 +60,8 @@ namespace CloudAE.Core
 					m_binarySource = m_inputHandler.GenerateBinarySource(progressManager);
 
 					// step 2,3
-					var tileOptions = new PointCloudTileBufferManagerOptions(PROPERTY_TILE_MODE.Value);
-					long pointDataSize = (long)m_binarySource.Count * m_binarySource.PointSizeBytes;
+					var tileOptions = new PointCloudTileBufferManagerOptions();
+					long pointDataSize = m_binarySource.Count * m_binarySource.PointSizeBytes;
 					long maxSegmentBytes = (long)PROPERTY_SEGMENT_SIZE.Value;
 					if (tileOptions.SupportsSegmentedProcessing && pointDataSize > maxSegmentBytes)
 					{
@@ -91,10 +88,6 @@ namespace CloudAE.Core
 					}
 					else
 					{
-						// step 4
-						// this is just for testing at present
-						//CompressTileSource(progressManager);
-
 						process.LogTime("=> Processing Completed");
 					}
 				}
@@ -201,7 +194,7 @@ namespace CloudAE.Core
 				int largestTileCount = (int)(mergedTileSet.Max(t => t.PointCount));
 				int largestTileSize = largestTileCount * tiledSegments[0].PointSizeBytes;
 
-				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ, CompressionMethod.None);
+				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
 
 				tileSource.AllocateFile(tileOptions.AllowSparseAllocation);
 
@@ -283,13 +276,6 @@ namespace CloudAE.Core
 			m_inputHandler.FilePath = dstPath;
 
 			progressManager.Log(stopwatch, "Copied Remote File");
-		}
-
-		private PointCloudTileSource CompressTileSource(ProgressManager progressManager)
-		{
-			m_tileSource = m_tileSource.CompressTileSource(CompressionMethod.Basic, progressManager);
-
-			return m_tileSource;
 		}
 
 		public static string GetBinarySourceName(FileHandlerBase handler)

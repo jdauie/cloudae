@@ -68,7 +68,6 @@
     <Compile Include="Managers\BufferManager.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="Attributes\ProductExtensionAttribute.cs" />
-    <Compile Include="Compression\ICompressor.cs" />
     <Compile Include="Exceptions\IgnorableException.cs" />
     <Compile Include="Exceptions\OpenFailedException.cs" />
     <Compile Include="Extensions\LongToSizeExtension.cs" />
@@ -98,8 +97,6 @@
     <Compile Include="Serialization\ISerializeBinary.cs" />
     <Compile Include="Media\ColorMap.cs" />
     <Compile Include="Media\ColorRamp.cs" />
-    <Compile Include="Compression\CompressionFactory.cs" />
-    <Compile Include="Compression\CompressionMethod.cs" />
     <Compile Include="Compression\MemorableMemoryStream.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="DelaunayIncremental\Delaunay2DIncremental.cs" />
@@ -162,7 +159,6 @@
     <Compile Include="Tiling\PointCloudTileBufferManager2.cs" />
     <Compile Include="Tiling\PointCloudTile.cs" />
     <Compile Include="Tiling\PointCloudTileBuffer.cs" />
-    <Compile Include="Tiling\PointCloudTileBufferManager.cs" />
     <Compile Include="Tiling\PointCloudTileDensity.cs" />
     <Compile Include="Tiling\PointCloudTileSet.cs" />
     <Compile Include="Tiling\PointCloudTileManager.cs" />

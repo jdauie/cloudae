@@ -9,7 +9,6 @@ using System.Text;
 using System.Windows.Media.Imaging;
 
 using CloudAE.Core;
-using CloudAE.Core.Compression;
 using CloudAE.Core.Delaunay;
 using CloudAE.Core.DelaunayIncremental;
 using CloudAE.Core.Geometry;
@@ -143,13 +142,13 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, short pointSizeBytes, Statistics zStats, CompressionMethod compression)
-			: this(file, tileSet, quantization, 0, pointSizeBytes, zStats, compression)
+		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, short pointSizeBytes, Statistics zStats)
+			: this(file, tileSet, quantization, 0, pointSizeBytes, zStats)
 		{
 		}
 
-		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats, CompressionMethod compression)
-			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, pointSizeBytes, compression)
+		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats)
+			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, pointSizeBytes)
 		{
 			m_tileSet = new PointCloudTileSet(tileSet, this);
 			m_statisticsZ = zStats;
@@ -175,15 +174,14 @@ namespace CloudAE.Core
 		{
 			long pointDataOffset;
 			short pointSizeBytes;
-			CompressionMethod compression;
 
 			UQuantization3D quantization;
 			Statistics zStats;
 			PointCloudTileSet tileSet;
 
-			using (BinaryReader reader = new BinaryReader(File.OpenRead(file)))
+			using (var reader = new BinaryReader(File.OpenRead(file)))
 			{
-				if (ASCIIEncoding.ASCII.GetString(reader.ReadBytes(FILE_IDENTIFIER.Length)) != FILE_IDENTIFIER)
+				if (Encoding.ASCII.GetString(reader.ReadBytes(FILE_IDENTIFIER.Length)) != FILE_IDENTIFIER)
 					throw new OpenFailedException(file, "File identifier does not match.");
 
 				int versionMajor = reader.ReadInt32();
@@ -194,14 +192,13 @@ namespace CloudAE.Core
 
 				pointDataOffset = reader.ReadInt64();
 				pointSizeBytes = reader.ReadInt16();
-				compression = (CompressionMethod)reader.ReadInt32();
 
 				quantization = reader.ReadUQuantization3D();
 				zStats = reader.ReadStatistics();
 				tileSet = reader.ReadTileSet();
 			}
 
-			PointCloudTileSource source = new PointCloudTileSource(file, tileSet, quantization, pointDataOffset, pointSizeBytes, zStats, compression);
+			var source = new PointCloudTileSource(file, tileSet, quantization, pointDataOffset, pointSizeBytes, zStats);
 
 			return source;
 		}
@@ -212,12 +209,11 @@ namespace CloudAE.Core
 			// but not for exceptions during the write operation
 			string identifier = IsDirty ? FILE_IDENTIFIER_DIRTY : FILE_IDENTIFIER;
 
-			writer.Write(ASCIIEncoding.ASCII.GetBytes(identifier));
+			writer.Write(Encoding.ASCII.GetBytes(identifier));
 			writer.Write(FILE_VERSION_MAJOR);
 			writer.Write(FILE_VERSION_MINOR);
 			writer.Write(PointDataOffset);
 			writer.Write(PointSizeBytes);
-			writer.Write((int)Compression);
 			writer.Write(Quantization);
 			writer.Write(StatisticsZ);
 			writer.Write(TileSet);
@@ -227,7 +223,7 @@ namespace CloudAE.Core
 		{
 			Close();
 
-			using (BinaryWriter writer = new BinaryWriter(File.OpenWrite(FilePath)))
+			using (var writer = new BinaryWriter(File.OpenWrite(FilePath)))
 			{
 				writer.Write(this);
 
@@ -281,7 +277,7 @@ namespace CloudAE.Core
 				//File.Copy(source.FilePath, path);
 
 				// this might be about twice as fast for massive files
-				using (FileStream outputStream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
+				using (var outputStream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
 				{
 					outputStream.SetLength(outputLength);
 
@@ -299,7 +295,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public unsafe void LoadTile(PointCloudTile tile, byte[] inputBuffer)
+		public void LoadTile(PointCloudTile tile, byte[] inputBuffer)
 		{
 			if (tile.PointCount == 0)
 				return;
@@ -663,287 +659,6 @@ namespace CloudAE.Core
 			}
 
 			return new KeyValuePair<System.Windows.Media.Media3D.Point3DCollection, System.Windows.Media.Int32Collection>(points, triangles);
-		}
-
-		public unsafe PointCloudTileSource CompressTileSource(CompressionMethod compressionMethod, ProgressManager progressManager)
-		{
-			int maxIndividualBufferSize = TileSet.Density.MaxTileCount * PointSizeBytes;
-
-			Stopwatch stopwatch = new Stopwatch();
-			stopwatch.Start();
-
-			string outputTempFile = ProcessingSet.GetTemporaryCompressedTileSourceName(FilePath);
-
-			PointCloudTileSource tempTileSource = new PointCloudTileSource(outputTempFile, TileSet, Quantization, PointSizeBytes, StatisticsZ, compressionMethod);
-
-			double compressionRatio = 0.0;
-			double pretendCompressionRatio = 0.0;
-
-			long compressedCount = 0;
-
-			byte[] inputBuffer = new byte[maxIndividualBufferSize];
-			byte[] outputBuffer = new byte[maxIndividualBufferSize];
-
-			ICompressor compressor = CompressionFactory.GetCompressor(compressionMethod);
-
-			using (FileStream inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
-			using (FileStream outputStream = new FileStream(outputTempFile, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan | FileOptions.WriteThrough))
-			{
-				long inputLength = inputStream.Length;
-				outputStream.SetLength(inputLength);
-				outputStream.Seek(PointDataOffset, SeekOrigin.Begin);
-
-				fixed (byte* inputBufferPtr = inputBuffer)
-				{
-					foreach (PointCloudTile tile in this.TileSet.ValidTiles)
-					{
-						int bytesRead = tile.ReadTile(inputStream, inputBuffer);
-
-						bool sortComponent = true;
-						bool sortGrid = false;
-						bool checkBitCompaction = true;
-
-						UQuantizedExtent3D qExtent = tile.QuantizedExtent;
-						uint rangeX = qExtent.RangeX;
-						uint rangeY = qExtent.RangeY;
-						uint rangeZ = qExtent.RangeZ;
-
-						// remove offsets
-						byte* pb = inputBufferPtr;
-						byte* pbEnd = inputBufferPtr + bytesRead;
-						while (pb < pbEnd)
-						{
-							UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
-							pb += PointSizeBytes;
-
-							(*p).X -= qExtent.MinX;
-							(*p).Y -= qExtent.MinY;
-							(*p).Z -= qExtent.MinZ;
-						}
-
-						//if (sortGrid)
-						//{
-						//    SortOnGrid(p, tile.PointCount, qExtent);
-
-						//    rangeX = 0;
-						//    rangeY = 0;
-
-						//    for (int i = 0; i < tile.PointCount; i++)
-						//    {
-						//        rangeX = Math.Max(rangeX, p[i].X);
-						//        rangeY = Math.Max(rangeY, p[i].Y);
-						//    }
-						//}
-
-						//if (sortComponent)
-						//{
-						//    rangeX = SortAndDeltaEncode(inputBufferPtr, tile.PointCount);
-						//}
-
-						if (checkBitCompaction)
-						{
-							// check the bit-compaction
-							int xBits = (int)Math.Ceiling(Math.Log(rangeX, 2));
-							int yBits = (int)Math.Ceiling(Math.Log(rangeY, 2));
-							int zBits = (int)Math.Ceiling(Math.Log(rangeZ, 2));
-
-							int otherBits = (PointSizeBytes - sizeof(UQuantizedPoint3D)) * 8;
-
-							pretendCompressionRatio += (double)tile.PointCount * (xBits + yBits + zBits + otherBits) / (PointSizeBytes * 8);
-						}
-
-						//// check the values
-						//List<uint> xVals = new List<uint>(tile.PointCount);
-						//List<uint> yVals = new List<uint>(tile.PointCount);
-						//List<uint> zVals = new List<uint>(tile.PointCount);
-						//for (int i = 0; i < tile.PointCount; i++)
-						//{
-						//    xVals.Add(p[i].X);
-						//    yVals.Add(p[i].Y);
-						//    zVals.Add(p[i].Z);
-						//}
-
-
-						//Dictionary<uint, long> valueProbabilityCounts = new Dictionary<uint, long>();
-
-						//for (int i = 0; i < tile.PointCount; i++)
-						//{
-						//    uint value = p[i].Z;
-						//    if (!valueProbabilityCounts.ContainsKey(value))
-						//        valueProbabilityCounts.Add(value, 0);
-						//    ++valueProbabilityCounts[value];
-						//}
-
-						//var sortedValues = valueProbabilityCounts.OrderBy(kvp => kvp.Value).ToArray();
-
-
-
-						int compressedSize = bytesRead;
-
-						if (compressor != null)
-							compressedSize = compressor.Compress(tile, inputBuffer, bytesRead, outputBuffer);
-
-						byte[] bufferToWrite = outputBuffer;
-						int bytesToWrite = compressedSize;
-
-						if (compressedSize >= bytesRead)
-						{
-							bytesToWrite = bytesRead;
-							bufferToWrite = inputBuffer;
-						}
-
-						// make new tile object with compressed offset/size
-						TileSet[tile.Col, tile.Row] = new PointCloudTile(tile, compressedCount, bytesToWrite);
-
-						// write out buffer (same file or different file?)
-						outputStream.Write(bufferToWrite, 0, bytesToWrite);
-
-						compressedCount += bytesToWrite;
-
-						if (!progressManager.Update(tile))
-							break;
-					}
-				}
-
-				outputStream.SetLength(outputStream.Position);
-
-				compressionRatio = (double)compressedCount / inputLength;
-				pretendCompressionRatio /= Count;
-			}
-
-			tempTileSource.IsDirty = false;
-			tempTileSource.WriteHeader();
-
-			stopwatch.Stop();
-			progressManager.Log(stopwatch, "Compressed tiles ({0:f}) ({1:f})", compressionRatio, pretendCompressionRatio);
-
-			File.Delete(FilePath);
-			File.Move(outputTempFile, FilePath);
-
-			PointCloudTileSource newTileSource = PointCloudTileSource.Open(FilePath);
-
-			return newTileSource;
-		}
-
-		private unsafe void QuickSort(UQuantizedPoint3D* a, int i, int j)
-		{
-			if (i < j)
-			{
-				int q = Partition(a, i, j);
-				QuickSort(a, i, q);
-				QuickSort(a, q + 1, j);
-			}
-		}
-
-		private unsafe int Partition(UQuantizedPoint3D* a, int p, int r)
-		{
-			int i = p - 1;
-			int j = r + 1;
-			UQuantizedPoint3D tmp;
-			while (true)
-			{
-				do
-				{
-					--j;
-				} while (a[j].X > a[p].X);
-				//} while (a[j].Z > a[p].Z);
-				do
-				{
-					++i;
-				} while (a[i].X < a[p].X);
-				//} while (a[i].Z < a[p].Z);
-				if (i < j)
-				{
-					tmp = a[i];
-					a[i] = a[j];
-					a[j] = tmp;
-				}
-				else return j;
-			}
-		}
-
-		private unsafe int[,] SortOnGrid(UQuantizedPoint3D* p, int count, UQuantizedExtent3D quantizedExtent)
-		{
-			UQuantizedPoint3D[] points = new UQuantizedPoint3D[count];
-			for (int i = 0; i < count; i++)
-				points[i] = p[i];
-
-			const int gridSize = 32;
-			int gridCellDimensionX = (int)Math.Ceiling((double)quantizedExtent.RangeX / gridSize);
-			int gridCellDimensionY = (int)Math.Ceiling((double)quantizedExtent.RangeY / gridSize);
-
-			var comparer = new UQuantizedPoint3DGridComparer(gridSize, gridCellDimensionX, gridCellDimensionY);
-			Array.Sort(points, comparer);
-
-			// find the cells
-			// (obviously, this can be optimized)
-			int x = 0;
-			int y = 0;
-			int[,] cellStartIndices = new int[gridSize, gridSize];
-			for (int i = 0; i <= count; i++)
-			{
-				int currentCellX = -1;
-				int currentCellY = -1;
-
-				if (i < count)
-				{
-					currentCellX = (int)(points[i].X / gridCellDimensionX);
-					currentCellY = (int)(points[i].Y / gridCellDimensionY);
-
-					if (currentCellX == gridSize) --currentCellX;
-					if (currentCellY == gridSize) --currentCellY;
-				}
-
-				if (currentCellX != x || currentCellY != y)
-				{
-					// adjust the previous values
-					uint cellMinX = (uint)(gridCellDimensionX * x);
-					uint cellMinY = (uint)(gridCellDimensionY * y);
-					uint lastZ = 0;
-					for (int j = cellStartIndices[x, y]; j < i; j++)
-					{
-						uint diff = points[j].Z - lastZ;
-						lastZ = points[j].Z;
-
-						points[j].X -= cellMinX;
-						points[j].Y -= cellMinY;
-						points[j].Z = diff;
-					}
-
-					if (i < count)
-					{
-						x = currentCellX;
-						y = currentCellY;
-
-						cellStartIndices[x, y] = i;
-					}
-				}
-			}
-
-			for (int i = 0; i < count; i++)
-				p[i] = points[i];
-
-			return cellStartIndices;
-		}
-
-		private unsafe uint SortAndDeltaEncode(UQuantizedPoint3D* p, int count)
-		{
-			QuickSort(p, 0, count - 1);
-
-			// delta encoding on single component
-			// the first value of the delta may be large, so it can be considered separately
-
-			uint maxX = 0;
-			uint lastX = 0;
-			for (int i = 0; i < count; i++)
-			{
-				uint diff = p[i].X - lastX;
-				lastX = p[i].X;
-				p[i].X = diff;
-				if (i > 0 && diff > maxX) maxX = diff;
-			}
-
-			return maxX;
 		}
 
 		public BitmapSource GeneratePreviewImage(ColorRamp ramp, bool useStdDevStretch, int quality)

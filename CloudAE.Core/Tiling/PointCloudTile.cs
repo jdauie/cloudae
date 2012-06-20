@@ -6,7 +6,6 @@ using System.IO;
 using System.Diagnostics;
 
 using CloudAE.Core.Geometry;
-using CloudAE.Core.Compression;
 
 namespace CloudAE.Core
 {
@@ -25,7 +24,6 @@ namespace CloudAE.Core
 		public readonly long StorageOffset;
 		public readonly int StorageSize;
 
-		public readonly int Index;
 		public readonly int ValidIndex;
 
 		private UQuantizedExtent3D m_quantizedExtent;
@@ -94,7 +92,6 @@ namespace CloudAE.Core
 			StorageOffset = storageOffset;
 			StorageSize = storageSize;
 
-			Index = (Col << 16) | Row;
 			ValidIndex = validIndex;
 
 			m_quantizedExtent = extent;
@@ -112,7 +109,6 @@ namespace CloudAE.Core
 			StorageOffset = tile.StorageOffset;
 			StorageSize = tile.StorageSize;
 
-			Index = tile.Index;
 			ValidIndex = tile.ValidIndex;
 
 			m_quantizedExtent = tile.m_quantizedExtent;
@@ -130,7 +126,7 @@ namespace CloudAE.Core
 			StorageSize = storageSize;
 		}
 
-		public unsafe int ReadTile(FileStream inputStream, byte[] inputBuffer)
+		public int ReadTile(FileStream inputStream, byte[] inputBuffer)
 		{
 			if (StorageSize > inputBuffer.Length)
 				throw new ArgumentException("Tile data is larger than available buffer", "inputBuffer");
@@ -138,65 +134,13 @@ namespace CloudAE.Core
 			if (StorageSize == 0)
 				return 0;
 
-			bool compressed = (TileSource != null && TileSource.Compression != CompressionMethod.None);
-			bool actuallyCompressed = compressed && (StorageSize != PointCount * TileSource.PointSizeBytes);
-
 			// seek if necessary (hopefully this is minimized)
 			long position = TileSource.PointDataOffset + StorageOffset;
 			if (inputStream.Position != position)
 				inputStream.Seek(position, SeekOrigin.Begin);
 
-			// if there is no compression, just read into the input buffer
-			byte[] tempBuffer = inputBuffer;
-
-#warning should this have an ID?
-			if (actuallyCompressed)
-				tempBuffer = BufferManager.AcquireBuffer().Data;
-
-			int bytesRead = inputStream.Read(tempBuffer, 0, StorageSize);
+			int bytesRead = inputStream.Read(inputBuffer, 0, StorageSize);
 			Debug.Assert(bytesRead == StorageSize);
-
-			if (compressed)
-			{
-				if (actuallyCompressed)
-				{
-					bytesRead = TileSource.Compressor.Decompress(this, tempBuffer, bytesRead, inputBuffer);
-
-					BufferManager.ReleaseBuffer(tempBuffer);
-					tempBuffer = null;
-				}
-
-				// decode deltas and offsets
-				// if I decide to pursue compression, this pinning can be optimized
-				fixed (byte* inputBufferPtr = inputBuffer)
-				{
-					//UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
-
-					//p[0].X += m_quantizedExtent.MinX;
-					//p[0].Y += m_quantizedExtent.MinY;
-					//p[0].Z += m_quantizedExtent.MinZ;
-
-					//for (int i = 1; i < PointCount; i++)
-					//{
-					//    p[i].X += p[i - 1].X;
-					//    //p[i].X += m_quantizedExtent.MinX;
-					//    p[i].Y += m_quantizedExtent.MinY;
-					//    p[i].Z += m_quantizedExtent.MinZ;
-					//}
-
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + bytesRead;
-					while (pb < pbEnd)
-					{
-						UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
-						pb += TileSource.PointSizeBytes;
-
-						(*p).X += m_quantizedExtent.MinX;
-						(*p).Y += m_quantizedExtent.MinY;
-						(*p).Z += m_quantizedExtent.MinZ;
-					}
-				}
-			}
 
 			return bytesRead;
 		}

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using CloudAE.Core.Geometry;
 
@@ -14,10 +13,10 @@ namespace CloudAE.Core
 	{
 		private readonly PointCloudTileSource m_tileSource;
 
-		private PointCloudTileSet m_tileSet;
-		private FileStream m_outputStream;
+		private readonly PointCloudTileSet m_tileSet;
+		private readonly FileStream m_outputStream;
 
-		private PointCloudTileBuffer[,] m_createdBuffers;
+		private readonly PointCloudTileBuffer[,] m_createdBuffers;
 
 		public PointCloudTileSource TileSource
 		{

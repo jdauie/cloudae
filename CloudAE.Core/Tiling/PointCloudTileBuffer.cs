@@ -91,7 +91,7 @@ namespace CloudAE.Core
 		/// </summary>
 		/// <param name="p">The point.</param>
 		/// <returns>true if the buffer is full or the tile is complete; otherwise false</returns>
-		public unsafe bool AddPoint(byte* p)
+		public bool AddPoint(byte* p)
 		{
 			if (m_buffer == null)
 				throw new Exception("cannot add to inactive buffer");
@@ -111,14 +111,16 @@ namespace CloudAE.Core
 			// all the return checks are unnecessary for tiling method 2
 
 			// buffer is full
-			if (m_pBuffer == m_pBufferEnd)
-				return true;
+			//if (m_pBuffer == m_pBufferEnd)
+			//	return true;
 
 			// tile is complete
-			if (m_pointsWritten + m_currentPointIndex == m_pointCount)
-				return true;
+			//if (m_pointsWritten + m_currentPointIndex == m_pointCount)
+			//	return true;
 
-			return false;
+			//return false;
+
+			return true;
 		}
 
 		public void ActivateBuffer(byte[] buffer)
@@ -153,7 +155,7 @@ namespace CloudAE.Core
 			m_currentPointIndex = 0;
 		}
 
-		private unsafe void WriteQuantized(FileStream outputStream, long byteOffset, byte[] pointBuffer, int bytesToWrite)
+		private void WriteQuantized(FileStream outputStream, long byteOffset, byte[] pointBuffer, int bytesToWrite)
 		{
 			long offset = m_manager.TileSource.PointDataOffset + byteOffset;
 			if (outputStream.Position != offset)

@@ -129,14 +129,14 @@ namespace CloudAE.Core
 							break;
 					}
 
-					SQuantizedExtent3D quantizedExtent = new SQuantizedExtent3D(minX, minY, minZ, maxX, maxY, maxZ);
+					var quantizedExtent = new SQuantizedExtent3D(minX, minY, minZ, maxX, maxY, maxZ);
 					extent = m_header.Quantization.Convert(quantizedExtent);
 
 					process.LogTime("Traversed {0:0,0} points", Count);
 				}
 			}
 
-			PointCloudBinarySource source = new PointCloudBinarySource(FilePath, Count, extent, m_header.Quantization, PointDataOffset, PointSizeBytes, CompressionMethod.None);
+			var source = new PointCloudBinarySource(FilePath, Count, extent, m_header.Quantization, PointDataOffset, PointSizeBytes);
 
 			return source;
 		}

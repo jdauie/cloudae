@@ -164,9 +164,9 @@ namespace CloudAE.Core
 				process.LogTime("Copied {0:0,0} points", pointCount);
 			}
 
-			Extent3D extent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
+			var extent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
 
-			PointCloudBinarySource source = new PointCloudBinarySource(binaryPath, pointCount, extent, null, 0, POINT_SIZE_BYTES, CompressionMethod.None);
+			var source = new PointCloudBinarySource(binaryPath, pointCount, extent, null, 0, POINT_SIZE_BYTES);
 
 			return source;
 		}

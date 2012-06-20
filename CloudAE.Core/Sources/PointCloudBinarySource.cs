@@ -15,8 +15,6 @@ namespace CloudAE.Core
 
 		private readonly long m_count;
 		private readonly Quantization3D m_quantization;
-		private readonly CompressionMethod m_compression;
-		private readonly ICompressor m_compressor;
 		private readonly short m_pointSizeBytes;
 		private readonly int m_pointsPerBuffer;
 		private readonly int m_usableBytesPerBuffer;
@@ -34,16 +32,6 @@ namespace CloudAE.Core
 		public Quantization3D Quantization
 		{
 			get { return m_quantization; }
-		}
-
-		public CompressionMethod Compression
-		{
-			get { return m_compression; }
-		}
-
-		public ICompressor Compressor
-		{
-			get { return m_compressor; }
 		}
 
 		public short PointSizeBytes
@@ -75,14 +63,12 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudBinarySource(string file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes, CompressionMethod compression)
+		public PointCloudBinarySource(string file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes)
 			: base(file)
 		{
 			m_count = count;
 			Extent = extent;
 			m_quantization = quantization;
-			m_compression = compression;
-			m_compressor = CompressionFactory.GetCompressor(Compression);
 			PointDataOffset = dataOffset;
 			m_pointSizeBytes = pointSizeBytes;
 			m_pointsPerBuffer = BufferManager.BUFFER_SIZE_BYTES / pointSizeBytes;

@@ -127,7 +127,7 @@ namespace CloudAE.Core
 				quantization = Quantization3D.Create(tileSet.Extent, true);
 
 #warning this point size is incorrect for unquantized inputs
-			var tileSource = new PointCloudTileSource(path, tileSet, quantization, source.PointSizeBytes, zStats, CompressionMethod.None);
+			var tileSource = new PointCloudTileSource(path, tileSet, quantization, source.PointSizeBytes, zStats);
 			tileSource.AllocateFile(m_options.AllowSparseAllocation);
 
 			using (var outputStream = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, m_options.TilingFileOptions))

@@ -44,7 +44,7 @@ namespace CloudAE.Core.Tiling
 			m_gridTreeBasePow = (ushort)Math.Ceiling(Math.Log(Math.Max(m_gridX, m_gridY), 2));
 			m_gridTreeBaseSize = (ushort)Math.Pow(2, m_gridTreeBasePow);
 
-			PointCloudTileTreeNode[][,] gridTreeLevels = new PointCloudTileTreeNode[m_gridTreeBasePow + 1][,];
+			var gridTreeLevels = new PointCloudTileTreeNode[m_gridTreeBasePow + 1][,];
 
 			for (int gridTreeLevel = 0; gridTreeLevel <= m_gridTreeBasePow; gridTreeLevel++)
 			{

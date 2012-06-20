@@ -44,7 +44,6 @@ namespace CloudAE.App
 					properties.Add(new ImmutablePropertyString("Statistics", "Mode", string.Format("{0:f}", m_source.StatisticsZ.ModeApproximate)));
 					properties.Add(new ImmutablePropertyString("Statistics", "StdDev", string.Format("{0:f}", m_source.StatisticsZ.StdDev)));
 
-					properties.Add(new ImmutablePropertyString("Storage", "Compression", m_source.Compression));
 					properties.Add(new ImmutablePropertyString("Storage", "PointDataOffset", string.Format("{0} bytes", m_source.PointDataOffset)));
 					properties.Add(new ImmutablePropertyString("Storage", "PointSize", string.Format("{0} bytes", m_source.PointSizeBytes)));
 
