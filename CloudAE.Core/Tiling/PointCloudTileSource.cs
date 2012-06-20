@@ -152,6 +152,7 @@ namespace CloudAE.Core
 		{
 			m_tileSet = new PointCloudTileSet(tileSet, this);
 			m_statisticsZ = zStats;
+#warning this should be stored in the tileset, rather than converted
 			QuantizedExtent = (UQuantizedExtent3D)Quantization.Convert(Extent);
 
 			if (pointDataOffset == 0)

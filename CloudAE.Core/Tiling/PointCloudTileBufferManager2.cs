@@ -50,7 +50,7 @@ namespace CloudAE.Core
 			m_createdBuffers[tileX, tileY].AddPoint(p);
 		}
 
-		public UQuantizedExtent3D FinalizeTiles(ProgressManager progressManager)
+		public void FinalizeTiles(ProgressManager progressManager)
 		{
 			using (var process = progressManager.StartProcess("FinalizeTiles"))
 			{
@@ -65,9 +65,6 @@ namespace CloudAE.Core
 						break;
 				}
 			}
-
-			var newQuantizedExtent = m_tileSet.ValidTiles.Select(t => t.QuantizedExtent).Union();
-			return newQuantizedExtent;
 		}
 	}
 }

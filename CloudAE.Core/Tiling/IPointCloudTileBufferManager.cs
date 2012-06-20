@@ -32,6 +32,6 @@ namespace CloudAE.Core
 		/// The progress manager is provided in case the operation hits the disk.
 		/// </summary>
 		/// <param name="progressManager">The progress manager.</param>
-		UQuantizedExtent3D FinalizeTiles(ProgressManager progressManager);
+		void FinalizeTiles(ProgressManager progressManager);
 	}
 }
