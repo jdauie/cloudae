@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
 
@@ -536,9 +535,6 @@ namespace CloudAE.Core
 						(*p2).X = (uint)((*p).X * scaleTranslationX + offsetTranslationX);
 						(*p2).Y = (uint)((*p).Y * scaleTranslationY + offsetTranslationY);
 						(*p2).Z = (uint)((*p).Z * scaleTranslationZ + offsetTranslationZ);
-
-						//int tileX = (int)(((double)(*p2).X - quantizedExtent.MinX) * tilesOverRangeX);
-						//int tileY = (int)(((double)(*p2).Y - quantizedExtent.MinY) * tilesOverRangeY);
 
 						tileBufferManager.AddPoint(pb,
 							(int)(((double)(*p2).X - quantizedExtent.MinX) * tilesOverRangeX), 
