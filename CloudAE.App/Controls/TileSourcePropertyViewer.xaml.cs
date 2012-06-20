@@ -31,7 +31,7 @@ namespace CloudAE.App
 				m_source = value;
 				DataContext = m_source;
 
-				List<ImmutablePropertyString> properties = new List<ImmutablePropertyString>();
+				var properties = new List<ImmutablePropertyString>();
 
 				if (m_source != null)
 				{

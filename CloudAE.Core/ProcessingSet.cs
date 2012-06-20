@@ -130,19 +130,15 @@ namespace CloudAE.Core
 		{
 			PointCloudBinarySource[] segments = null;
 			PointCloudTileSource[] tiledSegments = null;
-			StatisticsGenerator statsGenerator = null;
-			PointCloudTileDensity estimatedDensity = null;
-			UQuantization3D quantization = null;
+			PointCloudAnalysisResult analysis = null;
 
 			{
 				// check total point data size; try to keep it within windows file cache
-				long pointDataSize = (long)m_binarySource.Count * m_binarySource.PointSizeBytes;
+				long pointDataSize = m_binarySource.Count * m_binarySource.PointSizeBytes;
 
 				// determine density (for consistent tile size across chunks)
-				statsGenerator = new StatisticsGenerator(m_binarySource.Count);
-				PointCloudTileManager tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
-				estimatedDensity = tileManager.AnalyzePointFile(statsGenerator, progressManager);
-				quantization = tileManager.TestQuantization;
+				var tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
+				analysis = tileManager.AnalyzePointFile(progressManager);
 
 				int chunks = (int)Math.Ceiling((double)pointDataSize / maxSegmentBytes);
 				long pointsPerChunk = m_binarySource.Count / chunks;
@@ -171,7 +167,7 @@ namespace CloudAE.Core
 					process.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
 
 					var tileManager = new PointCloudTileManager(segments[i], tileOptions);
-					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, estimatedDensity, statsGenerator, quantization, progressManager);
+					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, analysis, progressManager);
 
 					// why is random faster for parallel reads? RAID?
 					//tiledSegments[i].OpenSequential();
