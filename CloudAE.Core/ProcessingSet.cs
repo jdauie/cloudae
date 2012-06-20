@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
 
 using CloudAE.Core.Util;
-using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
@@ -187,7 +185,7 @@ namespace CloudAE.Core
 
 				// reassemble tiled files
 				var mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
-				int largestTileCount = (int)(mergedTileSet.Max(t => t.PointCount));
+				int largestTileCount = mergedTileSet.Max(t => t.PointCount);
 				int largestTileSize = largestTileCount * tiledSegments[0].PointSizeBytes;
 
 				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
