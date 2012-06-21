@@ -2,14 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using CloudAE.Core.Geometry;
 using System.IO;
+
+using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
 	public class PointCloudTileSet : IEnumerable<PointCloudTile>, ISerializeBinary
 	{
 		private readonly PointCloudTile[,] m_tiles;
+		private readonly PointCloudTileTree m_tree;
 
 		public readonly Extent3D Extent;
 		public readonly PointCloudTileDensity Density;
@@ -22,7 +24,6 @@ namespace CloudAE.Core
 
 		/// <summary>
 		/// Gets or sets the <see cref="CloudAE.Core.PointCloudTile"/> with the specified indices.
-		/// This is less than 10% slower than accessing the array directly.
 		/// </summary>
 		/// <value></value>
 		public PointCloudTile this[int x, int y]
