@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Diagnostics;
 
 namespace CloudAE.Core
 {
@@ -53,6 +54,8 @@ namespace CloudAE.Core
 		{
 			using (var process = progressManager.StartProcess("FinalizeTiles"))
 			{
+				var stopwatch = new Stopwatch();
+				stopwatch.Start();
 				foreach (var tile in m_tileSet.ValidTiles)
 				{
 					var tileBuffer = m_createdBuffers[tile.Col, tile.Row];
@@ -63,6 +66,9 @@ namespace CloudAE.Core
 					if (!process.Update(tile))
 						break;
 				}
+				stopwatch.Stop();
+				double outputMBps = (double)m_outputStream.Position / (int)ByteSizesSmall.MB_1 * 1000 / stopwatch.ElapsedMilliseconds;
+				Context.WriteLine("Write @ {0:0} MBps", outputMBps);
 			}
 		}
 	}
