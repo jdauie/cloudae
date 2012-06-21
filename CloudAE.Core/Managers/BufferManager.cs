@@ -8,6 +8,7 @@ namespace CloudAE.Core
 {
 	public enum ByteSizesSmall : int
 	{
+		KB_64  = 1 << 16,
 		KB_128 = 1 << 17,
 		KB_256 = 1 << 18,
 		KB_512 = 1 << 19,
