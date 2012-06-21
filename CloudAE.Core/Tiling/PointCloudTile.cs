@@ -20,7 +20,6 @@ namespace CloudAE.Core
 		public readonly int PointOffset;
 		public readonly int PointCount;
 
-		public readonly long StorageOffset;
 		public readonly int StorageSize;
 
 		public readonly int ValidIndex;
@@ -74,21 +73,16 @@ namespace CloudAE.Core
 			}
 		}
 
-		public PointCloudTile(ushort col, ushort row, int validIndex, int offset, int count, long storageOffset, int storageSize, UQuantizedExtent3D extent)
+		public PointCloudTile(ushort col, ushort row, int validIndex, int offset, int count)
 		{
-			TileSource = null;
-
 			Row = row;
 			Col = col;
 			PointOffset = offset;
 			PointCount = count;
 
-			StorageOffset = storageOffset;
-			StorageSize = storageSize;
+			StorageSize = 0;
 
 			ValidIndex = validIndex;
-
-			m_quantizedExtent = extent;
 		}
 
 		public PointCloudTile(PointCloudTile tile, PointCloudTileSource tileSource)
@@ -100,24 +94,10 @@ namespace CloudAE.Core
 			PointOffset = tile.PointOffset;
 			PointCount = tile.PointCount;
 
-			StorageOffset = tile.StorageOffset;
-			StorageSize = tile.StorageSize;
-
 			ValidIndex = tile.ValidIndex;
 
-			m_quantizedExtent = tile.m_quantizedExtent;
-		}
-
-		public PointCloudTile(PointCloudTile tile)
-			: this(tile, tile.TileSource)
-		{
-		}
-
-		public PointCloudTile(PointCloudTile tile, long storageOffset, int storageSize)
-			: this(tile)
-		{
-			StorageOffset = storageOffset;
-			StorageSize = storageSize;
+			if (TileSource != null)
+				StorageSize = PointCount * TileSource.PointSizeBytes;
 		}
 
 		public int ReadTile(FileStream inputStream, byte[] inputBuffer)
@@ -129,7 +109,7 @@ namespace CloudAE.Core
 				return 0;
 
 			// seek if necessary (hopefully this is minimized)
-			long position = TileSource.PointDataOffset + StorageOffset;
+			long position = TileSource.PointDataOffset + PointOffset * TileSource.PointSizeBytes;
 			if (inputStream.Position != position)
 				inputStream.Seek(position, SeekOrigin.Begin);
 

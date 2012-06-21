@@ -56,10 +56,8 @@ namespace CloudAE.Core
 				for (ushort y = 0; y < Rows; y++)
 				{
 					int tileCount = tileCounts.Data[x, y];
-					long byteOffset = (long)offset * pointSizeBytes;
-					int byteLength = tileCount * pointSizeBytes;
 
-					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount, byteOffset, byteLength, null);
+					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount);
 
 					if (tileCount > 0)
 					{
@@ -116,11 +114,7 @@ namespace CloudAE.Core
 				{
 					int tileCount = tileSets.Sum(t => t.m_tiles[x, y].PointCount);
 
-					long byteOffset = tileSets.Sum(t => t.m_tiles[x, y].StorageOffset);
-					int byteLength = tileSets.Sum(t => t.m_tiles[x, y].StorageSize);
-
-					UQuantizedExtent3D mergedExtent = tileSets.Select(s => s.m_tiles[x, y].QuantizedExtent).Union();
-					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount, byteOffset, byteLength, mergedExtent);
+					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, offset, tileCount);
 
 					if (tileCount > 0)
 					{
@@ -150,23 +144,19 @@ namespace CloudAE.Core
 
 			m_tiles = new PointCloudTile[Cols, Rows];
 			int pointOffset = 0;
-			long storageOffset = 0;
 			int validTileIndex = 0;
 			for (ushort x = 0; x < Cols; x++)
 			{
 				for (ushort y = 0; y < Rows; y++)
 				{
 					int tilePointCount = reader.ReadInt32();
-					int tileStorageSize = reader.ReadInt32();
-					UQuantizedExtent3D quantizedExtent = reader.ReadUQuantizedExtent3D();
 
-					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, pointOffset, tilePointCount, storageOffset, tileStorageSize, quantizedExtent);
+					m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, pointOffset, tilePointCount);
 
 					if (tilePointCount > 0)
 					{
 						++validTileIndex;
 						pointOffset += tilePointCount;
-						storageOffset += tileStorageSize;
 					}
 				}
 			}
@@ -185,8 +175,6 @@ namespace CloudAE.Core
 				{
 					PointCloudTile tile = m_tiles[x, y];
 					writer.Write(tile.PointCount);
-					writer.Write(tile.StorageSize);
-					writer.Write(tile.QuantizedExtent);
 				}
 			}
 		}
