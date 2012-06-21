@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace CloudAE.Core.Tiling
+namespace CloudAE.Core
 {
-	// This will be the combined tree and grid.
-	// I'm not yet sure which way to serialize.
-	//   probably serialize as ID, Count => where ID maps to either a grid cell or a tree node
-	// IPROPERTYCONTAINER is only for testing!!!!
-	class PointCloudTileTree : IEnumerable<PointCloudTile2>, IPropertyContainer
+	class PointCloudTileTree : IEnumerable<PointCloudTile>
 	{
 		private readonly PointCloudTileTreeNode m_rootNode;
 
-		private readonly PointCloudTile2[,] m_grid;
+		private readonly PointCloudTile[,] m_grid;
 
 		private readonly ushort m_gridX;
 		private readonly ushort m_gridY;
@@ -21,25 +16,12 @@ namespace CloudAE.Core.Tiling
 		private readonly ushort m_gridTreeBasePow;
 		private readonly ushort m_gridTreeBaseSize;
 
-		static PointCloudTileTree()
+		public PointCloudTileTree(PointCloudTile[,] grid)
 		{
-			// test
-			//var tree = new PointCloudTileTree();
+			m_grid = grid;
 
-
-		}
-
-		public PointCloudTileTree(PointCloudTileDensity density, Grid<int> tileCounts, short pointSizeBytes)
-		{
-			m_gridX = 8;
-			m_gridY = 10;
-
-			m_grid = new PointCloudTile2[m_gridX, m_gridY];
-
-			for (ushort x = 0; x < m_gridX; x++)
-				for (ushort y = 0; y < m_gridY; y++)
-					m_grid[x, y] = new PointCloudTile2(x, y);
-
+			m_gridX = (ushort)grid.GetLength(0);
+			m_gridY = (ushort)grid.GetLength(1);
 
 			m_gridTreeBasePow = (ushort)Math.Ceiling(Math.Log(Math.Max(m_gridX, m_gridY), 2));
 			m_gridTreeBaseSize = (ushort)Math.Pow(2, m_gridTreeBasePow);
@@ -82,17 +64,11 @@ namespace CloudAE.Core.Tiling
 			}
 
 			m_rootNode = gridTreeLevels[m_gridTreeBasePow][0, 0];
-
-			// this is the new tile order
-			//foreach (var tile in this)
-			//{
-			//    Console.WriteLine("{0}", tile);
-			//}
 		}
 
 		#region IEnumerable Members
 
-		public IEnumerator<PointCloudTile2> GetEnumerator()
+		public IEnumerator<PointCloudTile> GetEnumerator()
 		{
 			var stack = new Stack<PointCloudTileTreeNode>();
 			stack.Push(m_rootNode);
@@ -123,23 +99,6 @@ namespace CloudAE.Core.Tiling
 		#endregion
 	}
 
-	public class PointCloudTile2
-	{
-		public readonly ushort X;
-		public readonly ushort Y;
-
-		public PointCloudTile2(ushort x, ushort y)
-		{
-			X = x;
-			Y = y;
-		}
-
-		public override string ToString()
-		{
-			return string.Format("({0}, {1})", X, Y);
-		}
-	}
-
 	class PointCloudTileTreeNode
 	{
 		/// <summary>
@@ -149,9 +108,9 @@ namespace CloudAE.Core.Tiling
 		public readonly PointCloudTileTreeNode[] Nodes;
 		public readonly bool HasChildNodes;
 
-		public readonly PointCloudTile2 Tile;
+		public readonly PointCloudTile Tile;
 
-		public PointCloudTileTreeNode(PointCloudTile2 tile)
+		public PointCloudTileTreeNode(PointCloudTile tile)
 		{
 			Nodes = null;
 			HasChildNodes = false;
