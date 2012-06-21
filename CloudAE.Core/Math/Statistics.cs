@@ -39,15 +39,6 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public Statistics(IEnumerable<float> values, float nodata)
-		{
-			IEnumerable<float> validValues = values.Where(v => v != nodata);
-			m_mean = validValues.Average();
-			m_variance = validValues.Average(v => Math.Pow(v - Mean, 2));
-			m_stdDev = Math.Sqrt(Variance);
-			//m_modeApproximate
-		}
-
 		public Statistics(double mean, double variance, double mode)
 		{
 			m_mean = mean;
