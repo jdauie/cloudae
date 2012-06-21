@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace CloudAE.Core
@@ -21,7 +20,7 @@ namespace CloudAE.Core
 			m_buffer = buffer;
 			m_stream = new FileStream(m_source.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
 
-			m_endPosition = m_source.PointDataOffset + (long)m_source.Count * m_source.PointSizeBytes;
+			m_endPosition = m_source.PointDataOffset + m_source.Count * m_source.PointSizeBytes;
 
 			m_usableBytesPerBuffer = m_source.UsableBytesPerBuffer;
 
