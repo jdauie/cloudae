@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace CloudAE.Core.Geometry
@@ -71,17 +69,17 @@ namespace CloudAE.Core.Geometry
 
 		public uint ConvertXValToQuantized(double x)
 		{
-			return (uint)((x - OffsetX) / ScaleFactorX);
+			return checked((uint)((x - OffsetX) / ScaleFactorX));
 		}
 
 		public uint ConvertYValToQuantized(double y)
 		{
-			return (uint)((y - OffsetY) / ScaleFactorY);
+			return checked((uint)((y - OffsetY) / ScaleFactorY));
 		}
 
 		public uint ConvertZValToQuantized(double z)
 		{
-			return (uint)((z - OffsetZ) / ScaleFactorZ);
+			return checked((uint)((z - OffsetZ) / ScaleFactorZ));
 		}
 
 		public double ConvertXValFromQuantized(uint x)

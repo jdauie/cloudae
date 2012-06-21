@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace CloudAE.Core.Geometry
@@ -44,28 +43,6 @@ namespace CloudAE.Core.Geometry
 			writer.Write(MinZ);
 			writer.Write(MaxZ);
 		}
-
-		//public unsafe UQuantizedExtent3D(UQuantizedPoint3D* p, int count)
-		//{
-		//    MinX = uint.MaxValue;
-		//    MinY = uint.MaxValue;
-		//    MinZ = uint.MaxValue;
-		//    MaxX = uint.MinValue;
-		//    MaxY = uint.MinValue;
-		//    MaxZ = uint.MaxValue;
-
-		//    for (int i = 0; i < count; i++)
-		//    {
-		//        UQuantizedPoint3D qPoint = p[i];
-
-		//        MinX = Math.Min(MinX, qPoint.X);
-		//        MinY = Math.Min(MinY, qPoint.Y);
-		//        MinZ = Math.Min(MinZ, qPoint.Z);
-		//        MaxX = Math.Max(MinX, qPoint.X);
-		//        MaxY = Math.Max(MinY, qPoint.Y);
-		//        MaxZ = Math.Max(MinZ, qPoint.Z);
-		//    }
-		//}
 
 		public UQuantizedExtent3D Union(UQuantizedExtent3D extent)
 		{
