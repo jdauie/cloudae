@@ -53,23 +53,32 @@ namespace CloudAE.Core.Geometry
 		/// </summary>
 		public static Quantization3D Create(Extent3D extent, bool unsigned)
 		{
+			// Use unsigned, but only use the lower half, so the values 
+			// can be stored in signed space without transform.
+			const bool limitToSignedMax = true;
+
+			int rangePow = 32;
+
 			double qOffsetX = extent.MidpointX;
 			double qOffsetY = extent.MidpointY;
 			double qOffsetZ = extent.MidpointZ;
 
 			if (unsigned)
 			{
-				qOffsetX = extent.MinX;
-				qOffsetY = extent.MinY;
-				qOffsetZ = extent.MinZ;
+				qOffsetX = Math.Floor(extent.MinX);
+				qOffsetY = Math.Floor(extent.MinY);
+				qOffsetZ = Math.Floor(extent.MinZ);
+
+				if (limitToSignedMax)
+					rangePow--;
 			}
 
-			double pow2to32 = Math.Pow(2, 32);
+			double range = Math.Pow(2, rangePow);
 			const double logBase = 10; // this value effects debugging and compressibility
 
-			int precisionMaxX = (int)Math.Floor(Math.Log(pow2to32 / (extent.RangeX), logBase));
-			int precisionMaxY = (int)Math.Floor(Math.Log(pow2to32 / (extent.RangeY), logBase));
-			int precisionMaxZ = (int)Math.Floor(Math.Log(pow2to32 / (extent.RangeZ), logBase));
+			int precisionMaxX = (int)Math.Floor(Math.Log(range / (extent.RangeX), logBase));
+			int precisionMaxY = (int)Math.Floor(Math.Log(range / (extent.RangeY), logBase));
+			int precisionMaxZ = (int)Math.Floor(Math.Log(range / (extent.RangeZ), logBase));
 
 			double qScaleFactorX = Math.Pow(logBase, -precisionMaxX);
 			double qScaleFactorY = Math.Pow(logBase, -precisionMaxY);
