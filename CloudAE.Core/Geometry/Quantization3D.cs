@@ -47,38 +47,41 @@ namespace CloudAE.Core.Geometry
 			writer.Write(OffsetZ);
 		}
 
+		public static Extent3D CreateOffsetExtent(Extent3D extent)
+		{
+			double offsetX = Math.Floor(extent.MinX);
+			double offsetY = Math.Floor(extent.MinY);
+			double offsetZ = Math.Floor(extent.MinZ);
+
+			// degrees don't like Floor
+			if (extent.MinX - offsetX > extent.RangeX) offsetX = extent.MinX;
+			if (extent.MinY - offsetY > extent.RangeY) offsetY = extent.MinY;
+			if (extent.MinZ - offsetZ > extent.RangeZ) offsetZ = extent.MinZ;
+
+			return new Extent3D(offsetX, offsetY, offsetZ, extent.MaxX, extent.MaxY, extent.MaxZ);
+		}
+
 		/// <summary>
 		/// This should only be called if it is not feasible to evaluate the 
 		/// input data to determine what the actual scale factor should be.
 		/// </summary>
 		public static Quantization3D Create(Extent3D extent, bool unsigned)
 		{
-			// Use unsigned, but only use the lower half, so the values 
-			// can be stored in signed space without transform.
-			const bool limitToSignedMax = true;
+			Extent3D qOffsetExtent = CreateOffsetExtent(extent);
 
-			int rangePow = 32;
+			// midpoint doubles the signed range,
+			// but I don't really care
+			double qOffsetX = qOffsetExtent.MinX;
+			double qOffsetY = qOffsetExtent.MinY;
+			double qOffsetZ = qOffsetExtent.MinZ;
 
-			double qOffsetX = extent.MidpointX;
-			double qOffsetY = extent.MidpointY;
-			double qOffsetZ = extent.MidpointZ;
-
-			if (unsigned)
-			{
-				qOffsetX = Math.Floor(extent.MinX);
-				qOffsetY = Math.Floor(extent.MinY);
-				qOffsetZ = Math.Floor(extent.MinZ);
-
-				if (limitToSignedMax)
-					rangePow--;
-			}
-
-			double range = Math.Pow(2, rangePow);
+			// Use only the non-negative int range
+			double range = Math.Pow(2, 31);
 			const double logBase = 10; // this value effects debugging and compressibility
 
-			int precisionMaxX = (int)Math.Floor(Math.Log(range / (extent.RangeX), logBase));
-			int precisionMaxY = (int)Math.Floor(Math.Log(range / (extent.RangeY), logBase));
-			int precisionMaxZ = (int)Math.Floor(Math.Log(range / (extent.RangeZ), logBase));
+			int precisionMaxX = (int)Math.Floor(Math.Log(range / (qOffsetExtent.RangeX), logBase));
+			int precisionMaxY = (int)Math.Floor(Math.Log(range / (qOffsetExtent.RangeY), logBase));
+			int precisionMaxZ = (int)Math.Floor(Math.Log(range / (qOffsetExtent.RangeZ), logBase));
 
 			double qScaleFactorX = Math.Pow(logBase, -precisionMaxX);
 			double qScaleFactorY = Math.Pow(logBase, -precisionMaxY);
@@ -143,7 +146,9 @@ namespace CloudAE.Core.Geometry
 			if (scaleFactors[0] != scaleFactors[1])
 				throw new Exception("The X and Y scale factors should be the same. X = {0}, Y = {1}");
 
-			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], Math.Floor(extent.MinX), Math.Floor(extent.MinY), Math.Floor(extent.MinZ));
+			Extent3D offsetExtent = CreateOffsetExtent(extent);
+
+			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], offsetExtent.MinX, offsetExtent.MinY, offsetExtent.MinZ);
 		}
 
 		public static UQuantization3D Create(Extent3D extent, double[][] testValues)
@@ -189,7 +194,9 @@ namespace CloudAE.Core.Geometry
 			if (scaleFactors[0] != scaleFactors[1])
 				throw new Exception("The X and Y scale factors should be the same. X = {0}, Y = {1}");
 
-			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], Math.Floor(extent.MinX), Math.Floor(extent.MinY), Math.Floor(extent.MinZ));
+			Extent3D offsetExtent = CreateOffsetExtent(extent);
+
+			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], offsetExtent.MinX, offsetExtent.MinY, offsetExtent.MinZ);
 		}
 
 		private static int FindBase(int inverseScale)
