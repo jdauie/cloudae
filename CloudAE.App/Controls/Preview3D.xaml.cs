@@ -763,6 +763,7 @@ namespace CloudAE.App
 			CloudAE.Core.Geometry.Point3D centerOfMass = CurrentTileSource.CenterOfMass;
 
 			PointCloudTile[] tilesToLoadArray = tilesToLoad.ToArray();
+#warning sort so that disk reads are in order? or make a tile cache
 			SortByDistanceFromTile(tilesToLoadArray, tile);
 			foreach (PointCloudTile currentTile in tilesToLoadArray)
 			{
