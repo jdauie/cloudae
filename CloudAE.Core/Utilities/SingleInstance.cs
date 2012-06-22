@@ -23,9 +23,9 @@ namespace CloudAE.Core.Util
 		private const string RemoteServiceName = "SingleInstanceApplicationService";
 		private const string IpcProtocol = "ipc://";
 
-		private static Mutex m_singleInstanceMutex;
-		private static IpcServerChannel m_channel;
-		private static Action<string[]> m_signalExternalCommandLineArgs;
+		private static Mutex c_singleInstanceMutex;
+		private static IpcServerChannel c_channel;
+		private static Action<string[]> c_signalExternalCommandLineArgs;
 
 		#endregion
 
@@ -46,10 +46,10 @@ namespace CloudAE.Core.Util
 			string channelName = string.Format("{0}:{1}", applicationIdentifier, ChannelNameSuffix);
 
 			bool firstInstance;
-			m_singleInstanceMutex = new Mutex(true, applicationIdentifier, out firstInstance);
+			c_singleInstanceMutex = new Mutex(true, applicationIdentifier, out firstInstance);
 			if (firstInstance)
 			{
-				m_signalExternalCommandLineArgs = signalExternalCommandLineArgs;
+				c_signalExternalCommandLineArgs = signalExternalCommandLineArgs;
 				CreateRemoteService(channelName);
 			}
 			else
@@ -65,16 +65,16 @@ namespace CloudAE.Core.Util
 		/// </summary>
 		public static void Cleanup()
 		{
-			if (m_singleInstanceMutex != null)
+			if (c_singleInstanceMutex != null)
 			{
-				m_singleInstanceMutex.Close();
-				m_singleInstanceMutex = null;
+				c_singleInstanceMutex.Close();
+				c_singleInstanceMutex = null;
 			}
 
-			if (m_channel != null)
+			if (c_channel != null)
 			{
-				ChannelServices.UnregisterChannel(m_channel);
-				m_channel = null;
+				ChannelServices.UnregisterChannel(c_channel);
+				c_channel = null;
 			}
 		}
 
@@ -104,7 +104,7 @@ namespace CloudAE.Core.Util
 		/// <param name="channelName">Application's IPC channel name.</param>
 		private static void CreateRemoteService(string channelName)
 		{
-			BinaryServerFormatterSinkProvider serverProvider = new BinaryServerFormatterSinkProvider();
+			var serverProvider = new BinaryServerFormatterSinkProvider();
 			serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
 			var props = new Dictionary<string, string>();
 
@@ -112,11 +112,11 @@ namespace CloudAE.Core.Util
 			props["portName"] = channelName;
 			props["exclusiveAddressUse"] = "true";
 
-			m_channel = new IpcServerChannel(props, serverProvider);
+			c_channel = new IpcServerChannel(props, serverProvider);
 
-			ChannelServices.RegisterChannel(m_channel, true);
+			ChannelServices.RegisterChannel(c_channel, true);
 
-			IPCRemoteService remoteService = new IPCRemoteService();
+			var remoteService = new IPCRemoteService();
 			RemotingServices.Marshal(remoteService, RemoteServiceName);
 		}
 
@@ -131,13 +131,13 @@ namespace CloudAE.Core.Util
 		/// </param>
 		private static void SignalFirstInstance(string channelName, string[] args)
 		{
-			IpcClientChannel secondInstanceChannel = new IpcClientChannel();
+			var secondInstanceChannel = new IpcClientChannel();
 			ChannelServices.RegisterChannel(secondInstanceChannel, true);
 
 			string remotingServiceUrl = IpcProtocol + channelName + "/" + RemoteServiceName;
 
 			// Obtain a reference to the remoting service exposed by the server i.e the first instance of the application
-			IPCRemoteService firstInstanceRemoteServiceReference = (IPCRemoteService)RemotingServices.Connect(typeof(IPCRemoteService), remotingServiceUrl);
+			var firstInstanceRemoteServiceReference = (IPCRemoteService)RemotingServices.Connect(typeof(IPCRemoteService), remotingServiceUrl);
 
 			// Check that the remote service exists, in some cases the first instance may not yet have created one, in which case
 			// the second instance should just exit
@@ -156,8 +156,10 @@ namespace CloudAE.Core.Util
 		/// <returns>Always null.</returns>
 		private static object ActivateFirstInstanceCallback(object arg)
 		{
-			string[] args = arg as string[];
-			ActivateFirstInstance(args.ToArray());
+			var args = arg as string[];
+			if (args != null)
+				ActivateFirstInstance(args.ToArray());
+
 			return null;
 		}
 
@@ -170,7 +172,7 @@ namespace CloudAE.Core.Util
 			if (Application.Current == null)
 				return;
 
-			m_signalExternalCommandLineArgs(args);
+			c_signalExternalCommandLineArgs(args);
 		}
 
 		#endregion
@@ -192,7 +194,7 @@ namespace CloudAE.Core.Util
 				if (Application.Current != null)
 				{
 					// Do an asynchronous call to ActivateFirstInstance function
-					Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new DispatcherOperationCallback(SingleInstance.ActivateFirstInstanceCallback), args);
+					Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new DispatcherOperationCallback(ActivateFirstInstanceCallback), args);
 				}
 			}
 
