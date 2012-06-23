@@ -139,7 +139,7 @@ namespace CloudAE.Core
 
 		#region Un-Quantized Methods
 
-		private unsafe PointCloudAnalysisResult CountPointsAnalysis(PointCloudBinarySource source, Grid<int> tileCounts, ProgressManager progressManager)
+		private static unsafe PointCloudAnalysisResult CountPointsAnalysis(PointCloudBinarySource source, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			bool computeStats = true;
 
@@ -238,7 +238,7 @@ namespace CloudAE.Core
 			return result;
 		}
 
-		private unsafe PointCloudTileDensity CountPointsAccurate(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private static unsafe PointCloudTileDensity CountPointsAccurate(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
 			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
@@ -284,7 +284,7 @@ namespace CloudAE.Core
 			return density;
 		}
 
-		private unsafe void TilePointStream(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
+		private static unsafe void TilePointStream(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
 		{
 			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
@@ -331,7 +331,7 @@ namespace CloudAE.Core
 
 		#region Quantized Methods
 
-		private unsafe PointCloudAnalysisResult CountPointsAnalysisQuantized(PointCloudBinarySource source, Grid<int> tileCounts, ProgressManager progressManager)
+		private static unsafe PointCloudAnalysisResult CountPointsAnalysisQuantized(PointCloudBinarySource source, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			bool computeStats = true;
 
@@ -433,7 +433,7 @@ namespace CloudAE.Core
 			return result;
 		}
 
-		private unsafe PointCloudTileDensity CountPointsAccurateQuantized(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private static unsafe PointCloudTileDensity CountPointsAccurateQuantized(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
 			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
@@ -485,7 +485,7 @@ namespace CloudAE.Core
 			return density;
 		}
 
-		private unsafe void TilePointStreamQuantized(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
+		private static unsafe void TilePointStreamQuantized(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
 		{
 			Quantization3D inputQuantization = source.Quantization;
 
@@ -540,7 +540,7 @@ namespace CloudAE.Core
 
 		#endregion
 
-		#region Static Methods
+		#region Helpers
 
 		private static Grid<int> CreateTileCountsForEstimation(PointCloudBinarySource source)
 		{
