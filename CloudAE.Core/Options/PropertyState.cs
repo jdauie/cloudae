@@ -60,7 +60,77 @@ namespace CloudAE.Core
 			}
 		}
 
-		public PropertyState(PropertyName propertyName, RegistryValueKind valueKind, T defaultValue, Func<object, object> write, Func<object, object> read)
+		public static PropertyState<T> Create(PropertyName propertyName, T defaultValue)
+		{
+			Type actualType = typeof(T);
+			Type type = actualType.IsEnum ? Enum.GetUnderlyingType(actualType) : actualType;
+
+			TypeCode typeCode = Type.GetTypeCode(type);
+
+			RegistryValueKind valueKind = RegistryValueKind.None;
+			Func<object, object> writeConversion = null;
+			Func<object, object> readConversion = null;
+			switch (typeCode)
+			{
+				case TypeCode.Boolean:
+				case TypeCode.Byte:
+				case TypeCode.SByte:
+				case TypeCode.Int16:
+				case TypeCode.UInt16:
+				case TypeCode.Int32:
+					valueKind = RegistryValueKind.DWord;
+					break;
+				case TypeCode.Int64:
+					valueKind = RegistryValueKind.QWord;
+					break;
+				case TypeCode.UInt32:
+				case TypeCode.Single:
+				case TypeCode.UInt64:
+				case TypeCode.Double:
+					valueKind = RegistryValueKind.Binary;
+					break;
+				case TypeCode.String:
+					valueKind = RegistryValueKind.String;
+					break;
+				default:
+					throw new InvalidOperationException("Unsupported property type.");
+			}
+
+			switch (typeCode)
+			{
+				case TypeCode.Boolean:
+					readConversion = (value => ((int)value == 1));
+					writeConversion = (value => (int)((bool)value ? 1 : 0));
+					break;
+				case TypeCode.Byte:
+				case TypeCode.SByte:
+				case TypeCode.Int16:
+				case TypeCode.UInt16:
+					readConversion = (value => (int)value);
+					writeConversion = (value => Convert.ToInt32(value));
+					break;
+				case TypeCode.UInt32:
+					readConversion = (value => BitConverter.ToUInt32((byte[])value, 0));
+					writeConversion = (value => BitConverter.GetBytes((uint)value));
+					break;
+				case TypeCode.UInt64:
+					readConversion = (value => (long)value);
+					writeConversion = (value => Convert.ToInt64(value));
+					break;
+				case TypeCode.Single:
+					readConversion = (value => BitConverter.ToSingle((byte[])value, 0));
+					writeConversion = (value => BitConverter.GetBytes((float)value));
+					break;
+				case TypeCode.Double:
+					readConversion = (value => BitConverter.ToDouble((byte[])value, 0));
+					writeConversion = (value => BitConverter.GetBytes((double)value));
+					break;
+			}
+
+			return new PropertyState<T>(propertyName, valueKind, defaultValue, writeConversion, readConversion);
+		}
+
+		private PropertyState(PropertyName propertyName, RegistryValueKind valueKind, T defaultValue, Func<object, object> write, Func<object, object> read)
 		{
 			m_propertyName = propertyName;
 			m_valueKind = valueKind;
