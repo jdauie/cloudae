@@ -7,12 +7,13 @@ namespace CloudAE.Core
 {
 	public class PointCloudBinarySourceEnumerator : IEnumerator<PointCloudBinarySourceEnumeratorChunk>, IEnumerable<PointCloudBinarySourceEnumeratorChunk>
 	{
-		IPointCloudBinarySourceEnumerable m_source;
-		private FileStream m_stream;
-		private byte[] m_buffer;
-		private long m_endPosition;
+		private readonly IPointCloudBinarySourceEnumerable m_source;
+		private readonly FileStream m_stream;
+		private readonly byte[] m_buffer;
+		private readonly long m_endPosition;
+		private readonly int m_usableBytesPerBuffer;
+
 		private int m_currentBytesRead;
-		private int m_usableBytesPerBuffer;
 
 		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceEnumerable source, byte[] buffer)
 		{
@@ -63,7 +64,6 @@ namespace CloudAE.Core
 		public void Dispose()
 		{
 			m_stream.Dispose();
-			m_stream = null;
 		}
 
 		public IEnumerator<PointCloudBinarySourceEnumeratorChunk> GetEnumerator()
