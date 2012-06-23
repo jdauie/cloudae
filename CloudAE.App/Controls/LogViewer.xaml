@@ -7,7 +7,7 @@
              d:DesignHeight="200" d:DesignWidth="300">
 	<Grid>
 		<ScrollViewer x:Name="scrollViewer">
-			<RichTextBox x:Name="richTextBox">
+			<RichTextBox x:Name="richTextBox" IsReadOnly="True">
 				<FlowDocument>
 					<Paragraph x:Name="richTextBoxParagraph" />
 				</FlowDocument>
