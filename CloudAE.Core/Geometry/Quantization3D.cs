@@ -10,12 +10,17 @@ namespace CloudAE.Core.Geometry
 	{
 		private const int LOG_ROUNDING_PRECISION = 12;
 
-		public readonly double ScaleFactorX;
-		public readonly double ScaleFactorY;
-		public readonly double ScaleFactorZ;
 		public readonly double OffsetX;
 		public readonly double OffsetY;
 		public readonly double OffsetZ;
+
+		public readonly double ScaleFactorX;
+		public readonly double ScaleFactorY;
+		public readonly double ScaleFactorZ;
+
+		public readonly double ScaleFactorInverseX;
+		public readonly double ScaleFactorInverseY;
+		public readonly double ScaleFactorInverseZ;
 
 		protected Quantization3D(double sfX, double sfY, double sfZ, double oX, double oY, double oZ)
 		{
@@ -25,6 +30,10 @@ namespace CloudAE.Core.Geometry
 			OffsetX = oX;
 			OffsetY = oY;
 			OffsetZ = oZ;
+
+			ScaleFactorInverseX = 1.0 / ScaleFactorX;
+			ScaleFactorInverseY = 1.0 / ScaleFactorY;
+			ScaleFactorInverseZ = 1.0 / ScaleFactorZ;
 		}
 
 		protected Quantization3D(BinaryReader reader)
@@ -186,7 +195,8 @@ namespace CloudAE.Core.Geometry
 					diffPowComponentRatio[d] = diffPow[d] * diffCounts.Values[d] / nonZeroDiffPointCount;
 
 				// this rounding is a WAG
-				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 4);
+#warning I had to change rounding from 4 digits to 1, evaluate this
+				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 1);
 				int compontentSumPow = (int)componentSum;
 				scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow);
 			}
