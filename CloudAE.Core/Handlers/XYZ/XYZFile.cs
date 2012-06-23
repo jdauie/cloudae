@@ -13,7 +13,7 @@ namespace CloudAE.Core
 		private const int POINTS_PER_BUFFER = BufferManager.BUFFER_SIZE_BYTES / POINT_SIZE_BYTES;
 		private const int USABLE_BYTES_PER_BUFFER = POINTS_PER_BUFFER * POINT_SIZE_BYTES;
 
-		private static double[] m_reciprocalPowersOfTen;
+		private static readonly double[] m_reciprocalPowersOfTen;
 
 		static XYZFile()
 		{
@@ -64,18 +64,17 @@ namespace CloudAE.Core
 					long estimatedOutputLength = (long)(0.5 * inputLength);
 					outputStream.SetLength(estimatedOutputLength);
 
-					int i = 0;
-					bool lineStarted = false;
-					int lineStart = 0;
-					int bytesRead = 0;
-
+					int bytesRead;
 					int readStart = 0;
 
 					while ((bytesRead = inputStream.Read(inputBuffer.Data, readStart, inputBuffer.Length - readStart)) > 0)
 					{
 						bytesRead += readStart;
 						readStart = 0;
-						i = 0;
+						int i = 0;
+
+						bool lineStarted;
+						int lineStart;
 
 						while (i < bytesRead)
 						{
