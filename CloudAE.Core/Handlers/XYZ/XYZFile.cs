@@ -65,25 +65,20 @@ namespace CloudAE.Core
 					long estimatedOutputLength = (long)(0.5 * inputLength);
 					outputStream.SetLength(estimatedOutputLength);
 
-					byte* i;
-					bool lineStarted = false;
-					byte* lineStart;
 					int bytesRead = 0;
-					byte* ptrBytesEnd;
-
 					int readStart = 0;
 
 					while ((bytesRead = inputStream.Read(inputBuffer.Data, readStart, inputBuffer.Length - readStart)) > 0)
 					{
 						bytesRead += readStart;
 						readStart = 0;
-						i = inputBufferPtr;
-						ptrBytesEnd = inputBufferPtr + bytesRead;
+						byte* i = inputBufferPtr;
+						byte* ptrBytesEnd = inputBufferPtr + bytesRead;
 
 						while (i < ptrBytesEnd)
 						{
-							lineStart = i;
-							lineStarted = false;
+							byte* lineStart = i;
+							bool lineStarted = false;
 
 							// try to identify a line
 							while (i < ptrBytesEnd)
