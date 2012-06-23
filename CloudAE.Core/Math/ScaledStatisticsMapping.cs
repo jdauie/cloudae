@@ -81,22 +81,36 @@ namespace CloudAE.Core
 		public Statistics ComputeStatistics(double destinationMin, double destinationRange)
 		{
 			long[] verticalValueCounts = Finalize();
+			return ComputeStatistics(verticalValueCounts, false, destinationMin, destinationRange);
+		}
+
+		public static Statistics ComputeStatistics(long[] verticalValueCounts, bool overflow, double destinationMin, double destinationRange)
+		{
+			int verticalValueIntervals = verticalValueCounts.Length;
+
+			if (overflow)
+			{
+				--verticalValueIntervals;
+				verticalValueCounts[verticalValueIntervals - 1] += verticalValueCounts[verticalValueIntervals];
+				verticalValueCounts[verticalValueIntervals] = 0;
+			}
+
 			long count = verticalValueCounts.Sum();
-			
-			double[] verticalValueCenters = new double[verticalValueCounts.Length];
+
+			double[] verticalValueCenters = new double[verticalValueIntervals];
 			for (int i = 0; i < verticalValueCenters.Length; i++)
-				verticalValueCenters[i] = (i + 0.5) / verticalValueCounts.Length * destinationRange + destinationMin;
+				verticalValueCenters[i] = (i + 0.5) / verticalValueIntervals * destinationRange + destinationMin;
 
 			double mean = 0;
 			for (int i = 0; i < verticalValueCenters.Length; i++)
 				mean += (double)verticalValueCounts[i] / count * verticalValueCenters[i];
 
 			double variance = 0;
-			for (int i = 0; i < verticalValueCounts.Length; i++)
+			for (int i = 0; i < verticalValueIntervals; i++)
 				variance += verticalValueCounts[i] * Math.Pow(verticalValueCenters[i] - mean, 2);
 
 			variance /= (count - 1);
-			
+
 			int intervalMax = verticalValueCounts.MaxIndex();
 			double mode = verticalValueCenters[intervalMax];
 
