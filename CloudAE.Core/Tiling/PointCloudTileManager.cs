@@ -32,15 +32,6 @@ namespace CloudAE.Core
 			m_options = options;
 		}
 
-		private static unsafe int GetPrecisionTestingPointCount(PointCloudBinarySource source)
-		{
-			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;
-			int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
-			int maxPointsForPrecisionTestBlockAligned = (maxPointsForPrecisionTest / source.PointsPerBuffer) * source.PointsPerBuffer;
-			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTestBlockAligned);
-			return pointsToTest;
-		}
-
 		public PointCloudTileSource TilePointFile(string tiledPath, ProgressManager progressManager)
 		{
 			var stopwatch = new Stopwatch();
@@ -92,9 +83,9 @@ namespace CloudAE.Core
 			PointCloudAnalysisResult density = null;
 
 			if (source.Quantization != null)
-				density = CountPointsQuantized(source, tileCounts, progressManager);
+				density = CountPointsAnalysisQuantized(source, tileCounts, progressManager);
 			else
-			    density = CountPoints(source, tileCounts, progressManager);
+			    density = CountPointsAnalysis(source, tileCounts, progressManager);
 
 			return density;
 		}
@@ -106,9 +97,9 @@ namespace CloudAE.Core
 			PointCloudTileDensity actualDensity = null;
 
 			if (source.Quantization != null)
-				actualDensity = CountPointsQuantized2(source, tileCounts, analysis.Quantization, progressManager);
+				actualDensity = CountPointsAccurateQuantized(source, tileCounts, analysis.Quantization, progressManager);
 			else
-				actualDensity = CountPoints2(source, tileCounts, analysis.Quantization, progressManager);
+				actualDensity = CountPointsAccurate(source, tileCounts, analysis.Quantization, progressManager);
 
 			var tileSet = new PointCloudTileSet(actualDensity, tileCounts, source.PointSizeBytes);
 
@@ -146,9 +137,9 @@ namespace CloudAE.Core
 
 		#endregion
 
-		#region CountPoints
+		#region Un-Quantized Methods
 
-		private unsafe PointCloudAnalysisResult CountPoints(PointCloudBinarySource source, Grid<int> tileCounts, ProgressManager progressManager)
+		private unsafe PointCloudAnalysisResult CountPointsAnalysis(PointCloudBinarySource source, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			bool computeStats = true;
 
@@ -177,7 +168,7 @@ namespace CloudAE.Core
 					testValues[i] = new double[pointsToTest];
 			}
 
-			using (var process = progressManager.StartProcess("CountPoints"))
+			using (var process = progressManager.StartProcess("CountPointsAnalysis"))
 			{
 				BufferInstance buffer = process.AcquireBuffer(true);
 				byte* inputBufferPtr = buffer.DataPtr;
@@ -247,7 +238,7 @@ namespace CloudAE.Core
 			return result;
 		}
 
-		private unsafe PointCloudTileDensity CountPoints2(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private unsafe PointCloudTileDensity CountPointsAccurate(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
 			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
@@ -256,7 +247,7 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
-			using (var process = progressManager.StartProcess("CountPoints2"))
+			using (var process = progressManager.StartProcess("CountPointsAccurate"))
 			{
 				BufferInstance buffer = process.AcquireBuffer(true);
 				byte* inputBufferPtr = buffer.DataPtr;
@@ -293,7 +284,54 @@ namespace CloudAE.Core
 			return density;
 		}
 
-		private unsafe PointCloudAnalysisResult CountPointsQuantized(PointCloudBinarySource source, Grid<int> tileCounts, ProgressManager progressManager)
+		private unsafe void TilePointStream(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
+		{
+			short pointSizeBytes = source.PointSizeBytes;
+			var extent = source.Extent;
+			var outputQuantization = tileBufferManager.TileSource.Quantization;
+			var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
+			var tileSet = tileBufferManager.TileSource.TileSet;
+
+			double tilesOverRangeX = (double)tileSet.Cols / quantizedExtent.RangeX;
+			double tilesOverRangeY = (double)tileSet.Rows / quantizedExtent.RangeY;
+
+			using (var process = progressManager.StartProcess("TilePointStream"))
+			{
+				BufferInstance buffer = process.AcquireBuffer(true);
+				byte* inputBufferPtr = buffer.DataPtr;
+
+				foreach (var chunk in source.GetBlockEnumerator(buffer.Data))
+				{
+					byte* pb = inputBufferPtr;
+					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					while (pb < pbEnd)
+					{
+						Point3D* p = (Point3D*)pb;
+						UQuantizedPoint3D* p2 = (UQuantizedPoint3D*)pb;
+
+						(*p2).X = (uint)(((*p).X - outputQuantization.OffsetX) * outputQuantization.ScaleFactorInverseX);
+						(*p2).Y = (uint)(((*p).Y - outputQuantization.OffsetY) * outputQuantization.ScaleFactorInverseY);
+						(*p2).Z = (uint)(((*p).Z - outputQuantization.OffsetZ) * outputQuantization.ScaleFactorInverseZ);
+
+						tileBufferManager.AddPoint(pb,
+							(int)(((double)(*p2).X - quantizedExtent.MinX) * tilesOverRangeX),
+							(int)(((double)(*p2).Y - quantizedExtent.MinY) * tilesOverRangeY)
+						);
+
+						pb += pointSizeBytes;
+					}
+
+					if (!process.Update(chunk))
+						break;
+				}
+			}
+		}
+
+		#endregion
+
+		#region Quantized Methods
+
+		private unsafe PointCloudAnalysisResult CountPointsAnalysisQuantized(PointCloudBinarySource source, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			bool computeStats = true;
 
@@ -325,7 +363,7 @@ namespace CloudAE.Core
 					testValues[i] = new int[pointsToTest];
 			}
 
-			using (var process = progressManager.StartProcess("CountPointsQuantized"))
+			using (var process = progressManager.StartProcess("CountPointsAnalysisQuantized"))
 			{
 				BufferInstance buffer = process.AcquireBuffer(true);
 				byte* inputBufferPtr = buffer.DataPtr;
@@ -395,7 +433,7 @@ namespace CloudAE.Core
 			return result;
 		}
 
-		private unsafe PointCloudTileDensity CountPointsQuantized2(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private unsafe PointCloudTileDensity CountPointsAccurateQuantized(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
 			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
@@ -411,7 +449,7 @@ namespace CloudAE.Core
 			double offsetTranslationX = (inputQuantization.OffsetX - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX;
 			double offsetTranslationY = (inputQuantization.OffsetY - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY;
 
-			using (var process = progressManager.StartProcess("CountPointsQuantized2"))
+			using (var process = progressManager.StartProcess("CountPointsAccurateQuantized"))
 			{
 				BufferInstance buffer = process.AcquireBuffer(true);
 				byte* inputBufferPtr = buffer.DataPtr;
@@ -423,7 +461,7 @@ namespace CloudAE.Core
 					while (pb < pbEnd)
 					{
 						SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
-						
+
 						// stomp on existing values since they are the same size
 						(*p).X = (int)((*p).X * scaleTranslationX + offsetTranslationX);
 						(*p).Y = (int)((*p).Y * scaleTranslationY + offsetTranslationY);
@@ -445,95 +483,6 @@ namespace CloudAE.Core
 
 			var density = new PointCloudTileDensity(tileCounts, extent);
 			return density;
-		}
-
-		#endregion
-
-		#region CreateTileCounts
-
-		private static Grid<int> CreateTileCountsForEstimation(PointCloudBinarySource source)
-		{
-			long count = source.Count;
-			Extent3D extent = source.Extent;
-
-			int tileCountForUniformData = (int)(count / PROPERTY_DESIRED_TILE_COUNT.Value);
-			int tileCount = Math.Min(tileCountForUniformData, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
-
-			double tileArea = extent.Area / tileCount;
-			double tileSide = Math.Sqrt(tileArea);
-
-			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
-			ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
-
-			if (tilesX == 0) tilesX = 1;
-			if (tilesY == 0) tilesY = 1;
-
-			return new Grid<int>(tilesX, tilesY, extent, true);
-		}
-
-		private static Grid<int> CreateTileCountsForInitialization(PointCloudBinarySource source, PointCloudTileDensity density)
-		{
-			Extent3D extent = source.Extent;
-
-			// median works better usually, but max is safer for substantially varying density
-			// (like terrestrial, although that requires a more thorough redesign)
-			//double tileArea = MAX_TILE_POINTS / density.MaxTileDensity;
-			double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MedianTileDensity;
-			double tileSide = Math.Sqrt(tileArea);
-
-#warning this results in non-square tiles
-
-			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
-			ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
-
-			return new Grid<int>(tilesX, tilesY, extent, true);
-		}
-
-		#endregion
-
-		#region TilePointStream
-
-		private unsafe void TilePointStream(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
-		{
-			short pointSizeBytes = source.PointSizeBytes;
-			var extent = source.Extent;
-			var outputQuantization = tileBufferManager.TileSource.Quantization;
-			var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
-			var tileSet = tileBufferManager.TileSource.TileSet;
-
-			double tilesOverRangeX = (double)tileSet.Cols / quantizedExtent.RangeX;
-			double tilesOverRangeY = (double)tileSet.Rows / quantizedExtent.RangeY;
-
-			using (var process = progressManager.StartProcess("TilePointStream"))
-			{
-				BufferInstance buffer = process.AcquireBuffer(true);
-				byte* inputBufferPtr = buffer.DataPtr;
-
-				foreach (var chunk in source.GetBlockEnumerator(buffer.Data))
-				{
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
-					while (pb < pbEnd)
-					{
-						Point3D* p = (Point3D*)pb;
-						UQuantizedPoint3D* p2 = (UQuantizedPoint3D*)pb;
-
-						(*p2).X = (uint)(((*p).X - outputQuantization.OffsetX) * outputQuantization.ScaleFactorInverseX);
-						(*p2).Y = (uint)(((*p).Y - outputQuantization.OffsetY) * outputQuantization.ScaleFactorInverseY);
-						(*p2).Z = (uint)(((*p).Z - outputQuantization.OffsetZ) * outputQuantization.ScaleFactorInverseZ);
-
-						tileBufferManager.AddPoint(pb,
-							(int)(((double)(*p2).X - quantizedExtent.MinX) * tilesOverRangeX),
-							(int)(((double)(*p2).Y - quantizedExtent.MinY) * tilesOverRangeY)
-						);
-
-						pb += pointSizeBytes;
-					}
-
-					if (!process.Update(chunk))
-						break;
-				}
-			}
 		}
 
 		private unsafe void TilePointStreamQuantized(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
@@ -587,6 +536,57 @@ namespace CloudAE.Core
 						break;
 				}
 			}
+		}
+
+		#endregion
+
+		#region Static Methods
+
+		private static Grid<int> CreateTileCountsForEstimation(PointCloudBinarySource source)
+		{
+			long count = source.Count;
+			Extent3D extent = source.Extent;
+
+			int tileCountForUniformData = (int)(count / PROPERTY_DESIRED_TILE_COUNT.Value);
+			int tileCount = Math.Min(tileCountForUniformData, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
+
+			double tileArea = extent.Area / tileCount;
+			double tileSide = Math.Sqrt(tileArea);
+
+			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
+			ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
+
+			if (tilesX == 0) tilesX = 1;
+			if (tilesY == 0) tilesY = 1;
+
+			return new Grid<int>(tilesX, tilesY, extent, true);
+		}
+
+		private static Grid<int> CreateTileCountsForInitialization(PointCloudBinarySource source, PointCloudTileDensity density)
+		{
+			Extent3D extent = source.Extent;
+
+			// median works better usually, but max is safer for substantially varying density
+			// (like terrestrial, although that requires a more thorough redesign)
+			//double tileArea = MAX_TILE_POINTS / density.MaxTileDensity;
+			double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MedianTileDensity;
+			double tileSide = Math.Sqrt(tileArea);
+
+#warning this results in non-square tiles
+
+			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
+			ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
+
+			return new Grid<int>(tilesX, tilesY, extent, true);
+		}
+
+		private static unsafe int GetPrecisionTestingPointCount(PointCloudBinarySource source)
+		{
+			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;
+			int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
+			int maxPointsForPrecisionTestBlockAligned = (maxPointsForPrecisionTest / source.PointsPerBuffer) * source.PointsPerBuffer;
+			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTestBlockAligned);
+			return pointsToTest;
 		}
 
 		#endregion
