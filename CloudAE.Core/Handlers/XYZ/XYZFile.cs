@@ -167,12 +167,6 @@ namespace CloudAE.Core
 
 				process.Log("Skipped {0} lines", skipped);
 				process.LogTime("Copied {0:0,0} points", pointCount);
-
-				process.Log("sw 1: {0}", stopwatch1.ElapsedMilliseconds);
-				process.Log("sw 2: {0}", stopwatch2.ElapsedMilliseconds);
-				process.Log("sw 3: {0}", stopwatch3.ElapsedMilliseconds);
-				process.Log("sw 4: {0}", stopwatch4.ElapsedMilliseconds);
-				process.Log("sw 5: {0}", stopwatch5.ElapsedMilliseconds);
 			}
 
 			var extent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
@@ -193,7 +187,12 @@ namespace CloudAE.Core
 				for (; startPos < endPos; ++startPos)
 				{
 					byte c = *startPos;
-					if (c < '0' || c > '9')
+					if (c >= '0' && c <= '9')
+					{
+						digits = 10 * digits + (c - '0');
+						isValid = true;
+					}
+					else
 					{
 						if (c == '.')
 						{
@@ -202,11 +201,6 @@ namespace CloudAE.Core
 						}
 						if (digits > 0)
 							break;
-					}
-					else
-					{
-						digits = 10 * digits + (c - '0');
-						isValid = true;
 					}
 				}
 
