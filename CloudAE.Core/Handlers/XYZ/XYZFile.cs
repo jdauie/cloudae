@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.IO;
 
@@ -13,7 +14,7 @@ namespace CloudAE.Core
 		private const int POINTS_PER_BUFFER = BufferManager.BUFFER_SIZE_BYTES / POINT_SIZE_BYTES;
 		private const int USABLE_BYTES_PER_BUFFER = POINTS_PER_BUFFER * POINT_SIZE_BYTES;
 
-		private static double[] m_reciprocalPowersOfTen;
+		private static readonly double[] m_reciprocalPowersOfTen;
 
 		static XYZFile()
 		{
@@ -64,10 +65,11 @@ namespace CloudAE.Core
 					long estimatedOutputLength = (long)(0.5 * inputLength);
 					outputStream.SetLength(estimatedOutputLength);
 
-					int i = 0;
+					byte* i;
 					bool lineStarted = false;
-					int lineStart = 0;
+					byte* lineStart;
 					int bytesRead = 0;
+					byte* ptrBytesEnd;
 
 					int readStart = 0;
 
@@ -75,17 +77,18 @@ namespace CloudAE.Core
 					{
 						bytesRead += readStart;
 						readStart = 0;
-						i = 0;
+						i = inputBufferPtr;
+						ptrBytesEnd = inputBufferPtr + bytesRead;
 
-						while (i < bytesRead)
+						while (i < ptrBytesEnd)
 						{
 							lineStart = i;
 							lineStarted = false;
 
 							// try to identify a line
-							while (i < bytesRead)
+							while (i < ptrBytesEnd)
 							{
-								byte c = inputBufferPtr[i];
+								byte c = *i;
 
 								if (lineStarted)
 								{
@@ -107,17 +110,20 @@ namespace CloudAE.Core
 							}
 
 							// handle buffer overlap
-							if (i == bytesRead)
+							if (i == ptrBytesEnd)
 							{
-								Array.Copy(inputBuffer.Data, lineStart, inputBuffer.Data, 0, i - lineStart);
-								readStart = i - lineStart;
+								byte* dst = inputBufferPtr;
+								for (byte* src = lineStart; src < i; src++, dst++)
+									*dst = *src;
+
+								readStart = (int)(i - lineStart);
 								break;
 							}
 
 							// this may get overwritten if this is not a valid parse
 							double* p = (double*)(outputBufferPtr + bufferIndex);
 
-							if (!ParseXYZFromLine(inputBufferPtr, lineStart, i, p))
+							if (!ParseXYZFromLine(lineStart, i, p))
 							{
 								++skipped;
 								continue;
@@ -161,6 +167,12 @@ namespace CloudAE.Core
 
 				process.Log("Skipped {0} lines", skipped);
 				process.LogTime("Copied {0:0,0} points", pointCount);
+
+				process.Log("sw 1: {0}", stopwatch1.ElapsedMilliseconds);
+				process.Log("sw 2: {0}", stopwatch2.ElapsedMilliseconds);
+				process.Log("sw 3: {0}", stopwatch3.ElapsedMilliseconds);
+				process.Log("sw 4: {0}", stopwatch4.ElapsedMilliseconds);
+				process.Log("sw 5: {0}", stopwatch5.ElapsedMilliseconds);
 			}
 
 			var extent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
@@ -170,17 +182,17 @@ namespace CloudAE.Core
 			return source;
 		}
 
-		private unsafe bool ParseXYZFromLine(byte* bufferPtr, int startPos, int endPos, double* xyz)
+		private unsafe bool ParseXYZFromLine(byte* startPos, byte* endPos, double* xyz)
 		{
 			for (int i = 0; i < 3; i++)
 			{
 				bool isValid = false;
 				long digits = 0;
 
-				int decimalSeperatorPosition = -1;
+				byte* decimalSeperatorPosition = endPos;
 				for (; startPos < endPos; ++startPos)
 				{
-					byte c = bufferPtr[startPos];
+					byte c = *startPos;
 					if (c < '0' || c > '9')
 					{
 						if (c == '.')
