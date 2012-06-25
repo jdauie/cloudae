@@ -194,7 +194,7 @@ namespace CloudAE.Core
 							pb += pointSizeBytes;
 						}
 
-						if (testPrecision && testValuesIndex < pointsToTest)
+						if (testPrecision && testValuesIndex + chunk.PointsRead <= pointsToTest)
 						{
 							pb = chunk.DataPtr;
 							while (pb < pbEnd)
@@ -218,7 +218,7 @@ namespace CloudAE.Core
 				stats = ScaledStatisticsMapping.ComputeStatistics(verticalValueCounts, true, extent.MinZ, extent.RangeZ);
 
 				if (testPrecision)
-					quantization = Quantization3D.Create(extent, testValues);
+					quantization = Quantization3D.Create(extent, testValues, testValuesIndex);
 			}
 
 			if (quantization == null)
@@ -369,7 +369,7 @@ namespace CloudAE.Core
 							pb += pointSizeBytes;
 						}
 
-						if (testPrecision && testValuesIndex < pointsToTest)
+						if (testPrecision && testValuesIndex + chunk.PointsRead <= pointsToTest)
 						{
 							pb = chunk.DataPtr;
 							while (pb < pbEnd)
@@ -392,7 +392,7 @@ namespace CloudAE.Core
 					stats = verticalValueMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
 
 					if (testPrecision)
-						quantization = Quantization3D.Create(extent, inputQuantization, testValues);
+						quantization = Quantization3D.Create(extent, inputQuantization, testValues, testValuesIndex);
 				}
 			}
 

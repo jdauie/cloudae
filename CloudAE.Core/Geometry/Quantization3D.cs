@@ -102,15 +102,14 @@ namespace CloudAE.Core.Geometry
 				return new SQuantization3D(qScaleFactorX, qScaleFactorY, qScaleFactorZ, qOffsetX, qOffsetY, qOffsetZ);
 		}
 
-		public static UQuantization3D Create(Extent3D extent, SQuantization3D inputQuantization, int[][] testValues)
+		public static UQuantization3D Create(Extent3D extent, SQuantization3D inputQuantization, int[][] testValues, int count)
 		{
 			// determine best scale factors
-			int pointsToTest = testValues[0].Length;
 			double[] scaleFactors = new double[] { inputQuantization.ScaleFactorX, inputQuantization.ScaleFactorY, inputQuantization.ScaleFactorZ };
 			for (int i = 0; i < 3; i++)
 			{
 				int[] values = testValues[i];
-				values.ParallelSort();
+				values.ParallelSort(count);
 				//Array.Sort<int>(values);
 
 				// determine the base of the scale factor
@@ -120,7 +119,7 @@ namespace CloudAE.Core.Geometry
 
 				// count differences
 				var diffCountsLookup = new Dictionary<uint, int>();
-				for (int p = 1; p < pointsToTest; p++)
+				for (int p = 1; p < count; p++)
 				{
 					uint diff = (uint)(values[p] - values[p - 1]);
 					if (diffCountsLookup.ContainsKey(diff))
@@ -160,22 +159,21 @@ namespace CloudAE.Core.Geometry
 			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], offsetExtent.MinX, offsetExtent.MinY, offsetExtent.MinZ);
 		}
 
-		public static UQuantization3D Create(Extent3D extent, double[][] testValues)
+		public static UQuantization3D Create(Extent3D extent, double[][] testValues, int count)
 		{
 			// determine best scale factors
-			int pointsToTest = testValues[0].Length;
 			double[] scaleFactors = new double[3];
 			for (int i = 0; i < 3; i++)
 			{
 				double[] values = testValues[i];
-				Array.Sort(values);
+				Array.Sort(values, 0, count);
 
 				const int scaleBase = 10;
 
 				// count differences
 				var diffCounts = new SortedList<double, int>();
 
-				for (int p = 1; p < pointsToTest; p++)
+				for (int p = 1; p < count; p++)
 				{
 					double diff = values[p] - values[p - 1];
 					if (diffCounts.ContainsKey(diff))

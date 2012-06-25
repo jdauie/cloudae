@@ -23,7 +23,7 @@ namespace CloudAE.Core
 				return Encoding.ASCII.GetString(buffer);
 		}
 
-		public static void ParallelSort(this int[] target)
+		public static void ParallelSort(this int[] target, int count)
 		{
 			const int bucketCountPow = 2;
 			int bucketCount = (int)Math.Pow(2, bucketCountPow);
@@ -31,7 +31,7 @@ namespace CloudAE.Core
 			// get range for shifting
 			int min = target[0];
 			int max = target[0];
-			for (int i = 0; i < target.Length; i++)
+			for (int i = 0; i < count; i++)
 				if (target[i] < min) min = target[i]; else if (target[i] > max) max = target[i];
 			long range = (long)max - min;
 			int rangePowCeil = (int)Math.Ceiling(Math.Log(range, 2));
@@ -40,7 +40,7 @@ namespace CloudAE.Core
 
 			// determine bucket sizes
 			int[] bucketCounts = new int[bucketCount + 1];
-			for (int i = 0; i < target.Length; i++)
+			for (int i = 0; i < count; i++)
 				++bucketCounts[(target[i] >> bucketCountShift) - minShifted];
 
 			int[][] buckets = new int[bucketCount + 1][];
@@ -50,7 +50,7 @@ namespace CloudAE.Core
 			int[] bucketPositions = new int[bucketCount + 1];
 
 			// copy points to buckets
-			for (int i = 0; i < target.Length; i++)
+			for (int i = 0; i < count; i++)
 			{
 				int bucket = (target[i] >> bucketCountShift) - minShifted;
 				buckets[bucket][bucketPositions[bucket]++] = target[i];

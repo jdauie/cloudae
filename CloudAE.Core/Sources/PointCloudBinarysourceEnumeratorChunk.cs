@@ -8,6 +8,7 @@ namespace CloudAE.Core
 	{
 		public readonly uint Index;
 		public readonly int BytesRead;
+		public readonly int PointsRead;
 		public readonly byte* DataPtr;
 		public readonly byte* DataEndPtr;
 
@@ -18,10 +19,11 @@ namespace CloudAE.Core
 			get { return m_progress; }
 		}
 
-		public PointCloudBinarySourceEnumeratorChunk(uint index, BufferInstance buffer, int bytesRead, float progress)
+		public PointCloudBinarySourceEnumeratorChunk(uint index, BufferInstance buffer, int bytesRead, int pointsRead, float progress)
 		{
 			Index = index;
 			BytesRead = bytesRead;
+			PointsRead = pointsRead;
 			DataPtr = buffer.DataPtr;
 			DataEndPtr = DataPtr + BytesRead;
 
