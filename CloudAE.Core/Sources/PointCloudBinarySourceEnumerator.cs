@@ -42,6 +42,7 @@ namespace CloudAE.Core
 
 		public bool MoveNext()
 		{
+			// check for cancel
 			if (m_current != null && !m_process.Update(m_current))
 				return false;
 
@@ -70,6 +71,7 @@ namespace CloudAE.Core
 		public void Dispose()
 		{
 			m_stream.Dispose();
+			m_current = null;
 		}
 
 		public IEnumerator<PointCloudBinarySourceEnumeratorChunk> GetEnumerator()
