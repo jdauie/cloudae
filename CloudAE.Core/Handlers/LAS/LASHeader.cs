@@ -178,7 +178,7 @@ namespace CloudAE.Core
 			c_minHeaderSize.Add(LASVersion.LAS_1_1, 219);
 			c_minHeaderSize.Add(LASVersion.LAS_1_2, 219);
 			c_minHeaderSize.Add(LASVersion.LAS_1_3, 227);
-			c_minHeaderSize.Add(LASVersion.LAS_1_4, 267);
+			c_minHeaderSize.Add(LASVersion.LAS_1_4, 367);
 		}
 
 		public LASHeader(BinaryReader reader)
