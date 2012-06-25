@@ -41,9 +41,9 @@ namespace CloudAE.Core
 			get { return m_pointsPerBuffer; }
 		}
 
-		public PointCloudBinarySourceEnumerator GetBlockEnumerator(byte[] buffer)
+		public PointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
 		{
-			return new PointCloudBinarySourceEnumerator(this, buffer);
+			return new PointCloudBinarySourceEnumerator(this, process);
 		}
 
 		public LASFile(string path)
@@ -93,34 +93,33 @@ namespace CloudAE.Core
 			{
 				using (var process = progressManager.StartProcess("CalculateLASExtent"))
 				{
-					BufferInstance buffer = process.AcquireBuffer(true);
-
 					short pointSizeBytes = PointSizeBytes;
 
 					int minX = 0, minY = 0, minZ = 0;
 					int maxX = 0, maxY = 0, maxZ = 0;
 
-					foreach (var chunk in GetBlockEnumerator(buffer.Data))
+					foreach (var chunk in GetBlockEnumerator(process))
 					{
 						if (minX == 0 && maxX == 0)
 						{
-							SQuantizedPoint3D* p = (SQuantizedPoint3D*)buffer.DataPtr;
+							SQuantizedPoint3D* p = (SQuantizedPoint3D*)chunk.DataPtr;
 
 							minX = maxX = (*p).X;
 							minY = maxY = (*p).Y;
 							minZ = maxZ = (*p).Z;
 						}
 
-						byte* pb = buffer.DataPtr;
-						byte* pbEnd = pb + chunk.BytesRead;
+						byte* pb = chunk.DataPtr;
+						byte* pbEnd = chunk.DataEndPtr;
 						while(pb < pbEnd)
 						{
-							SQuantizedPoint3D* p = (SQuantizedPoint3D*)(pb);
-							pb += pointSizeBytes;
+							SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
 
 							if ((*p).X < minX) minX = (*p).X; else if ((*p).X > maxX) maxX = (*p).X;
 							if ((*p).Y < minY) minY = (*p).Y; else if ((*p).Y > maxY) maxY = (*p).Y;
 							if ((*p).Z < minZ) minZ = (*p).Z; else if ((*p).Z > maxZ) maxZ = (*p).Z;
+
+							pb += pointSizeBytes;
 						}
 
 						if (!process.Update(chunk))

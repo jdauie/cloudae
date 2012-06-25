@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CloudAE.Core
 {
-	public class PointCloudBinarySourceEnumeratorChunk : IProgress
+	public unsafe class PointCloudBinarySourceEnumeratorChunk : IProgress
 	{
+		public readonly uint Index;
 		public readonly int BytesRead;
+		public readonly byte* DataPtr;
+		public readonly byte* DataEndPtr;
 
 		private readonly float m_progress;
 
@@ -16,9 +18,13 @@ namespace CloudAE.Core
 			get { return m_progress; }
 		}
 
-		public PointCloudBinarySourceEnumeratorChunk(int bytesRead, float progress)
+		public PointCloudBinarySourceEnumeratorChunk(uint index, BufferInstance buffer, int bytesRead, float progress)
 		{
+			Index = index;
 			BytesRead = bytesRead;
+			DataPtr = buffer.DataPtr;
+			DataEndPtr = DataPtr + BytesRead;
+
 			m_progress = progress;
 		}
 	}

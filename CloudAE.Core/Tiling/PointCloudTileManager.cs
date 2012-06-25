@@ -170,52 +170,44 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("CountPointsAnalysis"))
 			{
-				BufferInstance buffer = process.AcquireBuffer(true);
-				byte* inputBufferPtr = buffer.DataPtr;
-
-				foreach (var chunk in source.GetBlockEnumerator(buffer.Data))
+				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					byte* pb = chunk.DataPtr;
+					byte* pbEnd = chunk.DataEndPtr;
 					while (pb < pbEnd)
 					{
 						Point3D* p = (Point3D*)pb;
-						pb += pointSizeBytes;
-
 						++tileCounts.Data[
 							(int)(((*p).X - extent.MinX) * tilesOverRangeX),
 							(int)(((*p).Y - extent.MinY) * tilesOverRangeY)
 						];
+						pb += pointSizeBytes;
 					}
 
 					if (computeStats)
 					{
-						pb = inputBufferPtr;
+						pb = chunk.DataPtr;
 						while (pb < pbEnd)
 						{
 							Point3D* p = (Point3D*)pb;
-							pb += pointSizeBytes;
-
 							++verticalValueCounts[(int)(((*p).Z - extent.MinZ) * intervalsOverRangeZ)];
+							pb += pointSizeBytes;
 						}
 
 						if (testPrecision && testValuesIndex < pointsToTest)
 						{
-							pb = inputBufferPtr;
+							pb = chunk.DataPtr;
 							while (pb < pbEnd)
 							{
 								Point3D* p = (Point3D*)pb;
-								pb += pointSizeBytes;
 								testValues[0][testValuesIndex] = (*p).X;
 								testValues[1][testValuesIndex] = (*p).Y;
 								testValues[2][testValuesIndex] = (*p).Z;
 								++testValuesIndex;
+								pb += pointSizeBytes;
 							}
 						}
 					}
-
-					if (!process.Update(chunk))
-						break;
 				}
 			}
 
@@ -249,13 +241,10 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("CountPointsAccurate"))
 			{
-				BufferInstance buffer = process.AcquireBuffer(true);
-				byte* inputBufferPtr = buffer.DataPtr;
-
-				foreach (var chunk in source.GetBlockEnumerator(buffer.Data))
+				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					byte* pb = chunk.DataPtr;
+					byte* pbEnd = chunk.DataEndPtr;
 					while (pb < pbEnd)
 					{
 						Point3D* p = (Point3D*)pb;
@@ -272,9 +261,6 @@ namespace CloudAE.Core
 
 						pb += pointSizeBytes;
 					}
-
-					if (!process.Update(chunk))
-						break;
 				}
 
 				tileCounts.CorrectCountOverflow();
@@ -297,13 +283,10 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("TilePointStream"))
 			{
-				BufferInstance buffer = process.AcquireBuffer(true);
-				byte* inputBufferPtr = buffer.DataPtr;
-
-				foreach (var chunk in source.GetBlockEnumerator(buffer.Data))
+				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					byte* pb = chunk.DataPtr;
+					byte* pbEnd = chunk.DataEndPtr;
 					while (pb < pbEnd)
 					{
 						Point3D* p = (Point3D*)pb;
@@ -320,9 +303,6 @@ namespace CloudAE.Core
 
 						pb += pointSizeBytes;
 					}
-
-					if (!process.Update(chunk))
-						break;
 				}
 			}
 		}
@@ -365,52 +345,44 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("CountPointsAnalysisQuantized"))
 			{
-				BufferInstance buffer = process.AcquireBuffer(true);
-				byte* inputBufferPtr = buffer.DataPtr;
-
-				foreach (var chunk in source.GetBlockEnumerator(buffer.Data))
+				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					byte* pb = chunk.DataPtr;
+					byte* pbEnd = chunk.DataEndPtr;
 					while (pb < pbEnd)
 					{
 						SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
-						pb += pointSizeBytes;
-
 						++tileCounts.Data[
 							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
 							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
 						];
+						pb += pointSizeBytes;
 					}
 
 					if (computeStats)
 					{
-						pb = inputBufferPtr;
+						pb = chunk.DataPtr;
 						while (pb < pbEnd)
 						{
 							SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
-							pb += pointSizeBytes;
-
 							++verticalValueCounts[((*p).Z >> verticalValueRightShift) - verticalValueMinShifted];
+							pb += pointSizeBytes;
 						}
 
 						if (testPrecision && testValuesIndex < pointsToTest)
 						{
-							pb = inputBufferPtr;
+							pb = chunk.DataPtr;
 							while (pb < pbEnd)
 							{
 								SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
-								pb += pointSizeBytes;
 								testValues[0][testValuesIndex] = (*p).X;
 								testValues[1][testValuesIndex] = (*p).Y;
 								testValues[2][testValuesIndex] = (*p).Z;
 								++testValuesIndex;
+								pb += pointSizeBytes;
 							}
 						}
 					}
-
-					if (!process.Update(chunk))
-						break;
 				}
 
 				tileCounts.CorrectCountOverflow();
@@ -451,13 +423,10 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("CountPointsAccurateQuantized"))
 			{
-				BufferInstance buffer = process.AcquireBuffer(true);
-				byte* inputBufferPtr = buffer.DataPtr;
-
-				foreach (var chunk in source.GetBlockEnumerator(buffer.Data))
+				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					byte* pb = chunk.DataPtr;
+					byte* pbEnd = chunk.DataEndPtr;
 					while (pb < pbEnd)
 					{
 						SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
@@ -473,9 +442,6 @@ namespace CloudAE.Core
 
 						pb += pointSizeBytes;
 					}
-
-					if (!process.Update(chunk))
-						break;
 				}
 
 				tileCounts.CorrectCountOverflow();
@@ -508,13 +474,10 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("TilePointStreamQuantized"))
 			{
-				BufferInstance buffer = process.AcquireBuffer(true);
-				byte* inputBufferPtr = buffer.DataPtr;
-
-				foreach (var chunk in source.GetBlockEnumerator(buffer.Data))
+				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + chunk.BytesRead;
+					byte* pb = chunk.DataPtr;
+					byte* pbEnd = chunk.DataEndPtr;
 					while (pb < pbEnd)
 					{
 						SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
@@ -531,9 +494,6 @@ namespace CloudAE.Core
 
 						pb += pointSizeBytes;
 					}
-
-					if (!process.Update(chunk))
-						break;
 				}
 			}
 		}

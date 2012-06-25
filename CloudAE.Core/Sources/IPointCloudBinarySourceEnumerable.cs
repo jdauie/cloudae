@@ -11,6 +11,6 @@ namespace CloudAE.Core
 		int    UsableBytesPerBuffer { get; }
 		int    PointsPerBuffer      { get; }
 
-		PointCloudBinarySourceEnumerator GetBlockEnumerator(byte[] buffer);
+		PointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process);
 	}
 }
