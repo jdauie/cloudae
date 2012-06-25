@@ -5,7 +5,7 @@ using System.IO;
 
 namespace CloudAE.Core
 {
-	public class PointCloudBinarySourceEnumerator : IEnumerator<PointCloudBinarySourceEnumeratorChunk>, IEnumerable<PointCloudBinarySourceEnumeratorChunk>
+	public class PointCloudBinarySourceEnumerator : IPointCloudBinarySourceEnumerator
 	{
 		private readonly IPointCloudBinarySourceEnumerable m_source;
 		private readonly FileStream m_stream;
@@ -30,6 +30,20 @@ namespace CloudAE.Core
 			Reset();
 		}
 
+		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceEnumerable source, BufferInstance buffer)
+		{
+			m_source = source;
+			m_stream = new FileStream(m_source.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+			m_buffer = buffer;
+			m_process = null;
+
+			m_endPosition = m_source.PointDataOffset + m_source.Count * m_source.PointSizeBytes;
+
+			m_usableBytesPerBuffer = m_source.UsableBytesPerBuffer;
+
+			Reset();
+		}
+
 		public PointCloudBinarySourceEnumeratorChunk Current
 		{
 			get { return m_current; }
@@ -43,7 +57,7 @@ namespace CloudAE.Core
 		public bool MoveNext()
 		{
 			// check for cancel
-			if (m_current != null && !m_process.Update(m_current))
+			if (m_current != null && m_process != null && !m_process.Update(m_current))
 				return false;
 
 			if (m_stream.Position < m_endPosition)

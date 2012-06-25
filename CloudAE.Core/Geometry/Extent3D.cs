@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.IO;
+using System.Collections.Generic;
 
 namespace CloudAE.Core.Geometry
 {
@@ -64,6 +65,23 @@ namespace CloudAE.Core.Geometry
 				extent.MaxX == MaxX &&
 				extent.MaxY == MaxY &&
 				extent.MaxZ == MaxZ
+			);
+		}
+	}
+
+	public static class Extent3DExtensions
+	{
+		public static Extent3D Union3D(this IEnumerable<Extent3D> source)
+		{
+			Extent3D[] extents = source.ToArray();
+
+			return new Extent3D(
+				extents.Min(e => e.MinX),
+				extents.Min(e => e.MinY),
+				extents.Min(e => e.MinZ),
+				extents.Max(e => e.MinX),
+				extents.Max(e => e.MinY),
+				extents.Max(e => e.MinZ)
 			);
 		}
 	}

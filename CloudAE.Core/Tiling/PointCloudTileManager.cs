@@ -544,6 +544,7 @@ namespace CloudAE.Core
 		{
 			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;
 			int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
+			// block-alignment is no longer necessary
 			int maxPointsForPrecisionTestBlockAligned = (maxPointsForPrecisionTest / source.PointsPerBuffer) * source.PointsPerBuffer;
 			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTestBlockAligned);
 			return pointsToTest;

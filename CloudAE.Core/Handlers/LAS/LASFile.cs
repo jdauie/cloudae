@@ -41,9 +41,14 @@ namespace CloudAE.Core
 			get { return m_pointsPerBuffer; }
 		}
 
-		public PointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
+		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
 		{
 			return new PointCloudBinarySourceEnumerator(this, process);
+		}
+
+		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(BufferInstance buffer)
+		{
+			return new PointCloudBinarySourceEnumerator(this, buffer);
 		}
 
 		public LASFile(string path)
