@@ -448,6 +448,83 @@ namespace CloudAE.Core
 			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
 		}
 
+		private unsafe void TileOperationAction(PointCloudTile tile, BufferInstance inputBuffer)
+		{
+			ushort gridSize = (ushort)Math.Sqrt(tile.PointCount);
+
+			var grid = new Grid<List<int>>(gridSize, gridSize, null, true);
+
+			UQuantizedExtent3D quantizedExtent = tile.QuantizedExtent;
+
+			double cellSizeX = (double)quantizedExtent.RangeX / gridSize;
+			double cellSizeY = (double)quantizedExtent.RangeY / gridSize;
+
+			int i = 0;
+			byte* pb = inputBuffer.DataPtr;
+			byte* pbEnd = pb + tile.StorageSize;
+			while (pb < pbEnd)
+			{
+				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
+
+				int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
+				int pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
+
+				if (grid.Data[pixelX, pixelY] == null)
+					grid.Data[pixelX, pixelY] = new List<int>();
+
+				grid.Data[pixelX, pixelY].Add(i);
+
+				pb += PointSizeBytes;
+				++i;
+			}
+
+			uint maxRegionCount = 0;
+
+			int windowSize = 10;
+			int windowRadius = windowSize / 2;
+			for (int x = 0; x < grid.SizeX; x++)
+			{
+				for (int y = 0; y < grid.SizeY; y++)
+				{
+					var pointIndices = grid.Data[x, y];
+					if (pointIndices != null)
+					{
+						uint regionCount = 0;
+						for (int x1 = x - windowRadius; x1 < x + windowRadius; x1++)
+						{
+							for (int y1 = y - windowRadius; y1 < y + windowRadius; y1++)
+							{
+								var pointIndices1 = grid.Data[x, y];
+								if(pointIndices1 != null)
+									regionCount += (uint)pointIndices1.Count;
+							}
+						}
+
+						maxRegionCount = Math.Max(maxRegionCount, regionCount);
+
+						for (int index = 0; index < pointIndices.Count; index++)
+						{
+							UQuantizedPoint3D* p = (UQuantizedPoint3D*)(inputBuffer.DataPtr + tile.TileSource.PointSizeBytes * pointIndices[index]);
+							(*p).Z = regionCount;
+						}
+					}
+				}
+			}
+
+			pb = inputBuffer.DataPtr;
+			while (pb < pbEnd)
+			{
+				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
+
+				if ((*p).Z > maxRegionCount)
+					(*p).Z = maxRegionCount;
+
+				(*p).Z = (*p).Z * quantizedExtent.RangeZ / maxRegionCount + quantizedExtent.MinZ;
+
+				pb += PointSizeBytes;
+			}
+		}
+
 		public System.Windows.Media.Media3D.MeshGeometry3D GenerateMesh(Grid<float> grid, Extent3D distributionExtent)
 		{
 			return GenerateMesh(grid, distributionExtent, false);
@@ -773,6 +850,8 @@ namespace CloudAE.Core
 				byte* inputBufferPtr = inputBuffer.DataPtr;
 				foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(inputBuffer.Data))
 				{
+					//TileOperationAction(chunk.Tile, inputBuffer);
+
 					byte* pb = inputBufferPtr;
 					byte* pbEnd = inputBufferPtr + chunk.Tile.StorageSize;
 					while (pb < pbEnd)
