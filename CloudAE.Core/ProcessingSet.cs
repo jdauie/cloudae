@@ -192,7 +192,7 @@ namespace CloudAE.Core
 
 				tileSource.AllocateFile(tileOptions.AllowSparseAllocation);
 
-				using (BufferInstance inputBuffer = BufferManager.AcquireBuffer(m_id, largestTileSize, false))
+				using (var inputBuffer = BufferManager.AcquireBuffer(m_id, largestTileSize, false))
 				{
 					using (var outputStream = new FileStream(m_tiledPath, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, tileOptions.TilingFileOptions))
 					{
@@ -257,7 +257,7 @@ namespace CloudAE.Core
 		private void CopyFileToLocalDrive(ProgressManager progressManager)
 		{
 			// if this is a network file, copy it to the local machine
-			Stopwatch stopwatch = new Stopwatch();
+			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 
 			string dstPath = GetInputHandlerTempPath(m_inputHandler.FilePath);
