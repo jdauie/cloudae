@@ -147,6 +147,7 @@ namespace CloudAE.Core.Geometry
 				// this rounding is a WAG
 				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 4);
 				int componentSumPow = (int)componentSum;
+#warning this is a bit sketchy -- look at this again, with a range of data
 				if (componentSumPow > 1)
 					scaleFactors[i] = Math.Pow(scaleBase, componentSumPow - scalePow);
 			}
