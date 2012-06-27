@@ -58,104 +58,93 @@ namespace CloudAE.Core
 
 				using (var outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.WriteThrough))
 				{
-					var inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
-					long inputLength = inputStream.Length;
-
-					long estimatedOutputLength = (long)(0.5 * inputLength);
-					outputStream.SetLength(estimatedOutputLength);
-
-					int bytesRead;
-					int readStart = 0;
-
-					while ((bytesRead = inputStream.Read(inputBuffer.Data, readStart, inputBuffer.Length - readStart)) > 0)
+					using (var inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
 					{
-						bytesRead += readStart;
-						readStart = 0;
-						int i = 0;
+						long inputLength = inputStream.Length;
 
-						bool lineStarted;
-						int lineStart;
+						long estimatedOutputLength = (long)(0.5 * inputLength);
+						outputStream.SetLength(estimatedOutputLength);
 
-						while (i < bytesRead)
+						int bytesRead;
+						int readStart = 0;
+
+						while ((bytesRead = inputStream.Read(inputBuffer.Data, readStart, inputBuffer.Length - readStart)) > 0)
 						{
-							lineStart = i;
-							lineStarted = false;
+							bytesRead += readStart;
+							readStart = 0;
+							int i = 0;
 
-							// try to identify a line
 							while (i < bytesRead)
 							{
-								byte c = inputBufferPtr[i];
-
-								if (lineStarted)
+								// identify line start
+								while (i < bytesRead && (inputBufferPtr[i] == '\r' || inputBufferPtr[i] == '\n'))
 								{
-									if (c == '\r' || c == '\n')
-									{
-										break;
-									}
+									++i;
+								}
+
+								int lineStart = i;
+
+								// identify line end
+								while (i < bytesRead && inputBufferPtr[i] != '\r' && inputBufferPtr[i] != '\n')
+								{
+									++i;
+								}
+
+								// handle buffer overlap
+								if (i == bytesRead)
+								{
+									Array.Copy(inputBuffer.Data, lineStart, inputBuffer.Data, 0, i - lineStart);
+									readStart = i - lineStart;
+									break;
+								}
+
+								// this may get overwritten if this is not a valid parse
+								double* p = (double*)(outputBufferPtr + bufferIndex);
+
+								if (!ParseXYZFromLine(inputBufferPtr, lineStart, i, p))
+								{
+									++skipped;
+									continue;
+								}
+
+								if (pointCount == 0)
+								{
+									minX = maxX = p[0];
+									minY = maxY = p[1];
+									minZ = maxZ = p[2];
 								}
 								else
 								{
-									if (c != '\r' && c != '\n')
-									{
-										lineStart = i;
-										lineStarted = true;
-									}
+									if (p[0] < minX) minX = p[0];
+									else if (p[0] > maxX) maxX = p[0];
+									if (p[1] < minY) minY = p[1];
+									else if (p[1] > maxY) maxY = p[1];
+									if (p[2] < minZ) minZ = p[2];
+									else if (p[2] > maxZ) maxZ = p[2];
 								}
 
-								++i;
+								bufferIndex += POINT_SIZE_BYTES;
+								++pointCount;
+
+								// write usable buffer chunk
+								if (USABLE_BYTES_PER_BUFFER == bufferIndex)
+								{
+									//outputStream.Write(outputBuffer.Data, 0, bufferIndex);
+									bufferIndex = 0;
+								}
 							}
 
-							// handle buffer overlap
-							if (i == bytesRead)
-							{
-								Array.Copy(inputBuffer.Data, lineStart, inputBuffer.Data, 0, i - lineStart);
-								readStart = i - lineStart;
+							if (!process.Update((float)inputStream.Position / inputLength))
 								break;
-							}
-
-							// this may get overwritten if this is not a valid parse
-							double* p = (double*)(outputBufferPtr + bufferIndex);
-
-							if (!ParseXYZFromLine(inputBufferPtr, lineStart, i, p))
-							{
-								++skipped;
-								continue;
-							}
-
-							if (pointCount == 0)
-							{
-								minX = maxX = p[0];
-								minY = maxY = p[1];
-								minZ = maxZ = p[2];
-							}
-							else
-							{
-								if (p[0] < minX) minX = p[0]; else if (p[0] > maxX) maxX = p[0];
-								if (p[1] < minY) minY = p[1]; else if (p[1] > maxY) maxY = p[1];
-								if (p[2] < minZ) minZ = p[2]; else if (p[2] > maxZ) maxZ = p[2];
-							}
-
-							bufferIndex += POINT_SIZE_BYTES;
-							++pointCount;
-
-							// write usable buffer chunk
-							if (USABLE_BYTES_PER_BUFFER == bufferIndex)
-							{
-								outputStream.Write(outputBuffer.Data, 0, bufferIndex);
-								bufferIndex = 0;
-							}
 						}
 
-						if (!process.Update((float)inputStream.Position / inputLength))
-							break;
+						// write remaining buffer
+						if (bufferIndex > 0)
+							outputStream.Write(outputBuffer.Data, 0, bufferIndex);
+
+						if (outputStream.Length > outputStream.Position)
+							outputStream.SetLength(outputStream.Position);
 					}
-
-					// write remaining buffer
-					if (bufferIndex > 0)
-						outputStream.Write(outputBuffer.Data, 0, bufferIndex);
-
-					if (outputStream.Length > outputStream.Position)
-						outputStream.SetLength(outputStream.Position);
 				}
 
 				process.Log("Skipped {0} lines", skipped);
@@ -173,37 +162,47 @@ namespace CloudAE.Core
 		{
 			for (int i = 0; i < 3; i++)
 			{
-				bool isValid = false;
 				long digits = 0;
 
-				int decimalSeperatorPosition = -1;
-				for (; startPos < endPos; ++startPos)
+				// find start
+				while (startPos < endPos && (bufferPtr[startPos] < '0' || bufferPtr[startPos] > '9'))
 				{
-					byte c = bufferPtr[startPos];
-					if (c < '0' || c > '9')
-					{
-						if (c == '.')
-						{
-							decimalSeperatorPosition = startPos;
-							continue;
-						}
-						if (digits > 0)
-							break;
-					}
-					else
-					{
-						digits = 10 * digits + (c - '0');
-						isValid = true;
-					}
+					++startPos;
 				}
 
-				if (!isValid || digits < 0)
+				// accumulate digits (before decimal separator)
+				int currentStartPos = startPos;
+				while (startPos < endPos && (bufferPtr[startPos] >= '0' && bufferPtr[startPos] <= '9'))
 				{
-					// no characters or too many (overflow)
+					digits = 10 * digits + (bufferPtr[startPos] - '0');
+					++startPos;
+				}
+
+				// check for decimal separator
+				if (startPos > currentStartPos && startPos < endPos && bufferPtr[startPos] == '.')
+				{
+					int decimalSeperatorPosition = startPos;
+					++startPos;
+
+					// accumulate digits (after decimal separator)
+					while (startPos < endPos && (bufferPtr[startPos] >= '0' && bufferPtr[startPos] <= '9'))
+					{
+						digits = 10 * digits + (bufferPtr[startPos] - '0');
+						++startPos;
+					}
+
+					xyz[i] = digits * m_reciprocalPowersOfTen[startPos - decimalSeperatorPosition - 1];
+				}
+				else
+				{
+					xyz[i] = digits;
+				}
+
+				if (startPos == currentStartPos || digits < 0)
+				{
+					// no digits or too many (overflow)
 					return false;
 				}
-
-				xyz[i] = digits * m_reciprocalPowersOfTen[startPos - decimalSeperatorPosition - 1];
 			}
 
 			return true;
