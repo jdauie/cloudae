@@ -766,30 +766,30 @@ namespace CloudAE.Core
 			uint minX = QuantizedExtent.MinX;
 			uint minY = QuantizedExtent.MinY;
 
-			BufferInstance inputBuffer = BufferManager.AcquireBuffer(ID, MaxTileBufferSize, true);
-
-			byte* inputBufferPtr = inputBuffer.DataPtr;
-			foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(inputBuffer.Data))
+			using(var inputBuffer = BufferManager.AcquireBuffer(ID, MaxTileBufferSize, true))
 			{
-				byte* pb = inputBufferPtr;
-				byte* pbEnd = inputBufferPtr + chunk.Tile.StorageSize;
-				while (pb < pbEnd)
+				byte* inputBufferPtr = inputBuffer.DataPtr;
+				foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(inputBuffer.Data))
 				{
-					UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
-					pb += PointSizeBytes;
+					byte* pb = inputBufferPtr;
+					byte* pbEnd = inputBufferPtr + chunk.Tile.StorageSize;
+					while (pb < pbEnd)
+					{
+						UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
 
-					int pixelX = (int)(((*p).X - minX) * pixelsOverRangeX);
-					int pixelY = (int)(((*p).Y - minY) * pixelsOverRangeY);
+						int pixelX = (int)(((*p).X - minX) * pixelsOverRangeX);
+						int pixelY = (int)(((*p).Y - minY) * pixelsOverRangeY);
 
-					if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
-						quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
+						if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
+							quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
+
+						pb += PointSizeBytes;
+					}
+
+					if (!progressManager.Update(chunk))
+						break;
 				}
-
-				if (!progressManager.Update(chunk))
-					break;
 			}
-
-			BufferManager.ReleaseBuffer(inputBuffer);
 
 			quantizedGrid.CorrectMaxOverflow();
 			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
