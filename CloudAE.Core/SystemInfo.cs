@@ -298,13 +298,12 @@ namespace CloudAE.Core
 
 		public static void CopyStream(Stream input, Stream output)
 		{
-			BufferInstance buffer = BufferManager.AcquireBuffer();
-			
-			int r;
-			while ((r = input.Read(buffer.Data, 0, buffer.Length)) > 0)
-				output.Write(buffer.Data, 0, r);
-
-			BufferManager.ReleaseBuffer(buffer);
+			using(var buffer = BufferManager.AcquireBuffer())
+			{
+				int r;
+				while ((r = input.Read(buffer.Data, 0, buffer.Length)) > 0)
+					output.Write(buffer.Data, 0, r);
+			}
 		}
 
 		private static string GetDriveName(DriveInfo d)
