@@ -129,7 +129,7 @@ namespace CloudAE.Core
 								// write usable buffer chunk
 								if (USABLE_BYTES_PER_BUFFER == bufferIndex)
 								{
-									//outputStream.Write(outputBuffer.Data, 0, bufferIndex);
+									outputStream.Write(outputBuffer.Data, 0, bufferIndex);
 									bufferIndex = 0;
 								}
 							}
