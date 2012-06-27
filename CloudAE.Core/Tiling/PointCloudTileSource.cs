@@ -322,7 +322,7 @@ namespace CloudAE.Core
 
 		public unsafe System.Windows.Media.Media3D.MeshGeometry3D LoadTilePointMesh(PointCloudTile tile, byte[] inputBuffer, double pointSize, int thinByFactor)
 		{
-			LoadTile(tile, inputBuffer);
+			/*LoadTile(tile, inputBuffer);
 
 			Extent3D distributionExtent = tile.Extent;
 			Extent3D centeringExtent = Extent;
@@ -382,7 +382,9 @@ namespace CloudAE.Core
 			geometry.TriangleIndices = indices;
 			geometry.Normals = normals;
 
-			return geometry;
+			return geometry;*/
+
+			return null;
 		}
 
 		public Point3D[] GetPointsWithinRegion(Polygon2D polygon, bool byRatio)
