@@ -296,12 +296,15 @@ namespace CloudAE.Core
 
 		#region Utility Functions
 
-		private static void CopyStream(Stream input, Stream output)
+		public static void CopyStream(Stream input, Stream output)
 		{
-			byte[] b = new byte[32768];
+			BufferInstance buffer = BufferManager.AcquireBuffer();
+			
 			int r;
-			while ((r = input.Read(b, 0, b.Length)) > 0)
-				output.Write(b, 0, r);
+			while ((r = input.Read(buffer.Data, 0, buffer.Length)) > 0)
+				output.Write(buffer.Data, 0, r);
+
+			BufferManager.ReleaseBuffer(buffer);
 		}
 
 		private static string GetDriveName(DriveInfo d)
