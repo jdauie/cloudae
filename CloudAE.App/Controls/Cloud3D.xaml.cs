@@ -93,7 +93,7 @@ namespace CloudAE.App
 
 		private void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
 		{
-			PointCloudTileSource tileSource = e.Argument as PointCloudTileSource;
+			/*PointCloudTileSource tileSource = e.Argument as PointCloudTileSource;
 			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
 
 			m_overviewTextureBrush = new ImageBrush(tileSource.Preview.Image);
@@ -132,7 +132,7 @@ namespace CloudAE.App
 					if (!m_progressManager.Update(tile, geometryModel))
 					    break;
 				}
-			}
+			}*/
 		}
 
 		private void OnBackgroundRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
