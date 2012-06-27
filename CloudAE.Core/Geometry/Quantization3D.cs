@@ -146,9 +146,9 @@ namespace CloudAE.Core.Geometry
 
 				// this rounding is a WAG
 				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 4);
-				int compontentSumPow = (int)componentSum;
-				if (compontentSumPow > 1)
-					scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow - scalePow);
+				int componentSumPow = (int)componentSum;
+				if (componentSumPow > 1)
+					scaleFactors[i] = Math.Pow(scaleBase, componentSumPow - scalePow);
 			}
 
 			if (scaleFactors[0] != scaleFactors[1])
@@ -195,8 +195,8 @@ namespace CloudAE.Core.Geometry
 				// this rounding is a WAG
 #warning I had to change rounding from 4 digits to 1, evaluate this
 				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 1);
-				int compontentSumPow = (int)componentSum;
-				scaleFactors[i] = Math.Pow(scaleBase, compontentSumPow);
+				int componentSumPow = (int)componentSum;
+				scaleFactors[i] = Math.Pow(scaleBase, componentSumPow);
 			}
 
 			if (scaleFactors[0] != scaleFactors[1])
