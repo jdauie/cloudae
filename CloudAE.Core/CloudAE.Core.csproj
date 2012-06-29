@@ -129,6 +129,7 @@
     <Compile Include="Options\PropertyState.cs" />
     <Compile Include="Options\IPropertyState.cs" />
     <Compile Include="Options\PropertyName.cs" />
+    <Compile Include="Sources\FileStream2.cs" />
     <Compile Include="Sources\IPointCloudBinarySourceEnumerator.cs" />
     <Compile Include="Sources\PointCloudBinarySourceCompositeEnumerator.cs" />
     <Compile Include="Sources\PointCloudBinarySourceComposite.cs" />
