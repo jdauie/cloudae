@@ -129,8 +129,12 @@
     <Compile Include="Options\PropertyState.cs" />
     <Compile Include="Options\IPropertyState.cs" />
     <Compile Include="Options\PropertyName.cs" />
+    <Compile Include="Sources\IStreamReader.cs" />
+    <Compile Include="Sources\FileStreamUnbufferedSequentialRead.cs" />
+    <Compile Include="Sources\FileStreamUnbufferedSequentialWrite.cs" />
     <Compile Include="Sources\FileStream2.cs" />
     <Compile Include="Sources\IPointCloudBinarySourceEnumerator.cs" />
+    <Compile Include="Sources\IStreamWriter.cs" />
     <Compile Include="Sources\PointCloudBinarySourceCompositeEnumerator.cs" />
     <Compile Include="Sources\PointCloudBinarySourceComposite.cs" />
     <Compile Include="Sources\PointStream.cs" />

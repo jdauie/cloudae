@@ -16,7 +16,7 @@ namespace CloudAE.Core
 			SupportsSegmentedProcessing = true;
 		}
 
-		public IPointCloudTileBufferManager CreateManager(PointCloudTileSource tileSource, FileStream outputStream)
+		public IPointCloudTileBufferManager CreateManager(PointCloudTileSource tileSource, IStreamWriter outputStream)
 		{
 			return new PointCloudTileBufferManager2(tileSource, outputStream);
 		}

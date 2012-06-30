@@ -11,6 +11,19 @@ namespace CloudAE.Core.Util
 	public static class PathUtil
 	{
 		/// <summary>
+		/// Return the sector size for the volume containing the specified path.
+		/// </summary>
+		/// <param name="path">UNC path name</param>
+		/// <returns>Device sector size (bytes)</returns>
+		public static uint GetDriveSectorSize(string path)
+		{
+			uint size = 512;
+			uint ignore;
+			NativeMethods.GetDiskFreeSpace(Path.GetPathRoot(path), out ignore, out ignore, out ignore, out ignore);
+			return size;
+		}
+
+		/// <summary>
 		/// Given a path, returns the UNC path or the original. (No exceptions
 		/// are raised by this function directly). For example, "P:\2008-02-29"
 		/// might return: "\\networkserver\Shares\Photos\2008-02-09"

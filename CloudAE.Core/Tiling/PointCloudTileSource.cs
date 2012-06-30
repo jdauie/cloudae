@@ -135,6 +135,11 @@ namespace CloudAE.Core
 			}
 		}
 
+		public long FileSize
+		{
+			get { return Count * PointSizeBytes + PointDataOffset; }
+		}
+
 		public int MaxTileBufferSize
 		{
 			get { return TileSet.Density.MaxTileCount * PointSizeBytes; }

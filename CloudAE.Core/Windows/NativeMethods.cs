@@ -147,6 +147,9 @@ namespace CloudAE.Core.Windows
 		[DllImport(KERNEL32, BestFitMapping = false, CharSet = CharSet.Auto, SetLastError = true)]
 		internal static extern bool GetDiskFreeSpaceEx(string drive, out long freeBytesForUser, out long totalBytes, out long freeBytes);
 
+		[DllImport(KERNEL32, BestFitMapping = false, CharSet = CharSet.Auto, SetLastError = true)]
+		internal static extern bool GetDiskFreeSpace(string path, out uint sectorsPerCluster, out uint bytesPerSector, out uint numberOfFreeClusters, out uint totalNumberOfClusters);
+
 		[DllImport(MPR, CharSet = CharSet.Unicode, SetLastError = true)]
 		internal static extern int WNetGetConnection([MarshalAs(UnmanagedType.LPTStr)] string localName, [MarshalAs(UnmanagedType.LPTStr)] StringBuilder remoteName, ref int length);
 

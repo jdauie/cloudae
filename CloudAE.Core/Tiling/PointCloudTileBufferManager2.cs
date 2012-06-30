@@ -14,7 +14,7 @@ namespace CloudAE.Core
 		private readonly PointCloudTileSource m_tileSource;
 
 		private readonly PointCloudTileSet m_tileSet;
-		private readonly FileStream m_outputStream;
+		private readonly IStreamWriter m_outputStream;
 
 		private readonly PointCloudTileBuffer[,] m_createdBuffers;
 
@@ -23,7 +23,7 @@ namespace CloudAE.Core
 			get { return m_tileSource; }
 		}
 
-		public PointCloudTileBufferManager2(PointCloudTileSource tileSource, FileStream outputStream)
+		public PointCloudTileBufferManager2(PointCloudTileSource tileSource, IStreamWriter outputStream)
 		{
 			m_tileSource = tileSource;
 

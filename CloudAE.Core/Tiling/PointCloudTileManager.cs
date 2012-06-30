@@ -113,9 +113,9 @@ namespace CloudAE.Core
 
 #warning this point size is incorrect for unquantized inputs
 			var tileSource = new PointCloudTileSource(path, tileSet, analysis.Quantization, source.PointSizeBytes, analysis.Statistics);
-			tileSource.AllocateFile(m_options.AllowSparseAllocation);
+			//tileSource.AllocateFile(m_options.AllowSparseAllocation);
 
-			using (var outputStream = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, m_options.TilingFileOptions))
+			using (var outputStream = new FileStreamUnbufferedSequentialWrite(path, tileSource.FileSize, tileSource.PointDataOffset))
 			{
 				var tileBufferManager = m_options.CreateManager(tileSource, outputStream);
 

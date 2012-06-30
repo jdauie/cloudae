@@ -4,9 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CloudAE.Core.Windows;
+using CloudAE.Core.Util;
 
-namespace CloudAE.Core.Sources
+namespace CloudAE.Core
 {
+	/// <summary>
+	/// A FileStream wrapper that supports only exclusive read and exclusive write.
+	/// 
+	/// THIS SHOULD PROBABLY BE SPLIT INTO SEPARATE CLASSES FOR READ/WRITE/SEQUENTIAL/RANDOM.
+	/// 
+	/// For instance, force WRITE to SetLength, and deny seeking.
+	/// </summary>
 	public class FileStream2 : IDisposable
 	{
 		private const FileOptions FileFlagNoBuffering = (FileOptions)0x20000000;
@@ -16,12 +24,17 @@ namespace CloudAE.Core.Sources
 		private readonly BufferInstance m_buffer;
 		private readonly bool m_useCache;
 
-		private FileStream m_stream;
+		private readonly uint m_sectorSize;
+
+		private readonly FileStream m_stream;
 
 		private long m_offset;
 		private long m_bufferOffset;
 
 		private int m_bufferIndex;
+
+		private long m_position;
+		private long m_positionSectorAligned;
 
 		// allow bybassing cache
 		// make buffering simple
@@ -45,24 +58,28 @@ namespace CloudAE.Core.Sources
 
 		// Also keep in mind that if I want to read from a network drive, some of this won't work.
 
-		public FileStream2(string path, FileMode mode, FileAccess access, FileShare share, bool cache, bool random)
+		// Should I support random through this mechanism?
+		// Should I support random write at all? (probably not for now)
+
+		public FileStream2(string path, bool write, bool cache, bool random)
 		{
 			m_useCache = cache;
 
-			FileOptions options = FileOptions.None;
+			FileMode   mode   = write ? FileMode.OpenOrCreate : FileMode.Open;
+			FileAccess access = write ? FileAccess.Write : FileAccess.Read;
+			FileShare  share  = write ? FileShare.None : FileShare.Read;
+
+			FileOptions options = m_useCache ? FileOptions.None : (FileFlagNoBuffering | FileOptions.WriteThrough);
+			options |= random ? FileOptions.RandomAccess : FileOptions.SequentialScan;
 
 			if (!m_useCache)
 			{
 				//m_buffer = BufferManager.AcquireBuffer(null, true);
-				options |= (FileFlagNoBuffering | FileOptions.WriteThrough);
 			}
 
-			if (random)
-				options |= FileOptions.RandomAccess;
-			else
-				options |= FileOptions.SequentialScan;
-
 			m_stream = new FileStream(path, mode, access, share, BUFFER_SIZE, options);
+
+			m_sectorSize = PathUtil.GetDriveSectorSize(path);
 		}
 
 		public int Read(byte[] array, int offset, int count)
@@ -75,7 +92,8 @@ namespace CloudAE.Core.Sources
 			}
 			else
 			{
-
+				// ensure we are on a sector boundary
+				// this is easy for sequential
 			}
 
 			return r;
@@ -89,17 +107,34 @@ namespace CloudAE.Core.Sources
 			}
 			else
 			{
+				while (count > 0)
+				{
+					// copy from array into remaining buffer
+					int remainingSpaceInBuffer = m_buffer.Length - m_bufferIndex;
+					int bytesToCopy = Math.Min(remainingSpaceInBuffer, count);
 
+					Buffer.BlockCopy(array, offset, m_buffer.Data, m_bufferIndex, bytesToCopy);
+					m_bufferIndex += bytesToCopy;
+					offset += bytesToCopy;
+					count -= bytesToCopy;
+
+					if (m_bufferIndex == m_buffer.Length)
+						FlushInternal();
+				}
 			}
+		}
+
+		private void FlushInternal()
+		{
 		}
 
 		public void Dispose()
 		{
 			if (m_stream != null)
-			{
 				m_stream.Dispose();
-				m_stream = null;
-			}
+
+			if (m_buffer != null)
+				m_buffer.Dispose();
 		}
 	}
 }

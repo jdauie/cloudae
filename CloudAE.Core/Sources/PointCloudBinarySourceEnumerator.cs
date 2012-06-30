@@ -8,7 +8,7 @@ namespace CloudAE.Core
 	public class PointCloudBinarySourceEnumerator : IPointCloudBinarySourceEnumerator
 	{
 		private readonly IPointCloudBinarySourceEnumerable m_source;
-		private readonly FileStream m_stream;
+		private readonly IStreamReader m_stream;
 		private readonly BufferInstance m_buffer;
 		private readonly ProgressManagerProcess m_process;
 		private readonly long m_endPosition;
@@ -19,7 +19,7 @@ namespace CloudAE.Core
 		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceEnumerable source, ProgressManagerProcess process)
 		{
 			m_source = source;
-			m_stream = new FileStream(m_source.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+			m_stream = new FileStreamUnbufferedSequentialRead(m_source.FilePath);
 			m_buffer = process.AcquireBuffer(true);
 			m_process = process;
 
@@ -33,7 +33,7 @@ namespace CloudAE.Core
 		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceEnumerable source, BufferInstance buffer)
 		{
 			m_source = source;
-			m_stream = new FileStream(m_source.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+			m_stream = new FileStreamUnbufferedSequentialRead(m_source.FilePath);
 			m_buffer = buffer;
 			m_process = null;
 
@@ -80,7 +80,7 @@ namespace CloudAE.Core
 
 		public void Reset()
 		{
-			m_stream.Seek(m_source.PointDataOffset, SeekOrigin.Begin);
+			m_stream.Seek(m_source.PointDataOffset);
 			m_current = null;
 		}
 

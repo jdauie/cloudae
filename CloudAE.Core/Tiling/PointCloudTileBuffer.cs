@@ -90,7 +90,7 @@ namespace CloudAE.Core
 			return buffer;
 		}
 
-		public void Flush(FileStream outputStream)
+		public void Flush(IStreamWriter outputStream)
 		{
 			if (m_buffer == null)
 				throw new Exception("cannot flush inactive buffer");
@@ -98,27 +98,28 @@ namespace CloudAE.Core
 			long byteOffset = ((long)m_pointOffset + m_pointsWritten) * m_manager.TileSource.PointSizeBytes;
 			int bytesToWrite = m_currentPointIndex * m_manager.TileSource.PointSizeBytes;
 
-			WriteQuantized(outputStream, byteOffset, m_buffer, bytesToWrite);
+			//WriteQuantized(outputStream, byteOffset, m_buffer, bytesToWrite);
+			outputStream.Write(m_buffer, 0, bytesToWrite);
 
 			m_pointsWritten += m_currentPointIndex;
 			m_currentPointIndex = 0;
 		}
 
-		private void WriteQuantized(FileStream outputStream, long byteOffset, byte[] pointBuffer, int bytesToWrite)
-		{
-			long offset = m_manager.TileSource.PointDataOffset + byteOffset;
-			if (outputStream.Position != offset)
-				outputStream.Seek(offset, SeekOrigin.Begin);
+		//private void WriteQuantized(IStreamWriter outputStream, long byteOffset, byte[] pointBuffer, int bytesToWrite)
+		//{
+		//    long offset = m_manager.TileSource.PointDataOffset + byteOffset;
+		//    if (outputStream.Position != offset)
+		//        outputStream.Seek(offset, SeekOrigin.Begin);
 
-			int bytesRemaining = bytesToWrite;
+		//    int bytesRemaining = bytesToWrite;
 
-			while (bytesRemaining > 0)
-			{
-				int bytesInThisChunk = Math.Min(BufferManager.BUFFER_SIZE_BYTES, bytesRemaining);
-				outputStream.Write(pointBuffer, bytesToWrite - bytesRemaining, bytesInThisChunk);
-				bytesRemaining -= bytesInThisChunk;
-			}
-		}
+		//    while (bytesRemaining > 0)
+		//    {
+		//        int bytesInThisChunk = Math.Min(BufferManager.BUFFER_SIZE_BYTES, bytesRemaining);
+		//        outputStream.Write(pointBuffer, bytesToWrite - bytesRemaining, bytesInThisChunk);
+		//        bytesRemaining -= bytesInThisChunk;
+		//    }
+		//}
 
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
