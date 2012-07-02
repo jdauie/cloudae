@@ -40,20 +40,21 @@ namespace CloudAE.Core
 			// pass 1
 			var analysis = AnalyzePointFile(progressManager);
 
-			return TilePointFile(tiledPath, analysis, progressManager);
+			//return TilePointFile(tiledPath, analysis, progressManager);
+			return null;
 		}
 
-		public PointCloudTileSource TilePointFile(string tiledPath, PointCloudAnalysisResult analysis, ProgressManager progressManager)
+		public PointCloudTileSource TilePointFile(string tiledPath, PointCloudAnalysisResult analysis, BufferInstance segmentBuffer, ProgressManager progressManager)
 		{
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 
 			// pass 2
-			var tileSet = InitializeCounts(m_source, analysis, progressManager);
+			var tileSet = InitializeCounts(m_source, analysis, segmentBuffer, progressManager);
 			progressManager.Log(stopwatch, "Computed Tile Offsets");
 
 			// pass 3
-			var tileSource = TilePoints(m_source, tiledPath, tileSet, analysis, progressManager);
+			var tileSource = TilePoints(m_source, segmentBuffer, tiledPath, tileSet, analysis, progressManager);
 			progressManager.Log(stopwatch, "Finished Tiling");
 
 			return tileSource;
@@ -90,14 +91,14 @@ namespace CloudAE.Core
 			return density;
 		}
 
-		private PointCloudTileSet InitializeCounts(PointCloudBinarySource source, PointCloudAnalysisResult analysis, ProgressManager progressManager)
+		private PointCloudTileSet InitializeCounts(PointCloudBinarySource source, PointCloudAnalysisResult analysis, BufferInstance segmentBuffer, ProgressManager progressManager)
 		{
 			var tileCounts = CreateTileCountsForInitialization(source, analysis.Density);
 
 			PointCloudTileDensity actualDensity = null;
 
 			if (source.Quantization != null)
-				actualDensity = CountPointsAccurateQuantized(source, tileCounts, analysis.Quantization, progressManager);
+				actualDensity = CountPointsAccurateQuantized(source, segmentBuffer, tileCounts, analysis.Quantization, progressManager);
 			else
 				actualDensity = CountPointsAccurate(source, tileCounts, analysis.Quantization, progressManager);
 
@@ -106,25 +107,38 @@ namespace CloudAE.Core
 			return tileSet;
 		}
 
-		private PointCloudTileSource TilePoints(PointCloudBinarySource source, string path, PointCloudTileSet tileSet, PointCloudAnalysisResult analysis, ProgressManager progressManager)
+		private PointCloudTileSource TilePoints(PointCloudBinarySource source, BufferInstance segmentBuffer, string path, PointCloudTileSet tileSet, PointCloudAnalysisResult analysis, ProgressManager progressManager)
 		{
 			if (File.Exists(path))
 				File.Delete(path);
 
 #warning this point size is incorrect for unquantized inputs
 			var tileSource = new PointCloudTileSource(path, tileSet, analysis.Quantization, source.PointSizeBytes, analysis.Statistics);
-			//tileSource.AllocateFile(m_options.AllowSparseAllocation);
+			
+			if (source.Quantization != null)
+				TilePointStreamQuantized(source, segmentBuffer, tileSource, progressManager);
+			else
+				TilePointStream(source, null, progressManager);
 
-			using (var outputStream = new FileStreamUnbufferedSequentialWrite(path, tileSource.FileSize, tileSource.PointDataOffset))
+			using (var process = progressManager.StartProcess("FinalizeTiles"))
 			{
-				var tileBufferManager = m_options.CreateManager(tileSource, outputStream);
+				using (var outputStream = new FileStreamUnbufferedSequentialWrite(path, tileSource.FileSize, tileSource.PointDataOffset))
+				{
+					//var stopwatch = new Stopwatch();
+					//stopwatch.Start();
+					int segmentBufferIndex = 0;
+					foreach (var tile in tileSource.TileSet.ValidTiles)
+					{
+						outputStream.Write(segmentBuffer.Data, segmentBufferIndex, tile.StorageSize);
+						segmentBufferIndex += tile.StorageSize;
 
-				if (source.Quantization != null)
-					TilePointStreamQuantized(source, tileBufferManager, progressManager);
-				else
-					TilePointStream(source, tileBufferManager, progressManager);
-
-				tileBufferManager.FinalizeTiles(progressManager);
+						if (!process.Update(tile))
+							break;
+					}
+					//stopwatch.Stop();
+					//double outputMBps = (double)m_outputStream.Position / (int)ByteSizesSmall.MB_1 * 1000 / stopwatch.ElapsedMilliseconds;
+					//Context.WriteLine("Write @ {0:0} MBps", outputMBps);
+				}
 			}
 
 			if (!progressManager.IsCanceled())
@@ -405,7 +419,7 @@ namespace CloudAE.Core
 			return result;
 		}
 
-		private static unsafe PointCloudTileDensity CountPointsAccurateQuantized(PointCloudBinarySource source, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private static unsafe PointCloudTileDensity CountPointsAccurateQuantized(PointCloudBinarySource source, BufferInstance segmentBuffer, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
 			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
@@ -417,9 +431,13 @@ namespace CloudAE.Core
 
 			double scaleTranslationX = inputQuantization.ScaleFactorX / outputQuantization.ScaleFactorX;
 			double scaleTranslationY = inputQuantization.ScaleFactorY / outputQuantization.ScaleFactorY;
+			double scaleTranslationZ = inputQuantization.ScaleFactorZ / outputQuantization.ScaleFactorZ;
 
 			double offsetTranslationX = (inputQuantization.OffsetX - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX;
 			double offsetTranslationY = (inputQuantization.OffsetY - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY;
+			double offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
+
+			int segmentBufferIndex = 0;
 
 			using (var process = progressManager.StartProcess("CountPointsAccurateQuantized"))
 			{
@@ -431,9 +449,20 @@ namespace CloudAE.Core
 					{
 						SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
 
-						// stomp on existing values since they are the same size
+						// overwrite existing values
 						(*p).X = (int)((*p).X * scaleTranslationX + offsetTranslationX);
 						(*p).Y = (int)((*p).Y * scaleTranslationY + offsetTranslationY);
+						(*p).Z = (int)((*p).Z * scaleTranslationZ + offsetTranslationZ);
+
+						if ((*p).X == 324412 && (*p).Y == 455564)
+						{
+							pb = pb + 0;
+						}
+
+						if (pb - chunk.DataPtr + segmentBufferIndex == 244760480)
+						{
+							pb = pb + 0;
+						}
 
 						++tileCounts.Data[
 							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
@@ -442,6 +471,9 @@ namespace CloudAE.Core
 
 						pb += pointSizeBytes;
 					}
+
+					Buffer.BlockCopy(chunk.Data, 0, segmentBuffer.Data, segmentBufferIndex, chunk.Length);
+					segmentBufferIndex += chunk.Length;
 				}
 
 				tileCounts.CorrectCountOverflow();
@@ -451,49 +483,109 @@ namespace CloudAE.Core
 			return density;
 		}
 
-		private static unsafe void TilePointStreamQuantized(PointCloudBinarySource source, IPointCloudTileBufferManager tileBufferManager, ProgressManager progressManager)
+		private static unsafe void TilePointStreamQuantized(PointCloudBinarySource source, BufferInstance segmentBuffer, PointCloudTileSource tileSource, ProgressManager progressManager)
 		{
 			Quantization3D inputQuantization = source.Quantization;
 
 			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
-			var outputQuantization = tileBufferManager.TileSource.Quantization;
+			var outputQuantization = tileSource.Quantization;
 			var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
-			var tileSet = tileBufferManager.TileSource.TileSet;
+			var tileSet = tileSource.TileSet;
 
 			double tilesOverRangeX = (double)tileSet.Cols / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileSet.Rows / quantizedExtent.RangeY;
 
-			double scaleTranslationX = inputQuantization.ScaleFactorX / outputQuantization.ScaleFactorX;
-			double scaleTranslationY = inputQuantization.ScaleFactorY / outputQuantization.ScaleFactorY;
-			double scaleTranslationZ = inputQuantization.ScaleFactorZ / outputQuantization.ScaleFactorZ;
-
-			double offsetTranslationX = (inputQuantization.OffsetX - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX;
-			double offsetTranslationY = (inputQuantization.OffsetY - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY;
-			double offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
-
 			using (var process = progressManager.StartProcess("TilePointStreamQuantized"))
 			{
-				foreach (var chunk in source.GetBlockEnumerator(process))
+				// create tile position counters
+				var tilePositions = new PointCloudTileBufferPosition[tileSet.Cols + 1, tileSet.Rows + 1];
 				{
-					byte* pb = chunk.DataPtr;
-					byte* pbEnd = chunk.DataEndPtr;
+					foreach (PointCloudTile tile in tileSet.ValidTiles)
+						tilePositions[tile.Col, tile.Row] = new PointCloudTileBufferPosition(tile);
+
+					// buffer the edges for overflow
+					for (int x = 0; x < tileSet.Cols; x++)
+						tilePositions[x, tileSet.Rows] = tilePositions[x, tileSet.Rows - 1];
+					for (int y = 0; y <= tileSet.Rows; y++)
+						tilePositions[tileSet.Cols, y] = tilePositions[tileSet.Cols - 1, y];
+				}
+
+				// for each point in segmentBuffer, swap with desired tile point
+				BufferInstance pointBuffer = process.AcquireBuffer(true);
+
+				foreach (PointCloudTile tile in tileSet.ValidTiles)
+				{
+					var tilePosition = tilePositions[tile.Col, tile.Row];
+
+					byte* pb = segmentBuffer.DataPtr + tilePosition.ByteIndex;
+					byte* pbEnd = pb + (tilePosition.Tile.StorageSize - tilePosition.ByteLength);
 					while (pb < pbEnd)
 					{
-						SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
+						UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
 
-						// stomp on existing values since they are the same size
-						(*p).X = (int)((*p).X * scaleTranslationX + offsetTranslationX);
-						(*p).Y = (int)((*p).Y * scaleTranslationY + offsetTranslationY);
-						(*p).Z = (int)((*p).Z * scaleTranslationZ + offsetTranslationZ);
-
-						tileBufferManager.AddPoint(pb,
-							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX), 
+						var position = tilePositions[
+							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
 							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
-						);
+						];
 
-						pb += pointSizeBytes;
+						if (position != tilePosition)
+						{
+							if (position.PointLength == position.Tile.PointCount)
+							{
+								pb = pb + 0;
+							}
+
+							if (position.ByteIndex == 450280 ||
+								tilePosition.ByteIndex == 450280)
+							{
+								pb = pb + 0;
+							}
+
+							if (position.ByteIndex == 244760480)
+							{
+								pb = pb + 0;
+							}
+
+							// the point tile is not the current traversal tile,
+							// so swap the points and resume on the swapped point
+
+							// DO JUST THE XYZ FOR TESTING
+							UQuantizedPoint3D* pTarget = (UQuantizedPoint3D*)(segmentBuffer.DataPtr + position.ByteIndex);
+							UQuantizedPoint3D temp = *pTarget;
+							*pTarget = *p;
+							*p = temp;
+
+							//// copy target to temp
+							//Buffer.BlockCopy(segmentBuffer.Data, position.ByteIndex, pointBuffer.Data,   0, pointSizeBytes);
+							//// copy source to target
+							//Buffer.BlockCopy(segmentBuffer.Data, tilePosition.ByteIndex, segmentBuffer.Data, position.ByteIndex, pointSizeBytes);
+							//// copy temp (target) to source
+							//Buffer.BlockCopy(pointBuffer.Data, 0, segmentBuffer.Data, tilePosition.ByteIndex, pointSizeBytes);
+
+							if (tilePosition.ByteIndex == 450280 && (*p).X == 324412)
+							{
+								pb = pb + 0;
+							}
+
+							//for (int i = 0; i < pointSizeBytes; i++)
+							//{
+							//    pointBuffer.DataPtr[i] = position.Index[i];
+							//    position.Index[i] = pb[i];
+							//    pb[i] = pointBuffer.DataPtr[i];
+							//}
+						}
+						else
+						{
+							// this point is in the correct tile, move on
+							pb += pointSizeBytes;
+						}
+
+						position.ByteIndex += pointSizeBytes;
 					}
+
+					if (!process.Update(tile))
+						break;
 				}
 			}
 		}

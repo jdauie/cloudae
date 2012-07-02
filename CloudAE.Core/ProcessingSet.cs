@@ -154,6 +154,8 @@ namespace CloudAE.Core
 				}
 			}
 
+			BufferInstance segmentBuffer = BufferManager.AcquireBuffer(m_id, (int)maxSegmentBytes, true);
+
 			// step 2
 			using (var process = progressManager.StartProcess("ProcessTileSegments"))
 			{
@@ -165,7 +167,7 @@ namespace CloudAE.Core
 					process.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
 
 					var tileManager = new PointCloudTileManager(segments[i], tileOptions);
-					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, analysis, progressManager);
+					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, analysis, segmentBuffer, progressManager);
 
 					// why is random faster for parallel reads? RAID?
 					//tiledSegments[i].OpenSequential();
