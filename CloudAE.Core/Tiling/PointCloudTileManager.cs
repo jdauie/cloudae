@@ -478,18 +478,7 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("TilePointStreamQuantized"))
 			{
-				// create tile position counters
-				var tilePositions = new PointCloudTileBufferPosition[tileSet.Cols + 1, tileSet.Rows + 1];
-				{
-					foreach (PointCloudTile tile in tileSet.ValidTiles)
-						tilePositions[tile.Col, tile.Row] = new PointCloudTileBufferPosition(segmentBuffer, tile);
-
-					// buffer the edges for overflow
-					for (int x = 0; x < tileSet.Cols; x++)
-						tilePositions[x, tileSet.Rows] = tilePositions[x, tileSet.Rows - 1];
-					for (int y = 0; y <= tileSet.Rows; y++)
-						tilePositions[tileSet.Cols, y] = tilePositions[tileSet.Cols - 1, y];
-				}
+				var tilePositions = tileSet.CreatePositionGrid(segmentBuffer);
 
 				foreach (PointCloudTile tile in tileSet.ValidTiles)
 				{

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	unsafe class PointCloudTileBufferPosition
+	public unsafe class PointCloudTileBufferPosition
 	{
 		private readonly short m_pointSizeBytes;
 
