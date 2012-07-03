@@ -300,21 +300,17 @@ namespace CloudAE.Core
 
 			Open();
 
-			int bytesRead = tile.ReadTile(m_inputStream, inputBuffer);
+			tile.ReadTile(m_inputStream, inputBuffer, 0);
+		}
 
-			// usage
-			//fixed (byte* inputBufferPtr = inputBuffer)
-			//{
-			//    UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
+		public void LoadTile(PointCloudTile tile, byte[] inputBuffer, int index)
+		{
+			if (tile.PointCount == 0)
+				return;
 
-			//    for (int i = 0; i < tile.PointCount; i++)
-			//    {
-			//        //// slow!
-			//        //Point3D point = Quantization.Convert(p[i]);
-			//        //if (point.Z == double.MaxValue)
-			//        //    (*p).Z = 0;
-			//    }
-			//}
+			Open();
+
+			tile.ReadTile(m_inputStream, inputBuffer, index);
 		}
 
 		public unsafe System.Windows.Media.Media3D.MeshGeometry3D LoadTilePointMesh(PointCloudTile tile, byte[] inputBuffer, double pointSize, int thinByFactor)

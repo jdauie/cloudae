@@ -102,6 +102,11 @@ namespace CloudAE.Core
 
 		public int ReadTile(IStreamReader inputStream, byte[] inputBuffer)
 		{
+			return ReadTile(inputStream, inputBuffer, 0);
+		}
+
+		public int ReadTile(IStreamReader inputStream, byte[] inputBuffer, int index)
+		{
 			if (StorageSize > inputBuffer.Length)
 				throw new ArgumentException("Tile data is larger than available buffer", "inputBuffer");
 
@@ -113,7 +118,7 @@ namespace CloudAE.Core
 			if (inputStream.Position != position)
 				inputStream.Seek(position);
 
-			int bytesRead = inputStream.Read(inputBuffer, 0, StorageSize);
+			int bytesRead = inputStream.Read(inputBuffer, index, StorageSize);
 
 			return bytesRead;
 		}
