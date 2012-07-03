@@ -427,8 +427,6 @@ namespace CloudAE.Core
 				{
 					var currentPosition = tilePositions[tile.Col, tile.Row];
 
-					//byte* pb = currentPosition.DataPtr;
-					//byte* pbEnd = currentPosition.DataEndPtr;
 					while (currentPosition.DataPtr < currentPosition.DataEndPtr)
 					{
 						UQuantizedPoint3D* p = (UQuantizedPoint3D*)currentPosition.DataPtr;
@@ -498,8 +496,6 @@ namespace CloudAE.Core
 
 			return new Grid<int>(tilesX, tilesY, extent, true);
 		}
-
-		
 
 		#endregion
 	}
