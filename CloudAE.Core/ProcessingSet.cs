@@ -61,14 +61,22 @@ namespace CloudAE.Core
 					var tileOptions = new PointCloudTileBufferManagerOptions();
 					long pointDataSize = m_binarySource.Count * m_binarySource.PointSizeBytes;
 					long maxSegmentBytes = (long)PROPERTY_SEGMENT_SIZE.Value;
+
+					BufferInstance segmentBuffer = BufferManager.AcquireBuffer(m_id, (int)maxSegmentBytes, true);
 					if (tileOptions.SupportsSegmentedProcessing && pointDataSize > maxSegmentBytes)
 					{
-						ProcessFileSegments(tileOptions, maxSegmentBytes, progressManager);
+						ProcessFileSegments(tileOptions, segmentBuffer, progressManager);
 					}
 					else
 					{
 						var tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
-						m_tileSource = tileManager.TilePointFile(m_tiledPath, progressManager);
+						m_tileSource = tileManager.TilePointFile(m_tiledPath, segmentBuffer, progressManager);
+
+						if (!process.IsCanceled())
+						{
+							m_tileSource.IsDirty = false;
+							m_tileSource.WriteHeader();
+						}
 					}
 
 					GC.Collect();
@@ -124,7 +132,7 @@ namespace CloudAE.Core
 			return m_tileSource;
 		}
 
-		private void ProcessFileSegments(PointCloudTileBufferManagerOptions tileOptions, long maxSegmentBytes, ProgressManager progressManager)
+		private void ProcessFileSegments(PointCloudTileBufferManagerOptions tileOptions, BufferInstance segmentBuffer, ProgressManager progressManager)
 		{
 			PointCloudBinarySource[] segments = null;
 			PointCloudTileSource[] tiledSegments = null;
@@ -136,9 +144,9 @@ namespace CloudAE.Core
 
 				// determine density (for consistent tile size across chunks)
 				var tileManager = new PointCloudTileManager(m_binarySource, tileOptions);
-				analysis = tileManager.AnalyzePointFile(progressManager);
+				analysis = tileManager.AnalyzePointFile(null, progressManager);
 
-				int chunks = (int)Math.Ceiling((double)pointDataSize / maxSegmentBytes);
+				int chunks = (int)Math.Ceiling((double)pointDataSize / segmentBuffer.Length);
 				long pointsPerChunk = m_binarySource.Count / chunks;
 				long pointsRemaining = m_binarySource.Count;
 
@@ -154,8 +162,6 @@ namespace CloudAE.Core
 				}
 			}
 
-			BufferInstance segmentBuffer = BufferManager.AcquireBuffer(m_id, (int)maxSegmentBytes, true);
-
 			// step 2
 			using (var process = progressManager.StartProcess("ProcessTileSegments"))
 			{
@@ -167,7 +173,7 @@ namespace CloudAE.Core
 					process.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
 
 					var tileManager = new PointCloudTileManager(segments[i], tileOptions);
-					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, analysis, segmentBuffer, progressManager);
+					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, analysis, segmentBuffer, false, progressManager);
 
 					GC.Collect();
 

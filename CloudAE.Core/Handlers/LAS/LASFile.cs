@@ -9,7 +9,7 @@ namespace CloudAE.Core
 {
 	class LASFile : FileHandlerBase, IPointCloudBinarySourceEnumerable
 	{
-		private const bool TRUST_HEADER_EXTENT = false;
+		private const bool TRUST_HEADER_EXTENT = true;
 
 		private readonly int m_pointsPerBuffer;
 		private readonly int m_usableBytesPerBuffer;

@@ -60,6 +60,7 @@
     <Compile Include="Geometry\Point2D.cs" />
     <Compile Include="Geometry\Polygon2D.cs" />
     <Compile Include="Geometry\PolygonBase.cs" />
+    <Compile Include="Geometry\QuantizationConverter.cs" />
     <Compile Include="Handlers\LAS\LASPointAttribute.cs" />
     <Compile Include="Handlers\LAS\LASEVLR.cs" />
     <Compile Include="Handlers\LAS\LASHeader.cs" />
