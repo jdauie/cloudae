@@ -240,38 +240,6 @@ namespace CloudAE.Core
 							if (!process.Update((float)outputStream.Position / tileSource.FileSize))
 								break;
 						}
-
-
-						//int segmentBufferIndex = 0;
-
-						//foreach (var tile in tileSource.TileSet.ValidTiles)
-						//{
-						//    for (int i = 0; i < tiledSegments.Length; i++)
-						//    {
-						//        var segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
-						//        if (segmentTile.IsValid)
-						//        {
-						//            segmentTile.TileSource.LoadTile(segmentTile, inputBuffer.Data);
-						//            //outputStream.Write(inputBuffer.Data, 0, segmentTile.StorageSize);
-
-						//            if (segmentTile.StorageSize + segmentBufferIndex > segmentBuffer.Length)
-						//            {
-						//                outputStream.Write(segmentBuffer.Data, 0, segmentBufferIndex);
-						//                segmentBufferIndex = 0;
-						//            }
-
-						//            Buffer.BlockCopy(inputBuffer.Data, 0, segmentBuffer.Data, segmentBufferIndex, segmentTile.StorageSize);
-						//            segmentBufferIndex += segmentTile.StorageSize;
-						//        }
-						//    }
-						//    if (!process.Update(tile))
-						//        break;
-						//}
-
-						//if (segmentBufferIndex > 0)
-						//{
-						//    outputStream.Write(segmentBuffer.Data, 0, segmentBufferIndex);
-						//}
 					}
 				}
 
