@@ -8,43 +8,34 @@ namespace CloudAE.Core
 {
 	unsafe class PointCloudTileBufferPosition
 	{
-		public readonly PointCloudTile Tile;
-
-		private readonly BufferInstance m_buffer;
+		private readonly short m_pointSizeBytes;
 
 		public byte* DataPtr;
 		public readonly byte* DataEndPtr;
 
 		public PointCloudTileBufferPosition(BufferInstance buffer, PointCloudTile tile)
 		{
-			Tile = tile;
-			m_buffer = buffer;
+			m_pointSizeBytes = tile.TileSource.PointSizeBytes;
 
-			DataPtr = m_buffer.DataPtr + (tile.PointOffset * tile.TileSource.PointSizeBytes);
-			DataEndPtr = DataPtr + tile.PointCount * tile.TileSource.PointSizeBytes;
+			DataPtr = buffer.DataPtr + (tile.PointOffset * m_pointSizeBytes);
+			DataEndPtr = DataPtr + tile.PointCount * m_pointSizeBytes;
 		}
 
 		public void Swap(byte* pSource)
 		{
-			//UQuantizedPoint3D* pTarget = (UQuantizedPoint3D*)(m_pStart + m_byteIndexWithinTile);
-
-			//UQuantizedPoint3D temp = *pTarget;
-			//*pTarget = *source;
-			//*source = temp;
-
-			for (int i = 0; i < Tile.TileSource.PointSizeBytes; i++)
+			for (int i = 0; i < m_pointSizeBytes; i++)
 			{
 				byte temp = DataPtr[i];
 				DataPtr[i] = pSource[i];
 				pSource[i] = temp;
 			}
 
-			DataPtr += Tile.TileSource.PointSizeBytes;
+			DataPtr += m_pointSizeBytes;
 		}
 
 		public void Increment()
 		{
-			DataPtr += Tile.TileSource.PointSizeBytes;
+			DataPtr += m_pointSizeBytes;
 		}
 	}
 }

@@ -32,7 +32,7 @@ namespace CloudAE.Core
 		
 		private UQuantizedExtent3D m_quantizedExtent;
 
-		private FileStream m_inputStream;
+		private IStreamReader m_inputStream;
 		private bool m_isDirty;
 
 		private Grid<float> m_pixelGrid;
@@ -249,15 +249,7 @@ namespace CloudAE.Core
 		{
 			if (m_inputStream == null)
 			{
-				m_inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.RandomAccess);
-			}
-		}
-
-		public void OpenSequential()
-		{
-			if (m_inputStream == null)
-			{
-				m_inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
+				m_inputStream = new FileStreamUnbufferedSequentialRead(FilePath, PointDataOffset);
 			}
 		}
 

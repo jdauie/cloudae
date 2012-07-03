@@ -478,8 +478,6 @@ namespace CloudAE.Core
 
 		private static unsafe void TilePointStreamQuantized(PointCloudBinarySource source, BufferInstance segmentBuffer, PointCloudTileSource tileSource, ProgressManager progressManager)
 		{
-			Quantization3D inputQuantization = source.Quantization;
-
 			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
 			var outputQuantization = tileSource.Quantization;
@@ -504,9 +502,6 @@ namespace CloudAE.Core
 						tilePositions[tileSet.Cols, y] = tilePositions[tileSet.Cols - 1, y];
 				}
 
-				// for each point in segmentBuffer, swap with desired tile point
-				//BufferInstance pointBuffer = process.AcquireBuffer(true);
-
 				foreach (PointCloudTile tile in tileSet.ValidTiles)
 				{
 					var currentPosition = tilePositions[tile.Col, tile.Row];
@@ -526,29 +521,7 @@ namespace CloudAE.Core
 						{
 							// the point tile is not the current traversal tile,
 							// so swap the points and resume on the swapped point
-
 							targetPosition.Swap(currentPosition.DataPtr);
-							
-
-							// DO JUST THE XYZ FOR TESTING
-							//UQuantizedPoint3D* pTarget = (UQuantizedPoint3D*)(segmentBuffer.DataPtr + targetPosition.ByteIndex);
-							//UQuantizedPoint3D temp = *pTarget;
-							//*pTarget = *p;
-							//*p = temp;
-
-							//// copy target to temp
-							//Buffer.BlockCopy(segmentBuffer.Data, position.ByteIndex, pointBuffer.Data,   0, pointSizeBytes);
-							//// copy source to target
-							//Buffer.BlockCopy(segmentBuffer.Data, tilePosition.ByteIndex, segmentBuffer.Data, position.ByteIndex, pointSizeBytes);
-							//// copy temp (target) to source
-							//Buffer.BlockCopy(pointBuffer.Data, 0, segmentBuffer.Data, tilePosition.ByteIndex, pointSizeBytes);
-
-							//for (int i = 0; i < pointSizeBytes; i++)
-							//{
-							//    pointBuffer.DataPtr[i] = position.Index[i];
-							//    position.Index[i] = pb[i];
-							//    pb[i] = pointBuffer.DataPtr[i];
-							//}
 						}
 						else
 						{

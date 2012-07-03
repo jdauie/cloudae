@@ -192,14 +192,10 @@ namespace CloudAE.Core
 
 				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
 
-				tileSource.AllocateFile(tileOptions.AllowSparseAllocation);
-
 				using (var inputBuffer = BufferManager.AcquireBuffer(m_id, largestTileSize, false))
 				{
-					using (var outputStream = new FileStream(m_tiledPath, FileMode.Open, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, tileOptions.TilingFileOptions))
+					using (var outputStream = new FileStreamUnbufferedSequentialWrite(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset))
 					{
-						outputStream.Seek(tileSource.PointDataOffset, SeekOrigin.Begin);
-
 						// go through tiles and write at the correct offset
 						foreach (var tile in tileSource.TileSet.ValidTiles)
 						{

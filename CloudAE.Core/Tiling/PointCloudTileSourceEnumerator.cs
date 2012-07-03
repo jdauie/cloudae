@@ -13,7 +13,7 @@ namespace CloudAE.Core
 		private readonly byte[] m_buffer;
 
 		private IEnumerator<PointCloudTile> m_tileEnumerator;
-		private FileStream m_stream;
+		private IStreamReader m_stream;
 
 		public PointCloudTileSourceEnumerator(PointCloudTileSource source, byte[] buffer)
 		{
@@ -21,8 +21,8 @@ namespace CloudAE.Core
 			m_buffer = buffer;
 			m_validTileCount = m_source.TileSet.ValidTileCount;
 
-			m_stream = new FileStream(source.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan);
-
+			m_stream = new FileStreamUnbufferedSequentialRead(source.FilePath, source.PointDataOffset);
+			
 			Reset();
 		}
 

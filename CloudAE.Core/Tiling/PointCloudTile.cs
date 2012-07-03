@@ -100,7 +100,7 @@ namespace CloudAE.Core
 				StorageSize = PointCount * TileSource.PointSizeBytes;
 		}
 
-		public int ReadTile(FileStream inputStream, byte[] inputBuffer)
+		public int ReadTile(IStreamReader inputStream, byte[] inputBuffer)
 		{
 			if (StorageSize > inputBuffer.Length)
 				throw new ArgumentException("Tile data is larger than available buffer", "inputBuffer");
@@ -111,10 +111,9 @@ namespace CloudAE.Core
 			// seek if necessary (hopefully this is minimized)
 			long position = TileSource.PointDataOffset + PointOffset * TileSource.PointSizeBytes;
 			if (inputStream.Position != position)
-				inputStream.Seek(position, SeekOrigin.Begin);
+				inputStream.Seek(position);
 
 			int bytesRead = inputStream.Read(inputBuffer, 0, StorageSize);
-			Debug.Assert(bytesRead == StorageSize);
 
 			return bytesRead;
 		}
