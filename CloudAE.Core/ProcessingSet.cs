@@ -169,9 +169,6 @@ namespace CloudAE.Core
 					var tileManager = new PointCloudTileManager(segments[i], tileOptions);
 					tiledSegments[i] = tileManager.TilePointFile(tiledSegmentPath, analysis, segmentBuffer, progressManager);
 
-					// why is random faster for parallel reads? RAID?
-					//tiledSegments[i].OpenSequential();
-
 					GC.Collect();
 
 					// do I want to switch to an abort mechanism instead?
@@ -187,59 +184,53 @@ namespace CloudAE.Core
 
 				// reassemble tiled files
 				var mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
-				int largestTileCount = mergedTileSet.Max(t => t.PointCount);
-				int largestTileSize = largestTileCount * tiledSegments[0].PointSizeBytes;
 
 				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
 
-				using (var inputBuffer = BufferManager.AcquireBuffer(m_id, largestTileSize, false))
+				using (var outputStream = new FileStreamUnbufferedSequentialWrite(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset))
 				{
-					using (var outputStream = new FileStreamUnbufferedSequentialWrite(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset))
+					int bytesInCurrentSegment = 0;
+					int segmentBufferIndex = 0;
+
+					// create buffer groups
+					var segmentTileGroups = new List<List<PointCloudTile>>();
+					var segmentTileGroupCurrent = new List<PointCloudTile>();
+					segmentTileGroups.Add(segmentTileGroupCurrent);
+					foreach (var tile in tileSource.TileSet.ValidTiles)
 					{
-						int bytesInCurrentSegment = 0;
-						int segmentBufferIndex = 0;
-
-						// create buffer groups
-						var segmentTileGroups = new List<List<PointCloudTile>>();
-						var segmentTileGroupCurrent = new List<PointCloudTile>();
-						segmentTileGroups.Add(segmentTileGroupCurrent);
-						foreach (var tile in tileSource.TileSet.ValidTiles)
+						if (bytesInCurrentSegment + tile.StorageSize > segmentBuffer.Length)
 						{
-							if (bytesInCurrentSegment + tile.StorageSize > segmentBuffer.Length)
-							{
-								segmentTileGroupCurrent = new List<PointCloudTile>();
-								segmentTileGroups.Add(segmentTileGroupCurrent);
-								bytesInCurrentSegment = 0;
-							}
-							segmentTileGroupCurrent.Add(tile);
-							bytesInCurrentSegment += tile.StorageSize;
+							segmentTileGroupCurrent = new List<PointCloudTile>();
+							segmentTileGroups.Add(segmentTileGroupCurrent);
+							bytesInCurrentSegment = 0;
 						}
+						segmentTileGroupCurrent.Add(tile);
+						bytesInCurrentSegment += tile.StorageSize;
+					}
 
-						// process buffer groups
-						foreach (var group in segmentTileGroups)
+					// process buffer groups
+					foreach (var group in segmentTileGroups)
+					{
+						// read tiles (ordered by segment)
+						foreach (var segment in tiledSegments)
 						{
-							// read tiles (ordered by segment)
-							foreach (var segment in tiledSegments)
+							foreach (var tile in group)
 							{
-								foreach (var tile in group)
+								var segmentTile = segment.TileSet[tile.Col, tile.Row];
+								if (segmentTile.IsValid)
 								{
-									var segmentTile = segment.TileSet[tile.Col, tile.Row];
-									if (segmentTile.IsValid)
-									{
-										segmentTile.TileSource.LoadTile(segmentTile, inputBuffer.Data);
-										Buffer.BlockCopy(inputBuffer.Data, 0, segmentBuffer.Data, segmentBufferIndex, segmentTile.StorageSize);
-										segmentBufferIndex += segmentTile.StorageSize;
-									}
+									segmentTile.TileSource.LoadTile(segmentTile, segmentBuffer.Data, segmentBufferIndex);
+									segmentBufferIndex += segmentTile.StorageSize;
 								}
 							}
-
-							// flush buffer and reset
-							outputStream.Write(segmentBuffer.Data, 0, segmentBufferIndex);
-							segmentBufferIndex = 0;
-
-							if (!process.Update((float)outputStream.Position / tileSource.FileSize))
-								break;
 						}
+
+						// flush buffer and reset
+						outputStream.Write(segmentBuffer.Data, 0, segmentBufferIndex);
+						segmentBufferIndex = 0;
+
+						if (!process.Update((float)outputStream.Position / tileSource.FileSize))
+							break;
 					}
 				}
 
