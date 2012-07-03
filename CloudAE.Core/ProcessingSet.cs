@@ -196,21 +196,82 @@ namespace CloudAE.Core
 				{
 					using (var outputStream = new FileStreamUnbufferedSequentialWrite(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset))
 					{
-						// go through tiles and write at the correct offset
+						int bytesInCurrentSegment = 0;
+						int segmentBufferIndex = 0;
+
+						// create buffer groups
+						var segmentTileGroups = new List<List<PointCloudTile>>();
+						var segmentTileGroupCurrent = new List<PointCloudTile>();
+						segmentTileGroups.Add(segmentTileGroupCurrent);
 						foreach (var tile in tileSource.TileSet.ValidTiles)
 						{
-							for (int i = 0; i < tiledSegments.Length; i++)
+							if (bytesInCurrentSegment + tile.StorageSize > segmentBuffer.Length)
 							{
-								var segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
-								if (segmentTile.IsValid)
+								segmentTileGroupCurrent = new List<PointCloudTile>();
+								segmentTileGroups.Add(segmentTileGroupCurrent);
+								bytesInCurrentSegment = 0;
+							}
+							segmentTileGroupCurrent.Add(tile);
+							bytesInCurrentSegment += tile.StorageSize;
+						}
+
+						// process buffer groups
+						foreach (var group in segmentTileGroups)
+						{
+							// read tiles (ordered by segment)
+							foreach (var segment in tiledSegments)
+							{
+								foreach (var tile in group)
 								{
-									segmentTile.TileSource.LoadTile(segmentTile, inputBuffer.Data);
-									outputStream.Write(inputBuffer.Data, 0, segmentTile.StorageSize);
+									var segmentTile = segment.TileSet[tile.Col, tile.Row];
+									if (segmentTile.IsValid)
+									{
+										segmentTile.TileSource.LoadTile(segmentTile, inputBuffer.Data);
+										Buffer.BlockCopy(inputBuffer.Data, 0, segmentBuffer.Data, segmentBufferIndex, segmentTile.StorageSize);
+										segmentBufferIndex += segmentTile.StorageSize;
+									}
 								}
 							}
-							if (!process.Update(tile))
+
+							// flush buffer and reset
+							outputStream.Write(segmentBuffer.Data, 0, segmentBufferIndex);
+							segmentBufferIndex = 0;
+
+							if (!process.Update((float)outputStream.Position / tileSource.FileSize))
 								break;
 						}
+
+
+						//int segmentBufferIndex = 0;
+
+						//foreach (var tile in tileSource.TileSet.ValidTiles)
+						//{
+						//    for (int i = 0; i < tiledSegments.Length; i++)
+						//    {
+						//        var segmentTile = tiledSegments[i].TileSet[tile.Col, tile.Row];
+						//        if (segmentTile.IsValid)
+						//        {
+						//            segmentTile.TileSource.LoadTile(segmentTile, inputBuffer.Data);
+						//            //outputStream.Write(inputBuffer.Data, 0, segmentTile.StorageSize);
+
+						//            if (segmentTile.StorageSize + segmentBufferIndex > segmentBuffer.Length)
+						//            {
+						//                outputStream.Write(segmentBuffer.Data, 0, segmentBufferIndex);
+						//                segmentBufferIndex = 0;
+						//            }
+
+						//            Buffer.BlockCopy(inputBuffer.Data, 0, segmentBuffer.Data, segmentBufferIndex, segmentTile.StorageSize);
+						//            segmentBufferIndex += segmentTile.StorageSize;
+						//        }
+						//    }
+						//    if (!process.Update(tile))
+						//        break;
+						//}
+
+						//if (segmentBufferIndex > 0)
+						//{
+						//    outputStream.Write(segmentBuffer.Data, 0, segmentBufferIndex);
+						//}
 					}
 				}
 

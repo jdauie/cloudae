@@ -124,8 +124,8 @@ namespace CloudAE.Core
 			{
 				using (var outputStream = new FileStreamUnbufferedSequentialWrite(path, tileSource.FileSize, tileSource.PointDataOffset))
 				{
-					//var stopwatch = new Stopwatch();
-					//stopwatch.Start();
+					var stopwatch = new Stopwatch();
+					stopwatch.Start();
 					int segmentBufferIndex = 0;
 					foreach (var tile in tileSource.TileSet.ValidTiles)
 					{
@@ -135,9 +135,9 @@ namespace CloudAE.Core
 						if (!process.Update(tile))
 							break;
 					}
-					//stopwatch.Stop();
-					//double outputMBps = (double)m_outputStream.Position / (int)ByteSizesSmall.MB_1 * 1000 / stopwatch.ElapsedMilliseconds;
-					//Context.WriteLine("Write @ {0:0} MBps", outputMBps);
+					stopwatch.Stop();
+					double outputMBps = (double)outputStream.Position / (int)ByteSizesSmall.MB_1 * 1000 / stopwatch.ElapsedMilliseconds;
+					Context.WriteLine("Write @ {0:0} MBps", outputMBps);
 				}
 			}
 
