@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
@@ -76,6 +77,17 @@ namespace CloudAE.Core
 			Array.Copy(m_bins, validBins, validBins.Length);
 
 			return validBins;
+		}
+
+		public unsafe void Process(IPointDataChunk chunk)
+		{
+			byte* pb = chunk.PointDataPtr;
+			while (pb < chunk.PointDataEndPtr)
+			{
+				SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
+				++m_bins[((*p).Z >> SourceRightShift) - SourceMinShifted];
+				pb += chunk.PointSizeBytes;
+			}
 		}
 
 		public Statistics ComputeStatistics(double destinationMin, double destinationRange)

@@ -11,11 +11,11 @@ namespace CloudAE.Core
 		public byte* DataPtr;
 		public readonly byte* DataEndPtr;
 
-		public PointCloudTileBufferPosition(BufferInstance buffer, PointCloudTile tile)
+		public PointCloudTileBufferPosition(PointBufferWrapper buffer, PointCloudTile tile)
 		{
 			m_pointSizeBytes = tile.TileSource.PointSizeBytes;
 
-			DataPtr = buffer.DataPtr + (tile.PointOffset * m_pointSizeBytes);
+			DataPtr = buffer.PointDataPtr + (tile.PointOffset * m_pointSizeBytes);
 			DataEndPtr = DataPtr + tile.PointCount * m_pointSizeBytes;
 		}
 

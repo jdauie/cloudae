@@ -4,7 +4,15 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
-	public unsafe class PointCloudBinarySourceEnumeratorChunk : IProgress
+	public interface IPointDataChunk
+	{
+		unsafe byte* PointDataPtr { get; }
+		unsafe byte* PointDataEndPtr { get; }
+		short PointSizeBytes { get; }
+		int PointCount { get; }
+	}
+
+	public unsafe class PointCloudBinarySourceEnumeratorChunk : IProgress, IPointDataChunk
 	{
 		public readonly uint Index;
 		public readonly int BytesRead;
@@ -14,6 +22,7 @@ namespace CloudAE.Core
 		public readonly byte* DataEndPtr;
 		public readonly int Length;
 
+		private readonly short m_pointSizeBytes;
 		private readonly float m_progress;
 
 		public float Progress
@@ -21,11 +30,36 @@ namespace CloudAE.Core
 			get { return m_progress; }
 		}
 
-		public PointCloudBinarySourceEnumeratorChunk(uint index, BufferInstance buffer, int bytesRead, int pointsRead, float progress)
+		#region IPointDataChunk Members
+
+		public byte* PointDataPtr
+		{
+			get { return DataPtr; }
+		}
+
+		public byte* PointDataEndPtr
+		{
+			get { return DataEndPtr; }
+		}
+
+		public short PointSizeBytes
+		{
+			get { return m_pointSizeBytes; }
+		}
+
+		public int PointCount
+		{
+			get { return PointsRead; }
+		}
+
+		#endregion
+
+		public PointCloudBinarySourceEnumeratorChunk(uint index, BufferInstance buffer, int bytesRead, short pointSizeBytes, float progress)
 		{
 			Index = index;
+			m_pointSizeBytes = pointSizeBytes;
 			BytesRead = bytesRead;
-			PointsRead = pointsRead;
+			PointsRead = BytesRead / m_pointSizeBytes;
 			Data = buffer.Data;
 			DataPtr = buffer.DataPtr;
 			DataEndPtr = DataPtr + BytesRead;

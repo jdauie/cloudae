@@ -43,11 +43,12 @@ namespace CloudAE.Core.Geometry
 			m_offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
 		}
 
-		public unsafe void Convert(byte* pStart, byte* pEnd)
+		public unsafe void Process(IPointDataChunk chunk)
 		{
-			while (pStart < pEnd)
+			byte* pb = chunk.PointDataPtr;
+			while (pb < chunk.PointDataEndPtr)
 			{
-				SQuantizedPoint3D* p = (SQuantizedPoint3D*)pStart;
+				SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
 
 				// overwrite existing values
 				(*p).X = (int)((*p).X * m_scaleTranslationX + m_offsetTranslationX);
@@ -59,7 +60,7 @@ namespace CloudAE.Core.Geometry
 					(int)(((double)(*p).Y - m_minY) * m_tilesOverRangeY)
 				];
 
-				pStart += m_pointSizeBytes;
+				pb += m_pointSizeBytes;
 			}
 		}
 	}

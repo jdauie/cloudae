@@ -67,10 +67,8 @@ namespace CloudAE.Core
 				if (m_stream.Position > m_endPosition)
 					bytesRead -= (int)(m_stream.Position - m_endPosition);
 
-				int pointsRead = bytesRead / m_source.PointSizeBytes;
-
 				uint index = (m_current != null) ? m_current.Index + 1 : 0;
-				m_current = new PointCloudBinarySourceEnumeratorChunk(index, m_buffer, bytesRead, pointsRead, (float)(m_stream.Position - m_source.PointDataOffset) / (m_endPosition - m_source.PointDataOffset));
+				m_current = new PointCloudBinarySourceEnumeratorChunk(index, m_buffer, bytesRead, m_source.PointSizeBytes, (float)(m_stream.Position - m_source.PointDataOffset) / (m_endPosition - m_source.PointDataOffset));
 
 				return true;
 			}

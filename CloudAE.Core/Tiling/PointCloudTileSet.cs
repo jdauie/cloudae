@@ -182,7 +182,7 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudTileBufferPosition[,] CreatePositionGrid(BufferInstance segmentBuffer)
+		public PointCloudTileBufferPosition[,] CreatePositionGrid(PointBufferWrapper segmentBuffer)
 		{
 			// create tile position counters
 			var tilePositions = new PointCloudTileBufferPosition[Cols + 1, Rows + 1];

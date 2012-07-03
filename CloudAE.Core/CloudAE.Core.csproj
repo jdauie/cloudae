@@ -61,6 +61,7 @@
     <Compile Include="Geometry\Polygon2D.cs" />
     <Compile Include="Geometry\PolygonBase.cs" />
     <Compile Include="Geometry\QuantizationConverter.cs" />
+    <Compile Include="Geometry\QuantizationTest.cs" />
     <Compile Include="Handlers\LAS\LASPointAttribute.cs" />
     <Compile Include="Handlers\LAS\LASEVLR.cs" />
     <Compile Include="Handlers\LAS\LASHeader.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Managers\Identity.cs" />
     <Compile Include="Managers\IdentityManager.cs" />
     <Compile Include="Managers\IProgress.cs" />
+    <Compile Include="Managers\PointBufferWrapper.cs" />
     <Compile Include="Managers\ProgressManagerProcess.cs" />
     <Compile Include="Managers\ManagedBackgroundWorker.cs">
       <SubType>Component</SubType>
@@ -165,12 +167,8 @@
     <Compile Include="Segmentation.cs" />
     <Compile Include="Tiling\PointCloudTilesourceEnumeratorChunk.cs" />
     <Compile Include="Tiling\PointCloudTileSourceEnumerator.cs" />
-    <Compile Include="Tiling\PointCloudTileBufferManagerOptions.cs" />
     <Compile Include="Tiling\GridTileSource.cs" />
-    <Compile Include="Tiling\IPointCloudTileBufferManager.cs" />
-    <Compile Include="Tiling\PointCloudTileBufferManager2.cs" />
     <Compile Include="Tiling\PointCloudTile.cs" />
-    <Compile Include="Tiling\PointCloudTileBuffer.cs" />
     <Compile Include="Tiling\PointCloudTileDensity.cs" />
     <Compile Include="Tiling\PointCloudTileSet.cs" />
     <Compile Include="Tiling\PointCloudTileManager.cs" />
