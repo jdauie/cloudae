@@ -443,6 +443,9 @@ namespace CloudAE.Core
 			{
 				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
+					if (chunk.Length % source.PointSizeBytes != 0)
+						throw new Exception("why?");
+
 					byte* pb = chunk.DataPtr;
 					byte* pbEnd = chunk.DataEndPtr;
 					while (pb < pbEnd)
@@ -453,16 +456,6 @@ namespace CloudAE.Core
 						(*p).X = (int)((*p).X * scaleTranslationX + offsetTranslationX);
 						(*p).Y = (int)((*p).Y * scaleTranslationY + offsetTranslationY);
 						(*p).Z = (int)((*p).Z * scaleTranslationZ + offsetTranslationZ);
-
-						if ((*p).X == 324412 && (*p).Y == 455564)
-						{
-							pb = pb + 0;
-						}
-
-						if (pb - chunk.DataPtr + segmentBufferIndex == 244760480)
-						{
-							pb = pb + 0;
-						}
 
 						++tileCounts.Data[
 							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
@@ -502,7 +495,7 @@ namespace CloudAE.Core
 				var tilePositions = new PointCloudTileBufferPosition[tileSet.Cols + 1, tileSet.Rows + 1];
 				{
 					foreach (PointCloudTile tile in tileSet.ValidTiles)
-						tilePositions[tile.Col, tile.Row] = new PointCloudTileBufferPosition(tile);
+						tilePositions[tile.Col, tile.Row] = new PointCloudTileBufferPosition(segmentBuffer, tile);
 
 					// buffer the edges for overflow
 					for (int x = 0; x < tileSet.Cols; x++)
@@ -512,49 +505,36 @@ namespace CloudAE.Core
 				}
 
 				// for each point in segmentBuffer, swap with desired tile point
-				BufferInstance pointBuffer = process.AcquireBuffer(true);
+				//BufferInstance pointBuffer = process.AcquireBuffer(true);
 
 				foreach (PointCloudTile tile in tileSet.ValidTiles)
 				{
-					var tilePosition = tilePositions[tile.Col, tile.Row];
+					var currentPosition = tilePositions[tile.Col, tile.Row];
 
-					byte* pb = segmentBuffer.DataPtr + tilePosition.ByteIndex;
-					byte* pbEnd = pb + (tilePosition.Tile.StorageSize - tilePosition.ByteLength);
-					while (pb < pbEnd)
+					//byte* pb = currentPosition.DataPtr;
+					//byte* pbEnd = currentPosition.DataEndPtr;
+					while (currentPosition.DataPtr < currentPosition.DataEndPtr)
 					{
-						UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
+						UQuantizedPoint3D* p = (UQuantizedPoint3D*)currentPosition.DataPtr;
 
-						var position = tilePositions[
+						var targetPosition = tilePositions[
 							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
 							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
 						];
 
-						if (position != tilePosition)
+						if (targetPosition != currentPosition)
 						{
-							if (position.PointLength == position.Tile.PointCount)
-							{
-								pb = pb + 0;
-							}
-
-							if (position.ByteIndex == 450280 ||
-								tilePosition.ByteIndex == 450280)
-							{
-								pb = pb + 0;
-							}
-
-							if (position.ByteIndex == 244760480)
-							{
-								pb = pb + 0;
-							}
-
 							// the point tile is not the current traversal tile,
 							// so swap the points and resume on the swapped point
 
+							targetPosition.Swap(currentPosition.DataPtr);
+							
+
 							// DO JUST THE XYZ FOR TESTING
-							UQuantizedPoint3D* pTarget = (UQuantizedPoint3D*)(segmentBuffer.DataPtr + position.ByteIndex);
-							UQuantizedPoint3D temp = *pTarget;
-							*pTarget = *p;
-							*p = temp;
+							//UQuantizedPoint3D* pTarget = (UQuantizedPoint3D*)(segmentBuffer.DataPtr + targetPosition.ByteIndex);
+							//UQuantizedPoint3D temp = *pTarget;
+							//*pTarget = *p;
+							//*p = temp;
 
 							//// copy target to temp
 							//Buffer.BlockCopy(segmentBuffer.Data, position.ByteIndex, pointBuffer.Data,   0, pointSizeBytes);
@@ -562,11 +542,6 @@ namespace CloudAE.Core
 							//Buffer.BlockCopy(segmentBuffer.Data, tilePosition.ByteIndex, segmentBuffer.Data, position.ByteIndex, pointSizeBytes);
 							//// copy temp (target) to source
 							//Buffer.BlockCopy(pointBuffer.Data, 0, segmentBuffer.Data, tilePosition.ByteIndex, pointSizeBytes);
-
-							if (tilePosition.ByteIndex == 450280 && (*p).X == 324412)
-							{
-								pb = pb + 0;
-							}
 
 							//for (int i = 0; i < pointSizeBytes; i++)
 							//{
@@ -578,10 +553,8 @@ namespace CloudAE.Core
 						else
 						{
 							// this point is in the correct tile, move on
-							pb += pointSizeBytes;
+							currentPosition.Increment();
 						}
-
-						position.ByteIndex += pointSizeBytes;
 					}
 
 					if (!process.Update(tile))

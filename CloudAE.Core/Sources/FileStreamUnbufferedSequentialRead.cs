@@ -20,12 +20,25 @@ namespace CloudAE.Core
 
 		private BufferInstance m_buffer;
 		private FileStream m_stream;
+		private long m_streamPosition;
 		private int m_bufferIndex;
 		private bool m_bufferIsValid;
 
 		public long Position
 		{
-			get { return m_stream.Position + m_bufferIndex; }
+			get
+			{
+				// end of file
+				if (m_stream == null)
+					return m_streamPosition + m_bufferIndex;
+
+				// normal
+				if (m_bufferIsValid)
+					return m_streamPosition - (m_buffer.Length - m_bufferIndex);
+
+				// beginning of file
+				return m_streamPosition;
+			}
 		}
 
 		public FileStreamUnbufferedSequentialRead(string path)
@@ -57,6 +70,7 @@ namespace CloudAE.Core
 				long positionAligned = ((position + (m_sectorSize - 1)) & (~(long)(m_sectorSize - 1))) - m_sectorSize;
 				m_stream.Seek(positionAligned, SeekOrigin.Begin);
 				m_bufferIndex = (int)(position - positionAligned);
+				m_streamPosition = positionAligned;
 			}
 		}
 
@@ -98,7 +112,8 @@ namespace CloudAE.Core
 			}
 			else
 			{
-				var a = m_stream.Read(m_buffer.Data, 0, m_buffer.Length);
+				m_stream.Read(m_buffer.Data, 0, m_buffer.Length);
+				m_streamPosition += m_buffer.Length;
 			}
 
 			// if the buffer was not valid, we just did a seek
