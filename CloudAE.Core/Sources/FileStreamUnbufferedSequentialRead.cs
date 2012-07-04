@@ -23,6 +23,7 @@ namespace CloudAE.Core
 		private long m_streamPosition;
 		private int m_bufferIndex;
 		private bool m_bufferIsValid;
+		private int m_bufferValidSize;
 
 		public long Position
 		{
@@ -52,6 +53,7 @@ namespace CloudAE.Core
 			m_id = IdentityManager.AcquireIdentity(string.Format("{0}:{1}", this.GetType().Name, m_path));
 			m_buffer = BufferManager.AcquireBuffer(m_id, true);
 			m_sectorSize = PathUtil.GetDriveSectorSize(m_path);
+			m_bufferValidSize = m_buffer.Length;
 
 			FileMode    mode    = FileMode.Open;
 			FileAccess  access  = FileAccess.Read;
@@ -65,6 +67,9 @@ namespace CloudAE.Core
 
 		public void Seek(long position)
 		{
+			if (m_stream == null)
+				throw new InvalidOperationException("Seek: End of file has already been read");
+
 			if (Position != position && position != 0)
 			{
 				long positionAligned = ((position + (m_sectorSize - 1)) & (~(long)(m_sectorSize - 1))) - m_sectorSize;
@@ -76,6 +81,7 @@ namespace CloudAE.Core
 
 		public int Read(byte[] array, int offset, int count)
 		{
+			int startingOffset = offset;
 			int bytesToRead = count;
 			while (bytesToRead > 0)
 			{
@@ -83,22 +89,28 @@ namespace CloudAE.Core
 					ReadInternal();
 
 				// copy from array into remaining buffer
-				int remainingDataInBuffer = m_buffer.Length - m_bufferIndex;
+				int remainingDataInBuffer = m_bufferValidSize - m_bufferIndex;
 				int bytesToCopy = Math.Min(remainingDataInBuffer, bytesToRead);
 
 				Buffer.BlockCopy(m_buffer.Data, m_bufferIndex, array, offset, bytesToCopy);
 				m_bufferIndex += bytesToCopy;
 				offset += bytesToCopy;
 				bytesToRead -= bytesToCopy;
+
+				if (m_bufferValidSize < m_buffer.Length)
+					break;
 			}
 
-			return count;
+			return (offset - startingOffset);
 		}
 
 		private void ReadInternal()
 		{
+			if (m_stream == null)
+				throw new InvalidOperationException("Read: End of file has already been read");
+
 			// a partial read is required at the end of the file
-			long position = m_stream.Position;
+			long position = m_streamPosition;
 			if (position + m_buffer.Length > m_stream.Length)
 			{
 				m_stream.Dispose();
@@ -107,7 +119,8 @@ namespace CloudAE.Core
 				using (var stream = new FileStream(m_path, FileMode.Open, FileAccess.Read, FileShare.None, BUFFER_SIZE, FileOptions.WriteThrough))
 				{
 					stream.Seek(position, SeekOrigin.Begin);
-					stream.Read(m_buffer.Data, 0, (int)(stream.Length - position));
+					int r = stream.Read(m_buffer.Data, 0, (int)(stream.Length - position));
+					m_bufferValidSize = r;
 				}
 			}
 			else
