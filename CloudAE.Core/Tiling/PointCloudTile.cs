@@ -17,7 +17,7 @@ namespace CloudAE.Core
 
 		public readonly ushort Row;
 		public readonly ushort Col;
-		public readonly int PointOffset;
+		public readonly long PointOffset;
 		public readonly int PointCount;
 
 		public readonly int StorageSize;
@@ -73,7 +73,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public PointCloudTile(ushort col, ushort row, int validIndex, int offset, int count)
+		public PointCloudTile(ushort col, ushort row, int validIndex, long offset, int count)
 		{
 			Row = row;
 			Col = col;
@@ -114,7 +114,7 @@ namespace CloudAE.Core
 				return 0;
 
 			// seek if necessary (hopefully this is minimized)
-			long position = TileSource.PointDataOffset + PointOffset * TileSource.PointSizeBytes;
+			long position = TileSource.PointDataOffset + (PointOffset * TileSource.PointSizeBytes);
 			if (inputStream.Position != position)
 				inputStream.Seek(position);
 

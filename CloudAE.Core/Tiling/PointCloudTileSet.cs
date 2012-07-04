@@ -50,7 +50,7 @@ namespace CloudAE.Core
 			ValidTileCount = density.ValidTileCount;
 
 			m_tiles = new PointCloudTile[Cols, Rows];
-			int offset = 0;
+			long offset = 0;
 			int validTileIndex = 0;
 			for (ushort x = 0; x < Cols; x++)
 			{
@@ -107,7 +107,7 @@ namespace CloudAE.Core
 
 			PointCount = tileSets.Sum(t => t.PointCount);
 
-			int offset = 0;
+			long offset = 0;
 			int validTileIndex = 0;
 			for (ushort x = 0; x < Cols; x++)
 			{
@@ -144,7 +144,7 @@ namespace CloudAE.Core
 			ValidTileCount = Density.ValidTileCount;
 
 			m_tiles = new PointCloudTile[Cols, Rows];
-			int pointOffset = 0;
+			long pointOffset = 0;
 			int validTileIndex = 0;
 			for (ushort x = 0; x < Cols; x++)
 			{
