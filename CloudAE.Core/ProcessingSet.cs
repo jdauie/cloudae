@@ -199,7 +199,6 @@ namespace CloudAE.Core
 				using (var outputStream = new FileStreamUnbufferedSequentialWrite(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset))
 				{
 					int bytesInCurrentSegment = 0;
-					int segmentBufferIndex = 0;
 
 					// create buffer groups
 					var segmentTileGroups = new List<List<PointCloudTile>>();
@@ -220,23 +219,29 @@ namespace CloudAE.Core
 					// process buffer groups
 					foreach (var group in segmentTileGroups)
 					{
+						//long groupStart = group[0].PointOffset * tileSource.Count;
+						int groupLength = group.Sum(t => t.StorageSize);
+
 						// read tiles (ordered by segment)
 						foreach (var segment in tiledSegments)
 						{
+							// keep track of interleave location
+							int mergedTileOffset = 0;
 							foreach (var tile in group)
 							{
 								var segmentTile = segment.TileSet[tile.Col, tile.Row];
 								if (segmentTile.IsValid)
 								{
+									int previousSegmentTilesSize = tiledSegments.TakeWhile(s => s != segment).Sum(s => s.TileSet[tile.Col, tile.Row].StorageSize);
+									int segmentBufferIndex = mergedTileOffset + previousSegmentTilesSize;
 									segmentTile.TileSource.LoadTile(segmentTile, segmentBuffer.Data, segmentBufferIndex);
-									segmentBufferIndex += segmentTile.StorageSize;
 								}
+								mergedTileOffset += tile.StorageSize;
 							}
 						}
 
 						// flush buffer and reset
-						outputStream.Write(segmentBuffer.Data, 0, segmentBufferIndex);
-						segmentBufferIndex = 0;
+						outputStream.Write(segmentBuffer.Data, 0, groupLength);
 
 						if (!process.Update((float)outputStream.Position / tileSource.FileSize))
 							break;
