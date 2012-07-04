@@ -10,7 +10,7 @@ namespace CloudAE.Core
 {
 	public class ProcessingSet : IPropertyContainer
 	{
-		private static readonly PropertyState<ByteSizesLarge> PROPERTY_SEGMENT_SIZE;
+		private static readonly PropertyState<ByteSizesSmall> PROPERTY_SEGMENT_SIZE;
 		private static readonly PropertyState<bool> PROPERTY_REUSE_TILING;
 
 		private readonly Identity m_id;
@@ -24,7 +24,7 @@ namespace CloudAE.Core
 
 		static ProcessingSet()
 		{
-			PROPERTY_SEGMENT_SIZE = Context.RegisterOption(Context.OptionCategory.Tiling, "MaxSegmentSize", ByteSizesLarge.GB_2);
+			PROPERTY_SEGMENT_SIZE = Context.RegisterOption(Context.OptionCategory.Tiling, "MaxSegmentSize", ByteSizesSmall.MB_256);
 			PROPERTY_REUSE_TILING = Context.RegisterOption(Context.OptionCategory.Tiling, "UseCache", true);
 		}
 
@@ -59,23 +59,25 @@ namespace CloudAE.Core
 
 					// step 2,3
 					long pointDataSize = m_binarySource.Count * m_binarySource.PointSizeBytes;
-					long maxSegmentBytes = (long)PROPERTY_SEGMENT_SIZE.Value;
+					int maxSegmentBytes = (int)PROPERTY_SEGMENT_SIZE.Value;
 
-					BufferInstance segmentBuffer = BufferManager.AcquireBuffer(m_id, (int)maxSegmentBytes, true);
-					if (pointDataSize > maxSegmentBytes)
+					using (var segmentBuffer = BufferManager.AcquireBuffer(m_id, maxSegmentBytes, true))
 					{
-						ProcessFileSegments(segmentBuffer, progressManager);
-					}
-					else
-					{
-						var segmentWrapper = new PointBufferWrapper(segmentBuffer, m_binarySource);
-						var tileManager = new PointCloudTileManager(m_binarySource);
-						m_tileSource = tileManager.TilePointFile(m_tiledPath, segmentWrapper, progressManager);
-
-						if (!process.IsCanceled())
+						if (pointDataSize > maxSegmentBytes)
 						{
-							m_tileSource.IsDirty = false;
-							m_tileSource.WriteHeader();
+							ProcessFileSegments(segmentBuffer, progressManager);
+						}
+						else
+						{
+							var segmentWrapper = new PointBufferWrapper(segmentBuffer, m_binarySource);
+							var tileManager = new PointCloudTileManager(m_binarySource);
+							m_tileSource = tileManager.TilePointFile(m_tiledPath, segmentWrapper, progressManager);
+
+							if (!process.IsCanceled())
+							{
+								m_tileSource.IsDirty = false;
+								m_tileSource.WriteHeader();
+							}
 						}
 					}
 
