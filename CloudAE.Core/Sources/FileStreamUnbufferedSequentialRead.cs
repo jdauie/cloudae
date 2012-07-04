@@ -20,6 +20,7 @@ namespace CloudAE.Core
 
 		private BufferInstance m_buffer;
 		private FileStream m_stream;
+		private FileStream m_streamEnd;
 		private long m_streamPosition;
 		private int m_bufferIndex;
 		private bool m_bufferIsValid;
@@ -30,7 +31,7 @@ namespace CloudAE.Core
 			get
 			{
 				// end of file
-				if (m_stream == null)
+				if (m_bufferValidSize != m_buffer.Length)
 					return m_streamPosition + m_bufferIndex;
 
 				// normal
@@ -38,7 +39,7 @@ namespace CloudAE.Core
 					return m_streamPosition - (m_buffer.Length - m_bufferIndex);
 
 				// beginning of file
-				return m_streamPosition;
+				return m_streamPosition + m_bufferIndex;
 			}
 		}
 
@@ -57,25 +58,36 @@ namespace CloudAE.Core
 
 			FileMode    mode    = FileMode.Open;
 			FileAccess  access  = FileAccess.Read;
-			FileShare   share   = FileShare.Read;// EXCLUSIVE?
+			FileShare   share   = FileShare.Read;
 			FileOptions options = (FileFlagNoBuffering | FileOptions.WriteThrough | FileOptions.SequentialScan);
 
 			m_stream = new FileStream(m_path, mode, access, share, BUFFER_SIZE, options);
+			m_streamEnd = new FileStream(m_path, mode, access, share, BUFFER_SIZE, FileOptions.WriteThrough);
 
 			Seek(startPosition);
 		}
 
+		private long GetPositionAligned(long position)
+		{
+			return ((position + (m_sectorSize - 1)) & (~(long)(m_sectorSize - 1))) - m_sectorSize;
+		}
+
 		public void Seek(long position)
 		{
-			if (m_stream == null)
-				throw new InvalidOperationException("Seek: End of file has already been read");
+			//if (m_stream == null)
+			//{
+			//    //Context.WriteLine("Dispose without completion");
+			//    throw new InvalidOperationException("Seek: End of file has already been read");
+			//}
 
 			if (Position != position && position != 0)
 			{
-				long positionAligned = ((position + (m_sectorSize - 1)) & (~(long)(m_sectorSize - 1))) - m_sectorSize;
+				long positionAligned = GetPositionAligned(position);
 				m_stream.Seek(positionAligned, SeekOrigin.Begin);
 				m_bufferIndex = (int)(position - positionAligned);
 				m_streamPosition = positionAligned;
+				m_bufferIsValid = false;
+				m_bufferValidSize = m_buffer.Length;
 			}
 		}
 
@@ -106,27 +118,24 @@ namespace CloudAE.Core
 
 		private void ReadInternal()
 		{
-			if (m_stream == null)
-				throw new InvalidOperationException("Read: End of file has already been read");
+			//if (m_stream == null)
+			//    throw new InvalidOperationException("Read: End of file has already been read");
 
 			// a partial read is required at the end of the file
 			long position = m_streamPosition;
 			if (position + m_buffer.Length > m_stream.Length)
 			{
-				m_stream.Dispose();
-				m_stream = null;
+				//m_stream.Dispose();
+				//m_stream = null;
 
-				using (var stream = new FileStream(m_path, FileMode.Open, FileAccess.Read, FileShare.None, BUFFER_SIZE, FileOptions.WriteThrough))
-				{
-					stream.Seek(position, SeekOrigin.Begin);
-					int r = stream.Read(m_buffer.Data, 0, (int)(stream.Length - position));
-					m_bufferValidSize = r;
-				}
+				m_streamEnd.Seek(position, SeekOrigin.Begin);
+				m_bufferValidSize = m_streamEnd.Read(m_buffer.Data, 0, (int)(m_streamEnd.Length - position));
 			}
 			else
 			{
 				m_stream.Read(m_buffer.Data, 0, m_buffer.Length);
 				m_streamPosition += m_buffer.Length;
+				m_bufferValidSize = m_buffer.Length;
 			}
 
 			// if the buffer was not valid, we just did a seek
@@ -143,6 +152,12 @@ namespace CloudAE.Core
 			{
 				m_stream.Dispose();
 				m_stream = null;
+			}
+
+			if (m_streamEnd != null)
+			{
+				m_streamEnd.Dispose();
+				m_streamEnd = null;
 			}
 
 			if (m_buffer != null)
