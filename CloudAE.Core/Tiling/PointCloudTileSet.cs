@@ -166,25 +166,6 @@ namespace CloudAE.Core
 
 				pointOffset += count;
 			}
-
-			//m_tiles = new PointCloudTile[Cols, Rows];
-			//long pointOffset = 0;
-			//int validTileIndex = 0;
-			//for (ushort x = 0; x < Cols; x++)
-			//{
-			//    for (ushort y = 0; y < Rows; y++)
-			//    {
-			//        int tilePointCount = reader.ReadInt32();
-
-			//        m_tiles[x, y] = new PointCloudTile(x, y, validTileIndex, pointOffset, tilePointCount);
-
-			//        if (tilePointCount > 0)
-			//        {
-			//            ++validTileIndex;
-			//            pointOffset += tilePointCount;
-			//        }
-			//    }
-			//}
 		}
 
 		public void Serialize(BinaryWriter writer)
@@ -200,15 +181,6 @@ namespace CloudAE.Core
 				writer.Write(tile.Row);
 				writer.Write(tile.PointCount);
 			}
-
-			//for (ushort x = 0; x < Cols; x++)
-			//{
-			//    for (ushort y = 0; y < Rows; y++)
-			//    {
-			//        PointCloudTile tile = m_tiles[x, y];
-			//        writer.Write(tile.PointCount);
-			//    }
-			//}
 		}
 
 		#endregion
@@ -276,7 +248,7 @@ namespace CloudAE.Core
 
 		public IEnumerator<PointCloudTile> GetEnumerator()
 		{
-			// make sure we traverse the tiles in the correct storage order (so we don't have to seek)
+			// traverse the tiles in storage order
 			return m_tree.Select(tile => m_tiles[tile.Col, tile.Row]).GetEnumerator();
 		}
 
