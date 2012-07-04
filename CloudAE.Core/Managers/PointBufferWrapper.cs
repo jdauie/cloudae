@@ -14,14 +14,11 @@ namespace CloudAE.Core
 		private readonly short m_pointSizeBytes;
 		private readonly int m_pointCount;
 		private readonly int m_length;
-
-
-		private bool m_initialized;
+		private readonly bool m_initialized;
 
 		public bool Initialized
 		{
 			get { return m_initialized; }
-			set { m_initialized = value; }
 		}
 
 		#region BufferInstance Members
@@ -72,6 +69,17 @@ namespace CloudAE.Core
 			m_length = m_pointCount * m_pointSizeBytes;
 			m_pointDataPtr = m_buffer.DataPtr;
 			m_pointDataEndPtr = m_pointDataPtr + m_length;
+		}
+
+		private PointBufferWrapper(PointBufferWrapper wrapper, bool initialized)
+			: this(wrapper.m_buffer, wrapper.m_source)
+		{
+			m_initialized = initialized;
+		}
+
+		public PointBufferWrapper Initialize()
+		{
+			return new PointBufferWrapper(this, true);
 		}
 	}
 }
