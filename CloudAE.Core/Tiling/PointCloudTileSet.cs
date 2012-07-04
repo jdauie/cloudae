@@ -185,6 +185,12 @@ namespace CloudAE.Core
 
 		#endregion
 
+		public PointCloudTile[][] GetTileReadOrderGroups(PointCloudTile[] tiles)
+		{
+			// break the tiles down inside the tree to determine read order/grouping
+			return null;
+		}
+
 		public PointCloudTileBufferPosition[,] CreatePositionGrid(PointBufferWrapper segmentBuffer)
 		{
 			// create tile position counters
