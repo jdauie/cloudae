@@ -77,12 +77,20 @@ namespace CloudAE.Core
 		{
 			Row = row;
 			Col = col;
-			PointOffset = offset;
 			PointCount = count;
 
 			StorageSize = 0;
 
-			ValidIndex = validIndex;
+			if (IsValid)
+			{
+				PointOffset = offset;
+				ValidIndex = validIndex;
+			}
+			else
+			{
+				PointOffset = -1;
+				ValidIndex = -1;
+			}
 		}
 
 		public PointCloudTile(PointCloudTile tile, PointCloudTileSource tileSource)
