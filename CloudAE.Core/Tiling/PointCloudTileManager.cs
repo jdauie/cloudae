@@ -316,14 +316,11 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
-			ScaledStatisticsMapping vm = null;
+			ScaledStatisticsMapping vm = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
 			QuantizationTest<int> qt = null;
 
 			if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
-			{
-				vm = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
 				qt = new QuantizationTest<int>(source);
-			}
 
 			int segmentBufferIndex = 0;
 
@@ -347,8 +344,9 @@ namespace CloudAE.Core
 						pb += pointSizeBytes;
 					}
 
-					if (vm != null) vm.Process(chunk);
-					if (qt != null) qt.Process(chunk);
+					vm.Process(chunk);
+					if (qt != null)
+						qt.Process(chunk);
 
 					if (segmentBuffer != null)
 					{
@@ -359,8 +357,9 @@ namespace CloudAE.Core
 
 				tileCounts.CorrectCountOverflow();
 
-				if (vm != null) stats = vm.ComputeStatistics(extent.MinZ, extent.RangeZ);
-				if (qt != null) quantization = qt.CreateQuantization();
+				stats = vm.ComputeStatistics(extent.MinZ, extent.RangeZ);
+				if (qt != null)
+					quantization = qt.CreateQuantization();
 			}
 
 			if (quantization == null)
