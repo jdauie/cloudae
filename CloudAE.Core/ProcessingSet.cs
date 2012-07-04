@@ -178,8 +178,6 @@ namespace CloudAE.Core
 					var segmentWrapper = new PointBufferWrapper(segmentBuffer, segments[i]);
 					tiledSegments[i] = tileManager.TilePointFileSegment(tiledSegmentPath, analysis, segmentWrapper, progressManager);
 
-					GC.Collect();
-
 					// do I want to switch to an abort mechanism instead?
 					//if (process.IsCanceled())
 					//    break;
@@ -219,7 +217,6 @@ namespace CloudAE.Core
 					// process buffer groups
 					foreach (var group in segmentTileGroups)
 					{
-						//long groupStart = group[0].PointOffset * tileSource.Count;
 						int groupLength = group.Sum(t => t.StorageSize);
 
 						// read tiles (ordered by segment)
@@ -264,6 +261,8 @@ namespace CloudAE.Core
 
 				process.LogTime("Merged Tiled Segments");
 			}
+
+			GC.Collect();
 		}
 
 		private void LoadFromCache(ProgressManager progressManager)
