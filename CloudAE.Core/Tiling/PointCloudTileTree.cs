@@ -4,11 +4,11 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
-	class PointCloudTileTree : IEnumerable<PointCloudTile>
+	class PointCloudTileTree : IEnumerable<PointCloudTileCoord>
 	{
 		private readonly PointCloudTileTreeNode m_rootNode;
 
-		private readonly PointCloudTile[,] m_grid;
+		private readonly PointCloudTileCoord[,] m_grid;
 
 		private readonly ushort m_gridX;
 		private readonly ushort m_gridY;
@@ -16,12 +16,15 @@ namespace CloudAE.Core
 		private readonly ushort m_gridTreeBasePow;
 		private readonly ushort m_gridTreeBaseSize;
 
-		public PointCloudTileTree(PointCloudTile[,] grid)
+		public PointCloudTileTree(ushort cols, ushort rows)
 		{
-			m_grid = grid;
+			m_gridX = cols;
+			m_gridY = rows;
 
-			m_gridX = (ushort)grid.GetLength(0);
-			m_gridY = (ushort)grid.GetLength(1);
+			m_grid = new PointCloudTileCoord[m_gridX, m_gridY];
+			for (ushort x = 0; x < m_gridX; x++)
+				for (ushort y = 0; y < m_gridY; y++)
+					m_grid[x, y] = new PointCloudTileCoord(x, y);
 
 			m_gridTreeBasePow = (ushort)Math.Ceiling(Math.Log(Math.Max(m_gridX, m_gridY), 2));
 			m_gridTreeBaseSize = (ushort)Math.Pow(2, m_gridTreeBasePow);
@@ -68,7 +71,7 @@ namespace CloudAE.Core
 
 		#region IEnumerable Members
 
-		public IEnumerator<PointCloudTile> GetEnumerator()
+		public IEnumerator<PointCloudTileCoord> GetEnumerator()
 		{
 			var stack = new Stack<PointCloudTileTreeNode>();
 			stack.Push(m_rootNode);
@@ -108,9 +111,9 @@ namespace CloudAE.Core
 		public readonly PointCloudTileTreeNode[] Nodes;
 		public readonly bool HasChildNodes;
 
-		public readonly PointCloudTile Tile;
+		public readonly PointCloudTileCoord Tile;
 
-		public PointCloudTileTreeNode(PointCloudTile tile)
+		public PointCloudTileTreeNode(PointCloudTileCoord tile)
 		{
 			Nodes = null;
 			HasChildNodes = false;
@@ -126,6 +129,18 @@ namespace CloudAE.Core
 			Nodes[3] = node4;
 
 			HasChildNodes = Nodes.Any(n => n != null);
+		}
+	}
+
+	struct PointCloudTileCoord
+	{
+		public readonly ushort Col;
+		public readonly ushort Row;
+
+		public PointCloudTileCoord(ushort x, ushort y)
+		{
+			Col = x;
+			Row = y;
 		}
 	}
 }

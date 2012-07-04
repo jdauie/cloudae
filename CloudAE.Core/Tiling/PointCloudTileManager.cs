@@ -102,7 +102,7 @@ namespace CloudAE.Core
 		{
 			var tileCounts = CreateTileCountsForInitialization(source, analysis.Density);
 			var actualDensity = m_initializeCountsFunc(source, segmentBuffer, tileCounts, analysis.Quantization, progressManager);
-			var tileSet = new PointCloudTileSet(actualDensity, tileCounts, source.PointSizeBytes);
+			var tileSet = new PointCloudTileSet(actualDensity, tileCounts);
 			return tileSet;
 		}
 
