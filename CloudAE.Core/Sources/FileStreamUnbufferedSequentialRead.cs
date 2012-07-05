@@ -74,12 +74,6 @@ namespace CloudAE.Core
 
 		public void Seek(long position)
 		{
-			//if (m_stream == null)
-			//{
-			//    //Context.WriteLine("Dispose without completion");
-			//    throw new InvalidOperationException("Seek: End of file has already been read");
-			//}
-
 			if (Position != position && position != 0)
 			{
 				long positionAligned = GetPositionAligned(position);
@@ -118,16 +112,10 @@ namespace CloudAE.Core
 
 		private void ReadInternal()
 		{
-			//if (m_stream == null)
-			//    throw new InvalidOperationException("Read: End of file has already been read");
-
 			// a partial read is required at the end of the file
 			long position = m_streamPosition;
 			if (position + m_buffer.Length > m_stream.Length)
 			{
-				//m_stream.Dispose();
-				//m_stream = null;
-
 				m_streamEnd.Seek(position, SeekOrigin.Begin);
 				m_bufferValidSize = m_streamEnd.Read(m_buffer.Data, 0, (int)(m_streamEnd.Length - position));
 			}
