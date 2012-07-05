@@ -281,5 +281,15 @@ namespace CloudAE.Core
 				writer.Write(m_numberOfPointsByReturn);
 			}
 		}
+
+		public LASVLR[] ReadVLRs(IStreamReader reader)
+		{
+			LASVLR[] vlrs = null;
+
+			reader.Seek(m_headerSize);
+			
+
+			return vlrs;
+		}
 	}
 }
