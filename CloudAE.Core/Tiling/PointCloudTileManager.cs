@@ -151,8 +151,6 @@ namespace CloudAE.Core
 
 		private static unsafe PointCloudAnalysisResult FloatEstimateDensity(PointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
 		{
-			bool computeStats = true;
-
 			Statistics stats = null;
 			Quantization3D quantization = null;
 
@@ -166,8 +164,9 @@ namespace CloudAE.Core
 			long[] verticalValueCounts = new long[verticalValueIntervals + 1];
 			float intervalsOverRangeZ = (float)(verticalValueIntervals / extent.RangeZ);
 
-			// test precision
+			var gc = new GridCounter(source, tileCounts);
 			QuantizationTest<double> qt = null;
+
 			if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
 				qt = new QuantizationTest<double>(source);
 
@@ -175,38 +174,23 @@ namespace CloudAE.Core
 			{
 				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
+					gc.Process(chunk);
+					
 					byte* pb = chunk.DataPtr;
 					byte* pbEnd = chunk.DataEndPtr;
 					while (pb < pbEnd)
 					{
 						Point3D* p = (Point3D*)pb;
-						++tileCounts.Data[
-							(int)(((*p).X - extent.MinX) * tilesOverRangeX),
-							(int)(((*p).Y - extent.MinY) * tilesOverRangeY)
-						];
+						++verticalValueCounts[(int)(((*p).Z - extent.MinZ) * intervalsOverRangeZ)];
 						pb += pointSizeBytes;
 					}
 
-					if (computeStats)
-					{
-						pb = chunk.DataPtr;
-						while (pb < pbEnd)
-						{
-							Point3D* p = (Point3D*)pb;
-							++verticalValueCounts[(int)(((*p).Z - extent.MinZ) * intervalsOverRangeZ)];
-							pb += pointSizeBytes;
-						}
-
-						if (qt != null)
-							qt.Process(chunk);
-					}
+					if (qt != null)
+						qt.Process(chunk);
 				}
-			}
 
-			tileCounts.CorrectCountOverflow();
+				tileCounts.CorrectCountOverflow();
 
-			if (computeStats)
-			{
 				stats = ScaledStatisticsMapping.ComputeStatistics(verticalValueCounts, true, extent.MinZ, extent.RangeZ);
 
 				if (qt != null)
@@ -313,57 +297,36 @@ namespace CloudAE.Core
 			var inputQuantization = (SQuantization3D)source.Quantization;
 			var quantizedExtent = (SQuantizedExtent3D)inputQuantization.Convert(extent);
 
-			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
-			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
-
-			ScaledStatisticsMapping vm = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
-			QuantizationTest<int> qt = null;
-
+			QuantizationTest<int> quantizationTest = null;
 			if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
-				qt = new QuantizationTest<int>(source);
-
-			int segmentBufferIndex = 0;
+				quantizationTest = new QuantizationTest<int>(source);
 
 			using (var process = progressManager.StartProcess("CountPointsAnalysisQuantized"))
 			{
-				foreach (var chunk in source.GetBlockEnumerator(process))
+				var statsMapping = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
+				
+				using (var gridCounter = new GridCounter(source, tileCounts))
 				{
-					byte* pb = chunk.DataPtr;
-					byte* pbEnd = chunk.DataEndPtr;
-					while (pb < pbEnd)
+					foreach (var chunk in source.GetBlockEnumerator(process))
 					{
-						SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
+						gridCounter.Process(chunk);
+						statsMapping.Process(chunk);
 
-						int tileX = (int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX);
-						int tileY = (int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY);
+						if (quantizationTest != null)
+							quantizationTest.Process(chunk);
 
-						if (tileX < 0) tileX = 0; else if (tileX > tileCounts.SizeX) tileX = tileCounts.SizeX;
-						if (tileY < 0) tileY = 0; else if (tileY > tileCounts.SizeY) tileY = tileCounts.SizeY;
-
-						++tileCounts.Data[tileX, tileY];
-						pb += pointSizeBytes;
-					}
-
-					vm.Process(chunk);
-					if (qt != null)
-						qt.Process(chunk);
-
-					if (segmentBuffer != null)
-					{
-						Buffer.BlockCopy(chunk.Data, 0, segmentBuffer.Data, segmentBufferIndex, chunk.Length);
-						segmentBufferIndex += chunk.Length;
+						if (segmentBuffer != null)
+							segmentBuffer.Append(chunk);
 					}
 				}
 
-				tileCounts.CorrectCountOverflow();
-
-				stats = vm.ComputeStatistics(extent.MinZ, extent.RangeZ);
-				if (qt != null)
-					quantization = qt.CreateQuantization();
+				stats = statsMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
+				if (quantizationTest != null)
+					quantization = quantizationTest.CreateQuantization();
 			}
 
 			if (quantization == null)
-				quantization = Quantization3D.Create(source.Extent, true);
+				quantization = Quantization3D.Create(extent, true);
 
 			var density = new PointCloudTileDensity(tileCounts, extent);
 			var result = new PointCloudAnalysisResult(density, stats, quantization);
@@ -373,36 +336,26 @@ namespace CloudAE.Core
 
 		private static PointCloudTileDensity QuantInitializeCounts(PointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
-			var extent = source.Extent;
-			var inputQuantization = (SQuantization3D)source.Quantization;
-			var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
-
-			var qc = new QuantizationConverter(inputQuantization, outputQuantization, quantizedExtent, tileCounts, source.PointSizeBytes);
-
-			int segmentBufferIndex = 0;
-
 			using (var process = progressManager.StartProcess("CountPointsAccurateQuantized"))
 			{
-				if (segmentBuffer.Initialized)
+				using (var quantizationConverter = new QuantizationConverter(source, outputQuantization, tileCounts))
 				{
-					qc.Process(segmentBuffer);
-				}
-				else
-				{
-					// read from disk
-					foreach (var chunk in source.GetBlockEnumerator(process))
+					if (segmentBuffer.Initialized)
 					{
-						qc.Process(chunk);
-
-						Buffer.BlockCopy(chunk.Data, 0, segmentBuffer.Data, segmentBufferIndex, chunk.Length);
-						segmentBufferIndex += chunk.Length;
+						quantizationConverter.Process(segmentBuffer);
+					}
+					else
+					{
+						foreach (var chunk in source.GetBlockEnumerator(process))
+						{
+							quantizationConverter.Process(chunk);
+							segmentBuffer.Append(chunk);
+						}
 					}
 				}
-
-				tileCounts.CorrectCountOverflow();
 			}
 
-			var density = new PointCloudTileDensity(tileCounts, extent);
+			var density = new PointCloudTileDensity(tileCounts, source.Extent);
 			return density;
 		}
 

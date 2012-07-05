@@ -16,6 +16,8 @@ namespace CloudAE.Core
 		private readonly int m_length;
 		private readonly bool m_initialized;
 
+		private int m_bufferIndex;
+
 		public bool Initialized
 		{
 			get { return m_initialized; }
@@ -69,12 +71,23 @@ namespace CloudAE.Core
 			m_length = m_pointCount * m_pointSizeBytes;
 			m_pointDataPtr = m_buffer.DataPtr;
 			m_pointDataEndPtr = m_pointDataPtr + m_length;
+
+			m_bufferIndex = 0;
 		}
 
 		private PointBufferWrapper(PointBufferWrapper wrapper, bool initialized)
 			: this(wrapper.m_buffer, wrapper.m_source)
 		{
 			m_initialized = initialized;
+		}
+
+		public void Append(IPointDataChunk chunk)
+		{
+			if (m_initialized)
+				throw new InvalidOperationException("Cannot append to initialized buffer");
+
+			Buffer.BlockCopy(chunk.Data, 0, m_buffer.Data, m_bufferIndex, chunk.Length);
+			m_bufferIndex += chunk.Length;
 		}
 
 		public PointBufferWrapper Initialize()

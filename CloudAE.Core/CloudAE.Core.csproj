@@ -91,6 +91,7 @@
     <Compile Include="Managers\ManagedBackgroundWorker.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Math\GridCounter.cs" />
     <Compile Include="Math\ScaledStatisticsMapping.cs" />
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\IColorHandler.cs" />

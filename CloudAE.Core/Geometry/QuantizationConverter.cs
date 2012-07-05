@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CloudAE.Core.Geometry
 {
-	public class QuantizationConverter
+	public class QuantizationConverter : IDisposable
 	{
 		private readonly Grid<int> m_tileCounts;
 		private readonly short m_pointSizeBytes;
@@ -23,16 +23,20 @@ namespace CloudAE.Core.Geometry
 		private readonly double m_offsetTranslationY;
 		private readonly double m_offsetTranslationZ;
 
-		public QuantizationConverter(Quantization3D inputQuantization, Quantization3D outputQuantization, UQuantizedExtent2D extent, Grid<int> tileCounts, short pointSizeBytes)
+		public QuantizationConverter(PointCloudBinarySource source, Quantization3D outputQuantization, Grid<int> tileCounts)
 		{
+			var extent = source.Extent;
+			var inputQuantization = (SQuantization3D)source.Quantization;
+			var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
+			
 			m_tileCounts = tileCounts;
-			m_pointSizeBytes = pointSizeBytes;
+			m_pointSizeBytes = source.PointSizeBytes;
 
-			m_minX = extent.MinX;
-			m_minY = extent.MinY;
+			m_minX = quantizedExtent.MinX;
+			m_minY = quantizedExtent.MinY;
 
-			m_tilesOverRangeX = (double)tileCounts.SizeX / extent.RangeX;
-			m_tilesOverRangeY = (double)tileCounts.SizeY / extent.RangeY;
+			m_tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
+			m_tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
 			m_scaleTranslationX = inputQuantization.ScaleFactorX / outputQuantization.ScaleFactorX;
 			m_scaleTranslationY = inputQuantization.ScaleFactorY / outputQuantization.ScaleFactorY;
@@ -62,6 +66,11 @@ namespace CloudAE.Core.Geometry
 
 				pb += m_pointSizeBytes;
 			}
+		}
+
+		public void Dispose()
+		{
+			m_tileCounts.CorrectCountOverflow();
 		}
 	}
 }
