@@ -28,6 +28,21 @@ namespace CloudAE.Core
 			for (int i = 0; i < array.Length; i++) writer.Write(array[i]);
 		}
 
+		public static ISerializeBinary ReadObject(this BinaryReader reader, Type type)
+		{
+			var constructor = type.GetConstructor(new Type[] { typeof(BinaryReader) });
+
+			ISerializeBinary obj = null;
+
+			try
+			{
+				obj = constructor.Invoke(new object[] { reader }) as ISerializeBinary;
+			}
+			catch { }
+
+			return obj;
+		}
+
 		public static Extent3D ReadExtent3D(this BinaryReader reader)
 		{
 			return new Extent3D(reader);

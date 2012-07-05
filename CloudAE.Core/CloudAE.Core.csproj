@@ -134,6 +134,7 @@
     <Compile Include="Options\PropertyState.cs" />
     <Compile Include="Options\IPropertyState.cs" />
     <Compile Include="Options\PropertyName.cs" />
+    <Compile Include="Serialization\SerializationHelper.cs" />
     <Compile Include="Sources\IStreamReader.cs" />
     <Compile Include="Sources\FileStreamUnbufferedSequentialRead.cs" />
     <Compile Include="Sources\FileStreamUnbufferedSequentialWrite.cs" />
