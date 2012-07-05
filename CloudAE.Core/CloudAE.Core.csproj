@@ -93,6 +93,7 @@
     </Compile>
     <Compile Include="Math\GridCounter.cs" />
     <Compile Include="Math\ScaledStatisticsMapping.cs" />
+    <Compile Include="Math\SimpleStatsMapping.cs" />
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />
