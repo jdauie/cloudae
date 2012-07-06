@@ -147,7 +147,7 @@ namespace CloudAE.Core
 
 		#endregion
 
-		//private void Track(Tile currentPosition)
+		//private void Track(Point currentPosition)
 		//{
 		//    Vector3D currentPosition3D = ProjectToTrackball(
 		//        EventSource.ActualWidth, EventSource.ActualHeight, currentPosition);
@@ -170,7 +170,7 @@ namespace CloudAE.Core
 		//    _previousPosition3D = currentPosition3D;
 		//}
 
-		//private Vector3D ProjectToTrackball(double width, double height, Tile point)
+		//private Vector3D ProjectToTrackball(double width, double height, Point point)
 		//{
 		//    double x = point.X / (width / 2);    // Scale so bounds map to [0,0] - [2,2]
 		//    double y = point.Y / (height / 2);

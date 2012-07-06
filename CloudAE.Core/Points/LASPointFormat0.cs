@@ -8,8 +8,8 @@ using CloudAE.Core.Handlers;
 namespace CloudAE.Core.Geometry
 {
 	/// <summary>
-	/// Tile Data Record Format 0 contains the core 20 bytes 
-	/// that are shared by Tile Data Record Formats 0 to 5.
+	/// Point Data Record Format 0 contains the core 20 bytes 
+	/// that are shared by Point Data Record Formats 0 to 5.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public struct LASPointFormat0 : IQuantizedPoint3D
