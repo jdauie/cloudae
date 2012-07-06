@@ -8,7 +8,7 @@ using CloudAE.Core.Util;
 
 namespace CloudAE.Core
 {
-	public class FileStreamUnbufferedSequentialRead : IStreamReader
+	public class FileStreamUnbufferedSequentialRead : Stream, IStreamReader
 	{
 		private const FileOptions FileFlagNoBuffering = (FileOptions)0x20000000;
 
@@ -26,23 +26,6 @@ namespace CloudAE.Core
 		private bool m_bufferIsValid;
 		private int m_bufferValidSize;
 
-		public long Position
-		{
-			get
-			{
-				// end of file
-				if (m_bufferValidSize != m_buffer.Length)
-					return m_streamPosition + m_bufferIndex;
-
-				// normal
-				if (m_bufferIsValid)
-					return m_streamPosition - (m_buffer.Length - m_bufferIndex);
-
-				// beginning of file
-				return m_streamPosition + m_bufferIndex;
-			}
-		}
-
 		public FileStreamUnbufferedSequentialRead(string path)
 			: this(path, 0)
 		{
@@ -56,10 +39,10 @@ namespace CloudAE.Core
 			m_sectorSize = PathUtil.GetDriveSectorSize(m_path);
 			m_bufferValidSize = m_buffer.Length;
 
-			FileMode    mode    = FileMode.Open;
-			FileAccess  access  = FileAccess.Read;
-			FileShare   share   = FileShare.Read;
-			FileOptions options = (FileFlagNoBuffering | FileOptions.WriteThrough | FileOptions.SequentialScan);
+			const FileMode    mode    = FileMode.Open;
+			const FileAccess  access  = FileAccess.Read;
+			const FileShare   share   = FileShare.Read;
+			const FileOptions options = (FileFlagNoBuffering | FileOptions.WriteThrough | FileOptions.SequentialScan);
 
 			m_stream = new FileStream(m_path, mode, access, share, BUFFER_SIZE, options);
 			m_streamEnd = new FileStream(m_path, mode, access, share, BUFFER_SIZE, FileOptions.WriteThrough);
@@ -85,7 +68,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public int Read(byte[] array, int offset, int count)
+		public override int Read(byte[] array, int offset, int count)
 		{
 			int startingOffset = offset;
 			int bytesToRead = count;
@@ -136,6 +119,8 @@ namespace CloudAE.Core
 
 		public void Dispose()
 		{
+			base.Dispose();
+
 			if (m_stream != null)
 			{
 				m_stream.Dispose();
@@ -154,5 +139,80 @@ namespace CloudAE.Core
 				m_buffer = null;
 			}
 		}
+
+		#region Stream Members
+
+		public override bool CanRead
+		{
+			get { return true; }
+		}
+
+		public override bool CanSeek
+		{
+			get { return true; }
+		}
+
+		public override bool CanWrite
+		{
+			get { return false; }
+		}
+
+		public override void Flush()
+		{
+		}
+
+		public override long Length
+		{
+			get { return m_stream.Length; }
+		}
+
+		public override long Position
+		{
+			get
+			{
+				// end of file
+				if (m_bufferValidSize != m_buffer.Length)
+					return m_streamPosition + m_bufferIndex;
+
+				// normal
+				if (m_bufferIsValid)
+					return m_streamPosition - (m_buffer.Length - m_bufferIndex);
+
+				// beginning of file
+				return m_streamPosition + m_bufferIndex;
+			}
+			set
+			{
+				Seek(value);
+			}
+		}
+
+		public override long Seek(long offset, SeekOrigin origin)
+		{
+			long actualOffset = 0;
+
+			if (origin == SeekOrigin.Begin)
+				actualOffset = offset;
+			else if (origin == SeekOrigin.Current)
+				actualOffset = offset + Position;
+			else
+				throw new ArgumentException("Unsupported SeekOrigin");
+
+			Seek(actualOffset);
+
+			return actualOffset;
+		}
+
+		public override void SetLength(long value)
+		{
+			throw new InvalidOperationException("Cannot SetLength read-only stream");
+		}
+
+		public override void Write(byte[] buffer, int offset, int count)
+		{
+			throw new InvalidOperationException("Cannot Write read-only stream");
+		}
+
+		#endregion
 	}
 }
