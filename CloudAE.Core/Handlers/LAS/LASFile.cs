@@ -54,7 +54,7 @@ namespace CloudAE.Core
 		public LASFile(string path)
 			: base(path)
 		{
-			using (var stream = File.OpenRead(FilePath))
+			using (var stream = StreamManager.OpenReadStream(FilePath))
 			{
 				using (var reader = new FlexibleBinaryReader(stream, false))
 				{

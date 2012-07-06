@@ -240,9 +240,9 @@ namespace CloudAE.Core
 					m_numberOfPointsByReturn[i] = m_legacyNumberOfPointsByReturn[i];
 			}
 
-			ulong pointDataRegionLength = (ulong)length - m_offsetToPointData;
-			if (pointDataRegionLength < m_pointDataRecordLength * PointCount)
-				throw new Exception("Invalid format: point data region is not the expected size");
+			//ulong pointDataRegionLength = (ulong)length - m_offsetToPointData;
+			//if (pointDataRegionLength < m_pointDataRecordLength * PointCount)
+			//    throw new Exception("Invalid format: point data region is not the expected size");
 		}
 
 		public void Serialize(BinaryWriter writer)
@@ -284,6 +284,11 @@ namespace CloudAE.Core
 
 		public LASVLR[] ReadVLRs(Stream stream)
 		{
+			return ReadVLRs(stream, null);
+		}
+
+		public LASVLR[] ReadVLRs(Stream stream, Func<LASVLR, bool> acceptanceCondition)
+		{
 			var vlrs = new List<LASVLR>((int)m_numberOfVariableLengthRecords);
 
 			if (m_numberOfVariableLengthRecords > 0)
@@ -295,8 +300,16 @@ namespace CloudAE.Core
 					for (int i = 0; i < m_numberOfVariableLengthRecords; i++)
 					{
 						var vlr = reader.ReadObject(typeof(LASVLR)) as LASVLR;
-						if (vlr != null && vlr.IsKnown)
-							vlrs.Add(vlr);
+						if (acceptanceCondition != null)
+						{
+							if (acceptanceCondition(vlr))
+								vlrs.Add(vlr);
+						}
+						else
+						{
+							if (vlr.IsKnown)
+								vlrs.Add(vlr);
+						}
 					}
 				}
 			}
