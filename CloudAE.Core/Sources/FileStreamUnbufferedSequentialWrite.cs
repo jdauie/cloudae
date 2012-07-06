@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using CloudAE.Core.Windows;
 using CloudAE.Core.Util;
 
 namespace CloudAE.Core
 {
-	public class FileStreamUnbufferedSequentialWrite : IStreamWriter
+	public class FileStreamUnbufferedSequentialWrite : Stream, IStreamWriter
 	{
 		private const FileOptions FileFlagNoBuffering = (FileOptions)0x20000000;
 
@@ -23,11 +20,6 @@ namespace CloudAE.Core
 		private BufferInstance m_buffer;
 		private FileStream m_stream;
 		private int m_bufferIndex;
-
-		public long Position
-		{
-			get { return m_stream.Position + m_bufferIndex; }
-		}
 
 		public FileStreamUnbufferedSequentialWrite(string path, long length, long startPosition)
 		{
@@ -53,7 +45,7 @@ namespace CloudAE.Core
 			m_bufferIndex = (int)(startPosition - startPositionAligned);
 		}
 
-		public void Write(byte[] array, int offset, int count)
+		public override void Write(byte[] array, int offset, int count)
 		{
 			while (count > 0)
 			{
@@ -110,5 +102,55 @@ namespace CloudAE.Core
 				}
 			}
 		}
+
+		#region Stream Members
+
+		public override long Position
+		{
+			get { return m_stream.Position + m_bufferIndex; }
+			set { throw new InvalidOperationException("The stream does not support seeking"); }
+		}
+
+		public override bool CanRead
+		{
+			get { return false; }
+		}
+
+		public override bool CanSeek
+		{
+			get { return false; }
+		}
+
+		public override bool CanWrite
+		{
+			get { return true; }
+		}
+
+		public override void Flush()
+		{
+			throw new InvalidOperationException("The stream cannot be flushed manually");
+		}
+
+		public override long Length
+		{
+			get { return m_stream.Length; }
+		}
+
+		public override int Read(byte[] buffer, int offset, int count)
+		{
+			throw new InvalidOperationException("The stream is write-only");
+		}
+
+		public override long Seek(long offset, SeekOrigin origin)
+		{
+			throw new InvalidOperationException("The stream does not support seeking");
+		}
+
+		public override void SetLength(long value)
+		{
+			throw new InvalidOperationException("The stream length must be set in the constructor");
+		}
+
+		#endregion
 	}
 }
