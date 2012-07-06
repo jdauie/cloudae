@@ -149,12 +149,11 @@ namespace CloudAE.Core
 
 		#region Un-Quantized Methods
 
-		private static unsafe PointCloudAnalysisResult FloatEstimateDensity(PointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
+		private static PointCloudAnalysisResult FloatEstimateDensity(PointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			Statistics stats = null;
 			Quantization3D quantization = null;
 
-			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
 
 			QuantizationTest<double> quantizationTest = null;
@@ -273,12 +272,11 @@ namespace CloudAE.Core
 
 		#region Quantized Methods
 
-		private static unsafe PointCloudAnalysisResult QuantEstimateDensity(PointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
+		private static PointCloudAnalysisResult QuantEstimateDensity(PointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			Statistics stats = null;
 			Quantization3D quantization = null;
 
-			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
 			var inputQuantization = (SQuantization3D)source.Quantization;
 			var quantizedExtent = (SQuantizedExtent3D)inputQuantization.Convert(extent);
