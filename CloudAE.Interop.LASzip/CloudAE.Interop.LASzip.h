@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <msclr/marshal_cppstd.h>
 
 #include "lasunzipper.hpp"
 
@@ -14,7 +15,10 @@ public ref class LAZInterop
 {
 public:
 	void unzip(System::String ^path) {
-		FILE* pFile = fopen("test.laz", "r");
+		msclr::interop::marshal_context context;
+		const char* pathStr = context.marshal_as<const char*>(path);
+
+		FILE* pFile = fopen(pathStr, "r");
 		if (pFile != NULL)
 		{
 			unsigned char* bytes;
