@@ -31,10 +31,10 @@ namespace CloudAE.Core
 			m_length = length;
 			m_lengthAligned = (m_length + (m_sectorSize - 1)) & (~(long)(m_sectorSize - 1));
 
-			FileMode    mode    = FileMode.OpenOrCreate;
-			FileAccess  access  = FileAccess.Write;
-			FileShare   share   = FileShare.None;
-			FileOptions options = (FileFlagNoBuffering | FileOptions.WriteThrough | FileOptions.SequentialScan);
+			const FileMode    mode    = FileMode.OpenOrCreate;
+			const FileAccess  access  = FileAccess.Write;
+			const FileShare   share   = FileShare.None;
+			const FileOptions options = (FileFlagNoBuffering | FileOptions.WriteThrough | FileOptions.SequentialScan);
 
 			m_stream = new FileStream(m_path, mode, access, share, BUFFER_SIZE, options);
 			m_stream.SetLength(m_lengthAligned);
@@ -94,7 +94,7 @@ namespace CloudAE.Core
 
 			// set the correct length
 			// this really isn't necessary for intermediate files (segments)
-			if (true)
+			if (false)
 			{
 				using (var stream = new FileStream(m_path, FileMode.Open, FileAccess.Write, FileShare.None, 8, FileOptions.WriteThrough))
 				{
