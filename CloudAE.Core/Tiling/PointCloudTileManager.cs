@@ -118,7 +118,7 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("FinalizeTiles"))
 			{
-				using (var outputStream = new FileStreamUnbufferedSequentialWrite(path, tileSource.FileSize, tileSource.PointDataOffset))
+				using (var outputStream = StreamManager.OpenWriteStream(path, tileSource.FileSize, tileSource.PointDataOffset))
 				{
 					var stopwatch = new Stopwatch();
 					stopwatch.Start();

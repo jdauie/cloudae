@@ -194,7 +194,7 @@ namespace CloudAE.Core
 
 				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
 
-				using (var outputStream = new FileStreamUnbufferedSequentialWrite(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset))
+				using (var outputStream = StreamManager.OpenWriteStream(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset))
 				{
 					int bytesInCurrentSegment = 0;
 

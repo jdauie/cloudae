@@ -21,7 +21,7 @@ namespace CloudAE.Core
 			m_buffer = buffer;
 			m_validTileCount = m_source.TileSet.ValidTileCount;
 
-			m_stream = new FileStreamUnbufferedSequentialRead(source.FilePath, source.PointDataOffset);
+			m_stream = StreamManager.OpenReadStream(source.FilePath, source.PointDataOffset);
 			
 			Reset();
 		}

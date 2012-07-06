@@ -92,6 +92,7 @@
     <Compile Include="Managers\ManagedBackgroundWorker.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Managers\StreamManager.cs" />
     <Compile Include="Math\GridCounter.cs" />
     <Compile Include="Math\ScaledStatisticsMapping.cs" />
     <Compile Include="Math\SimpleStatsMapping.cs" />

@@ -249,7 +249,7 @@ namespace CloudAE.Core
 		{
 			if (m_inputStream == null)
 			{
-				m_inputStream = new FileStreamUnbufferedSequentialRead(FilePath, PointDataOffset);
+				m_inputStream = StreamManager.OpenReadStream(FilePath, PointDataOffset);
 			}
 		}
 
