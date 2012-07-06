@@ -161,7 +161,7 @@ namespace CloudAE.Core
 			if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
 				quantizationTest = new QuantizationTest<double>(source);
 
-			using (var process = progressManager.StartProcess("EstimateDensity[float]"))
+			using (var process = progressManager.StartProcess("FloatEstimateDensity"))
 			{
 				var statsMapping = new SimpleStatisticsMapping(extent.MinZ, extent.RangeZ, 1024);
 
@@ -201,7 +201,7 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
-			using (var process = progressManager.StartProcess("InitializeCounts[float]"))
+			using (var process = progressManager.StartProcess("FloatInitializeCounts"))
 			{
 				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
@@ -243,7 +243,7 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tileSet.Cols / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileSet.Rows / quantizedExtent.RangeY;
 
-			using (var process = progressManager.StartProcess("TilePoints[float]"))
+			using (var process = progressManager.StartProcess("FloatTilePoints"))
 			{
 				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
@@ -287,7 +287,7 @@ namespace CloudAE.Core
 			if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
 				quantizationTest = new QuantizationTest<int>(source);
 
-			using (var process = progressManager.StartProcess("EstimateDensity[quant]"))
+			using (var process = progressManager.StartProcess("QuantEstimateDensity"))
 			{
 				var statsMapping = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
 				
@@ -322,7 +322,7 @@ namespace CloudAE.Core
 
 		private static PointCloudTileDensity QuantInitializeCounts(PointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
-			using (var process = progressManager.StartProcess("InitializeCounts[quant]"))
+			using (var process = progressManager.StartProcess("QuantInitializeCounts"))
 			{
 				using (var quantizationConverter = new QuantizationConverter(source, outputQuantization, tileCounts))
 				{
@@ -355,7 +355,7 @@ namespace CloudAE.Core
 			double tilesOverRangeX = (double)tileSet.Cols / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileSet.Rows / quantizedExtent.RangeY;
 
-			using (var process = progressManager.StartProcess("TilePoints[quant]"))
+			using (var process = progressManager.StartProcess("QuantTilePoints"))
 			{
 				var tilePositions = tileSet.CreatePositionGrid(segmentBuffer);
 
