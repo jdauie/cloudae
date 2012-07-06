@@ -54,9 +54,18 @@ namespace CloudAE.Core
 		public LASFile(string path)
 			: base(path)
 		{
-			using (var reader = new BinaryReader(File.OpenRead(FilePath)))
+			using (var stream = File.OpenRead(FilePath))
 			{
-				m_header = reader.ReadLASHeader();
+				using (var reader = new FlexibleBinaryReader(stream, false))
+				{
+					m_header = reader.ReadLASHeader();
+				}
+
+				//LASVLR[] vlrs = m_header.ReadVLRs(stream);
+				//LASEVLR[] evlrs = m_header.ReadEVLRs(stream);
+
+				//Context.WriteLine("vlrs: {0}", vlrs.Length);
+				//Context.WriteLine("evlrs: {0}", evlrs.Length);
 			}
 
 			int pointSizeBytes = PointSizeBytes;

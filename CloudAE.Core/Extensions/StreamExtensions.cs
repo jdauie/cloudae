@@ -34,11 +34,7 @@ namespace CloudAE.Core
 
 			ISerializeBinary obj = null;
 
-			try
-			{
-				obj = constructor.Invoke(new object[] { reader }) as ISerializeBinary;
-			}
-			catch { }
+			obj = constructor.Invoke(new object[] { reader }) as ISerializeBinary;
 
 			return obj;
 		}

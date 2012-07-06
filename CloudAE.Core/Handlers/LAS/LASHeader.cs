@@ -282,14 +282,48 @@ namespace CloudAE.Core
 			}
 		}
 
-		public LASVLR[] ReadVLRs(IStreamReader reader)
+		public LASVLR[] ReadVLRs(Stream stream)
 		{
-			LASVLR[] vlrs = null;
+			var vlrs = new List<LASVLR>((int)m_numberOfVariableLengthRecords);
 
-			reader.Seek(m_headerSize);
-			
+			if (m_numberOfVariableLengthRecords > 0)
+			{
+				stream.Seek(m_headerSize, SeekOrigin.Begin);
 
-			return vlrs;
+				using (var reader = new FlexibleBinaryReader(stream))
+				{
+					for (int i = 0; i < m_numberOfVariableLengthRecords; i++)
+					{
+						var vlr = reader.ReadObject(typeof(LASVLR)) as LASVLR;
+						if (vlr != null && vlr.IsKnown)
+							vlrs.Add(vlr);
+					}
+				}
+			}
+
+			return vlrs.ToArray();
+		}
+
+		public LASEVLR[] ReadEVLRs(Stream stream)
+		{
+			var vlrs = new List<LASEVLR>((int)m_numberOfExtendedVariableLengthRecords);
+
+			if (m_numberOfExtendedVariableLengthRecords > 0)
+			{
+				stream.Seek((long)m_startOfFirstExtendedVariableLengthRecord, SeekOrigin.Begin);
+
+				using (var reader = new FlexibleBinaryReader(stream))
+				{
+					for (int i = 0; i < m_numberOfExtendedVariableLengthRecords; i++)
+					{
+						var vlr = reader.ReadObject(typeof(LASEVLR)) as LASEVLR;
+						if (vlr != null && vlr.IsKnown)
+							vlrs.Add(vlr);
+					}
+				}
+			}
+
+			return vlrs.ToArray();
 		}
 	}
 }

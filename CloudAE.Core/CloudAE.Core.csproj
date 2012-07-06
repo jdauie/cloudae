@@ -65,6 +65,7 @@
     <Compile Include="Handlers\LAS\LASPointAttribute.cs" />
     <Compile Include="Handlers\LAS\LASEVLR.cs" />
     <Compile Include="Handlers\LAS\LASHeader.cs" />
+    <Compile Include="Handlers\LAS\LASRecordIdentifier.cs" />
     <Compile Include="Handlers\LAS\LASVLR.cs" />
     <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />
     <Compile Include="ProcessingQueue.cs" />
+    <Compile Include="Serialization\FlexibleBinaryReader.cs" />
     <Compile Include="Serialization\ISerializeStateBinary.cs" />
     <Compile Include="Serialization\ISerializeBinary.cs" />
     <Compile Include="Media\ColorMap.cs" />
