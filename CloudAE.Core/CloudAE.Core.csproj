@@ -67,6 +67,8 @@
     <Compile Include="Handlers\LAS\LASHeader.cs" />
     <Compile Include="Handlers\LAS\LASRecordIdentifier.cs" />
     <Compile Include="Handlers\LAS\LASVLR.cs" />
+    <Compile Include="Handlers\LAZ\LAZCreator.cs" />
+    <Compile Include="Handlers\LAZ\LAZFile.cs" />
     <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />
     <Compile Include="Cache.cs" />
@@ -202,7 +204,12 @@
     <Resource Include="Icons\brick.png" />
     <Resource Include="Icons\bricks.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\CloudAE.Interop.LASzip\CloudAE.Interop.LASzip.vcxproj">
+      <Project>{961E1A9D-C8AC-4C12-8DA9-4A7A3EE8EEAC}</Project>
+      <Name>CloudAE.Interop.LASzip</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"</PostBuildEvent>

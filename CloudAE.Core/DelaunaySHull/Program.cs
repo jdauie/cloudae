@@ -24,7 +24,7 @@ namespace CloudAE.Core.Delaunay
 			//if (args.Length == 0)
 			//{
 			//    // Generate random points.
-			//    SortedDictionary<int, Point> ps = new SortedDictionary<int, Point>();
+			//    SortedDictionary<int, Tile> ps = new SortedDictionary<int, Tile>();
 			//    for (int i = 0; i < 100000; i++)
 			//    {
 			//        int x = randy.Next(100000);
