@@ -119,8 +119,6 @@ namespace CloudAE.Core
 
 		public void Dispose()
 		{
-			base.Dispose();
-
 			if (m_stream != null)
 			{
 				m_stream.Dispose();
