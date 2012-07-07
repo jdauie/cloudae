@@ -174,7 +174,7 @@
     <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="ProcessingSet.cs" />
     <Compile Include="Segmentation.cs" />
-    <Compile Include="Tiling\PointCloudTileSourceEnumeratorChunk.cs" />
+    <Compile Include="Tiling\PointCloudTiles2ourceEnumeratorChunk.cs" />
     <Compile Include="Tiling\PointCloudTileSourceEnumerator.cs" />
     <Compile Include="Tiling\GridTileSource.cs" />
     <Compile Include="Tiling\PointCloudTile.cs" />
