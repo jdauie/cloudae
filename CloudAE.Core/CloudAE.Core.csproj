@@ -62,6 +62,7 @@
     <Compile Include="Geometry\PolygonBase.cs" />
     <Compile Include="Geometry\QuantizationConverter.cs" />
     <Compile Include="Geometry\QuantizationTest.cs" />
+    <Compile Include="Handlers\LAS\LASComposite.cs" />
     <Compile Include="Handlers\LAS\LASPointAttribute.cs" />
     <Compile Include="Handlers\LAS\LASEVLR.cs" />
     <Compile Include="Handlers\LAS\LASHeader.cs" />

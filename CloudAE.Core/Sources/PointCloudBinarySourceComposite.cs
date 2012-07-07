@@ -58,8 +58,8 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudBinarySourceComposite(PointCloudBinarySource[] sources)
-			: base("unknown")
+		public PointCloudBinarySourceComposite(string path, PointCloudBinarySource[] sources)
+			: base(path)
 		{
 			m_sources = sources;
 
@@ -75,6 +75,7 @@ namespace CloudAE.Core
 
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(BufferInstance buffer)
 		{
+			// this would only be meaningful for a composite of composites
 			throw new NotImplementedException();
 		}
 

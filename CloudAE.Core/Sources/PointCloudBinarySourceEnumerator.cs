@@ -30,6 +30,7 @@ namespace CloudAE.Core
 			Reset();
 		}
 
+		// this version doesn't use a process, so that it can be used by a composite, which will handle progress
 		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceEnumerable source, BufferInstance buffer)
 		{
 			m_source = source;

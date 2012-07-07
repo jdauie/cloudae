@@ -12,7 +12,7 @@ namespace CloudAE.Core
 		static LASCreator()
 		{
 			c_handlerName = "LAS";
-			c_supportedExtensions = new string[] { "las" };
+			c_supportedExtensions = new string[] { "las", "lasgroup" };
 		}
 
 		public override string[] SupportedExtensions
@@ -27,7 +27,12 @@ namespace CloudAE.Core
 
 		public override FileHandlerBase Create(string path)
 		{
-			FileHandlerBase inputHandler = new LASFile(path);
+			FileHandlerBase inputHandler;
+			if (path.EndsWith("group"))
+				inputHandler = new LASComposite(path);
+			else
+				inputHandler = new LASFile(path);
+
 			return inputHandler;
 		}
 	}

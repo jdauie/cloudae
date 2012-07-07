@@ -15,6 +15,8 @@ namespace CloudAE.Core
 		private readonly int m_usableBytesPerBuffer;
 		
 		private readonly LASHeader m_header;
+		private readonly LASVLR[] m_vlrs;
+		private readonly LASEVLR[] m_evlrs;
 
 		public long Count
 		{
@@ -61,11 +63,8 @@ namespace CloudAE.Core
 					m_header = reader.ReadLASHeader();
 				}
 
-				//LASVLR[] vlrs = m_header.ReadVLRs(stream);
-				//LASEVLR[] evlrs = m_header.ReadEVLRs(stream);
-
-				//Context.WriteLine("vlrs: {0}", vlrs.Length);
-				//Context.WriteLine("evlrs: {0}", evlrs.Length);
+				m_vlrs = m_header.ReadVLRs(stream);
+				m_evlrs = m_header.ReadEVLRs(stream);
 			}
 
 			int pointSizeBytes = PointSizeBytes;
