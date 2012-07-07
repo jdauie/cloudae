@@ -838,30 +838,25 @@ namespace CloudAE.Core
 			uint minX = QuantizedExtent.MinX;
 			uint minY = QuantizedExtent.MinY;
 
-			using(var inputBuffer = BufferManager.AcquireBuffer(ID, MaxTileBufferSize, true))
+			using (var process = progressManager.StartProcess("GeneratePreviewPixelGrid"))
 			{
-				byte* inputBufferPtr = inputBuffer.DataPtr;
-				foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(inputBuffer.Data))
+				foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(process))
 				{
 					//TileOperationAction(chunk.Tile, inputBuffer);
 
-					byte* pb = inputBufferPtr;
-					byte* pbEnd = inputBufferPtr + chunk.Tile.StorageSize;
-					while (pb < pbEnd)
+					byte* pb = chunk.PointDataPtr;
+					while (pb < chunk.PointDataEndPtr)
 					{
 						UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
 
-						int pixelX = (int)(((*p).X - minX) * pixelsOverRangeX);
-						int pixelY = (int)(((*p).Y - minY) * pixelsOverRangeY);
+						int pixelX = (int)(((*p).X - minX)*pixelsOverRangeX);
+						int pixelY = (int)(((*p).Y - minY)*pixelsOverRangeY);
 
 						if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
 							quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
 
-						pb += PointSizeBytes;
+						pb += chunk.PointSizeBytes;
 					}
-
-					if (!progressManager.Update(chunk))
-						break;
 				}
 			}
 
@@ -947,9 +942,9 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudTileSourceEnumerator GetTileEnumerator(byte[] buffer)
+		public PointCloudTileSourceEnumerator GetTileEnumerator(ProgressManagerProcess process)
 		{
-			return new PointCloudTileSourceEnumerator(this, buffer);
+			return new PointCloudTileSourceEnumerator(this, process);
 		}
 	}
 }

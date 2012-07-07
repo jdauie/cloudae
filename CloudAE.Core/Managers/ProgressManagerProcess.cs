@@ -104,6 +104,11 @@ namespace CloudAE.Core
 			return BufferManager.AcquireBuffer(m_id, pin);
 		}
 
+		public BufferInstance AcquireBuffer(int size, bool pin)
+		{
+			return BufferManager.AcquireBuffer(m_id, size, pin);
+		}
+
 		public ProgressManagerProcess StartProcess(string name)
 		{
 			var process = new ProgressManagerProcess(m_progressManager, this, name);

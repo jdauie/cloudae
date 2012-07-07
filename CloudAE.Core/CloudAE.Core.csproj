@@ -95,6 +95,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Managers\StreamManager.cs" />
+    <Compile Include="Math\GridQuantizedSet.cs" />
     <Compile Include="Math\GridCounter.cs" />
     <Compile Include="Math\ScaledStatisticsMapping.cs" />
     <Compile Include="Math\SimpleStatsMapping.cs" />
@@ -140,6 +141,7 @@
     <Compile Include="Options\IPropertyState.cs" />
     <Compile Include="Options\PropertyName.cs" />
     <Compile Include="Serialization\SerializationHelper.cs" />
+    <Compile Include="Sources\IPointDataChunk.cs" />
     <Compile Include="Sources\IStreamReader.cs" />
     <Compile Include="Sources\FileStreamUnbufferedSequentialRead.cs" />
     <Compile Include="Sources\FileStreamUnbufferedSequentialWrite.cs" />
@@ -172,7 +174,7 @@
     <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="ProcessingSet.cs" />
     <Compile Include="Segmentation.cs" />
-    <Compile Include="Tiling\PointCloudTilesourceEnumeratorChunk.cs" />
+    <Compile Include="Tiling\PointCloudTileSourceEnumeratorChunk.cs" />
     <Compile Include="Tiling\PointCloudTileSourceEnumerator.cs" />
     <Compile Include="Tiling\GridTileSource.cs" />
     <Compile Include="Tiling\PointCloudTile.cs" />

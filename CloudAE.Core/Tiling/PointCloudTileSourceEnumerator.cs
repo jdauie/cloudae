@@ -1,25 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.IO;
 
 namespace CloudAE.Core
 {
 	public class PointCloudTileSourceEnumerator : IEnumerator<PointCloudTileSourceEnumeratorChunk>, IEnumerable<PointCloudTileSourceEnumeratorChunk>
 	{
 		private readonly PointCloudTileSource m_source;
-		private readonly int m_validTileCount;
-		private readonly byte[] m_buffer;
+		private readonly BufferInstance m_buffer;
+		private readonly ProgressManagerProcess m_process;
 
 		private IEnumerator<PointCloudTile> m_tileEnumerator;
 		private IStreamReader m_stream;
 
-		public PointCloudTileSourceEnumerator(PointCloudTileSource source, byte[] buffer)
+		private PointCloudTileSourceEnumeratorChunk m_current;
+
+		public PointCloudTileSourceEnumerator(PointCloudTileSource source, ProgressManagerProcess process)
 		{
 			m_source = source;
-			m_buffer = buffer;
-			m_validTileCount = m_source.TileSet.ValidTileCount;
+			m_buffer = process.AcquireBuffer(source.MaxTileBufferSize, true);
+			m_process = process;
 
 			m_stream = StreamManager.OpenReadStream(source.FilePath, source.PointDataOffset);
 			
@@ -28,11 +28,7 @@ namespace CloudAE.Core
 
 		public PointCloudTileSourceEnumeratorChunk Current
 		{
-			get
-			{
-				PointCloudTile tile = m_tileEnumerator.Current;
-				return new PointCloudTileSourceEnumeratorChunk(tile);
-			}
+			get { return m_current; }
 		}
 
 		object System.Collections.IEnumerator.Current
@@ -42,10 +38,16 @@ namespace CloudAE.Core
 
 		public bool MoveNext()
 		{
+			// check for cancel
+			if (m_current != null && m_process != null && !m_process.Update(m_current))
+				return false;
+
 			if (m_tileEnumerator.MoveNext())
 			{
 				PointCloudTile tile = m_tileEnumerator.Current;
-				tile.ReadTile(m_stream, m_buffer);
+				tile.ReadTile(m_stream, m_buffer.Data);
+
+				m_current = new PointCloudTileSourceEnumeratorChunk(tile, m_buffer);
 
 				return true;
 			}
@@ -55,12 +57,14 @@ namespace CloudAE.Core
 		public void Reset()
 		{
 			m_tileEnumerator = m_source.TileSet.ValidTiles.GetEnumerator();
+			m_current = null;
 		}
 
 		public void Dispose()
 		{
 			m_stream.Dispose();
 			m_stream = null;
+			m_current = null;
 		}
 
 		public IEnumerator<PointCloudTileSourceEnumeratorChunk> GetEnumerator()
