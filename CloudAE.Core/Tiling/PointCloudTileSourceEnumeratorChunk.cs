@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
-	public unsafe class PointCloudTileSourceEnumeratorChunk : IProgress, IPointDataChunk
+	public unsafe class PointCloudTileSourceEnumeratorChunk : IProgress, IPointDataTileChunk
 	{
-		public readonly PointCloudTile Tile;
+		public readonly PointCloudTile m_tile;
 
 		public readonly byte* DataPtr;
 		public readonly byte* DataEndPtr;
@@ -17,6 +17,11 @@ namespace CloudAE.Core
 		public float Progress
 		{
 			get { return Tile.Progress; }
+		}
+
+		public PointCloudTile Tile
+		{
+			get { return m_tile; }
 		}
 
 		#region IPointDataChunk Members
@@ -38,7 +43,7 @@ namespace CloudAE.Core
 
 		public int Length
 		{
-			get { return Tile.StorageSize; }
+			get { return m_tile.StorageSize; }
 		}
 
 		public short PointSizeBytes
@@ -48,20 +53,20 @@ namespace CloudAE.Core
 
 		public int PointCount
 		{
-			get { return Tile.PointCount; }
+			get { return m_tile.PointCount; }
 		}
 
 		#endregion
 
 		public PointCloudTileSourceEnumeratorChunk(PointCloudTile tile, BufferInstance buffer)
 		{
-			Tile = tile;
+			m_tile = tile;
 
 			m_buffer = buffer;
-			m_pointSizeBytes = Tile.TileSource.PointSizeBytes;
+			m_pointSizeBytes = m_tile.TileSource.PointSizeBytes;
 
 			DataPtr = buffer.DataPtr;
-			DataEndPtr = DataPtr + Tile.StorageSize;
+			DataEndPtr = DataPtr + m_tile.StorageSize;
 		}
 	}
 }

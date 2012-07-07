@@ -35,8 +35,7 @@ namespace CloudAE.Core
 		private IStreamReader m_inputStream;
 		private bool m_isDirty;
 
-		private Grid<float> m_pixelGrid;
-		private Grid<uint> m_pixelGridQuantized;
+		private GridQuantizedSet m_pixelGridSet;
 		private PreviewImage m_preview;
 
 		private System.Windows.Media.Imaging.BitmapImage m_icon;
@@ -92,11 +91,6 @@ namespace CloudAE.Core
 					OnPropertyChanged("PreviewImage");
 				}
 			}
-		}
-
-		public Grid<float> PixelGrid
-		{
-			get { return m_pixelGrid; }
 		}
 
 		public UQuantizedExtent3D QuantizedExtent
@@ -441,21 +435,20 @@ namespace CloudAE.Core
 			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
 		}
 
-		private unsafe void TileOperationAction(PointCloudTile tile, BufferInstance inputBuffer)
+		private unsafe void TileOperationAction(IPointDataTileChunk chunk)
 		{
-			ushort gridSize = (ushort)Math.Sqrt(tile.PointCount);
+			ushort gridSize = (ushort)Math.Sqrt(chunk.Tile.PointCount);
 
 			var grid = new Grid<List<int>>(gridSize, gridSize, null, true);
 
-			UQuantizedExtent3D quantizedExtent = tile.QuantizedExtent;
+			UQuantizedExtent3D quantizedExtent = chunk.Tile.QuantizedExtent;
 
 			double cellSizeX = (double)quantizedExtent.RangeX / gridSize;
 			double cellSizeY = (double)quantizedExtent.RangeY / gridSize;
 
 			int i = 0;
-			byte* pb = inputBuffer.DataPtr;
-			byte* pbEnd = pb + tile.StorageSize;
-			while (pb < pbEnd)
+			byte* pb = chunk.PointDataPtr;
+			while (pb < chunk.PointDataEndPtr)
 			{
 				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
 
@@ -467,7 +460,7 @@ namespace CloudAE.Core
 
 				grid.Data[pixelX, pixelY].Add(i);
 
-				pb += PointSizeBytes;
+				pb += chunk.PointSizeBytes;
 				++i;
 			}
 
@@ -497,15 +490,15 @@ namespace CloudAE.Core
 
 						for (int index = 0; index < pointIndices.Count; index++)
 						{
-							UQuantizedPoint3D* p = (UQuantizedPoint3D*)(inputBuffer.DataPtr + tile.TileSource.PointSizeBytes * pointIndices[index]);
+							UQuantizedPoint3D* p = (UQuantizedPoint3D*)(chunk.PointDataPtr + chunk.PointSizeBytes * pointIndices[index]);
 							(*p).Z = regionCount;
 						}
 					}
 				}
 			}
 
-			pb = inputBuffer.DataPtr;
-			while (pb < pbEnd)
+			pb = chunk.PointDataPtr;
+			while (pb < chunk.PointDataEndPtr)
 			{
 				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
 
@@ -514,7 +507,7 @@ namespace CloudAE.Core
 
 				(*p).Z = (*p).Z * quantizedExtent.RangeZ / maxRegionCount + quantizedExtent.MinZ;
 
-				pb += PointSizeBytes;
+				pb += chunk.PointSizeBytes;
 			}
 		}
 
@@ -738,7 +731,7 @@ namespace CloudAE.Core
 		{
 			if (Preview == null || Preview.ColorHandler != ramp || Preview.UseStdDevStretch != useStdDevStretch || Preview.Quality != quality)
 			{
-				BitmapSource source = GeneratePreviewImage(m_pixelGridQuantized, ramp, useStdDevStretch, quality);
+				BitmapSource source = GeneratePreviewImage(m_pixelGridSet.GridQuantized, ramp, useStdDevStretch, quality);
 				Preview = new PreviewImage(source, ramp, useStdDevStretch, quality);
 			}
 			return Preview.Image;
@@ -828,43 +821,21 @@ namespace CloudAE.Core
 
 		private unsafe void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
 		{
-			const float fillVal = -1.0f;
-			var grid = new Grid<float>(Extent, maxPreviewDimension, fillVal, true);
-			var quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, Extent, true);
-
-			double pixelsOverRangeX = (double)grid.SizeX / QuantizedExtent.RangeX;
-			double pixelsOverRangeY = (double)grid.SizeY / QuantizedExtent.RangeY;
-
-			uint minX = QuantizedExtent.MinX;
-			uint minY = QuantizedExtent.MinY;
+			var gridSet = new GridQuantizedSet(this, maxPreviewDimension, -1.0f, true);
 
 			using (var process = progressManager.StartProcess("GeneratePreviewPixelGrid"))
 			{
 				foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(process))
 				{
-					//TileOperationAction(chunk.Tile, inputBuffer);
+					//TileOperationAction(chunk);
 
-					byte* pb = chunk.PointDataPtr;
-					while (pb < chunk.PointDataEndPtr)
-					{
-						UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
-
-						int pixelX = (int)(((*p).X - minX)*pixelsOverRangeX);
-						int pixelY = (int)(((*p).Y - minY)*pixelsOverRangeY);
-
-						if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
-							quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
-
-						pb += chunk.PointSizeBytes;
-					}
+					gridSet.Process(chunk);
 				}
 			}
 
-			quantizedGrid.CorrectMaxOverflow();
-			quantizedGrid.CopyToUnquantized(grid, Quantization, Extent);
-			
-			m_pixelGridQuantized = quantizedGrid;
-			m_pixelGrid = grid;
+			gridSet.Populate();
+
+			m_pixelGridSet = gridSet;
 		}
 
 		private unsafe BitmapSource CreateBitmapSource(Grid<uint> grid, UQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler, int quality)
