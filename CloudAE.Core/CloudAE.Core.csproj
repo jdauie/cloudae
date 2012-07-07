@@ -170,7 +170,7 @@
     <Compile Include="SegmentationOriginal.cs" />
     <Compile Include="Sources\PointCloudBinarySourceSegment.cs" />
     <Compile Include="Sources\PointCloudBinarySource.cs" />
-    <Compile Include="Sources\PointCloudBinarysourceEnumeratorChunk.cs" />
+    <Compile Include="Sources\PointCloudBinarys2ourceEnumeratorChunk.cs" />
     <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="ProcessingSet.cs" />
     <Compile Include="Segmentation.cs" />
