@@ -22,16 +22,6 @@ namespace CloudAE.Core
 
 		public readonly int ValidTileCount;
 
-		///// <summary>
-		///// Gets or sets the <see cref="CloudAE.Core.PointCloudTile"/> with the specified indices.
-		///// </summary>
-		///// <value></value>
-		//public PointCloudTile this[int x, int y]
-		//{
-		//    get { return m_tiles[x, y]; }
-		//    set { m_tiles[x, y] = value; }
-		//}
-
 		public IEnumerable<PointCloudTile> ValidTiles
 		{
 			get { return m_tree.Select(GetTile).Where(t => t.IsValid); }
@@ -41,9 +31,13 @@ namespace CloudAE.Core
 		{
 			// create empty tile grid
 			var tiles = new PointCloudTile[rows, cols];
-			for (ushort y = 0; y < rows; y++)
-				for (ushort x = 0; x < cols; x++)
-					tiles[y, x] = new PointCloudTile(x, y, 0, 0, 0);
+
+			if (init)
+			{
+				for (ushort y = 0; y < rows; y++)
+					for (ushort x = 0; x < cols; x++)
+						tiles[y, x] = new PointCloudTile(x, y, 0, 0, 0);
+			}
 
 			return tiles;
 		}
