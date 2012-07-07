@@ -55,7 +55,7 @@ namespace CloudAE.Core
 			ValidTileCount = density.ValidTileCount;
 
 			// create tile ordering
-			m_tree = new PointCloudTileTree(Cols, Rows);
+			m_tree = new PointCloudTileTree(Rows, Cols);
 
 			// create empty tile grid
 			m_tiles = CreateTileGrid(Rows, Cols, true);
@@ -91,7 +91,7 @@ namespace CloudAE.Core
 			m_tree = tileSet.m_tree;
 			m_tiles = CreateTileGrid(Rows, Cols, false);
 			foreach (var tile in tileSet)
-				SetTile(new PointCloudTile(tileSet.GetTile(tile), tileSource));
+				SetTile(new PointCloudTile(tile, tileSource));
 		}
 
 		public PointCloudTileSet(PointCloudTileSet[] tileSets)
@@ -148,7 +148,7 @@ namespace CloudAE.Core
 			ValidTileCount = Density.ValidTileCount;
 
 			// create tile ordering
-			m_tree = new PointCloudTileTree(Cols, Rows);
+			m_tree = new PointCloudTileTree(Rows, Cols);
 
 			// create empty tile grid
 			m_tiles = CreateTileGrid(Rows, Cols, true);

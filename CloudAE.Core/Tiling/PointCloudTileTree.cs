@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace CloudAE.Core
@@ -16,15 +17,15 @@ namespace CloudAE.Core
 		private readonly ushort m_gridTreeBasePow;
 		private readonly ushort m_gridTreeBaseSize;
 
-		public PointCloudTileTree(ushort cols, ushort rows)
+		public PointCloudTileTree(ushort rows, ushort cols)
 		{
 			m_gridX = cols;
 			m_gridY = rows;
 
-			m_grid = new PointCloudTileCoord[m_gridX, m_gridY];
-			for (ushort x = 0; x < m_gridX; x++)
-				for (ushort y = 0; y < m_gridY; y++)
-					m_grid[x, y] = new PointCloudTileCoord(x, y);
+			m_grid = new PointCloudTileCoord[m_gridY, m_gridX];
+			for (ushort y = 0; y < m_gridY; y++)
+				for (ushort x = 0; x < m_gridX; x++)
+					m_grid[y, x] = new PointCloudTileCoord(y, x);
 
 			m_gridTreeBasePow = (ushort)Math.Ceiling(Math.Log(Math.Max(m_gridX, m_gridY), 2));
 			m_gridTreeBaseSize = (ushort)Math.Pow(2, m_gridTreeBasePow);
@@ -37,14 +38,14 @@ namespace CloudAE.Core
 				var levelNodes = new PointCloudTileTreeNode[gridTreeLevelSize, gridTreeLevelSize];
 				gridTreeLevels[gridTreeLevel] = levelNodes;
 
-				for (ushort x = 0; x < gridTreeLevelSize; x++)
+				for (ushort y = 0; y < gridTreeLevelSize; y++)
 				{
-					for (ushort y = 0; y < gridTreeLevelSize; y++)
+					for (ushort x = 0; x < gridTreeLevelSize; x++)
 					{
 						if (gridTreeLevel == 0)
 						{
 							if (x < m_gridX && y < m_gridY)
-								levelNodes[x, y] = new PointCloudTileTreeNode(m_grid[x, y]);
+								levelNodes[y, x] = new PointCloudTileTreeNode(m_grid[y, x]);
 						}
 						else
 						{
@@ -53,14 +54,14 @@ namespace CloudAE.Core
 							int previousLevelY = y * 2;
 
 							var newNode = new PointCloudTileTreeNode(
-								previousLevelNodes[previousLevelX    , previousLevelY],
-								previousLevelNodes[previousLevelX + 1, previousLevelY],
-								previousLevelNodes[previousLevelX    , previousLevelY + 1],
-								previousLevelNodes[previousLevelX + 1, previousLevelY + 1]
+								previousLevelNodes[previousLevelY    , previousLevelX    ],
+								previousLevelNodes[previousLevelY    , previousLevelX + 1],
+								previousLevelNodes[previousLevelY + 1, previousLevelX    ],
+								previousLevelNodes[previousLevelY + 1, previousLevelX + 1]
 							);
 
 							if(newNode.HasChildNodes)
-								levelNodes[x, y] = newNode;
+								levelNodes[y, x] = newNode;
 						}
 					}
 				}
@@ -132,15 +133,43 @@ namespace CloudAE.Core
 		}
 	}
 
-	struct PointCloudTileCoord
+	interface ITileCoord
 	{
-		public readonly ushort Col;
-		public readonly ushort Row;
+		ushort Row { get; }
+		ushort Col { get; }
+	}
 
-		public PointCloudTileCoord(ushort x, ushort y)
+	struct PointCloudTileCoord : ISerializeBinary, ITileCoord
+	{
+		private readonly ushort m_row;
+		private readonly ushort m_col;
+
+		public ushort Row
 		{
-			Col = x;
-			Row = y;
+			get { return m_row; }
+		}
+
+		public ushort Col
+		{
+			get { return m_col; }
+		}
+
+		public PointCloudTileCoord(ushort y, ushort x)
+		{
+			m_row = y;
+			m_col = x;
+		}
+
+		public PointCloudTileCoord(BinaryReader reader)
+		{
+			m_row = reader.ReadUInt16();
+			m_col = reader.ReadUInt16();
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(m_row);
+			writer.Write(m_col);
 		}
 	}
 }
