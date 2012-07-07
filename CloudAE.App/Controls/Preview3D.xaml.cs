@@ -416,7 +416,7 @@ namespace CloudAE.App
 			// connect to left tile (if available)
 			if (tile.Col > 0)
 			{
-				PointCloudTile leftTile = tileSource.TileSet[tile.Col - 1, tile.Row];
+				PointCloudTile leftTile = tileSource.TileSet.GetTile(tile.Row, tile.Col - 1);
 				TileInfo3D leftTileInfo = null;
 				if (m_tileInfo.TryGetValue(leftTile, out leftTileInfo) && leftTileInfo.CurrentGrid == grid)
 				{
@@ -474,7 +474,7 @@ namespace CloudAE.App
 			// connect to top tile (if available)
 			if (tile.Row > 0)
 			{
-				PointCloudTile topTile = tileSource.TileSet[tile.Col, tile.Row - 1];
+				PointCloudTile topTile = tileSource.TileSet.GetTile(tile.Row - 1, tile.Col);
 				TileInfo3D topTileInfo = null;
 				if (m_tileInfo.TryGetValue(topTile, out topTileInfo) && topTileInfo.CurrentGrid == grid)
 				{
@@ -532,7 +532,7 @@ namespace CloudAE.App
 			// connect to top left tile (if available)
 			if (hasTop && hasLeft && !tileInfo.HasStitching(TileStitchingEdge.TopLeft))
 			{
-				PointCloudTile topleftTile = tileSource.TileSet[tile.Col - 1, tile.Row - 1];
+				PointCloudTile topleftTile = tileSource.TileSet.GetTile(tile.Row - 1, tile.Col - 1);
 				TileInfo3D topleftTileInfo = null;
 				if (m_tileInfo.TryGetValue(topleftTile, out topleftTileInfo))
 				{
@@ -705,7 +705,7 @@ namespace CloudAE.App
 			{
 				for (int y = yMin; y < yMax; y++)
 				{
-					PointCloudTile currentTile = CurrentTileSource.TileSet[x, y];
+					PointCloudTile currentTile = CurrentTileSource.TileSet.GetTile(y, x);
 
 					if (currentTile.PointCount > 0)
 					{
@@ -817,7 +817,7 @@ namespace CloudAE.App
 
 					if (currentTile.Col < CurrentTileSource.TileSet.Cols - 1)
 					{
-						PointCloudTile adjacentTile = CurrentTileSource.TileSet[currentTile.Col + 1, currentTile.Row];
+						PointCloudTile adjacentTile = CurrentTileSource.TileSet.GetTile(currentTile.Row, currentTile.Col + 1);
 						if (m_tileInfo.ContainsKey(adjacentTile))
 						{
 							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
@@ -831,7 +831,7 @@ namespace CloudAE.App
 
 					if (currentTile.Row < CurrentTileSource.TileSet.Rows - 1)
 					{
-						PointCloudTile adjacentTile = CurrentTileSource.TileSet[currentTile.Col, currentTile.Row + 1];
+						PointCloudTile adjacentTile = CurrentTileSource.TileSet.GetTile(currentTile.Row + 1, currentTile.Col);
 						if (m_tileInfo.ContainsKey(adjacentTile))
 						{
 							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
@@ -845,7 +845,7 @@ namespace CloudAE.App
 
 					if (currentTile.Col < CurrentTileSource.TileSet.Cols - 1 && currentTile.Row < CurrentTileSource.TileSet.Rows - 1)
 					{
-						PointCloudTile adjacentTile = CurrentTileSource.TileSet[currentTile.Col + 1, currentTile.Row + 1];
+						PointCloudTile adjacentTile = CurrentTileSource.TileSet.GetTile(currentTile.Row + 1, currentTile.Col + 1);
 						if (m_tileInfo.ContainsKey(adjacentTile))
 						{
 							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
