@@ -29,6 +29,7 @@ namespace CloudAE.Core
 
 		private readonly PointCloudTileSet m_tileSet;
 		private readonly Statistics m_statisticsZ;
+		private readonly QuantizedStatistics m_statisticsQuantizedZ;
 		
 		private UQuantizedExtent3D m_quantizedExtent;
 
@@ -73,6 +74,11 @@ namespace CloudAE.Core
 		public Statistics StatisticsZ
 		{
 			get { return m_statisticsZ; }
+		}
+
+		public QuantizedStatistics StatisticsQuantizedZ
+		{
+			get { return m_statisticsQuantizedZ; }
 		}
 
 		public BitmapSource PreviewImage
@@ -151,6 +157,7 @@ namespace CloudAE.Core
 		{
 			m_tileSet = new PointCloudTileSet(tileSet, this);
 			m_statisticsZ = zStats;
+			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization as UQuantization3D);
 #warning this should be stored in the tileset, rather than converted
 			QuantizedExtent = (UQuantizedExtent3D)Quantization.Convert(Extent);
 
@@ -739,7 +746,7 @@ namespace CloudAE.Core
 
 		private BitmapSource GeneratePreviewImage(Grid<uint> grid, ColorRamp ramp, bool useStdDevStretch, int quality)
 		{
-			BitmapSource bmp = CreateBitmapSource(grid, QuantizedExtent, StatisticsZ.ConvertToQuantized(Quantization as UQuantization3D), useStdDevStretch, ramp, quality);
+			BitmapSource bmp = CreateBitmapSource(grid, QuantizedExtent, StatisticsQuantizedZ, useStdDevStretch, ramp, quality);
 			//BitmapSource bmp = CreateSegmentationBitmap(grid);
 			//BitmapSource bmp = CreatePlaneFittingBitmap(grid);
 
@@ -819,7 +826,7 @@ namespace CloudAE.Core
 			progressManager.Log(stopwatch, "Generated preview");
 		}
 
-		private unsafe void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
+		private void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
 		{
 			var gridSet = new GridQuantizedSet(this, maxPreviewDimension, -1.0f, true);
 
