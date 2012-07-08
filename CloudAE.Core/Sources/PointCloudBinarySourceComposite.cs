@@ -69,5 +69,13 @@ namespace CloudAE.Core
 		{
 			return new PointCloudBinarySourceCompositeEnumerator(m_sources, process);
 		}
+
+		public IPointCloudBinarySource CreateSegment(long pointIndex, long pointCount)
+		{
+			// make a new set of binary sources
+			
+			
+			throw new NotImplementedException();
+		}
 	}
 }

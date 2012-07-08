@@ -67,5 +67,12 @@ namespace CloudAE.Core
 		{
 			return new PointCloudBinarySourceEnumerator(this, buffer);
 		}
+
+		public IPointCloudBinarySource CreateSegment(long pointIndex, long pointCount)
+		{
+			long offset = PointDataOffset + pointIndex * PointSizeBytes;
+			var segment = new PointCloudBinarySource(FilePath, pointCount, Extent, Quantization, offset, PointSizeBytes);
+			return segment;
+		}
 	}
 }

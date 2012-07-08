@@ -136,7 +136,7 @@ namespace CloudAE.Core
 
 		private void ProcessFileSegments(BufferInstance segmentBuffer, ProgressManager progressManager)
 		{
-			PointCloudBinarySource[] segments = null;
+			IPointCloudBinarySource[] segments = null;
 			PointCloudTileSource[] tiledSegments = null;
 			PointCloudAnalysisResult analysis = null;
 
@@ -160,7 +160,7 @@ namespace CloudAE.Core
 						pointsInCurrentChunk = pointsRemaining;
 					pointsRemaining -= pointsInCurrentChunk;
 
-					segments[i] = new PointCloudBinarySourceSegment(m_binarySource, pointsPerChunk * i, pointsInCurrentChunk);
+					segments[i] = m_binarySource.CreateSegment(pointsPerChunk * i, pointsInCurrentChunk);
 				}
 			}
 

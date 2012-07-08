@@ -171,7 +171,6 @@
     <Compile Include="Points\LASPointFormat0.cs" />
     <Compile Include="Options\PropertyManager.cs" />
     <Compile Include="SegmentationOriginal.cs" />
-    <Compile Include="Sources\PointCloudBinarySourceSegment.cs" />
     <Compile Include="Sources\PointCloudBinarySource.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumeratorChunk.cs" />
     <Compile Include="Sources\PointCloudSource.cs" />
