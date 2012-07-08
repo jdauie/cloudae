@@ -10,9 +10,6 @@ namespace CloudAE.Core
 	class LASFile : FileHandlerBase, IPointCloudBinarySourceEnumerable
 	{
 		private const bool TRUST_HEADER_EXTENT = true;
-
-		private readonly int m_pointsPerBuffer;
-		private readonly int m_usableBytesPerBuffer;
 		
 		private readonly LASHeader m_header;
 		private readonly LASVLR[] m_vlrs;
@@ -31,16 +28,6 @@ namespace CloudAE.Core
 		public short PointSizeBytes
 		{
 			get { return (short)m_header.PointDataRecordLength; }
-		}
-
-		public int UsableBytesPerBuffer
-		{
-			get { return m_usableBytesPerBuffer; }
-		}
-
-		public int PointsPerBuffer
-		{
-			get { return m_pointsPerBuffer; }
 		}
 
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
@@ -68,11 +55,9 @@ namespace CloudAE.Core
 			}
 
 			int pointSizeBytes = PointSizeBytes;
-			m_pointsPerBuffer = BufferManager.BUFFER_SIZE_BYTES / pointSizeBytes;
-			m_usableBytesPerBuffer = m_pointsPerBuffer * pointSizeBytes;
 		}
 
-		public override PointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
+		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
 		{
 			return CreateLASToBinaryWrapper(progressManager);
 		}

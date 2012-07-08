@@ -9,7 +9,7 @@ namespace CloudAE.Core.Geometry
 	{
 		private static readonly PropertyState<ByteSizesSmall> PROPERTY_QUANTIZATION_MEMORY_LIMIT;
 
-		private readonly PointCloudBinarySource m_source;
+		private readonly IPointCloudBinarySource m_source;
 		private readonly bool m_quantized;
 		private readonly int m_count;
 		private readonly T[][] m_values;
@@ -20,7 +20,7 @@ namespace CloudAE.Core.Geometry
 			PROPERTY_QUANTIZATION_MEMORY_LIMIT = Context.RegisterOption(Context.OptionCategory.Tiling, "QuantizationMemoryLimit", ByteSizesSmall.MB_16);
 		}
 
-		public QuantizationTest(PointCloudBinarySource source)
+		public QuantizationTest(IPointCloudBinarySource source)
 		{
 			m_source = source;
 			m_quantized = (m_source.Quantization != null);
@@ -74,16 +74,16 @@ namespace CloudAE.Core.Geometry
 				return Quantization3D.Create(m_source.Extent, m_values as double[][], m_index);
 		}
 
-		private static unsafe int GetPrecisionTestingPointCount(PointCloudBinarySource source)
+		private static unsafe int GetPrecisionTestingPointCount(IPointCloudBinarySource source)
 		{
 			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;
 			int maxPointsForPrecisionTest = maxBytesForPrecisionTest / sizeof(SQuantizedPoint3D);
 			
 			// block-alignment is no longer necessary
-			int maxPointsForPrecisionTestBlockAligned = (maxPointsForPrecisionTest / source.PointsPerBuffer) * source.PointsPerBuffer;
-			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTestBlockAligned);
+			//int maxPointsForPrecisionTestBlockAligned = (maxPointsForPrecisionTest / source.PointsPerBuffer) * source.PointsPerBuffer;
+			//int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTestBlockAligned);
 
-			//int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTest);
+			int pointsToTest = (int)Math.Min(source.Count, maxPointsForPrecisionTest);
 			return pointsToTest;
 		}
 	}

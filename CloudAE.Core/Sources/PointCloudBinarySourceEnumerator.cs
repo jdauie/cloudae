@@ -25,7 +25,7 @@ namespace CloudAE.Core
 
 			m_endPosition = m_source.PointDataOffset + m_source.Count * m_source.PointSizeBytes;
 
-			m_usableBytesPerBuffer = m_source.UsableBytesPerBuffer;
+			m_usableBytesPerBuffer = (m_buffer.Length / m_source.PointSizeBytes) * m_source.PointSizeBytes;
 
 			Reset();
 		}
@@ -40,7 +40,7 @@ namespace CloudAE.Core
 
 			m_endPosition = m_source.PointDataOffset + m_source.Count * m_source.PointSizeBytes;
 
-			m_usableBytesPerBuffer = m_source.UsableBytesPerBuffer;
+			m_usableBytesPerBuffer = (m_buffer.Length / m_source.PointSizeBytes) * m_source.PointSizeBytes;
 
 			Reset();
 		}

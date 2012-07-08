@@ -27,7 +27,7 @@ namespace CloudAE.Core
 		{
 		}
 
-		public override PointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
+		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
 		{
 			string binaryPath = ProcessingSet.GetBinarySourceName(this);
 			return ConvertTextToBinary(binaryPath, progressManager);

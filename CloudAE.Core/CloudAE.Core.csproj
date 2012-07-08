@@ -142,6 +142,7 @@
     <Compile Include="Options\IPropertyState.cs" />
     <Compile Include="Options\PropertyName.cs" />
     <Compile Include="Serialization\SerializationHelper.cs" />
+    <Compile Include="Sources\IPointCloudBinarySource.cs" />
     <Compile Include="Sources\IPointDataChunk.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
     <Compile Include="Sources\IStreamReader.cs" />

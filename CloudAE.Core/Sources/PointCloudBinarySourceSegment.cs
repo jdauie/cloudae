@@ -6,7 +6,7 @@ namespace CloudAE.Core
 {
 	public class PointCloudBinarySourceSegment : PointCloudBinarySource
 	{
-		public PointCloudBinarySourceSegment(PointCloudBinarySource source, long segmentPointIndex, long segmentPointCount)
+		public PointCloudBinarySourceSegment(IPointCloudBinarySource source, long segmentPointIndex, long segmentPointCount)
 			: base(source.FilePath, segmentPointCount, source.Extent, source.Quantization, source.PointDataOffset + segmentPointIndex * source.PointSizeBytes, source.PointSizeBytes)
 		{
 		}

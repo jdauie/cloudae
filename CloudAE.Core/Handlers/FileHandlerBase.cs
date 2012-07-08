@@ -43,7 +43,7 @@ namespace CloudAE.Core
 			FilePath = path;
 		}
 
-		public abstract PointCloudBinarySource GenerateBinarySource(ProgressManager progressManager);
+		public abstract IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager);
 
 		public abstract string GetPreview();
 	}

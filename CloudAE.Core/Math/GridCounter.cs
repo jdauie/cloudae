@@ -7,7 +7,7 @@ namespace CloudAE.Core
 {
 	public class GridCounter : IDisposable
 	{
-		private readonly PointCloudBinarySource m_source;
+		private readonly IPointCloudBinarySource m_source;
 		private readonly Grid<int> m_grid;
 		private readonly bool m_quantized;
 
@@ -16,7 +16,7 @@ namespace CloudAE.Core
 		private readonly double m_tilesOverRangeX;
 		private readonly double m_tilesOverRangeY;
 
-		public GridCounter(PointCloudBinarySource source, Grid<int> grid)
+		public GridCounter(IPointCloudBinarySource source, Grid<int> grid)
 		{
 			m_source = source;
 			m_grid = grid;

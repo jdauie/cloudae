@@ -16,7 +16,7 @@ namespace CloudAE.Core
 		private readonly Identity m_id;
 
 		private readonly FileHandlerBase m_inputHandler;
-		private PointCloudBinarySource m_binarySource;
+		private IPointCloudBinarySource m_binarySource;
 		private PointCloudTileSource m_tileSource;
 
 		private readonly bool m_isInputPathLocal;

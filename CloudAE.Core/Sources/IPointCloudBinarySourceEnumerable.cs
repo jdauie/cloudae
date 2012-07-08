@@ -8,8 +8,6 @@ namespace CloudAE.Core
 		long   Count                { get; }
 		long   PointDataOffset      { get; }
 		short  PointSizeBytes       { get; }
-		int    UsableBytesPerBuffer { get; }
-		int    PointsPerBuffer      { get; }
 
 		IPointCloudBinarySourceEnumerator GetBlockEnumerator(BufferInstance buffer);
 		IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process);

@@ -7,7 +7,7 @@ namespace CloudAE.Core
 {
 	public unsafe class PointBufferWrapper : IPointDataChunk
 	{
-		private readonly PointCloudBinarySource m_source;
+		private readonly IPointCloudBinarySource m_source;
 		private readonly BufferInstance m_buffer;
 		private readonly byte* m_pointDataPtr;
 		private readonly byte* m_pointDataEndPtr;
@@ -61,7 +61,7 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointBufferWrapper(BufferInstance buffer, PointCloudBinarySource source)
+		public PointBufferWrapper(BufferInstance buffer, IPointCloudBinarySource source)
 		{
 			m_buffer = buffer;
 			m_source = source;

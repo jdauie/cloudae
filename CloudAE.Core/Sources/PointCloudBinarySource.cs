@@ -6,15 +6,13 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class PointCloudBinarySource : PointCloudSource, IPointCloudBinarySourceEnumerable
+	public class PointCloudBinarySource : PointCloudSource, IPointCloudBinarySource
 	{
 		public const string FILE_EXTENSION = "bin";
 
 		private readonly long m_count;
 		private readonly Quantization3D m_quantization;
 		private readonly short m_pointSizeBytes;
-		private readonly int m_pointsPerBuffer;
-		private readonly int m_usableBytesPerBuffer;
 
 		private long m_pointDataOffset;
 		private Extent3D m_extent;
@@ -34,16 +32,6 @@ namespace CloudAE.Core
 		public short PointSizeBytes
 		{
 			get { return m_pointSizeBytes; }
-		}
-
-		public int UsableBytesPerBuffer
-		{
-			get { return m_usableBytesPerBuffer; }
-		}
-
-		public int PointsPerBuffer
-		{
-			get { return m_pointsPerBuffer; }
 		}
 
 		public long PointDataOffset
@@ -68,8 +56,6 @@ namespace CloudAE.Core
 			m_quantization = quantization;
 			PointDataOffset = dataOffset;
 			m_pointSizeBytes = pointSizeBytes;
-			m_pointsPerBuffer = BufferManager.BUFFER_SIZE_BYTES / pointSizeBytes;
-			m_usableBytesPerBuffer = m_pointsPerBuffer * pointSizeBytes;
 		}
 
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)

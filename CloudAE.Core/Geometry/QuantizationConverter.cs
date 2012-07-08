@@ -23,7 +23,7 @@ namespace CloudAE.Core.Geometry
 		private readonly double m_offsetTranslationY;
 		private readonly double m_offsetTranslationZ;
 
-		public QuantizationConverter(PointCloudBinarySource source, Quantization3D outputQuantization, Grid<int> tileCounts)
+		public QuantizationConverter(IPointCloudBinarySource source, Quantization3D outputQuantization, Grid<int> tileCounts)
 		{
 			var extent = source.Extent;
 			var inputQuantization = (SQuantization3D)source.Quantization;

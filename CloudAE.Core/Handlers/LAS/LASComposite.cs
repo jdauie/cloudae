@@ -10,8 +10,7 @@ namespace CloudAE.Core
 {
 	class LASComposite : FileHandlerBase, IPointCloudBinarySourceEnumerable
 	{
-		private readonly int m_pointsPerBuffer;
-		private readonly int m_usableBytesPerBuffer;
+		private readonly LASFile[] m_files;
 
 		public long Count
 		{
@@ -26,16 +25,6 @@ namespace CloudAE.Core
 		public short PointSizeBytes
 		{
 			get { return 0; }
-		}
-
-		public int UsableBytesPerBuffer
-		{
-			get { return m_usableBytesPerBuffer; }
-		}
-
-		public int PointsPerBuffer
-		{
-			get { return m_pointsPerBuffer; }
 		}
 
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
@@ -54,16 +43,16 @@ namespace CloudAE.Core
 			List<LASFile> files = new List<LASFile>();
 			string[] lines = File.ReadAllLines(path);
 			foreach (var line in lines)
-				files.Add(new LASFile(line));
+			{
+				if (File.Exists(line))
+					files.Add(new LASFile(line));
+			}
 
 			// verify that all inputs are compatible
-
-			int pointSizeBytes = PointSizeBytes;
-			m_pointsPerBuffer = BufferManager.BUFFER_SIZE_BYTES / pointSizeBytes;
-			m_usableBytesPerBuffer = m_pointsPerBuffer * pointSizeBytes;
+			m_files = files.ToArray();
 		}
 
-		public override PointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
+		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
 		{
 			return CreateLASToBinaryWrapper(progressManager);
 		}
@@ -77,11 +66,14 @@ namespace CloudAE.Core
 			return sb.ToString();
 		}
 
-		public unsafe PointCloudBinarySource CreateLASToBinaryWrapper(ProgressManager progressManager)
+		public unsafe IPointCloudBinarySource CreateLASToBinaryWrapper(ProgressManager progressManager)
 		{
-			//var source = new PointCloudBinarySourceComposite();
+			List<PointCloudBinarySource> sources = new List<PointCloudBinarySource>();
+			foreach (var file in m_files)
+				sources.Add(file.CreateLASToBinaryWrapper(progressManager));
 
-			return null;
+			var source = new PointCloudBinarySourceComposite(FilePath, sources.ToArray());
+			return source;
 		}
 	}
 }
