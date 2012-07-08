@@ -100,16 +100,15 @@ namespace CloudAE.Core
 					{
 						if (minX == 0 && maxX == 0)
 						{
-							SQuantizedPoint3D* p = (SQuantizedPoint3D*)chunk.DataPtr;
+							SQuantizedPoint3D* p = (SQuantizedPoint3D*)chunk.PointDataPtr;
 
 							minX = maxX = (*p).X;
 							minY = maxY = (*p).Y;
 							minZ = maxZ = (*p).Z;
 						}
 
-						byte* pb = chunk.DataPtr;
-						byte* pbEnd = chunk.DataEndPtr;
-						while(pb < pbEnd)
+						byte* pb = chunk.PointDataPtr;
+						while(pb < chunk.PointDataEndPtr)
 						{
 							SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
 

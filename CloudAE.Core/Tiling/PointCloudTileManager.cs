@@ -204,9 +204,8 @@ namespace CloudAE.Core
 			{
 				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
-					byte* pb = chunk.DataPtr;
-					byte* pbEnd = chunk.DataEndPtr;
-					while (pb < pbEnd)
+					byte* pb = chunk.PointDataPtr;
+					while (pb < chunk.PointDataEndPtr)
 					{
 						Point3D* p = (Point3D*)pb;
 						UQuantizedPoint3D* p2 = (UQuantizedPoint3D*)pb;
@@ -220,7 +219,7 @@ namespace CloudAE.Core
 							(int)(((double)(*p2).Y - quantizedExtent.MinY) * tilesOverRangeY)
 						];
 
-						pb += pointSizeBytes;
+						pb += chunk.PointSizeBytes;
 					}
 				}
 
@@ -246,9 +245,8 @@ namespace CloudAE.Core
 			{
 				foreach (var chunk in source.GetBlockEnumerator(process))
 				{
-					byte* pb = chunk.DataPtr;
-					byte* pbEnd = chunk.DataEndPtr;
-					while (pb < pbEnd)
+					byte* pb = chunk.PointDataPtr;
+					while (pb < chunk.PointDataEndPtr)
 					{
 						Point3D* p = (Point3D*)pb;
 						UQuantizedPoint3D* p2 = (UQuantizedPoint3D*)pb;
@@ -262,7 +260,7 @@ namespace CloudAE.Core
 						//    (int)(((double)(*p2).Y - quantizedExtent.MinY) * tilesOverRangeY)
 						//);
 
-						pb += pointSizeBytes;
+						pb += chunk.PointSizeBytes;
 					}
 				}
 			}

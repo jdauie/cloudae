@@ -7,10 +7,11 @@ namespace CloudAE.Core
 	public unsafe class PointCloudBinarySourceEnumeratorChunk : IProgress, IPointDataChunk
 	{
 		public readonly uint Index;
-		public readonly int BytesRead;
-		public readonly int PointsRead;
-		public readonly byte* DataPtr;
-		public readonly byte* DataEndPtr;
+
+		private readonly int m_bytesRead;
+		private readonly int m_pointsRead;
+		private readonly byte* m_dataPtr;
+		private readonly byte* m_dataEndPtr;
 
 		private readonly BufferInstance m_buffer;
 		private readonly short m_pointSizeBytes;
@@ -30,17 +31,17 @@ namespace CloudAE.Core
 
 		public byte* PointDataPtr
 		{
-			get { return DataPtr; }
+			get { return m_dataPtr; }
 		}
 
 		public byte* PointDataEndPtr
 		{
-			get { return DataEndPtr; }
+			get { return m_dataEndPtr; }
 		}
 
 		public int Length
 		{
-			get { return (int)(DataEndPtr - DataPtr); }
+			get { return (int)(m_dataEndPtr - m_dataPtr); }
 		}
 
 		public short PointSizeBytes
@@ -50,7 +51,7 @@ namespace CloudAE.Core
 
 		public int PointCount
 		{
-			get { return PointsRead; }
+			get { return m_pointsRead; }
 		}
 
 		#endregion
@@ -60,10 +61,10 @@ namespace CloudAE.Core
 			m_buffer = buffer;
 			Index = index;
 			m_pointSizeBytes = pointSizeBytes;
-			BytesRead = bytesRead;
-			PointsRead = BytesRead / m_pointSizeBytes;
-			DataPtr = buffer.DataPtr;
-			DataEndPtr = DataPtr + BytesRead;
+			m_bytesRead = bytesRead;
+			m_pointsRead = m_bytesRead / m_pointSizeBytes;
+			m_dataPtr = buffer.DataPtr;
+			m_dataEndPtr = m_dataPtr + m_bytesRead;
 
 			m_progress = progress;
 		}
