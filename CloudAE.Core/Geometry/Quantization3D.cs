@@ -44,6 +44,10 @@ namespace CloudAE.Core.Geometry
 			OffsetX = reader.ReadDouble();
 			OffsetY = reader.ReadDouble();
 			OffsetZ = reader.ReadDouble();
+
+			ScaleFactorInverseX = 1.0 / ScaleFactorX;
+			ScaleFactorInverseY = 1.0 / ScaleFactorY;
+			ScaleFactorInverseZ = 1.0 / ScaleFactorZ;
 		}
 
 		public void Serialize(BinaryWriter writer)
