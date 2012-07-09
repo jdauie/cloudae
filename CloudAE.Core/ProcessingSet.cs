@@ -152,7 +152,7 @@ namespace CloudAE.Core
 				long pointsPerChunk = m_binarySource.Count / chunks;
 				long pointsRemaining = m_binarySource.Count;
 
-				segments = new PointCloudBinarySource[chunks];
+				segments = new IPointCloudBinarySource[chunks];
 				for (int i = 0; i < chunks; i++)
 				{
 					long pointsInCurrentChunk = pointsPerChunk;

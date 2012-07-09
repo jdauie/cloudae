@@ -8,7 +8,7 @@ namespace CloudAE.Core
 {
 	public class PointCloudBinarySourceComposite : PointCloudSource, IPointCloudBinarySource
 	{
-		private readonly PointCloudBinarySource[] m_sources;
+		private readonly IPointCloudBinarySource[] m_sources;
 
 		private readonly long m_count;
 		private readonly Quantization3D m_quantization;
@@ -46,7 +46,7 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudBinarySourceComposite(string path, PointCloudBinarySource[] sources)
+		public PointCloudBinarySourceComposite(string path, Extent3D extent, IPointCloudBinarySource[] sources)
 			: base(path)
 		{
 			m_sources = sources;
@@ -54,7 +54,7 @@ namespace CloudAE.Core
 			// verify that they are compatible
 
 			m_count = m_sources.Sum(s => s.Count);
-			Extent = m_sources.Select(s => s.Extent).Union3D();
+			Extent = extent;
 			m_quantization = m_sources[0].Quantization;
 			m_pointSizeBytes = m_sources[0].PointSizeBytes;
 		}
@@ -73,9 +73,32 @@ namespace CloudAE.Core
 		public IPointCloudBinarySource CreateSegment(long pointIndex, long pointCount)
 		{
 			// make a new set of binary sources
-			
-			
-			throw new NotImplementedException();
+			var subset = new List<IPointCloudBinarySource>(m_sources.Length);
+
+			long currentIndex = 0;
+			long pointsRemaining = pointCount;
+			foreach (var source in m_sources)
+			{
+				if (pointsRemaining == 0)
+					break;
+
+				if (subset.Count == 0 && currentIndex + source.Count <= pointIndex)
+				{
+					currentIndex += source.Count;
+					continue;
+				}
+
+				// add this as a partial (it may need both ends adjusted)
+				long segmentStart = subset.Count == 0 ? pointIndex - currentIndex : 0;
+				long segmentLength = Math.Min(pointsRemaining, source.Count - segmentStart);
+				var segment = source.CreateSegment(segmentStart, segmentLength);
+				subset.Add(segment);
+
+				pointsRemaining -= segmentLength;
+			}
+
+			var composite = new PointCloudBinarySourceComposite(FilePath, Extent, subset.ToArray());
+			return composite;
 		}
 	}
 }

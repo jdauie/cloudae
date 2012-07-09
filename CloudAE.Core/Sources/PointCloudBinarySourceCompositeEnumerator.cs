@@ -79,7 +79,7 @@ namespace CloudAE.Core
 				m_currentSourceEnumerator.Dispose();
 				m_currentSourceEnumerator = null;
 			}
-			m_currentSourceIndex = 0;
+			m_currentSourceIndex = -1;
 			m_current = null;
 		}
 

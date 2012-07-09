@@ -79,9 +79,9 @@ namespace CloudAE.Core.Geometry
 				extents.Min(e => e.MinX),
 				extents.Min(e => e.MinY),
 				extents.Min(e => e.MinZ),
-				extents.Max(e => e.MinX),
-				extents.Max(e => e.MinY),
-				extents.Max(e => e.MinZ)
+				extents.Max(e => e.MaxX),
+				extents.Max(e => e.MaxY),
+				extents.Max(e => e.MaxZ)
 			);
 		}
 	}

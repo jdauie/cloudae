@@ -68,11 +68,12 @@ namespace CloudAE.Core
 
 		public unsafe IPointCloudBinarySource CreateLASToBinaryWrapper(ProgressManager progressManager)
 		{
-			List<PointCloudBinarySource> sources = new List<PointCloudBinarySource>();
+			var sources = new List<IPointCloudBinarySource>();
 			foreach (var file in m_files)
 				sources.Add(file.CreateLASToBinaryWrapper(progressManager));
 
-			var source = new PointCloudBinarySourceComposite(FilePath, sources.ToArray());
+			var extent = sources.Select(s => s.Extent).Union3D();
+			var source = new PointCloudBinarySourceComposite(FilePath, extent, sources.ToArray());
 			return source;
 		}
 	}
