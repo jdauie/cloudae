@@ -75,7 +75,8 @@ namespace CloudAE.Core
 
 		public void Serialize(BinaryWriter writer)
 		{
-
+			writer.Write(m_versionMajor);
+			writer.Write(m_versionMinor);
 		}
 	}
 
@@ -191,19 +192,19 @@ namespace CloudAE.Core
 			if (Encoding.ASCII.GetString(reader.ReadBytes(FILE_SIGNATURE.Length)) != FILE_SIGNATURE)
 				throw new Exception("Invalid format: signature does not match");
 
-			m_fileSourceID = reader.ReadUInt16();
+			m_fileSourceID          = reader.ReadUInt16();
 
-			m_globalEncoding = reader.ReadLASGlobalEncoding();
-			m_projectID = reader.ReadLASProjectID();
-			m_version = reader.ReadLASVersionInfo();
+			m_globalEncoding        = reader.ReadLASGlobalEncoding();
+			m_projectID             = reader.ReadLASProjectID();
+			m_version               = reader.ReadLASVersionInfo();
 			
-			m_systemIdentifier = reader.ReadBytes(32).UnsafeAsciiBytesToString();
-			m_generatingSoftware = reader.ReadBytes(32).UnsafeAsciiBytesToString();
+			m_systemIdentifier      = reader.ReadBytes(32).UnsafeAsciiBytesToString();
+			m_generatingSoftware    = reader.ReadBytes(32).UnsafeAsciiBytesToString();
 			m_fileCreationDayOfYear = reader.ReadUInt16();
-			m_fileCreationYear = reader.ReadUInt16();
+			m_fileCreationYear      = reader.ReadUInt16();
 
-			m_headerSize = reader.ReadUInt16();
-			m_offsetToPointData = reader.ReadUInt32();
+			m_headerSize            = reader.ReadUInt16();
+			m_offsetToPointData     = reader.ReadUInt32();
 
 			ushort minHeaderSize = c_minHeaderSize[m_version.Version];
 			if (length < minHeaderSize)
@@ -212,13 +213,13 @@ namespace CloudAE.Core
 				throw new Exception("Invalid format: header size incorrect");
 
 			m_numberOfVariableLengthRecords = reader.ReadUInt32();
-			m_pointDataRecordFormat = reader.ReadByte();
-			m_pointDataRecordLength = reader.ReadUInt16();
-			m_legacyNumberOfPointRecords = reader.ReadUInt32();
-			m_legacyNumberOfPointsByReturn = reader.ReadUInt32Array(5);
+			m_pointDataRecordFormat         = reader.ReadByte();
+			m_pointDataRecordLength         = reader.ReadUInt16();
+			m_legacyNumberOfPointRecords    = reader.ReadUInt32();
+			m_legacyNumberOfPointsByReturn  = reader.ReadUInt32Array(5);
 
 			m_quantization = reader.ReadSQuantization3D();
-			m_extent = reader.ReadLASExtent3D();
+			m_extent       = reader.ReadLASExtent3D();
 
 			if (m_version.Version >= LASVersion.LAS_1_3)
 			{
@@ -228,9 +229,9 @@ namespace CloudAE.Core
 			if (m_version.Version >= LASVersion.LAS_1_4)
 			{
 				m_startOfFirstExtendedVariableLengthRecord = reader.ReadUInt64();
-				m_numberOfExtendedVariableLengthRecords = reader.ReadUInt32();
-				m_numberOfPointRecords = reader.ReadUInt64();
-				m_numberOfPointsByReturn = reader.ReadUInt64Array(15);
+				m_numberOfExtendedVariableLengthRecords    = reader.ReadUInt32();
+				m_numberOfPointRecords                     = reader.ReadUInt64();
+				m_numberOfPointsByReturn                   = reader.ReadUInt64Array(15);
 			}
 			else
 			{
@@ -240,6 +241,7 @@ namespace CloudAE.Core
 					m_numberOfPointsByReturn[i] = m_legacyNumberOfPointsByReturn[i];
 			}
 
+			// This doesn't apply to LAZ files
 			//ulong pointDataRegionLength = (ulong)length - m_offsetToPointData;
 			//if (pointDataRegionLength < m_pointDataRecordLength * PointCount)
 			//    throw new Exception("Invalid format: point data region is not the expected size");
