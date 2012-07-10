@@ -59,13 +59,10 @@ namespace CloudAE.Core
 				using (var inputStream = StreamManager.OpenReadStream(FilePath))
 				{
 					long inputLength = inputStream.Length;
-					//long estimatedOutputLength = (long)(0.5 * inputLength);
 					long estimatedOutputLength = inputLength;
 
-					using (var outputStream = StreamManager.OpenWriteStream(FilePath, estimatedOutputLength, 0, true))
+					using (var outputStream = StreamManager.OpenWriteStream(binaryPath, estimatedOutputLength, 0, true))
 					{
-						outputStream.SetLength(estimatedOutputLength);
-
 						int bytesRead;
 						int readStart = 0;
 
@@ -142,9 +139,6 @@ namespace CloudAE.Core
 						// write remaining buffer
 						if (bufferIndex > 0)
 							outputStream.Write(outputBuffer.Data, 0, bufferIndex);
-
-						if (outputStream.Length > outputStream.Position)
-							outputStream.SetLength(outputStream.Position);
 					}
 				}
 

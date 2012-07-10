@@ -50,6 +50,8 @@ namespace CloudAE.Core
 			long startPositionAligned = ((startPosition + (m_sectorSize - 1)) & (~(long)(m_sectorSize - 1))) - m_sectorSize;
 			if (startPositionAligned >= 0)
 				m_stream.Seek(startPositionAligned, SeekOrigin.Begin);
+			else
+				startPositionAligned = 0;
 			m_bufferIndex = (int)(startPosition - startPositionAligned);
 		}
 
