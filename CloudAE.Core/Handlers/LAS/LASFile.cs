@@ -7,7 +7,7 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	class LASFile : FileHandlerBase, IPointCloudBinarySourceEnumerable
+	class LASFile : FileHandlerBase, IPointCloudBinarySourceSequentialEnumerable
 	{
 		private const bool TRUST_HEADER_EXTENT = true;
 		

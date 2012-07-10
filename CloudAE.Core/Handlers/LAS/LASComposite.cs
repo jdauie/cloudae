@@ -12,35 +12,33 @@ namespace CloudAE.Core
 	{
 		private readonly LASFile[] m_files;
 
+		private readonly long m_count;
+		private readonly short m_pointSizeBytes;
+
 		public long Count
 		{
-			get { return 0; }
-		}
-
-		public long PointDataOffset
-		{
-			get { return 0; }
+			get { return m_count; }
 		}
 
 		public short PointSizeBytes
 		{
-			get { return 0; }
+			get { return m_pointSizeBytes; }
 		}
 
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
 		{
-			return new PointCloudBinarySourceEnumerator(this, process);
+			return new PointCloudBinarySourceCompositeEnumerator(m_files, process);
 		}
 
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(BufferInstance buffer)
 		{
-			return new PointCloudBinarySourceEnumerator(this, buffer);
+			throw new NotImplementedException();
 		}
 
 		public LASComposite(string path)
 			: base(path)
 		{
-			List<LASFile> files = new List<LASFile>();
+			var files = new List<LASFile>();
 			string[] lines = File.ReadAllLines(path);
 			foreach (var line in lines)
 			{
@@ -50,6 +48,9 @@ namespace CloudAE.Core
 
 			// verify that all inputs are compatible
 			m_files = files.ToArray();
+
+			m_count = m_files.Sum(f => f.Count);
+			m_pointSizeBytes = m_files[0].PointSizeBytes;
 		}
 
 		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
@@ -66,7 +67,7 @@ namespace CloudAE.Core
 			return sb.ToString();
 		}
 
-		public unsafe IPointCloudBinarySource CreateLASToBinaryWrapper(ProgressManager progressManager)
+		public IPointCloudBinarySource CreateLASToBinaryWrapper(ProgressManager progressManager)
 		{
 			var sources = new List<IPointCloudBinarySource>();
 			foreach (var file in m_files)

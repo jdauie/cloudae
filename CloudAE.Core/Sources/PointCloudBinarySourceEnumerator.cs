@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
 
 namespace CloudAE.Core
 {
 	public class PointCloudBinarySourceEnumerator : IPointCloudBinarySourceEnumerator
 	{
-		private readonly IPointCloudBinarySourceEnumerable m_source;
+		private readonly IPointCloudBinarySourceSequentialEnumerable m_source;
 		private readonly IStreamReader m_stream;
 		private readonly BufferInstance m_buffer;
 		private readonly ProgressManagerProcess m_process;
@@ -16,7 +15,7 @@ namespace CloudAE.Core
 
 		private PointCloudBinarySourceEnumeratorChunk m_current;
 
-		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceEnumerable source, ProgressManagerProcess process)
+		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceSequentialEnumerable source, ProgressManagerProcess process)
 		{
 			m_source = source;
 			m_stream = StreamManager.OpenReadStream(m_source.FilePath);
@@ -31,7 +30,7 @@ namespace CloudAE.Core
 		}
 
 		// this version doesn't use a process, so that it can be used by a composite, which will handle progress
-		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceEnumerable source, BufferInstance buffer)
+		public PointCloudBinarySourceEnumerator(IPointCloudBinarySourceSequentialEnumerable source, BufferInstance buffer)
 		{
 			m_source = source;
 			m_stream = StreamManager.OpenReadStream(m_source.FilePath);
