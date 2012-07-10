@@ -204,9 +204,50 @@ namespace CloudAE.Core
 			m_tiles[tile.Row, tile.Col] = tile;
 		}
 
-		public PointCloudTile[][] GetTileReadOrderGroups(PointCloudTile[] tiles)
+		public PointCloudTile[] GetTileReadOrder(IEnumerable<PointCloudTile> tiles)
 		{
-			// break the tiles down inside the tree to determine read order/grouping
+			PointCloudTile[] sortedTiles = null;
+
+			if (tiles == null)
+				return null;
+
+			sortedTiles = tiles.OrderBy(t => t.PointOffset).ToArray();
+			
+			return sortedTiles;
+
+			//var sortedTiles = tiles.OrderBy(t => t.PointOffset);
+			//foreach (var tile in sortedTiles)
+			//{
+			//    byte[] b = new byte[tile.StorageSize];
+			//    source.LoadTile(tile, b);
+			//}
+
+
+			//var source = tiles[0].TileSource;
+
+			//long origPointsToRead = tiles.Sum(t => t.PointCount);
+			////long origBytesToRead = origPointsToRead * tiles[0].TileSource.PointSizeBytes;
+
+			//// just read one big chunk? (could be huge)
+
+			//var sortedTiles = tiles.OrderBy(t => t.PointOffset).ToArray();
+			
+			//long pointOffsetStart = sortedTiles[0].PointOffset;
+			//long pointOffsetEnd = sortedTiles[sortedTiles.Length - 1].PointOffset + sortedTiles[sortedTiles.Length - 1].PointCount;
+
+			//long pointsToRead = pointOffsetEnd - pointOffsetStart;
+			////long bytesToRead = pointsToRead * source.PointSizeBytes;
+
+			////Context.WriteLine("ReadOrder: {0:f}x", (double)bytesToRead / origBytesToRead);
+
+			//// one seek
+			//var superChunk = sortedTiles.SkipWhile(t => t.PointOffset < pointOffsetStart).TakeWhile(t => t.PointOffset < pointOffsetEnd).ToArray();
+			//foreach (var tile in superChunk)
+			//{
+			//    byte[] b = new byte[tile.StorageSize];
+			//    source.LoadTile(tile, b);
+			//}
+
 			return null;
 		}
 

@@ -274,8 +274,7 @@ namespace CloudAE.App
 				}
 			}
 
-			PointCloudTile[] tilesToLoadArray = tilesToLoad.ToArray();
-			SortByDistanceFromTile(tilesToLoadArray, tile);
+			PointCloudTile[] tilesToLoadArray = CurrentTileSource.TileSet.GetTileReadOrder(tilesToLoad);
 			foreach (PointCloudTile currentTile in tilesToLoadArray)
 			{
 				// this will cause fragmentation problems, but it's just for demonstration
