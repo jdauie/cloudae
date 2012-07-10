@@ -50,9 +50,9 @@ namespace CloudAE.Core
 			{
 				using (var process = progressManager.StartProcess("ProcessSet"))
 				{
-					// step 0
-					if (!m_isInputPathLocal)
-						CopyFileToLocalDrive(progressManager);
+					//// step 0
+					//if (!m_isInputPathLocal)
+					//    CopyFileToLocalDrive(progressManager);
 
 					// step 1
 					m_binarySource = m_inputHandler.GenerateBinarySource(progressManager);
@@ -83,7 +83,10 @@ namespace CloudAE.Core
 
 					GC.Collect();
 
-					if (m_binarySource.FilePath != m_inputHandler.FilePath || !m_isInputPathLocal)
+					//if (m_binarySource.FilePath != m_inputHandler.FilePath || !m_isInputPathLocal)
+					//    File.Delete(m_binarySource.FilePath);
+
+					if (m_binarySource.FilePath != m_inputHandler.FilePath)
 						File.Delete(m_binarySource.FilePath);
 
 					if (m_tileSource.IsDirty)
