@@ -9,7 +9,6 @@ using System.Text;
 using System.Windows.Media.Imaging;
 
 using CloudAE.Core;
-using CloudAE.Core.Delaunay;
 using CloudAE.Core.DelaunayIncremental;
 using CloudAE.Core.Geometry;
 using CloudAE.Core.Util;
@@ -657,50 +656,6 @@ namespace CloudAE.Core
 			meshGeometry.TriangleIndices = triangles;
 
 			return meshGeometry;
-		}
-
-		public unsafe KeyValuePair<System.Windows.Media.Media3D.Point3DCollection, System.Windows.Media.Int32Collection> LoadTileMeshSHullBroken(PointCloudTile tile, byte[] inputBuffer)
-		{
-			Open();
-
-			Vertex[] pointsToTriangulate = new Vertex[tile.PointCount];
-
-			fixed (byte* inputBufferPtr = inputBuffer)
-			{
-				UQuantizedPoint3D* p = (UQuantizedPoint3D*)inputBufferPtr;
-
-				int bytesRead = tile.ReadTile(m_inputStream, inputBuffer);
-
-				for (int i = 0; i < tile.PointCount; i++)
-				{
-					Point3D point = Quantization.Convert(p[i]);
-
-					pointsToTriangulate[i] = new Vertex(
-						(float)point.X,
-						(float)point.Y,
-						(float)point.Z);
-				}
-			}
-
-			Triangulator triangulator = new Triangulator();
-			List<Triad> mesh = triangulator.Triangulation(pointsToTriangulate, true);
-
-			System.Windows.Media.Media3D.Point3DCollection points = new System.Windows.Media.Media3D.Point3DCollection(pointsToTriangulate.Length);
-			for (int i = 0; i < pointsToTriangulate.Length; i++)
-				points.Add(new System.Windows.Media.Media3D.Point3D(
-					pointsToTriangulate[i].x - Extent.MidpointX,
-					pointsToTriangulate[i].y - Extent.MidpointY,
-					pointsToTriangulate[i].z - Extent.MidpointZ));
-
-			System.Windows.Media.Int32Collection triangles = new System.Windows.Media.Int32Collection(3 * mesh.Count);
-			for (int i = 0; i < mesh.Count; i++)
-			{
-				triangles.Add(mesh[i].a);
-				triangles.Add(mesh[i].b);
-				triangles.Add(mesh[i].c);
-			}
-
-			return new KeyValuePair<System.Windows.Media.Media3D.Point3DCollection, System.Windows.Media.Int32Collection>(points, triangles);
 		}
 
 		public BitmapSource GeneratePreviewImage(ColorRamp ramp, bool useStdDevStretch, int quality)

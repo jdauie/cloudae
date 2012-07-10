@@ -1,20 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Media.Media3D;
-
-using CloudAE.Core;
-using CloudAE.Core.Delaunay;
 
 namespace CloudAE.App
 {
@@ -23,8 +10,8 @@ namespace CloudAE.App
 	/// </summary>
 	public sealed partial class LogViewer : UserControl
 	{
-		private Brush m_foregroundBrushTime;
-		private Brush m_foregroundBrushHighlight;
+		private readonly Brush m_foregroundBrushTime;
+		private readonly Brush m_foregroundBrushHighlight;
 
 		public LogViewer()
 		{

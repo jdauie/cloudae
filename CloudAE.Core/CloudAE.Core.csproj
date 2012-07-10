@@ -115,12 +115,6 @@
     <Compile Include="DelaunayIncremental\DelaunayGeometry.cs" />
     <Compile Include="DelaunayIncremental\DelaunayPoint.cs" />
     <Compile Include="DelaunayIncremental\Triangle.cs" />
-    <Compile Include="DelaunaySHull\Hull.cs" />
-    <Compile Include="DelaunaySHull\Program.cs" />
-    <Compile Include="DelaunaySHull\Set.cs" />
-    <Compile Include="DelaunaySHull\Triad.cs" />
-    <Compile Include="DelaunaySHull\Triangulator.cs" />
-    <Compile Include="DelaunaySHull\Vertex.cs" />
     <Compile Include="Extensions\ArrayExtensions.cs" />
     <Compile Include="Extensions\NumericExtensions.cs" />
     <Compile Include="Geometry\UQuantizedExtent2D.cs" />
