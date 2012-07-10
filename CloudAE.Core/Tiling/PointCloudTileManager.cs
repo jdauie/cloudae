@@ -193,7 +193,6 @@ namespace CloudAE.Core
 
 		private static unsafe PointCloudTileDensity FloatInitializeCounts(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
-			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
 			var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
 
@@ -232,7 +231,6 @@ namespace CloudAE.Core
 
 		private static unsafe void FloatTilePoints(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, PointCloudTileSource tileSource, ProgressManager progressManager)
 		{
-			short pointSizeBytes = source.PointSizeBytes;
 			var extent = source.Extent;
 			var outputQuantization = tileSource.Quantization;
 			var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
