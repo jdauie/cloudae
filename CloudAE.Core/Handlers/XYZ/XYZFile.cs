@@ -9,17 +9,13 @@ namespace CloudAE.Core
 {
 	class XYZFile : FileHandlerBase
 	{
-		private const int POINT_SIZE_BYTES = 3 * sizeof(double);
-		private const int POINTS_PER_BUFFER = BufferManager.BUFFER_SIZE_BYTES / POINT_SIZE_BYTES;
-		private const int USABLE_BYTES_PER_BUFFER = POINTS_PER_BUFFER * POINT_SIZE_BYTES;
-
-		private static readonly double[] m_reciprocalPowersOfTen;
+		private static readonly double[] c_reciprocalPowersOfTen;
 
 		static XYZFile()
 		{
-			m_reciprocalPowersOfTen = new double[19];
-			for (int i = 0; i < m_reciprocalPowersOfTen.Length; i++)
-				m_reciprocalPowersOfTen[i] = 1.0 / Math.Pow(10, i);
+			c_reciprocalPowersOfTen = new double[19];
+			for (int i = 0; i < c_reciprocalPowersOfTen.Length; i++)
+				c_reciprocalPowersOfTen[i] = 1.0 / Math.Pow(10, i);
 		}
 
 		public XYZFile(string path)
@@ -41,6 +37,8 @@ namespace CloudAE.Core
 
 		public unsafe PointCloudBinarySource ConvertTextToBinary(string binaryPath, ProgressManager progressManager)
 		{
+			short pointSizeBytes = 3 * sizeof(double);
+
 			double minX = 0, minY = 0, minZ = 0;
 			double maxX = 0, maxY = 0, maxZ = 0;
 			int pointCount = 0;
@@ -49,6 +47,9 @@ namespace CloudAE.Core
 			{
 				BufferInstance inputBuffer = process.AcquireBuffer(true);
 				BufferInstance outputBuffer = process.AcquireBuffer(true);
+
+				int pointsPerBuffer = outputBuffer.Length / pointSizeBytes;
+				int usableBytesPerBuffer = pointsPerBuffer * pointSizeBytes;
 
 				byte* inputBufferPtr = inputBuffer.DataPtr;
 				byte* outputBufferPtr = outputBuffer.DataPtr;
@@ -121,11 +122,11 @@ namespace CloudAE.Core
 									else if (p[2] > maxZ) maxZ = p[2];
 								}
 
-								bufferIndex += POINT_SIZE_BYTES;
+								bufferIndex += pointSizeBytes;
 								++pointCount;
 
 								// write usable buffer chunk
-								if (USABLE_BYTES_PER_BUFFER == bufferIndex)
+								if (usableBytesPerBuffer == bufferIndex)
 								{
 									outputStream.Write(outputBuffer.Data, 0, bufferIndex);
 									bufferIndex = 0;
@@ -148,7 +149,7 @@ namespace CloudAE.Core
 
 			var extent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
 
-			var source = new PointCloudBinarySource(binaryPath, pointCount, extent, null, 0, POINT_SIZE_BYTES);
+			var source = new PointCloudBinarySource(binaryPath, pointCount, extent, null, 0, pointSizeBytes);
 
 			return source;
 		}
@@ -186,7 +187,7 @@ namespace CloudAE.Core
 						++startPos;
 					}
 
-					xyz[i] = digits * m_reciprocalPowersOfTen[startPos - decimalSeperatorPosition - 1];
+					xyz[i] = digits * c_reciprocalPowersOfTen[startPos - decimalSeperatorPosition - 1];
 				}
 				else
 				{
