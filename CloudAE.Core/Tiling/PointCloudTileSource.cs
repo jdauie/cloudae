@@ -263,37 +263,6 @@ namespace CloudAE.Core
 			}
 		}
 
-		public unsafe void AllocateFile(bool allowSparse)
-		{
-			long outputLength = (long)Count * PointSizeBytes + PointDataOffset;
-			{
-				Stopwatch stopwatch = new Stopwatch();
-				stopwatch.Start();
-
-				// this works great when it fits in file cache
-				// but not when I am breaking it into segments
-				// unfortunately, segments are not apparent at this level
-				//File.Copy(source.FilePath, path);
-
-				// this might be about twice as fast for massive files
-				using (var outputStream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.SequentialScan))
-				{
-					outputStream.SetLength(outputLength);
-
-					if (!allowSparse)
-					{
-						outputStream.Seek(outputLength - 1, SeekOrigin.Begin);
-						outputStream.WriteByte(1);
-					}
-				}
-
-				stopwatch.Stop();
-
-				if (!allowSparse)
-					Context.WriteLine("Allocated {1} in {0}ms", stopwatch.ElapsedMilliseconds, outputLength.ToSize());
-			}
-		}
-
 		public void LoadTile(PointCloudTile tile, byte[] inputBuffer)
 		{
 			if (tile.PointCount == 0)
