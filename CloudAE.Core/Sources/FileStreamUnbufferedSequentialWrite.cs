@@ -16,12 +16,19 @@ namespace CloudAE.Core
 		private readonly string m_path;
 		private readonly long m_length;
 		private readonly long m_lengthAligned;
+		private readonly bool m_truncateOnClose;
 
 		private BufferInstance m_buffer;
 		private FileStream m_stream;
 		private int m_bufferIndex;
+		private long m_actualLength;
 
 		public FileStreamUnbufferedSequentialWrite(string path, long length, long startPosition)
+			: this(path, length, startPosition, false)
+		{
+		}
+
+		public FileStreamUnbufferedSequentialWrite(string path, long length, long startPosition, bool truncateOnClose)
 		{
 			m_path = path;
 			m_id = IdentityManager.AcquireIdentity(string.Format("{0}:{1}", this.GetType().Name, m_path));
@@ -30,10 +37,11 @@ namespace CloudAE.Core
 
 			m_length = length;
 			m_lengthAligned = (m_length + (m_sectorSize - 1)) & (~(long)(m_sectorSize - 1));
+			m_truncateOnClose = truncateOnClose;
 
-			const FileMode    mode    = FileMode.OpenOrCreate;
-			const FileAccess  access  = FileAccess.Write;
-			const FileShare   share   = FileShare.None;
+			const FileMode mode = FileMode.OpenOrCreate;
+			const FileAccess access = FileAccess.Write;
+			const FileShare share = FileShare.None;
 			const FileOptions options = (FileFlagNoBuffering | FileOptions.WriteThrough | FileOptions.SequentialScan);
 
 			m_stream = new FileStream(m_path, mode, access, share, BUFFER_SIZE, options);
@@ -47,6 +55,9 @@ namespace CloudAE.Core
 
 		public override void Write(byte[] array, int offset, int count)
 		{
+			if (m_actualLength > 0)
+				throw new InvalidOperationException("Partial flush already encountered.");
+
 			while (count > 0)
 			{
 				// copy from array into remaining buffer
@@ -65,20 +76,25 @@ namespace CloudAE.Core
 
 		private void FlushInternal()
 		{
-			// a partial flush is only allowed at the end of the file
 			if (m_bufferIndex > 0)
 			{
+				// a partial flush is only allowed at the end of the file
 				if (m_bufferIndex != m_buffer.Length && m_stream.Position + m_bufferIndex != m_length)
-					throw new InvalidOperationException("Partial flush before end of file.");
+				{
+					// once this is done, no more writes can be accepted
+					m_actualLength = Position;
+				}
 
 				m_stream.Write(m_buffer.Data, 0, m_buffer.Length);
 				m_bufferIndex = 0;
 			}
 		}
 
-		public void Dispose()
+		protected override void Dispose(bool disposing)
 		{
 			FlushInternal();
+
+			long position = Position;
 
 			if (m_stream != null)
 			{
@@ -94,11 +110,12 @@ namespace CloudAE.Core
 
 			// set the correct length
 			// this really isn't necessary for intermediate files (segments)
-			if (false)
+			if (m_truncateOnClose)
 			{
+				long length = m_actualLength > 0 ? m_actualLength : position;
 				using (var stream = new FileStream(m_path, FileMode.Open, FileAccess.Write, FileShare.None, 8, FileOptions.WriteThrough))
 				{
-					stream.SetLength(m_length);
+					stream.SetLength(length);
 				}
 			}
 		}

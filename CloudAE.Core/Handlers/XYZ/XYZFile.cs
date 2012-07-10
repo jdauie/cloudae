@@ -59,9 +59,10 @@ namespace CloudAE.Core
 				using (var inputStream = StreamManager.OpenReadStream(FilePath))
 				{
 					long inputLength = inputStream.Length;
-					long estimatedOutputLength = (long)(0.5 * inputLength);
+					//long estimatedOutputLength = (long)(0.5 * inputLength);
+					long estimatedOutputLength = inputLength;
 
-					using (var outputStream = new FileStream(binaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferManager.BUFFER_SIZE_BYTES, FileOptions.WriteThrough))
+					using (var outputStream = StreamManager.OpenWriteStream(FilePath, estimatedOutputLength, 0, true))
 					{
 						outputStream.SetLength(estimatedOutputLength);
 

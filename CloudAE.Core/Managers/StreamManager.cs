@@ -18,7 +18,12 @@ namespace CloudAE.Core
 
 		public static FileStreamUnbufferedSequentialWrite OpenWriteStream(string path, long length, long start)
 		{
-			return new FileStreamUnbufferedSequentialWrite(path, length, start);
+			return OpenWriteStream(path, length, start, false);
+		}
+
+		public static FileStreamUnbufferedSequentialWrite OpenWriteStream(string path, long length, long start, bool truncateOnClose)
+		{
+			return new FileStreamUnbufferedSequentialWrite(path, length, start, truncateOnClose);
 		}
 	}
 }
