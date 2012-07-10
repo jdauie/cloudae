@@ -19,7 +19,7 @@ namespace CloudAE.Core
 
 			using (var stream = StreamManager.OpenReadStream(FilePath))
 			{
-				using (var reader = new FlexibleBinaryReader(stream, false))
+				using (var reader = new FlexibleBinaryReader(stream))
 				{
 					m_header = reader.ReadLASHeader();
 				}

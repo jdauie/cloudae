@@ -284,18 +284,18 @@ namespace CloudAE.Core
 			}
 		}
 
-		public LASVLR[] ReadVLRs(Stream stream)
+		public LASVLR[] ReadVLRs(IStreamReader stream)
 		{
 			return ReadVLRs(stream, null);
 		}
 
-		public LASVLR[] ReadVLRs(Stream stream, Func<LASVLR, bool> acceptanceCondition)
+		public LASVLR[] ReadVLRs(IStreamReader stream, Func<LASVLR, bool> acceptanceCondition)
 		{
 			var vlrs = new List<LASVLR>((int)m_numberOfVariableLengthRecords);
 
 			if (m_numberOfVariableLengthRecords > 0)
 			{
-				stream.Seek(m_headerSize, SeekOrigin.Begin);
+				stream.Seek(m_headerSize);
 
 				using (var reader = new FlexibleBinaryReader(stream))
 				{
@@ -319,13 +319,20 @@ namespace CloudAE.Core
 			return vlrs.ToArray();
 		}
 
-		public LASEVLR[] ReadEVLRs(Stream stream)
+		public void WriteVLRs(Stream stream, LASVLR[] vlrs)
+		{
+			//m_numberOfVariableLengthRecords = vlrs.Length;
+
+			stream.Seek(m_headerSize, SeekOrigin.Begin);
+		}
+
+		public LASEVLR[] ReadEVLRs(IStreamReader stream)
 		{
 			var vlrs = new List<LASEVLR>((int)m_numberOfExtendedVariableLengthRecords);
 
 			if (m_numberOfExtendedVariableLengthRecords > 0)
 			{
-				stream.Seek((long)m_startOfFirstExtendedVariableLengthRecord, SeekOrigin.Begin);
+				stream.Seek((long)m_startOfFirstExtendedVariableLengthRecord);
 
 				using (var reader = new FlexibleBinaryReader(stream))
 				{
