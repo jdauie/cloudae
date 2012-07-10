@@ -61,6 +61,12 @@ namespace CloudAE.Core
 
 		#endregion
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PointBufferWrapper"/> class, 
+		/// for wrapping a binary source segment buffer.
+		/// </summary>
+		/// <param name="buffer">The buffer.</param>
+		/// <param name="source">The source.</param>
 		public PointBufferWrapper(BufferInstance buffer, IPointCloudBinarySource source)
 		{
 			m_buffer = buffer;
