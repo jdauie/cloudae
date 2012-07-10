@@ -274,8 +274,8 @@ namespace CloudAE.App
 				}
 			}
 
-			PointCloudTile[] tilesToLoadArray = CurrentTileSource.TileSet.GetTileReadOrder(tilesToLoad);
-			foreach (PointCloudTile currentTile in tilesToLoadArray)
+			var tilesToLoadOrdered = CurrentTileSource.TileSet.GetTileReadOrder(tilesToLoad);
+			foreach (PointCloudTile currentTile in tilesToLoadOrdered)
 			{
 				// this will cause fragmentation problems, but it's just for demonstration
 				byte[] inputBuffer = new byte[currentTile.PointCount * CurrentTileSource.PointSizeBytes];
