@@ -73,10 +73,23 @@ namespace CloudAE.Core
 			m_maxSupportedVersion = (LASVersion)versions[versionIndex];
 		}
 
+		private LASVersionInfo(LASVersion version)
+		{
+			m_versionCombined = (ushort)version;
+			m_versionMajor = (byte)(m_versionCombined >> 8);
+			m_versionMinor = (byte)(m_versionCombined & byte.MaxValue);
+		}
+
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(m_versionMajor);
 			writer.Write(m_versionMinor);
+		}
+
+		public static LASVersionInfo Create(LASVersion version)
+		{
+			var versionInfo = new LASVersionInfo(version);
+			return (LASVersionInfo)SerializationHelper.Clone(versionInfo);
 		}
 	}
 
@@ -247,6 +260,49 @@ namespace CloudAE.Core
 			//    throw new Exception("Invalid format: point data region is not the expected size");
 		}
 
+		public LASHeader(LASHeader[] headers, PointCloudTileSource source)
+		{
+			//LASHeader header = headers[0];
+
+			//m_fileSourceID = header.m_fileSourceID;
+
+			//m_globalEncoding = header.m_globalEncoding;
+			//m_projectID = header.m_projectID;
+			//m_version = LASVersionInfo.Create(LASVersion.LAS_1_4);
+
+			//m_systemIdentifier = header.m_systemIdentifier;
+			//m_generatingSoftware = header.m_generatingSoftware;
+			//m_fileCreationDayOfYear = header.m_fileCreationDayOfYear;
+			//m_fileCreationYear = header.m_fileCreationYear;
+
+			//m_headerSize = c_minHeaderSize[m_version.Version];
+			//m_offsetToPointData = reader.ReadUInt32();
+
+			//m_numberOfVariableLengthRecords = 0;
+			//m_pointDataRecordFormat = header.m_pointDataRecordFormat;
+			//m_pointDataRecordLength = header.m_pointDataRecordLength;
+			//m_legacyNumberOfPointRecords = header.m_legacyNumberOfPointRecords;
+			//m_legacyNumberOfPointsByReturn = header.m_legacyNumberOfPointsByReturn;
+
+			//m_quantization = quantization;
+			//m_extent = extent;
+
+			//if (m_version.Version >= LASVersion.LAS_1_4)
+			//{
+			//    m_startOfFirstExtendedVariableLengthRecord = reader.ReadUInt64();
+			//    m_numberOfExtendedVariableLengthRecords = reader.ReadUInt32();
+			//    m_numberOfPointRecords = reader.ReadUInt64();
+			//    m_numberOfPointsByReturn = reader.ReadUInt64Array(15);
+			//}
+			//else
+			//{
+			//    m_numberOfPointRecords = m_legacyNumberOfPointRecords;
+			//    m_numberOfPointsByReturn = new ulong[15];
+			//    for (int i = 0; i < m_legacyNumberOfPointsByReturn.Length; i++)
+			//        m_numberOfPointsByReturn[i] = m_legacyNumberOfPointsByReturn[i];
+			//}
+		}
+
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(Encoding.ASCII.GetBytes(FILE_SIGNATURE));
@@ -284,18 +340,18 @@ namespace CloudAE.Core
 			}
 		}
 
-		public LASVLR[] ReadVLRs(IStreamReader stream)
+		public LASVLR[] ReadVLRs(Stream stream)
 		{
 			return ReadVLRs(stream, null);
 		}
 
-		public LASVLR[] ReadVLRs(IStreamReader stream, Func<LASVLR, bool> acceptanceCondition)
+		public LASVLR[] ReadVLRs(Stream stream, Func<LASVLR, bool> acceptanceCondition)
 		{
 			var vlrs = new List<LASVLR>((int)m_numberOfVariableLengthRecords);
 
 			if (m_numberOfVariableLengthRecords > 0)
 			{
-				stream.Seek(m_headerSize);
+				stream.Seek(m_headerSize, SeekOrigin.Begin);
 
 				using (var reader = new FlexibleBinaryReader(stream))
 				{
@@ -323,16 +379,31 @@ namespace CloudAE.Core
 		{
 			//m_numberOfVariableLengthRecords = vlrs.Length;
 
+			// my stream doesn't seek for now
 			stream.Seek(m_headerSize, SeekOrigin.Begin);
+
+			// make a non-closing writer?
+			using (var writer = new BinaryWriter(stream))
+			{
+				foreach (var vlr in vlrs)
+				{
+					writer.Write(vlr);
+				}
+			}
 		}
 
-		public LASEVLR[] ReadEVLRs(IStreamReader stream)
+		public void WriteEVLRs(Stream stream, LASEVLR[] vlrs)
+		{
+			
+		}
+
+		public LASEVLR[] ReadEVLRs(Stream stream)
 		{
 			var vlrs = new List<LASEVLR>((int)m_numberOfExtendedVariableLengthRecords);
 
 			if (m_numberOfExtendedVariableLengthRecords > 0)
 			{
-				stream.Seek((long)m_startOfFirstExtendedVariableLengthRecord);
+				stream.Seek((long)m_startOfFirstExtendedVariableLengthRecord, SeekOrigin.Begin);
 
 				using (var reader = new FlexibleBinaryReader(stream))
 				{

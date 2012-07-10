@@ -31,8 +31,8 @@ namespace CloudAE.Core
 
 		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
 		{
-			LAZInterop laz = new LAZInterop();
-			laz.unzip(FilePath);
+			//LAZInterop laz = new LAZInterop();
+			//laz.unzip(FilePath);
 
 			throw new NotImplementedException("");
 		}
