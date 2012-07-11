@@ -7,9 +7,6 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	/// <summary>
-	/// This used to be a struct, but it is too large now -- performance was getting degraded.
-	/// </summary>
 	public class PointCloudTile : IProgress
 	{
 		public readonly PointCloudTileSource TileSource;
