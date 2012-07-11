@@ -167,6 +167,8 @@ namespace CloudAE.Core
 				}
 			}
 
+#warning The volume of TileSet data from all the segments can be massive (e.g. 44 bytes x 100k tiles x 200 segments ~= 1GB)
+
 			// step 2
 			using (var process = progressManager.StartProcess("ProcessTileSegments"))
 			{
