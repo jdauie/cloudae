@@ -10,8 +10,8 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileSet : IEnumerable<PointCloudTile>, ISerializeBinary
 	{
-		private const bool USE_TREE_ORDER = false;
-		private PointCloudTileTree m_tree;
+		private const bool USE_TREE_ORDER = true;
+		//private PointCloudTileTree m_tree;
 
 		private readonly PointCloudTile[,] m_tiles;
 		private readonly IEnumerable<PointCloudTileCoord> m_order;
@@ -108,14 +108,12 @@ namespace CloudAE.Core
 			int validTileIndex = 0;
 			foreach (var tile in m_order)
 			{
-				int tileCount = tileSets.Select(s => s.GetTile(tile)).Where(t => t != null).Sum(t => t.PointCount);
-
-				SetTile(new PointCloudTile(tile.Col, tile.Row, validTileIndex, offset, tileCount));
-
-				if (tileCount > 0)
+				int count = tileSets.Select(s => s.GetTile(tile)).Where(t => t != null).Sum(t => t.PointCount);
+				if (count > 0)
 				{
+					SetTile(new PointCloudTile(tile.Col, tile.Row, validTileIndex, offset, count));
 					++validTileIndex;
-					offset += tileCount;
+					offset += count;
 				}
 			}
 
@@ -127,9 +125,7 @@ namespace CloudAE.Core
 		{
 			if (USE_TREE_ORDER)
 			{
-				if (m_tree == null)
-					m_tree = new PointCloudTileTree(rows, cols);
-				foreach (var t in m_tree)
+				foreach (var t in PointCloudTileTree.GetTileOrderEnumerator(rows, cols))
 					yield return t;
 			}
 			else
