@@ -236,7 +236,7 @@ namespace CloudAE.Core
 								{
 									int previousSegmentTilesSize = tiledSegments.TakeWhile(s => s != segment).Select(s => s.TileSet.GetTile(tile)).Where(t => t != null).Sum(t => t.StorageSize);
 									int segmentBufferIndex = mergedTileOffset + previousSegmentTilesSize;
-									segmentTile.TileSource.LoadTile(segmentTile, segmentBuffer.Data, segmentBufferIndex);
+									segmentTile.TileSet.TileSource.LoadTile(segmentTile, segmentBuffer.Data, segmentBufferIndex);
 								}
 								mergedTileOffset += tile.StorageSize;
 							}

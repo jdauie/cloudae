@@ -154,7 +154,9 @@ namespace CloudAE.Core
 		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats)
 			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, pointSizeBytes)
 		{
-			m_tileSet = new PointCloudTileSet(tileSet, this);
+			m_tileSet = tileSet;
+			m_tileSet.TileSource = this;
+
 			m_statisticsZ = zStats;
 			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization as UQuantization3D);
 #warning this should be stored in the tileset, rather than converted

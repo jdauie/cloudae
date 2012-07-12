@@ -13,7 +13,7 @@ namespace CloudAE.Core
 
 		public PointCloudTileBufferPosition(PointBufferWrapper buffer, PointCloudTile tile)
 		{
-			m_pointSizeBytes = tile.TileSource.PointSizeBytes;
+			m_pointSizeBytes = tile.TileSet.TileSource.PointSizeBytes;
 
 			DataPtr = buffer.PointDataPtr + (tile.PointOffset * m_pointSizeBytes);
 			DataEndPtr = DataPtr + tile.PointCount * m_pointSizeBytes;

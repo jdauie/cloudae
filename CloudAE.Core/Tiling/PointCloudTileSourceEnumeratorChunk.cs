@@ -63,7 +63,7 @@ namespace CloudAE.Core
 			m_tile = tile;
 
 			m_buffer = buffer;
-			m_pointSizeBytes = m_tile.TileSource.PointSizeBytes;
+			m_pointSizeBytes = m_tile.TileSet.TileSource.PointSizeBytes;
 
 			DataPtr = buffer.DataPtr;
 			DataEndPtr = DataPtr + m_tile.StorageSize;
