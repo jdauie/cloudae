@@ -317,15 +317,15 @@ namespace CloudAE.App
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				// load tiles
-				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.ValidTiles.First(), m_gridDimensionLowRes);
+				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.First(), m_gridDimensionLowRes);
 				m_gridLowRes = gridsLowRes.Value;
 				m_quantizedGridLowRes = gridsLowRes.Key;
 
-				KeyValuePair<Grid<uint>, Grid<float>> gridsHighRes = tileSource.GenerateGrid(tileSource.TileSet.ValidTiles.First(), m_gridDimensionHighRes);
+				KeyValuePair<Grid<uint>, Grid<float>> gridsHighRes = tileSource.GenerateGrid(tileSource.TileSet.First(), m_gridDimensionHighRes);
 				m_gridHighRes = gridsHighRes.Value;
 				m_quantizedGridHighRes = gridsHighRes.Key;
 
-				foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
+				foreach (PointCloudTile tile in tileSource.TileSet)
 				{
 					tileSource.LoadTileGrid(tile, m_buffer, m_gridLowRes, m_quantizedGridLowRes);
 					if (ENABLE_HEIGHT_EXAGGERATION)
@@ -381,7 +381,7 @@ namespace CloudAE.App
 				if (ENABLE_STITCHING)
 				{
 					int validStitchingIndex = 0;
-					foreach (PointCloudTile tile in tileSource.TileSet.ValidTiles)
+					foreach (PointCloudTile tile in tileSource.TileSet)
 					{
 						TileInfo3D tileInfo = m_tileInfo[tile];
 						Model3DGroup stitchingGroup = GenerateTileStitching(tileSource, tileInfo);
@@ -418,7 +418,7 @@ namespace CloudAE.App
 			{
 				PointCloudTile leftTile = tileSource.TileSet.GetTile(tile.Row, tile.Col - 1);
 				TileInfo3D leftTileInfo = null;
-				if (m_tileInfo.TryGetValue(leftTile, out leftTileInfo) && leftTileInfo.CurrentGrid == grid)
+				if (leftTile != null && m_tileInfo.TryGetValue(leftTile, out leftTileInfo) && leftTileInfo.CurrentGrid == grid)
 				{
 					MeshGeometry3D leftMesh = GetTileMeshGeometry(leftTileInfo.CurrentGeometry);
 					int leftPositionsStart = leftMesh.Positions.Count - grid.SizeY;
@@ -476,7 +476,7 @@ namespace CloudAE.App
 			{
 				PointCloudTile topTile = tileSource.TileSet.GetTile(tile.Row - 1, tile.Col);
 				TileInfo3D topTileInfo = null;
-				if (m_tileInfo.TryGetValue(topTile, out topTileInfo) && topTileInfo.CurrentGrid == grid)
+				if (topTile != null && m_tileInfo.TryGetValue(topTile, out topTileInfo) && topTileInfo.CurrentGrid == grid)
 				{
 					MeshGeometry3D topMesh = GetTileMeshGeometry(topTileInfo.CurrentGeometry);
 
@@ -534,7 +534,7 @@ namespace CloudAE.App
 			{
 				PointCloudTile topleftTile = tileSource.TileSet.GetTile(tile.Row - 1, tile.Col - 1);
 				TileInfo3D topleftTileInfo = null;
-				if (m_tileInfo.TryGetValue(topleftTile, out topleftTileInfo))
+				if (topleftTile != null && m_tileInfo.TryGetValue(topleftTile, out topleftTileInfo))
 				{
 					MeshGeometry3D topleftMesh = GetTileMeshGeometry(topleftTileInfo.CurrentGeometry);
 					MeshGeometry3D stitchingMesh = new MeshGeometry3D();
@@ -684,7 +684,7 @@ namespace CloudAE.App
 
 		private void UpdateCurrentTile(PointCloudTile tile)
 		{
-			if (tile.PointCount == 0)
+			if (tile == null)
 				return;
 
 			List<PointCloudTile> tilesToLoad = new List<PointCloudTile>();
@@ -707,7 +707,7 @@ namespace CloudAE.App
 				{
 					PointCloudTile currentTile = CurrentTileSource.TileSet.GetTile(y, x);
 
-					if (currentTile.PointCount > 0)
+					if (currentTile != null)
 					{
 						if (!m_loadedTiles.ContainsKey(currentTile))
 						{
@@ -818,7 +818,7 @@ namespace CloudAE.App
 					if (currentTile.Col < CurrentTileSource.TileSet.Cols - 1)
 					{
 						PointCloudTile adjacentTile = CurrentTileSource.TileSet.GetTile(currentTile.Row, currentTile.Col + 1);
-						if (m_tileInfo.ContainsKey(adjacentTile))
+						if (adjacentTile != null && m_tileInfo.ContainsKey(adjacentTile))
 						{
 							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
 							if (!alteredTiles.ContainsKey(adjacentTile))
@@ -832,7 +832,7 @@ namespace CloudAE.App
 					if (currentTile.Row < CurrentTileSource.TileSet.Rows - 1)
 					{
 						PointCloudTile adjacentTile = CurrentTileSource.TileSet.GetTile(currentTile.Row + 1, currentTile.Col);
-						if (m_tileInfo.ContainsKey(adjacentTile))
+						if (adjacentTile != null && m_tileInfo.ContainsKey(adjacentTile))
 						{
 							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
 							if (!alteredTiles.ContainsKey(adjacentTile))
@@ -846,7 +846,7 @@ namespace CloudAE.App
 					if (currentTile.Col < CurrentTileSource.TileSet.Cols - 1 && currentTile.Row < CurrentTileSource.TileSet.Rows - 1)
 					{
 						PointCloudTile adjacentTile = CurrentTileSource.TileSet.GetTile(currentTile.Row + 1, currentTile.Col + 1);
-						if (m_tileInfo.ContainsKey(adjacentTile))
+						if (adjacentTile != null && m_tileInfo.ContainsKey(adjacentTile))
 						{
 							TileInfo3D adjacentTileInfo = m_tileInfo[adjacentTile];
 							if (!alteredTiles.ContainsKey(adjacentTile))

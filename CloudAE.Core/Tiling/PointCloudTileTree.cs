@@ -70,6 +70,14 @@ namespace CloudAE.Core
 			m_rootNode = gridTreeLevels[m_gridTreeBasePow][0, 0];
 		}
 
+		public PointCloudTile GetTile(ushort row, ushort col)
+		{
+			var node = m_rootNode;
+
+
+			return null;
+		}
+
 		#region IEnumerable Members
 
 		public IEnumerator<PointCloudTileCoord> GetEnumerator()

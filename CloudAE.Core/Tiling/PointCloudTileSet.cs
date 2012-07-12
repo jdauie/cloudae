@@ -25,22 +25,10 @@ namespace CloudAE.Core
 
 		public readonly int ValidTileCount;
 
-		public IEnumerable<PointCloudTile> ValidTiles
-		{
-			get { return m_order.Select(GetTile).Where(t => t.IsValid); }
-		}
-
-		private static PointCloudTile[,] CreateTileGrid(ushort rows, ushort cols, bool init)
+		private static PointCloudTile[,] CreateTileGrid(ushort rows, ushort cols)
 		{
 			// create empty tile grid
 			var tiles = new PointCloudTile[rows, cols];
-
-			if (init)
-			{
-				for (ushort y = 0; y < rows; y++)
-					for (ushort x = 0; x < cols; x++)
-						tiles[y, x] = new PointCloudTile(x, y, 0, 0, 0);
-			}
 
 			return tiles;
 		}
@@ -61,7 +49,7 @@ namespace CloudAE.Core
 			m_order = GetTileOrdering(Rows, Cols);
 
 			// create empty tile grid
-			m_tiles = CreateTileGrid(Rows, Cols, true);
+			m_tiles = CreateTileGrid(Rows, Cols);
 
 			// create valid tiles (in order)
 			long offset = 0;
@@ -69,10 +57,9 @@ namespace CloudAE.Core
 			foreach (var tile in m_order)
 			{
 				int count = tileCounts.Data[tile.Col, tile.Row];
-				SetTile(new PointCloudTile(tile.Col, tile.Row, validTileIndex, offset, count));
-
 				if (count > 0)
 				{
+					SetTile(new PointCloudTile(tile.Col, tile.Row, validTileIndex, offset, count));
 					++validTileIndex;
 					offset += count;
 				}
@@ -92,7 +79,7 @@ namespace CloudAE.Core
 			Rows = tileSet.Rows;
 
 			m_order = tileSet.m_order;
-			m_tiles = CreateTileGrid(Rows, Cols, false);
+			m_tiles = CreateTileGrid(Rows, Cols);
 			foreach (var tile in tileSet)
 				SetTile(new PointCloudTile(tile, tileSource));
 		}
@@ -121,7 +108,7 @@ namespace CloudAE.Core
 			int validTileIndex = 0;
 			foreach (var tile in m_order)
 			{
-				int tileCount = tileSets.Sum(t => t.GetTile(tile).PointCount);
+				int tileCount = tileSets.Select(s => s.GetTile(tile)).Where(t => t != null).Sum(t => t.PointCount);
 
 				SetTile(new PointCloudTile(tile.Col, tile.Row, validTileIndex, offset, tileCount));
 
@@ -171,7 +158,7 @@ namespace CloudAE.Core
 			m_order = GetTileOrdering(Rows, Cols);
 
 			// create empty tile grid
-			m_tiles = CreateTileGrid(Rows, Cols, true);
+			m_tiles = CreateTileGrid(Rows, Cols);
 
 			// fill in valid tiles
 			long pointOffset = 0;
@@ -194,7 +181,7 @@ namespace CloudAE.Core
 			writer.Write(Extent);
 			writer.Write(Density);
 
-			foreach (var tile in ValidTiles)
+			foreach (var tile in this)
 			{
 				writer.Write(tile.Row);
 				writer.Write(tile.Col);
@@ -234,7 +221,7 @@ namespace CloudAE.Core
 			// create tile position counters
 			var tilePositions = new PointCloudTileBufferPosition[Cols + 1, Rows + 1];
 			{
-				foreach (PointCloudTile tile in ValidTiles)
+				foreach (PointCloudTile tile in this)
 					tilePositions[tile.Col, tile.Row] = new PointCloudTileBufferPosition(segmentBuffer, tile);
 
 				// buffer the edges for overflow
@@ -293,7 +280,8 @@ namespace CloudAE.Core
 		public IEnumerator<PointCloudTile> GetEnumerator()
 		{
 			// traverse the tiles in storage order
-			return m_order.Select(GetTile).GetEnumerator();
+			// only traverse valid tiles
+			return m_order.Select(GetTile).Where(t => t != null).GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

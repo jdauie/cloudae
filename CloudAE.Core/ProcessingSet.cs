@@ -207,7 +207,7 @@ namespace CloudAE.Core
 					var segmentTileGroups = new List<List<PointCloudTile>>();
 					var segmentTileGroupCurrent = new List<PointCloudTile>();
 					segmentTileGroups.Add(segmentTileGroupCurrent);
-					foreach (var tile in tileSource.TileSet.ValidTiles)
+					foreach (var tile in tileSource.TileSet)
 					{
 						if (bytesInCurrentSegment + tile.StorageSize > segmentBuffer.Length)
 						{
@@ -232,9 +232,9 @@ namespace CloudAE.Core
 							foreach (var tile in group)
 							{
 								var segmentTile = segment.TileSet.GetTile(tile);
-								if (segmentTile.IsValid)
+								if (segmentTile != null)
 								{
-									int previousSegmentTilesSize = tiledSegments.TakeWhile(s => s != segment).Sum(s => s.TileSet.GetTile(tile).StorageSize);
+									int previousSegmentTilesSize = tiledSegments.TakeWhile(s => s != segment).Select(s => s.TileSet.GetTile(tile)).Where(t => t != null).Sum(t => t.StorageSize);
 									int segmentBufferIndex = mergedTileOffset + previousSegmentTilesSize;
 									segmentTile.TileSource.LoadTile(segmentTile, segmentBuffer.Data, segmentBufferIndex);
 								}

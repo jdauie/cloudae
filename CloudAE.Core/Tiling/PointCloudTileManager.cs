@@ -123,7 +123,7 @@ namespace CloudAE.Core
 					var stopwatch = new Stopwatch();
 					stopwatch.Start();
 					int segmentBufferIndex = 0;
-					foreach (var tile in tileSource.TileSet.ValidTiles)
+					foreach (var tile in tileSource.TileSet)
 					{
 						outputStream.Write(segmentBuffer.Data, segmentBufferIndex, tile.StorageSize);
 						segmentBufferIndex += tile.StorageSize;
@@ -353,7 +353,7 @@ namespace CloudAE.Core
 			{
 				var tilePositions = tileSet.CreatePositionGrid(segmentBuffer);
 
-				foreach (PointCloudTile tile in tileSet.ValidTiles)
+				foreach (PointCloudTile tile in tileSet)
 				{
 					var currentPosition = tilePositions[tile.Col, tile.Row];
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
 
 using CloudAE.Core.Geometry;
 
@@ -20,8 +19,8 @@ namespace CloudAE.Core
 
 		public readonly int ValidIndex;
 
-		private UQuantizedExtent3D m_quantizedExtent;
-		private Extent3D m_extent;
+		//private UQuantizedExtent3D m_quantizedExtent;
+		//private Extent3D m_extent;
 
 		private float? m_progress;
 
@@ -29,10 +28,7 @@ namespace CloudAE.Core
 		{
 			get
 			{
-				if(m_extent == null)
-					m_extent = TileSource.Quantization.Convert(QuantizedExtent);
-
-				return m_extent;
+				return TileSource.Quantization.Convert(QuantizedExtent);
 			}
 		}
 
@@ -40,13 +36,7 @@ namespace CloudAE.Core
 		{
 			get
 			{
-				if (m_quantizedExtent == null)
-				{
-					m_quantizedExtent = TileSource.TileSet.ComputeTileExtent(this, TileSource.QuantizedExtent);
-					m_extent = null;
-				}
-
-				return m_quantizedExtent;
+				return TileSource.TileSet.ComputeTileExtent(this, TileSource.QuantizedExtent);
 			}
 		}
 
@@ -71,6 +61,10 @@ namespace CloudAE.Core
 
 		public PointCloudTile(ushort col, ushort row, int validIndex, long offset, int count)
 		{
+			// temporary, while I get this working
+			if (count == 0)
+				throw new Exception("empty tile");
+
 			Row = row;
 			Col = col;
 			PointCount = count;

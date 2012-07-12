@@ -264,8 +264,8 @@ namespace CloudAE.Core
 
 		public void LoadTile(PointCloudTile tile, byte[] inputBuffer)
 		{
-			if (tile.PointCount == 0)
-				return;
+			if (tile == null)
+				throw new ArgumentNullException("tile");
 
 			Open();
 
@@ -274,8 +274,8 @@ namespace CloudAE.Core
 
 		public void LoadTile(PointCloudTile tile, byte[] inputBuffer, int index)
 		{
-			if (tile.PointCount == 0)
-				return;
+			if (tile == null)
+				throw new ArgumentNullException("tile");
 
 			Open();
 
@@ -366,7 +366,6 @@ namespace CloudAE.Core
 		public KeyValuePair<Grid<uint>, Grid<float>> GenerateGrid(PointCloudTile template, ushort maxDimension)
 		{
 			Extent3D extent = template.Extent;
-			UQuantizedExtent2D quantizedExtent = template.QuantizedExtent;
 
 			float fillVal = (float)extent.MinZ - 1;
 			Grid<float> grid = new Grid<float>(extent, 2, maxDimension, fillVal, true);

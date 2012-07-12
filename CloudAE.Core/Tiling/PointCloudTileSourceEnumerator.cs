@@ -56,7 +56,7 @@ namespace CloudAE.Core
 
 		public void Reset()
 		{
-			m_tileEnumerator = m_source.TileSet.ValidTiles.GetEnumerator();
+			m_tileEnumerator = m_source.TileSet.GetEnumerator();
 			m_current = null;
 		}
 

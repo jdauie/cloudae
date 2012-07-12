@@ -202,7 +202,7 @@ namespace CloudAE.App
 				rect.Stroke = System.Windows.Media.Brushes.DarkGray;
 			}
 
-			if (tile == null || tile.PointCount == 0)
+			if (tile == null)
 				return;
 
 			List<PointCloudTile> tilesToLoad = new List<PointCloudTile>();
@@ -220,7 +220,7 @@ namespace CloudAE.App
 				{
 					PointCloudTile currentTile = CurrentTileSource.TileSet.GetTile(y, x);
 
-					if (currentTile.PointCount > 0)
+					if (currentTile != null)
 					{
 						if (!m_loadedTiles.ContainsKey(currentTile))
 						{
