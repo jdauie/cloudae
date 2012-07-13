@@ -199,7 +199,7 @@ namespace CloudAE.Core
 
 				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
 
-				using (var outputStream = StreamManager.OpenWriteStream(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset))
+				using (var outputStream = StreamManager.OpenWriteStream(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset, true))
 				{
 					int bytesInCurrentSegment = 0;
 
@@ -267,6 +267,7 @@ namespace CloudAE.Core
 				process.LogTime("Merged Tiled Segments");
 			}
 
+			GC.Collect();
 			GC.Collect();
 		}
 

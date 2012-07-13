@@ -151,6 +151,7 @@
     <Compile Include="SystemInfo.cs" />
     <Compile Include="Tiling\PointCloudAnalysisResult.cs" />
     <Compile Include="Tiling\PointCloudTileBufferPosition.cs" />
+    <Compile Include="Tiling\PointCloudTileSourceUtilities.cs" />
     <Compile Include="Tiling\PointCloudTileTree.cs" />
     <Compile Include="Utilities\EncodingConverter.cs" />
     <Compile Include="Utilities\PathUtil.cs" />
