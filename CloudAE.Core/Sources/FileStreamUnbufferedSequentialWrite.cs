@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using CloudAE.Core.Util;
+using System.Diagnostics;
 
 namespace CloudAE.Core
 {
@@ -80,6 +81,8 @@ namespace CloudAE.Core
 		{
 			if (m_bufferIndex > 0)
 			{
+				var sw = Stopwatch.StartNew();
+
 				// a partial flush is only allowed at the end of the file
 				if (m_bufferIndex != m_buffer.Length && m_stream.Position + m_bufferIndex != m_length)
 				{
@@ -89,6 +92,9 @@ namespace CloudAE.Core
 
 				m_stream.Write(m_buffer.Data, 0, m_buffer.Length);
 				m_bufferIndex = 0;
+
+				sw.Stop();
+				PerformanceManager.UpdateWriteBytes(m_actualLength > 0 ? m_actualLength : m_buffer.Length, sw);
 			}
 		}
 

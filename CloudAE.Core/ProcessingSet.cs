@@ -43,6 +43,8 @@ namespace CloudAE.Core
 		{
 			progressManager.Log("<= {0}", m_inputHandler.FilePath);
 
+			PerformanceManager.Start(m_inputHandler.FilePath);
+
 			// check for existing tile source
 			LoadFromCache(progressManager);
 
@@ -103,6 +105,12 @@ namespace CloudAE.Core
 					}
 				}
 			}
+
+			TransferRate averageReadSpeed = PerformanceManager.GetReadSpeed();
+			TransferRate averageWriteSpeed = PerformanceManager.GetWriteSpeed();
+
+			Context.WriteLine("IO Read Speed: {0}", averageReadSpeed);
+			Context.WriteLine("IO Write Speed: {0}", averageWriteSpeed);
 
 			//{
 			//    // test

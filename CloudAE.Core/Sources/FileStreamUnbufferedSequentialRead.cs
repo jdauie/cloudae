@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using CloudAE.Core.Windows;
 using CloudAE.Core.Util;
+using System.Diagnostics;
 
 namespace CloudAE.Core
 {
@@ -95,6 +96,8 @@ namespace CloudAE.Core
 
 		private void ReadInternal()
 		{
+			var sw = Stopwatch.StartNew();
+
 			// a partial read is required at the end of the file
 			long position = m_streamPosition;
 			if (position + m_buffer.Length > m_stream.Length)
@@ -115,6 +118,9 @@ namespace CloudAE.Core
 				m_bufferIndex = 0;
 			else
 				m_bufferIsValid = true;
+
+			sw.Stop();
+			PerformanceManager.UpdateReadBytes(m_bufferValidSize, sw);
 		}
 
 		public void Dispose()
