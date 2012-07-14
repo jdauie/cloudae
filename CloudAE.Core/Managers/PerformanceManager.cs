@@ -41,6 +41,14 @@ namespace CloudAE.Core
 			c_current = new PerformanceManagementInstance(name);
 		}
 
+		public static void UpdateTimer(string name, Stopwatch stopwatch)
+		{
+			if (c_current != null)
+			{
+				c_current.AppendValue(name, stopwatch.ElapsedTicks);
+			}
+		}
+
 		public static void UpdateReadBytes(long length, Stopwatch stopwatch)
 		{
 			if (c_current != null)
@@ -59,6 +67,17 @@ namespace CloudAE.Core
 			}
 		}
 
+		public static TimeSpan GetTimeSpan(string name)
+		{
+			if (c_current != null)
+			{
+				long stopwatchTicks = c_current.GetValue(name);
+				double seconds = (double)stopwatchTicks / Stopwatch.Frequency;
+				return TimeSpan.FromSeconds(seconds);
+			}
+			return TimeSpan.Zero;
+		}
+
 		public static TransferRate GetReadSpeed()
 		{
 			if (c_current != null)
@@ -67,7 +86,7 @@ namespace CloudAE.Core
 				long readTime = c_current.GetValue(COUNTER_READ_TIME);
 				return new TransferRate(readBytes, readTime);
 			}
-			return TransferRate.Empty;
+			return TransferRate.Zero;
 		}
 
 		public static TransferRate GetWriteSpeed()
@@ -78,7 +97,7 @@ namespace CloudAE.Core
 				long writeTime = c_current.GetValue(COUNTER_WRITE_TIME);
 				return new TransferRate(writeBytes, writeTime);
 			}
-			return TransferRate.Empty;
+			return TransferRate.Zero;
 		}
 
 		//public static string GetString()
@@ -116,14 +135,14 @@ namespace CloudAE.Core
 
 	public struct TransferRate
 	{
-		public static readonly TransferRate Empty;
+		public static readonly TransferRate Zero;
 
 		private readonly long m_bytes;
 		private readonly long m_time;
 
 		static TransferRate()
 		{
-			Empty = new TransferRate(0, 0);
+			Zero = new TransferRate(0, 0);
 		}
 
 		public TransferRate(long bytes, long time)
