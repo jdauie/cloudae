@@ -135,7 +135,7 @@ namespace CloudAE.Core
 		public override string ToString()
 		{
 			double seconds = (double)m_time / Stopwatch.Frequency;
-			long bytesPerSecond = (long)(m_bytes / seconds);
+			long bytesPerSecond = seconds > 0 ? (long)(m_bytes / seconds) : 0;
 			return string.Format("{0} in {1:f}s @ {2}ps", m_bytes.ToSize(), seconds, bytesPerSecond.ToSize());
 		}
 	}
