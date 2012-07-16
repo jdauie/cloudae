@@ -5,6 +5,33 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
+	// in order for this to make sense, the chunk index needs to map back to the input
+	// it would be nice if I could get sector-aligned numbers, but that's too much for now
+	class GridIndexCell
+	{
+		private readonly Dictionary<int, int> m_chunkCounts;
+
+		public GridIndexCell()
+		{
+			m_chunkCounts = new Dictionary<int, int>();
+		}
+
+		public void Add(int chunkIndex)
+		{
+			int count = 0;
+			if (!m_chunkCounts.TryGetValue(chunkIndex, out count))
+				m_chunkCounts.Add(chunkIndex, 1);
+			else
+				++m_chunkCounts[chunkIndex];
+		}
+
+		public override string ToString()
+		{
+			// debugging only
+			return string.Format("{0}", string.Join(",", m_chunkCounts.Keys));
+		}
+	}
+
 	public class GridCounter : IDisposable
 	{
 		private readonly IPointCloudBinarySource m_source;
@@ -15,6 +42,8 @@ namespace CloudAE.Core
 
 		private readonly double m_tilesOverRangeX;
 		private readonly double m_tilesOverRangeY;
+
+		private readonly Grid<GridIndexCell> m_gridIndex;
 
 		public GridCounter(IPointCloudBinarySource source, Grid<int> grid)
 		{
@@ -32,6 +61,8 @@ namespace CloudAE.Core
 
 			m_tilesOverRangeX = (double)m_grid.SizeX / m_extent.RangeX;
 			m_tilesOverRangeY = (double)m_grid.SizeY / m_extent.RangeY;
+
+			m_gridIndex = new Grid<GridIndexCell>(grid.SizeX, grid.SizeY, null, true);
 		}
 
 		public unsafe void Process(IPointDataChunk chunk)
@@ -50,6 +81,18 @@ namespace CloudAE.Core
 					//if (tileY < 0) tileY = 0; else if (tileY > m_grid.SizeY) tileY = m_grid.SizeY;
 
 					++m_grid.Data[tileX, tileY];
+
+
+
+					//var indexCell = m_gridIndex.Data[tileX, tileY];
+					//if (indexCell == null)
+					//{
+					//    indexCell = new GridIndexCell();
+					//    m_gridIndex.Data[tileX, tileY] = indexCell;
+					//}
+					//indexCell.Add(chunk.Index);
+
+
 
 					pb += chunk.PointSizeBytes;
 				}
@@ -72,6 +115,17 @@ namespace CloudAE.Core
 
 		public void Dispose()
 		{
+			// for testing purposes, figure out how much I have to read for each tile, 
+			// relative to how much the tile contains
+			// Also, it would be good to calculate that in aggregate
+			// (e.g. how much to I have to read to get the first 256 MB of tiles)
+			// This latter operation is a bit out of place since I don't know the tile order at this point
+			
+			//foreach (var indexCell in m_gridIndex.Data)
+			//{
+
+			//}
+
 			m_grid.CorrectCountOverflow();
 		}
 	}

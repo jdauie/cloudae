@@ -39,6 +39,11 @@ namespace CloudAE.Core
 
 		#region IPointDataChunk Members
 
+		public int Index
+		{
+			get { return 0; }
+		}
+
 		public unsafe byte* PointDataPtr
 		{
 			get { return m_pointDataPtr; }

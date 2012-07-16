@@ -6,7 +6,7 @@ namespace CloudAE.Core
 {
 	public unsafe class PointCloudBinarySourceEnumeratorChunk : IProgress, IPointDataChunk
 	{
-		public readonly uint Index;
+		private readonly int m_index;
 
 		private readonly int m_bytesRead;
 		private readonly int m_pointsRead;
@@ -23,6 +23,11 @@ namespace CloudAE.Core
 		}
 
 		#region IPointDataChunk Members
+
+		public int Index
+		{
+			get { return m_index; }
+		}
 
 		byte[] IPointDataChunk.Data
 		{
@@ -56,10 +61,10 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudBinarySourceEnumeratorChunk(uint index, BufferInstance buffer, int bytesRead, short pointSizeBytes, float progress)
+		public PointCloudBinarySourceEnumeratorChunk(int index, BufferInstance buffer, int bytesRead, short pointSizeBytes, float progress)
 		{
 			m_buffer = buffer;
-			Index = index;
+			m_index = index;
 			m_pointSizeBytes = pointSizeBytes;
 			m_bytesRead = bytesRead;
 			m_pointsRead = m_bytesRead / m_pointSizeBytes;

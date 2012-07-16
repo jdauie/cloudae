@@ -26,6 +26,11 @@ namespace CloudAE.Core
 
 		#region IPointDataChunk Members
 
+		public int Index
+		{
+			get { return Tile.ValidIndex; }
+		}
+
 		byte[] IPointDataChunk.Data
 		{
 			get { return m_buffer.Data; }
