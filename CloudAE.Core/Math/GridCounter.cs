@@ -11,6 +11,16 @@ namespace CloudAE.Core
 	{
 		private readonly Dictionary<int, int> m_chunkCounts;
 
+		public IEnumerable<int> Chunks
+		{
+			get { return m_chunkCounts.Keys; }
+		}
+
+		public int Count
+		{
+			get { return m_chunkCounts.Values.Sum(); }
+		}
+
 		public GridIndexCell()
 		{
 			m_chunkCounts = new Dictionary<int, int>();
@@ -120,11 +130,40 @@ namespace CloudAE.Core
 			// Also, it would be good to calculate that in aggregate
 			// (e.g. how much to I have to read to get the first 256 MB of tiles)
 			// This latter operation is a bit out of place since I don't know the tile order at this point
-			
-			//foreach (var indexCell in m_gridIndex.Data)
-			//{
 
+			//var cellList = new Dictionary<int, int>();
+			//int segmentSize = (int)ByteSizesSmall.MB_256;
+			//int currentSize = 0;
+			//foreach (var tile in PointCloudTileSet.GetTileOrdering(m_grid.SizeY, m_grid.SizeX))
+			//{
+			//    var indexCell = m_gridIndex.Data[tile.Col, tile.Row];
+			//    if (indexCell != null)
+			//    {
+			//        int count = indexCell.Count;
+			//        if (count > 0)
+			//        {
+			//            int tileSize = (count * m_source.PointSizeBytes);
+			//            if (currentSize + tileSize > segmentSize)
+			//                break;
+
+			//            foreach (var chunkIndex in indexCell.Chunks)
+			//            {
+			//                if (cellList.ContainsKey(chunkIndex))
+			//                    cellList[chunkIndex]++;
+			//                else
+			//                    cellList.Add(chunkIndex, 1);
+			//            }
+
+			//            currentSize += tileSize;
+			//        }
+			//    }
 			//}
+
+			//var sortedChunkIndices = cellList.Keys.OrderBy(i => i).ToArray();
+			//int minIndex = sortedChunkIndices[0];
+			//int maxIndex = sortedChunkIndices[sortedChunkIndices.Length - 1];
+			//int chunkRange = maxIndex - minIndex;
+			//Context.WriteLine("chunkRange: {0}", chunkRange);
 
 			m_grid.CorrectCountOverflow();
 		}

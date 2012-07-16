@@ -10,7 +10,7 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileSet : IEnumerable<PointCloudTile>, ISerializeBinary
 	{
-		private const bool USE_TREE_ORDER = true;
+		private const bool USE_TREE_ORDER = false;
 
 		private PointCloudTileSource m_tileSource;
 
@@ -122,7 +122,7 @@ namespace CloudAE.Core
 			Density = new PointCloudTileDensity(TileCount, this.Select(t => t.PointCount), Extent);
 		}
 
-		private IEnumerable<PointCloudTileCoord> GetTileOrdering(ushort rows, ushort cols)
+		public static IEnumerable<PointCloudTileCoord> GetTileOrdering(ushort rows, ushort cols)
 		{
 			if (USE_TREE_ORDER)
 			{

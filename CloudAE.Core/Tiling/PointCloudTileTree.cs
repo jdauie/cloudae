@@ -231,7 +231,7 @@ namespace CloudAE.Core
 		ushort Col { get; }
 	}
 
-	struct PointCloudTileCoord : ISerializeBinary, ITileCoord
+	public struct PointCloudTileCoord : ISerializeBinary, ITileCoord
 	{
 		private readonly ushort m_row;
 		private readonly ushort m_col;
