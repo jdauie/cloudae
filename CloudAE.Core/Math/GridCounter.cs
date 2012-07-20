@@ -7,7 +7,7 @@ namespace CloudAE.Core
 {
 	// in order for this to make sense, the chunk index needs to map back to the input
 	// it would be nice if I could get sector-aligned numbers, but that's too much for now
-	class GridIndexCell
+	public class GridIndexCell
 	{
 		private readonly Dictionary<int, int> m_chunkCounts;
 
@@ -24,6 +24,28 @@ namespace CloudAE.Core
 		public GridIndexCell()
 		{
 			m_chunkCounts = new Dictionary<int, int>();
+		}
+
+		public GridIndexCell(GridIndexCell a, GridIndexCell b)
+		{
+			m_chunkCounts = new Dictionary<int, int>();
+
+			if (a != null)
+			{
+				foreach (var kvp in a.m_chunkCounts)
+					m_chunkCounts.Add(kvp.Key, kvp.Value);
+			}
+
+			if (b != null)
+			{
+				foreach (var kvp in b.m_chunkCounts)
+				{
+					if (!m_chunkCounts.ContainsKey(kvp.Key))
+						m_chunkCounts.Add(kvp.Key, kvp.Value);
+					else
+						m_chunkCounts[kvp.Key] += kvp.Value;
+				}
+			}
 		}
 
 		public void Add(int chunkIndex)
@@ -125,61 +147,76 @@ namespace CloudAE.Core
 
 		public void Dispose()
 		{
+			m_grid.CorrectCountOverflow();
+			m_gridIndex.CorrectCountOverflow();
+
 			// for testing purposes, figure out how much I have to read for each tile, 
 			// relative to how much the tile contains
 			// Also, it would be good to calculate that in aggregate
 			// (e.g. how much to I have to read to get the first 256 MB of tiles)
 			// This latter operation is a bit out of place since I don't know the tile order at this point
 
-			var cellList = new Dictionary<int, int>();
-			int segmentSize = (int)ByteSizesSmall.MB_256;
-			int currentSize = 0;
-			foreach (var tile in PointCloudTileSet.GetTileOrdering(m_grid.SizeY, m_grid.SizeX))
+			var regionSourcesBySegment = new List<SortedDictionary<int, int>>();
+			long pointDataBytes = m_source.PointSizeBytes * m_source.Count;
+			long pointDataRemainingBytes = pointDataBytes;
+
+			int tilesChecked = 0;
+
+			while (pointDataRemainingBytes > 0)
 			{
-				var indexCell = m_gridIndex.Data[tile.Col, tile.Row];
-				if (indexCell != null)
+				var cellList = new Dictionary<int, int>();
+				int segmentSize = (int)ByteSizesSmall.MB_256;
+				int currentSize = 0;
+				foreach (var tile in PointCloudTileSet.GetTileOrdering(m_grid.SizeY, m_grid.SizeX).Skip(tilesChecked))
 				{
-					int count = indexCell.Count;
-					if (count > 0)
+					var indexCell = m_gridIndex.Data[tile.Col, tile.Row];
+					if (indexCell != null)
 					{
-						int tileSize = (count * m_source.PointSizeBytes);
-						if (currentSize + tileSize > segmentSize)
-							break;
-
-						foreach (var chunkIndex in indexCell.Chunks)
+						int count = indexCell.Count;
+						if (count > 0)
 						{
-							if (cellList.ContainsKey(chunkIndex))
-								cellList[chunkIndex]++;
-							else
-								cellList.Add(chunkIndex, 1);
-						}
+							int tileSize = (count * m_source.PointSizeBytes);
+							if (currentSize + tileSize > segmentSize)
+								break;
 
-						currentSize += tileSize;
+							foreach (var chunkIndex in indexCell.Chunks)
+							{
+								if (cellList.ContainsKey(chunkIndex))
+									cellList[chunkIndex]++;
+								else
+									cellList.Add(chunkIndex, 1);
+							}
+
+							currentSize += tileSize;
+						}
+					}
+					++tilesChecked;
+				}
+
+				var sortedChunkIndices = cellList.Keys.OrderBy(i => i).ToArray();
+				// group by sequential regions
+				int lastIndex = -2;
+				var regions = new SortedDictionary<int, int>();
+				foreach (var index in sortedChunkIndices)
+				{
+					if (regions.Count == 0 || index > lastIndex + regions[lastIndex])
+					{
+						lastIndex = index;
+						regions.Add(index, 1);
+					}
+					else
+					{
+						++regions[lastIndex];
 					}
 				}
+
+				regionSourcesBySegment.Add(regions);
+				pointDataRemainingBytes -= currentSize;
 			}
 
-			var sortedChunkIndices = cellList.Keys.OrderBy(i => i).ToArray();
-			// group by sequential regions
-			int lastIndex = -2;
-			var regions = new SortedDictionary<int, int>();
-			foreach (var index in sortedChunkIndices)
-			{
-				if (regions.Count == 0 || index > lastIndex + regions[lastIndex])
-				{
-					lastIndex = index;
-					regions.Add(index, 1);
-				}
-				else
-				{
-					++regions[lastIndex];
-				}
-			}
-
-			int chunkRangeSum = regions.Sum(kvp => kvp.Value);
-			Context.WriteLine("chunkRangeSum: {0}", chunkRangeSum);
-
-			m_grid.CorrectCountOverflow();
+			int chunkRangeSumForAllSegments = regionSourcesBySegment.Sum(r => r.Sum(kvp => kvp.Value));
+			Context.WriteLine("chunkRangeSumForAllSegments: {0}", chunkRangeSumForAllSegments);
+			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * (int)ByteSizesSmall.MB_1 / pointDataBytes);
 		}
 	}
 }

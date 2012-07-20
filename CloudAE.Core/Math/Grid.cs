@@ -88,6 +88,23 @@ namespace CloudAE.Core
 					data[x, y] = ((data[x, y] - offset) * value) + offset;
 		}
 
+		public static void CorrectCountOverflow(this Grid<GridIndexCell> target)
+		{
+			GridIndexCell[,] data = target.Data;
+
+			// correct count overflows
+			for (int x = 0; x <= target.SizeX; x++)
+			{
+				data[x, target.SizeY - 1] = new GridIndexCell(data[x, target.SizeY - 1], data[x, target.SizeY]);
+				data[x, target.SizeY] = new GridIndexCell();
+			}
+			for (int y = 0; y < target.SizeY; y++)
+			{
+				data[target.SizeX - 1, y] = new GridIndexCell(data[target.SizeX - 1, y], data[target.SizeX, y]);
+				data[target.SizeX, y] = new GridIndexCell();
+			}
+		}
+
 		public static void CorrectCountOverflow(this Grid<int> target)
 		{
 			int[,] data = target.Data;
