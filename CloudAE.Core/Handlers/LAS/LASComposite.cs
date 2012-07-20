@@ -38,12 +38,18 @@ namespace CloudAE.Core
 		public LASComposite(string path)
 			: base(path)
 		{
+			string baseDirectory = Path.GetDirectoryName(path);
+
 			var files = new List<LASFile>();
 			string[] lines = File.ReadAllLines(path);
 			foreach (var line in lines)
 			{
-				if (File.Exists(line))
-					files.Add(new LASFile(line));
+				string currentPath = line;
+				if (!Path.IsPathRooted(path))
+					currentPath = Path.Combine(baseDirectory, line);
+
+				if (File.Exists(currentPath))
+					files.Add(new LASFile(currentPath));
 			}
 
 			// verify that all inputs are compatible
