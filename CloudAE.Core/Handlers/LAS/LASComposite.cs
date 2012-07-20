@@ -45,7 +45,7 @@ namespace CloudAE.Core
 			foreach (var line in lines)
 			{
 				string currentPath = line;
-				if (!Path.IsPathRooted(path))
+				if (!Path.IsPathRooted(currentPath))
 					currentPath = Path.Combine(baseDirectory, line);
 
 				if (File.Exists(currentPath))
