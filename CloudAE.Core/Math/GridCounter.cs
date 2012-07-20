@@ -94,13 +94,13 @@ namespace CloudAE.Core
 
 
 
-					//var indexCell = m_gridIndex.Data[tileX, tileY];
-					//if (indexCell == null)
-					//{
-					//    indexCell = new GridIndexCell();
-					//    m_gridIndex.Data[tileX, tileY] = indexCell;
-					//}
-					//indexCell.Add(chunk.Index);
+					var indexCell = m_gridIndex.Data[tileX, tileY];
+					if (indexCell == null)
+					{
+						indexCell = new GridIndexCell();
+						m_gridIndex.Data[tileX, tileY] = indexCell;
+					}
+					indexCell.Add(chunk.Index);
 
 
 
@@ -131,39 +131,53 @@ namespace CloudAE.Core
 			// (e.g. how much to I have to read to get the first 256 MB of tiles)
 			// This latter operation is a bit out of place since I don't know the tile order at this point
 
-			//var cellList = new Dictionary<int, int>();
-			//int segmentSize = (int)ByteSizesSmall.MB_256;
-			//int currentSize = 0;
-			//foreach (var tile in PointCloudTileSet.GetTileOrdering(m_grid.SizeY, m_grid.SizeX))
-			//{
-			//    var indexCell = m_gridIndex.Data[tile.Col, tile.Row];
-			//    if (indexCell != null)
-			//    {
-			//        int count = indexCell.Count;
-			//        if (count > 0)
-			//        {
-			//            int tileSize = (count * m_source.PointSizeBytes);
-			//            if (currentSize + tileSize > segmentSize)
-			//                break;
+			var cellList = new Dictionary<int, int>();
+			int segmentSize = (int)ByteSizesSmall.MB_256;
+			int currentSize = 0;
+			foreach (var tile in PointCloudTileSet.GetTileOrdering(m_grid.SizeY, m_grid.SizeX))
+			{
+				var indexCell = m_gridIndex.Data[tile.Col, tile.Row];
+				if (indexCell != null)
+				{
+					int count = indexCell.Count;
+					if (count > 0)
+					{
+						int tileSize = (count * m_source.PointSizeBytes);
+						if (currentSize + tileSize > segmentSize)
+							break;
 
-			//            foreach (var chunkIndex in indexCell.Chunks)
-			//            {
-			//                if (cellList.ContainsKey(chunkIndex))
-			//                    cellList[chunkIndex]++;
-			//                else
-			//                    cellList.Add(chunkIndex, 1);
-			//            }
+						foreach (var chunkIndex in indexCell.Chunks)
+						{
+							if (cellList.ContainsKey(chunkIndex))
+								cellList[chunkIndex]++;
+							else
+								cellList.Add(chunkIndex, 1);
+						}
 
-			//            currentSize += tileSize;
-			//        }
-			//    }
-			//}
+						currentSize += tileSize;
+					}
+				}
+			}
 
-			//var sortedChunkIndices = cellList.Keys.OrderBy(i => i).ToArray();
-			//int minIndex = sortedChunkIndices[0];
-			//int maxIndex = sortedChunkIndices[sortedChunkIndices.Length - 1];
-			//int chunkRange = maxIndex - minIndex;
-			//Context.WriteLine("chunkRange: {0}", chunkRange);
+			var sortedChunkIndices = cellList.Keys.OrderBy(i => i).ToArray();
+			// group by sequential regions
+			int lastIndex = -2;
+			var regions = new SortedDictionary<int, int>();
+			foreach (var index in sortedChunkIndices)
+			{
+				if (regions.Count == 0 || index > lastIndex + regions[lastIndex])
+				{
+					lastIndex = index;
+					regions.Add(index, 1);
+				}
+				else
+				{
+					++regions[lastIndex];
+				}
+			}
+
+			int chunkRangeSum = regions.Sum(kvp => kvp.Value);
+			Context.WriteLine("chunkRangeSum: {0}", chunkRangeSum);
 
 			m_grid.CorrectCountOverflow();
 		}
