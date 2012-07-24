@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
-	public unsafe class PointCloudBinarySourceEnumeratorChunk : IProgress, IPointDataChunk
+	public unsafe class PointBufferWrapperChunk : IProgress, IPointDataChunk
 	{
 		private readonly int m_index;
 
@@ -45,7 +45,7 @@ namespace CloudAE.Core
 
 		public int Length
 		{
-			get { return m_bytesRead; }
+			get { return (int)(m_dataEndPtr - m_dataPtr); }
 		}
 
 		public short PointSizeBytes
@@ -60,14 +60,14 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudBinarySourceEnumeratorChunk(int index, BufferInstance buffer, int bytesRead, short pointSizeBytes, float progress)
+		public PointBufferWrapperChunk(int index, BufferInstance buffer, int byteIndex, int byteLength, short pointSizeBytes, float progress)
 		{
 			m_buffer = buffer;
 			m_index = index;
 			m_pointSizeBytes = pointSizeBytes;
-			m_bytesRead = bytesRead;
+			m_bytesRead = byteLength;
 			m_pointsRead = m_bytesRead / m_pointSizeBytes;
-			m_dataPtr = buffer.DataPtr;
+			m_dataPtr = buffer.DataPtr + byteIndex;
 			m_dataEndPtr = m_dataPtr + m_bytesRead;
 
 			m_progress = progress;

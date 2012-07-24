@@ -25,6 +25,11 @@ namespace CloudAE.Core
 			get { return m_pointSizeBytes; }
 		}
 
+		public IEnumerable<string> SourcePaths
+		{
+			get { return m_files.Select(f => f.FilePath); }
+		}
+
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
 		{
 			return new PointCloudBinarySourceCompositeEnumerator(m_files, process);

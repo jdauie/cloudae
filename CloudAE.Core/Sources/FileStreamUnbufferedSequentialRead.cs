@@ -27,6 +27,11 @@ namespace CloudAE.Core
 		private bool m_bufferIsValid;
 		private int m_bufferValidSize;
 
+		public string Path
+		{
+			get { return m_path; }
+		}
+
 		public FileStreamUnbufferedSequentialRead(string path)
 			: this(path, 0)
 		{
@@ -125,22 +130,25 @@ namespace CloudAE.Core
 
 		public void Dispose()
 		{
-			if (m_stream != null)
+			if (!StreamManager.IsSharedStream(this))
 			{
-				m_stream.Dispose();
-				m_stream = null;
-			}
+				if (m_stream != null)
+				{
+					m_stream.Dispose();
+					m_stream = null;
+				}
 
-			if (m_streamEnd != null)
-			{
-				m_streamEnd.Dispose();
-				m_streamEnd = null;
-			}
+				if (m_streamEnd != null)
+				{
+					m_streamEnd.Dispose();
+					m_streamEnd = null;
+				}
 
-			if (m_buffer != null)
-			{
-				m_buffer.Dispose();
-				m_buffer = null;
+				if (m_buffer != null)
+				{
+					m_buffer.Dispose();
+					m_buffer = null;
+				}
 			}
 		}
 

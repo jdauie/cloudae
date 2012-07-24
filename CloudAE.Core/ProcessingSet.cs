@@ -145,138 +145,171 @@ namespace CloudAE.Core
 			return m_tileSource;
 		}
 
-		private void ProcessFileSegments(BufferInstance segmentBuffer, ProgressManager progressManager)
+		private void ProcessFileSegments2(BufferInstance segmentBuffer, ProgressManager progressManager)
+		{
+			long pointDataSize = m_binarySource.Count * m_binarySource.PointSizeBytes;
+
+			var tileManager = new PointCloudTileManager(m_binarySource);
+			PointCloudAnalysisResult analysis = tileManager.AnalyzePointFile(null, progressManager);
+
+			foreach (var segment in analysis.GridIndex)
+			{
+				var sparse = m_binarySource.CreateSparseSegment(segment);
+
+				//// usage
+				//using (var sharedStream = StreamManager.CreateSharedStream(m_binarySource))
+				//{
+				//}
+
+				// read in segment and put it in order
+				// write out the ordered 256MB
+			}
+		}
+
+		private unsafe void ProcessFileSegments(BufferInstance segmentBuffer, ProgressManager progressManager)
 		{
 			IPointCloudBinarySource[] segments = null;
 			PointCloudTileSource[] tiledSegments = null;
 			PointCloudAnalysisResult analysis = null;
 
+			using (var sharedStream = StreamManager.CreateSharedStream(m_binarySource))
 			{
-				// check total point data size; try to keep it within windows file cache
-				long pointDataSize = m_binarySource.Count * m_binarySource.PointSizeBytes;
-
-				// determine density (for consistent tile size across chunks)
-				var tileManager = new PointCloudTileManager(m_binarySource);
-				analysis = tileManager.AnalyzePointFile(null, progressManager);
-
-				int chunks = (int)Math.Ceiling((double)pointDataSize / segmentBuffer.Length);
-				long pointsPerChunk = m_binarySource.Count / chunks;
-				long pointsRemaining = m_binarySource.Count;
-
-				segments = new IPointCloudBinarySource[chunks];
-				for (int i = 0; i < chunks; i++)
+				// step 1
 				{
-					long pointsInCurrentChunk = pointsPerChunk;
-					if (i == chunks - 1)
-						pointsInCurrentChunk = pointsRemaining;
-					pointsRemaining -= pointsInCurrentChunk;
+					// check total point data size; try to keep it within reasonable chunks
+					long pointDataSize = m_binarySource.Count*m_binarySource.PointSizeBytes;
 
-					segments[i] = m_binarySource.CreateSegment(pointsPerChunk * i, pointsInCurrentChunk);
-				}
-			}
+					// determine density (for consistent tile size across chunks)
+					var tileManager = new PointCloudTileManager(m_binarySource);
+					analysis = tileManager.AnalyzePointFile(null, progressManager);
 
-#warning The volume of TileSet data from all the segments can be massive (e.g. 44 bytes x 100k tiles x 200 segments ~= 1GB)
+					int chunks = (int)Math.Ceiling((double)pointDataSize/segmentBuffer.Length);
+					long pointsPerChunk = m_binarySource.Count/chunks;
+					long pointsRemaining = m_binarySource.Count;
 
-			// step 2
-			using (var process = progressManager.StartProcess("ProcessTileSegments"))
-			{
-				// tile chunks seperately, using the same tile boundaries
-				tiledSegments = new PointCloudTileSource[segments.Length];
-				for (int i = 0; i < segments.Length; i++)
-				{
-					string tiledSegmentPath = GetTileSourcePath(m_binarySource.FilePath, i);
-					process.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
-
-					var tileManager = new PointCloudTileManager(segments[i]);
-					var segmentWrapper = new PointBufferWrapper(segmentBuffer, segments[i]);
-					tiledSegments[i] = tileManager.TilePointFileSegment(tiledSegmentPath, analysis, segmentWrapper, progressManager);
-
-					// do I want to switch to an abort mechanism instead?
-					//if (process.IsCanceled())
-					//    break;
-				}
-			}
-
-			// step 3
-			using (var process = progressManager.StartProcess("MergeTileSegments"))
-			{
-				process.Log("Merging {0} Segments", segments.Length);
-
-				// reassemble tiled files
-				var mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
-
-				var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
-
-				using (var outputStream = StreamManager.OpenWriteStream(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset, true))
-				{
-					int bytesInCurrentSegment = 0;
-
-					// create buffer groups
-					var segmentTileGroups = new List<List<PointCloudTile>>();
-					var segmentTileGroupCurrent = new List<PointCloudTile>();
-					segmentTileGroups.Add(segmentTileGroupCurrent);
-					foreach (var tile in tileSource.TileSet)
+					segments = new IPointCloudBinarySource[chunks];
+					for (int i = 0; i < chunks; i++)
 					{
-						if (bytesInCurrentSegment + tile.StorageSize > segmentBuffer.Length)
-						{
-							segmentTileGroupCurrent = new List<PointCloudTile>();
-							segmentTileGroups.Add(segmentTileGroupCurrent);
-							bytesInCurrentSegment = 0;
-						}
-						segmentTileGroupCurrent.Add(tile);
-						bytesInCurrentSegment += tile.StorageSize;
+						long pointsInCurrentChunk = pointsPerChunk;
+						if (i == chunks - 1)
+							pointsInCurrentChunk = pointsRemaining;
+						pointsRemaining -= pointsInCurrentChunk;
+
+						segments[i] = m_binarySource.CreateSegment(pointsPerChunk*i, pointsInCurrentChunk);
 					}
+				}
 
-					// process buffer groups
-					foreach (var group in segmentTileGroups)
+				// step 2
+				using (var process = progressManager.StartProcess("ProcessTileSegments"))
+				{
+					// tile chunks seperately, using the same tile boundaries
+					tiledSegments = new PointCloudTileSource[segments.Length];
+					for (int i = 0; i < segments.Length; i++)
 					{
-						int groupLength = group.Sum(t => t.StorageSize);
+						string tiledSegmentPath = GetTileSourcePath(m_binarySource.FilePath, i);
+						process.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
 
-						// read tiles (ordered by segment)
-						foreach (var segment in tiledSegments)
+						var tileManager = new PointCloudTileManager(segments[i]);
+						var segmentWrapper = new PointBufferWrapper(segmentBuffer, segments[i]);
+						tiledSegments[i] = tileManager.TilePointFileSegment(tiledSegmentPath, analysis, segmentWrapper, progressManager);
+
+						// do I want to switch to an abort mechanism instead?
+						//if (process.IsCanceled())
+						//    break;
+					}
+				}
+
+				// step 3
+				using (var process = progressManager.StartProcess("MergeTileSegments"))
+				{
+					process.Log("Merging {0} Segments", segments.Length);
+
+					// reassemble tiled files
+					var mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
+
+					var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
+					
+					using (var outputStream = StreamManager.OpenWriteStream(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset, true))
+					{
+						int bytesInCurrentSegment = 0;
+
+						// create buffer groups
+						var segmentTileGroups = new List<List<PointCloudTile>>();
+						var segmentTileGroupCurrent = new List<PointCloudTile>();
+						segmentTileGroups.Add(segmentTileGroupCurrent);
+						foreach (var tile in tileSource.TileSet)
 						{
-							// keep track of interleave location
-							int mergedTileOffset = 0;
-							foreach (var tile in group)
+							if (bytesInCurrentSegment + tile.StorageSize > segmentBuffer.Length)
 							{
-								var segmentTile = segment.TileSet.GetTile(tile);
-								if (segmentTile != null)
+								segmentTileGroupCurrent = new List<PointCloudTile>();
+								segmentTileGroups.Add(segmentTileGroupCurrent);
+								bytesInCurrentSegment = 0;
+							}
+							segmentTileGroupCurrent.Add(tile);
+							bytesInCurrentSegment += tile.StorageSize;
+						}
+
+						long totalToReadAndWrite = tileSource.PointSizeBytes * tileSource.Count * 2;
+						long totalReadAndWritten = 0;
+
+						// process buffer groups
+						foreach (var group in segmentTileGroups)
+						{
+							int groupPoints = group.Sum(t => t.PointCount);
+							//int groupLength = groupPoints * tileSource.PointSizeBytes;
+
+							// read tiles (ordered by segment)
+							foreach (var segment in tiledSegments)
+							{
+								// keep track of interleave location
+								int mergedTileOffset = 0;
+								foreach (var tile in group)
 								{
-									int previousSegmentTilesSize = tiledSegments.TakeWhile(s => s != segment).Select(s => s.TileSet.GetTile(tile)).Where(t => t != null).Sum(t => t.StorageSize);
-									int segmentBufferIndex = mergedTileOffset + previousSegmentTilesSize;
-									segmentTile.TileSet.TileSource.LoadTile(segmentTile, segmentBuffer.Data, segmentBufferIndex);
+									var segmentTile = segment.TileSet.GetTile(tile);
+									if (segmentTile != null)
+									{
+										int previousSegmentTilesSize = tiledSegments.TakeWhile(s => s != segment).Select(s => s.TileSet.GetTile(tile)).Where(t => t != null).Sum(t => t.StorageSize);
+										int segmentBufferIndex = mergedTileOffset + previousSegmentTilesSize;
+										segmentTile.TileSet.TileSource.LoadTile(segmentTile, segmentBuffer.Data, segmentBufferIndex);
+										totalReadAndWritten += segmentTile.StorageSize;
+									}
+									mergedTileOffset += tile.StorageSize;
+
+									if (!process.Update((float)totalReadAndWritten / totalToReadAndWrite))
+										break;
 								}
-								mergedTileOffset += tile.StorageSize;
+							}
+
+							// flush buffer and reset
+							var segmentWrapper = new PointBufferWrapper(segmentBuffer, tileSource, groupPoints);
+							foreach (var chunk in segmentWrapper)
+							{
+								outputStream.Write(chunk.PointDataPtr, chunk.Length);
+
+								totalReadAndWritten += chunk.Length;
+								if (!process.Update((float)totalReadAndWritten / totalToReadAndWrite))
+									break;
 							}
 						}
-
-						// flush buffer and reset
-						outputStream.Write(segmentBuffer.Data, 0, groupLength);
-
-						if (!process.Update((float)outputStream.Position / tileSource.FileSize))
-							break;
 					}
+
+					for (int i = 0; i < tiledSegments.Length; i++)
+					{
+						tiledSegments[i].Close();
+						File.Delete(tiledSegments[i].FilePath);
+					}
+
+					if (!process.IsCanceled())
+					{
+						tileSource.IsDirty = false;
+						tileSource.WriteHeader();
+					}
+
+					m_tileSource = tileSource;
+
+					process.LogTime("Merged Tiled Segments");
 				}
-
-				for (int i = 0; i < tiledSegments.Length; i++)
-				{
-					tiledSegments[i].Close();
-					File.Delete(tiledSegments[i].FilePath);
-				}
-
-				if (!process.IsCanceled())
-				{
-					tileSource.IsDirty = false;
-					tileSource.WriteHeader();
-				}
-
-				m_tileSource = tileSource;
-
-				process.LogTime("Merged Tiled Segments");
 			}
-
-			GC.Collect();
-			GC.Collect();
 		}
 
 		private void LoadFromCache(ProgressManager progressManager)

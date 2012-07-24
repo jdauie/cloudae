@@ -272,6 +272,7 @@ namespace CloudAE.Core
 		{
 			Statistics stats = null;
 			Quantization3D quantization = null;
+			GridIndexSegments gridIndexSegments = null;
 
 			var extent = source.Extent;
 			var inputQuantization = (SQuantization3D)source.Quantization;
@@ -281,11 +282,13 @@ namespace CloudAE.Core
 			if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
 				quantizationTest = new QuantizationTest<int>(source);
 
+			GridIndexGenerator gridIndexGenerator = null;// (segmentBuffer != null) ? null : new GridIndexGenerator();
+
 			using (var process = progressManager.StartProcess("QuantEstimateDensity"))
 			{
 				var statsMapping = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
-				
-				using (var gridCounter = new GridCounter(source, tileCounts))
+
+				using (var gridCounter = new GridCounter(source, tileCounts, gridIndexGenerator))
 				{
 					foreach (var chunk in source.GetBlockEnumerator(process))
 					{
@@ -305,11 +308,14 @@ namespace CloudAE.Core
 					quantization = quantizationTest.CreateQuantization();
 			}
 
+			if (gridIndexGenerator != null)
+				gridIndexSegments = gridIndexGenerator.GetGridIndex();
+
 			if (quantization == null)
 				quantization = Quantization3D.Create(extent, true);
 
 			var density = new PointCloudTileDensity(tileCounts, extent);
-			var result = new PointCloudAnalysisResult(density, stats, quantization);
+			var result = new PointCloudAnalysisResult(density, stats, quantization, gridIndexSegments);
 
 			return result;
 		}

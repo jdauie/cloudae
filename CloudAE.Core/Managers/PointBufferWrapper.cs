@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CloudAE.Core
 {
-	public unsafe class PointBufferWrapper : IPointDataChunk
+	public unsafe class PointBufferWrapper : IPointDataChunk, IEnumerable<IPointDataChunk>
 	{
 		private readonly IPointCloudBinarySource m_source;
 		private readonly BufferInstance m_buffer;
@@ -44,12 +43,12 @@ namespace CloudAE.Core
 			get { return 0; }
 		}
 
-		public unsafe byte* PointDataPtr
+		public byte* PointDataPtr
 		{
 			get { return m_pointDataPtr; }
 		}
 
-		public unsafe byte* PointDataEndPtr
+		public byte* PointDataEndPtr
 		{
 			get { return m_pointDataEndPtr; }
 		}
@@ -67,23 +66,29 @@ namespace CloudAE.Core
 		#endregion
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="PointBufferWrapper"/> class, 
+		/// Initializes a new instance of the <see cref="PointBufferWrapper"/> class,
 		/// for wrapping a binary source segment buffer.
 		/// </summary>
 		/// <param name="buffer">The buffer.</param>
 		/// <param name="source">The source.</param>
-		public PointBufferWrapper(BufferInstance buffer, IPointCloudBinarySource source)
+		/// <param name="pointCount">The point count.</param>
+		public PointBufferWrapper(BufferInstance buffer, IPointCloudBinarySource source, int pointCount)
 		{
 			m_buffer = buffer;
 			m_source = source;
 
-			m_pointCount = (int)m_source.Count;
+			m_pointCount = pointCount;
 			m_pointSizeBytes = m_source.PointSizeBytes;
 			m_length = m_pointCount * m_pointSizeBytes;
 			m_pointDataPtr = m_buffer.DataPtr;
 			m_pointDataEndPtr = m_pointDataPtr + m_length;
 
 			m_bufferIndex = 0;
+		}
+
+		public PointBufferWrapper(BufferInstance buffer, IPointCloudBinarySource source)
+			: this(buffer, source, (int)source.Count)
+		{
 		}
 
 		private PointBufferWrapper(PointBufferWrapper wrapper, bool initialized)
@@ -105,5 +110,32 @@ namespace CloudAE.Core
 		{
 			return new PointBufferWrapper(this, true);
 		}
+
+		#region IEnumerable Members
+
+		public IEnumerator<IPointDataChunk> GetEnumerator()
+		{
+			const int intervalSize = BufferManager.BUFFER_SIZE_BYTES;
+			float intervals = (float)Math.Ceiling((float)m_length / intervalSize);
+
+			int index = 0;
+			int remainingBytes = m_length;
+
+			while (remainingBytes > 0)
+			{
+				int currentBytes = Math.Min(intervalSize, remainingBytes);
+				yield return new PointBufferWrapperChunk(index, m_buffer, m_length - remainingBytes, currentBytes, m_pointSizeBytes, index / intervals);
+
+				remainingBytes -= currentBytes;
+				++index;
+			}
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
+
+		#endregion
 	}
 }

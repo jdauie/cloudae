@@ -13,6 +13,8 @@ namespace CloudAE.Core
 
 		private GCHandle m_gcHandle;
 
+		#region Properties
+
 		public byte[] Data
 		{
 			get { return m_data; }
@@ -37,6 +39,8 @@ namespace CloudAE.Core
 		{
 			get { return m_length; }
 		}
+
+		#endregion
 
 		public BufferInstance(byte[] buffer)
 		{

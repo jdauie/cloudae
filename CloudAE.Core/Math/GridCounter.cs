@@ -64,100 +64,111 @@ namespace CloudAE.Core
 		}
 	}
 
-	public class GridCounter : IDisposable
+	public class PointCloudBinarySourceEnumeratorRegion
 	{
-		private readonly IPointCloudBinarySource m_source;
-		private readonly Grid<int> m_grid;
-		private readonly bool m_quantized;
+		public readonly int ChunkStart;
+		public readonly int ChunkCount;
 
-		private readonly Extent3D m_extent;
-
-		private readonly double m_tilesOverRangeX;
-		private readonly double m_tilesOverRangeY;
-
-		private readonly Grid<GridIndexCell> m_gridIndex;
-
-		public GridCounter(IPointCloudBinarySource source, Grid<int> grid)
+		public PointCloudBinarySourceEnumeratorRegion(int chunkStart, int chunkCount)
 		{
-			m_source = source;
-			m_grid = grid;
-			m_extent = m_source.Extent;
-			m_quantized = (m_source.Quantization != null);
-
-			if (m_quantized)
-			{
-				var inputQuantization = (SQuantization3D)source.Quantization;
-				var q = (SQuantizedExtent3D)inputQuantization.Convert(m_extent);
-				m_extent = new Extent3D(q.MinX, q.MinY, q.MinZ, q.MaxX, q.MaxY, q.MaxZ);
-			}
-
-			m_tilesOverRangeX = (double)m_grid.SizeX / m_extent.RangeX;
-			m_tilesOverRangeY = (double)m_grid.SizeY / m_extent.RangeY;
-
-			m_gridIndex = new Grid<GridIndexCell>(grid.SizeX, grid.SizeY, null, true);
+			ChunkStart = chunkStart;
+			ChunkCount = chunkCount;
 		}
 
-		public unsafe void Process(IPointDataChunk chunk)
+		public override string ToString()
 		{
-			if (m_quantized)
+			return string.Format("[{0}-{1}] ({2})", ChunkStart, ChunkStart + ChunkCount, ChunkCount);
+		}
+	}
+
+	public class PointCloudBinarySourceEnumeratorSparseRegion : IEnumerable<PointCloudBinarySourceEnumeratorRegion>
+	{
+		private readonly List<PointCloudBinarySourceEnumeratorRegion> m_regions;
+		private readonly int m_chunkCount;
+		private readonly int m_pointsPerChunk;
+
+		public int PointsPerChunk
+		{
+			get { return m_pointsPerChunk; }
+		}
+
+		public PointCloudBinarySourceEnumeratorSparseRegion(IEnumerable<KeyValuePair<int, int>> regions, int maxPointCountPerChunk)
+		{
+			m_pointsPerChunk = maxPointCountPerChunk;
+			m_regions = new List<PointCloudBinarySourceEnumeratorRegion>();
+			foreach (var region in regions)
 			{
-				byte* pb = chunk.PointDataPtr;
-				while (pb < chunk.PointDataEndPtr)
-				{
-					SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
-
-					int tileX = (int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX);
-					int tileY = (int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY);
-
-					//if (tileX < 0) tileX = 0; else if (tileX > m_grid.SizeX) tileX = m_grid.SizeX;
-					//if (tileY < 0) tileY = 0; else if (tileY > m_grid.SizeY) tileY = m_grid.SizeY;
-
-					++m_grid.Data[tileX, tileY];
-
-
-
-					var indexCell = m_gridIndex.Data[tileX, tileY];
-					if (indexCell == null)
-					{
-						indexCell = new GridIndexCell();
-						m_gridIndex.Data[tileX, tileY] = indexCell;
-					}
-					indexCell.Add(chunk.Index);
-
-
-
-					pb += chunk.PointSizeBytes;
-				}
-			}
-			else
-			{
-				byte* pb = chunk.PointDataPtr;
-				while (pb < chunk.PointDataEndPtr)
-				{
-					Point3D* p = (Point3D*)pb;
-					++m_grid.Data[
-						(int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX),
-						(int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY)
-					];
-
-					pb += chunk.PointSizeBytes;
-				}
+				var r = new PointCloudBinarySourceEnumeratorRegion(region.Key, region.Value);
+				m_chunkCount += r.ChunkCount;
+				m_regions.Add(r);
 			}
 		}
 
-		public void Dispose()
+		public override string ToString()
 		{
-			m_grid.CorrectCountOverflow();
-			m_gridIndex.CorrectCountOverflow();
+			return string.Format("{0} ({1})", m_regions.Count, m_chunkCount);
+		}
 
-			// for testing purposes, figure out how much I have to read for each tile, 
-			// relative to how much the tile contains
-			// Also, it would be good to calculate that in aggregate
-			// (e.g. how much to I have to read to get the first 256 MB of tiles)
-			// This latter operation is a bit out of place since I don't know the tile order at this point
+		#region IEnumerable Members
+
+		public IEnumerator<PointCloudBinarySourceEnumeratorRegion> GetEnumerator()
+		{
+			return m_regions.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
+
+		#endregion
+	}
+
+	public class GridIndexSegments : IEnumerable<PointCloudBinarySourceEnumeratorSparseRegion>
+	{
+		private readonly List<PointCloudBinarySourceEnumeratorSparseRegion> m_regionSourcesBySegment;
+
+		public GridIndexSegments(IEnumerable<SortedDictionary<int, int>> regionSourcesBySegment, int maxPointCountPerChunk)
+		{
+			m_regionSourcesBySegment = new List<PointCloudBinarySourceEnumeratorSparseRegion>();
+			foreach (var segment in regionSourcesBySegment)
+				m_regionSourcesBySegment.Add(new PointCloudBinarySourceEnumeratorSparseRegion(segment, maxPointCountPerChunk));
+		}
+
+		#region IEnumerable Members
+
+		public IEnumerator<PointCloudBinarySourceEnumeratorSparseRegion> GetEnumerator()
+		{
+			return m_regionSourcesBySegment.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
+
+		#endregion
+	}
+
+	public class GridIndexGenerator
+	{
+		private GridIndexSegments m_gridIndexSegments;
+
+		public GridIndexGenerator()
+		{
+		}
+
+		public GridIndexSegments GetGridIndex()
+		{
+			return m_gridIndexSegments;
+		}
+
+		public void Generate(IPointCloudBinarySource source, Grid<GridIndexCell> gridIndex, int maxPointCountPerChunk)
+		{
+			const int segmentSize = (int)ByteSizesSmall.MB_256;
 
 			var regionSourcesBySegment = new List<SortedDictionary<int, int>>();
-			long pointDataBytes = m_source.PointSizeBytes * m_source.Count;
+			long pointDataBytes = source.PointSizeBytes * source.Count;
 			long pointDataRemainingBytes = pointDataBytes;
 
 			int tilesChecked = 0;
@@ -165,17 +176,16 @@ namespace CloudAE.Core
 			while (pointDataRemainingBytes > 0)
 			{
 				var cellList = new Dictionary<int, int>();
-				int segmentSize = (int)ByteSizesSmall.MB_256;
 				int currentSize = 0;
-				foreach (var tile in PointCloudTileSet.GetTileOrdering(m_grid.SizeY, m_grid.SizeX).Skip(tilesChecked))
+				foreach (var tile in PointCloudTileSet.GetTileOrdering(gridIndex.SizeY, gridIndex.SizeX).Skip(tilesChecked))
 				{
-					var indexCell = m_gridIndex.Data[tile.Col, tile.Row];
+					var indexCell = gridIndex.Data[tile.Col, tile.Row];
 					if (indexCell != null)
 					{
 						int count = indexCell.Count;
 						if (count > 0)
 						{
-							int tileSize = (count * m_source.PointSizeBytes);
+							int tileSize = (count * source.PointSizeBytes);
 							if (currentSize + tileSize > segmentSize)
 								break;
 
@@ -217,6 +227,116 @@ namespace CloudAE.Core
 			int chunkRangeSumForAllSegments = regionSourcesBySegment.Sum(r => r.Sum(kvp => kvp.Value));
 			Context.WriteLine("chunkRangeSumForAllSegments: {0}", chunkRangeSumForAllSegments);
 			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * (int)ByteSizesSmall.MB_1 / pointDataBytes);
+
+			m_gridIndexSegments = new GridIndexSegments(regionSourcesBySegment, maxPointCountPerChunk);
+		}
+	}
+
+	public class GridCounter : IDisposable
+	{
+		private readonly IPointCloudBinarySource m_source;
+		private readonly Grid<int> m_grid;
+		private readonly bool m_quantized;
+
+		private readonly Extent3D m_extent;
+
+		private readonly double m_tilesOverRangeX;
+		private readonly double m_tilesOverRangeY;
+
+		private readonly GridIndexGenerator m_gridIndexGenerator;
+		private readonly Grid<GridIndexCell> m_gridIndex;
+
+		private int m_maxPointCount;
+
+		public GridCounter(IPointCloudBinarySource source, Grid<int> grid)
+			: this(source, grid, null)
+		{
+		}
+
+		public GridCounter(IPointCloudBinarySource source, Grid<int> grid, GridIndexGenerator gridIndexGenerator)
+		{
+			m_source = source;
+			m_grid = grid;
+			m_extent = m_source.Extent;
+			m_quantized = (m_source.Quantization != null);
+
+			if (m_quantized)
+			{
+				var inputQuantization = (SQuantization3D)source.Quantization;
+				var q = (SQuantizedExtent3D)inputQuantization.Convert(m_extent);
+				m_extent = new Extent3D(q.MinX, q.MinY, q.MinZ, q.MaxX, q.MaxY, q.MaxZ);
+			}
+
+			m_tilesOverRangeX = m_grid.SizeX / m_extent.RangeX;
+			m_tilesOverRangeY = m_grid.SizeY / m_extent.RangeY;
+
+			if (gridIndexGenerator != null)
+			{
+				m_gridIndexGenerator = gridIndexGenerator;
+				m_gridIndex = new Grid<GridIndexCell>(grid.SizeX, grid.SizeY, null, true);
+			}
+		}
+
+		public unsafe void Process(IPointDataChunk chunk)
+		{
+			if (chunk.PointCount > m_maxPointCount)
+				m_maxPointCount = chunk.PointCount;
+
+			if (m_quantized)
+			{
+				byte* pb = chunk.PointDataPtr;
+				while (pb < chunk.PointDataEndPtr)
+				{
+					SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
+
+					int tileX = (int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX);
+					int tileY = (int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY);
+
+					//if (tileX < 0) tileX = 0; else if (tileX > m_grid.SizeX) tileX = m_grid.SizeX;
+					//if (tileY < 0) tileY = 0; else if (tileY > m_grid.SizeY) tileY = m_grid.SizeY;
+
+					++m_grid.Data[tileX, tileY];
+
+					// indexing
+					if(m_gridIndex != null)
+					{
+						var indexCell = m_gridIndex.Data[tileX, tileY];
+						if (indexCell == null)
+						{
+							indexCell = new GridIndexCell();
+							m_gridIndex.Data[tileX, tileY] = indexCell;
+						}
+						indexCell.Add(chunk.Index);
+					}
+
+					pb += chunk.PointSizeBytes;
+				}
+			}
+			else
+			{
+				byte* pb = chunk.PointDataPtr;
+				while (pb < chunk.PointDataEndPtr)
+				{
+					Point3D* p = (Point3D*)pb;
+					++m_grid.Data[
+						(int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX),
+						(int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY)
+					];
+
+					pb += chunk.PointSizeBytes;
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			m_grid.CorrectCountOverflow();
+
+			if (m_gridIndex != null)
+			{
+				m_gridIndex.CorrectCountOverflow();
+				m_gridIndexGenerator.Generate(m_source, m_gridIndex, m_maxPointCount);
+			}
 		}
 	}
 }

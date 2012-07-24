@@ -46,6 +46,11 @@ namespace CloudAE.Core
 			protected set { m_extent = value; }
 		}
 
+		public IEnumerable<string> SourcePaths
+		{
+			get { yield return FilePath; }
+		}
+
 		#endregion
 
 		public PointCloudBinarySource(string file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes)
@@ -73,6 +78,22 @@ namespace CloudAE.Core
 			long offset = PointDataOffset + pointIndex * PointSizeBytes;
 			var segment = new PointCloudBinarySource(FilePath, pointCount, Extent, Quantization, offset, PointSizeBytes);
 			return segment;
+		}
+
+		public IPointCloudBinarySource CreateSparseSegment(PointCloudBinarySourceEnumeratorSparseRegion regions)
+		{
+			var regionSegments = new List<IPointCloudBinarySource>();
+			foreach (var region in regions)
+			{
+				long pointIndex = regions.PointsPerChunk * region.ChunkStart;
+				long pointCount = regions.PointsPerChunk * region.ChunkCount;
+				var regionSegment = CreateSegment(pointIndex, pointCount);
+				regionSegments.Add(regionSegment);
+			}
+
+			var sparseComposite = new PointCloudBinarySourceComposite(FilePath, Extent, regionSegments.ToArray());
+
+			return sparseComposite;
 		}
 	}
 }

@@ -77,6 +77,29 @@ namespace CloudAE.Core
 			}
 		}
 
+		public unsafe void Write(byte* array, int count)
+		{
+			if (m_actualLength > 0)
+				throw new InvalidOperationException("Partial flush already encountered.");
+
+			while (count > 0)
+			{
+				// copy from array into remaining buffer
+				int remainingSpaceInBuffer = m_buffer.Length - m_bufferIndex;
+				int bytesToCopy = Math.Min(remainingSpaceInBuffer, count);
+
+				for (int i = 0, d = m_bufferIndex; i < bytesToCopy; i++, d++)
+					m_buffer.Data[d] = array[i];
+
+				m_bufferIndex += bytesToCopy;
+				array += bytesToCopy;
+				count -= bytesToCopy;
+
+				if (m_bufferIndex == m_buffer.Length)
+					FlushInternal();
+			}
+		}
+
 		private void FlushInternal()
 		{
 			if (m_bufferIndex > 0)

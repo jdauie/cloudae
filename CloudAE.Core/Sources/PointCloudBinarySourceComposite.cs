@@ -44,6 +44,11 @@ namespace CloudAE.Core
 			protected set { m_extent = value; }
 		}
 
+		public IEnumerable<string> SourcePaths
+		{
+			get { return m_sources.Select(f => f.FilePath); }
+		}
+
 		#endregion
 
 		public PointCloudBinarySourceComposite(string path, Extent3D extent, IPointCloudBinarySource[] sources)
@@ -99,6 +104,27 @@ namespace CloudAE.Core
 
 			var composite = new PointCloudBinarySourceComposite(FilePath, Extent, subset.ToArray());
 			return composite;
+		}
+
+		public IPointCloudBinarySource CreateSparseSegment(PointCloudBinarySourceEnumeratorSparseRegion regions)
+		{
+			// transform these into segments that do not span files
+			// (I still want to avoid composites of composites)
+
+			//var regionSegments = new List<IPointCloudBinarySource>();
+			//foreach (var region in regions)
+			//{
+			//    long pointIndex = regions.PointsPerChunk * region.ChunkStart;
+			//    long pointCount = regions.PointsPerChunk * region.ChunkCount;
+			//    var regionSegment = CreateSegment(pointIndex, pointCount);
+			//    regionSegments.Add(regionSegment);
+			//}
+
+			//var sparseComposite = new PointCloudBinarySourceComposite(FilePath, Extent, regionSegments.ToArray());
+
+			//return sparseComposite;
+
+			throw new NotImplementedException();
 		}
 	}
 }
