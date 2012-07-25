@@ -5,12 +5,28 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class Grid<T>
+	public interface IGrid
 	{
-		public readonly ushort SizeX;
-		public readonly ushort SizeY;
+		ushort SizeX { get; }
+		ushort SizeY { get; }
+	}
+
+	public class Grid<T> : IGrid
+	{
+		private readonly ushort m_sizeX;
+		private readonly ushort m_sizeY;
 
 		public readonly T[,] Data;
+
+		public ushort SizeX
+		{
+			get { return m_sizeX; }
+		}
+
+		public ushort SizeY
+		{
+			get { return m_sizeY; }
+		}
 
 		public int CellCount
 		{
@@ -23,8 +39,8 @@ namespace CloudAE.Core
 
 		public Grid(ushort sizeX, ushort sizeY, Extent2D extent, bool bufferEdge)
 		{
-			SizeX = sizeX;
-			SizeY = sizeY;
+			m_sizeX = sizeX;
+			m_sizeY = sizeY;
 
 			Extent = extent;
 
@@ -37,15 +53,15 @@ namespace CloudAE.Core
 		{
 			FillVal = fillVal;
 
-			SizeX = maxDimension;
-			SizeY = maxDimension;
+			m_sizeX = maxDimension;
+			m_sizeY = maxDimension;
 
 			Extent = extent;
 			double aspect = Extent.Aspect;
 			if (aspect > 1)
-				SizeY = (ushort)Math.Max((double)SizeX / aspect, minDimension);
+				m_sizeY = (ushort)Math.Max(SizeX / aspect, minDimension);
 			else
-				SizeX = (ushort)Math.Max(SizeX * aspect, minDimension);
+				m_sizeX = (ushort)Math.Max(SizeX * aspect, minDimension);
 
 			int edgeBufferSize = bufferEdge ? 1 : 0;
 
@@ -67,6 +83,19 @@ namespace CloudAE.Core
 			for (int x = 0; x < sizeX; x++)
 				for (int y = 0; y < sizeY; y++)
 					Data[x, y] = fillVal;
+		}
+
+		public IEnumerable<T> GetCellsInScaledRange(int scaledX, int scaledY, IGrid scaledGrid)
+		{
+			int startX = (int)Math.Floor(((double)scaledX / scaledGrid.SizeX) * SizeX);
+			int startY = (int)Math.Floor(((double)scaledY / scaledGrid.SizeY) * SizeY);
+
+			int endX = (int)Math.Ceiling(((double)(scaledX + 1) / scaledGrid.SizeX) * SizeX);
+			int endY = (int)Math.Ceiling(((double)(scaledY + 1) / scaledGrid.SizeY) * SizeY);
+
+			for (int x = startX; x < endX; x++)
+				for (int y = startY; y < endY; y++)
+					yield return Data[x, y];
 		}
 	}
 

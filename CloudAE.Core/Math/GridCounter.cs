@@ -9,58 +9,45 @@ namespace CloudAE.Core
 	// it would be nice if I could get sector-aligned numbers, but that's too much for now
 	public class GridIndexCell
 	{
-		private readonly Dictionary<int, int> m_chunkCounts;
+		private readonly SortedSet<int> m_chunks;
 
 		public IEnumerable<int> Chunks
 		{
-			get { return m_chunkCounts.Keys; }
+			get { return m_chunks; }
 		}
 
-		public int Count
+		public bool HasChunks
 		{
-			get { return m_chunkCounts.Values.Sum(); }
+			get { return m_chunks.Count > 0; }
 		}
 
 		public GridIndexCell()
 		{
-			m_chunkCounts = new Dictionary<int, int>();
+			m_chunks = new SortedSet<int>();
 		}
 
 		public GridIndexCell(GridIndexCell a, GridIndexCell b)
 		{
-			m_chunkCounts = new Dictionary<int, int>();
+			m_chunks = new SortedSet<int>();
 
 			if (a != null)
-			{
-				foreach (var kvp in a.m_chunkCounts)
-					m_chunkCounts.Add(kvp.Key, kvp.Value);
-			}
+				foreach (var c in a.m_chunks)
+					m_chunks.Add(c);
 
 			if (b != null)
-			{
-				foreach (var kvp in b.m_chunkCounts)
-				{
-					if (!m_chunkCounts.ContainsKey(kvp.Key))
-						m_chunkCounts.Add(kvp.Key, kvp.Value);
-					else
-						m_chunkCounts[kvp.Key] += kvp.Value;
-				}
-			}
+				foreach (var c in b.m_chunks)
+					m_chunks.Add(c);
 		}
 
 		public void Add(int chunkIndex)
 		{
-			int count = 0;
-			if (!m_chunkCounts.TryGetValue(chunkIndex, out count))
-				m_chunkCounts.Add(chunkIndex, 1);
-			else
-				++m_chunkCounts[chunkIndex];
+			m_chunks.Add(chunkIndex);
 		}
 
 		public override string ToString()
 		{
 			// debugging only
-			return string.Format("{0}", string.Join(",", m_chunkCounts.Keys));
+			return string.Format("{0}", string.Join(",", m_chunks));
 		}
 	}
 
@@ -163,7 +150,7 @@ namespace CloudAE.Core
 			return m_gridIndexSegments;
 		}
 
-		public void Generate(IPointCloudBinarySource source, Grid<GridIndexCell> gridIndex, int maxPointCountPerChunk)
+		public void Generate(IPointCloudBinarySource source, Grid<GridIndexCell> estimatedIndex, Grid<int> estimatedCounts, Grid<int> actualGrid, int maxPointCountPerChunk)
 		{
 			const int segmentSize = (int)ByteSizesSmall.MB_256;
 
@@ -175,39 +162,39 @@ namespace CloudAE.Core
 
 			while (pointDataRemainingBytes > 0)
 			{
-				var cellList = new Dictionary<int, int>();
+				var cellList = new SortedSet<int>();
 				int currentSize = 0;
-				foreach (var tile in PointCloudTileSet.GetTileOrdering(gridIndex.SizeY, gridIndex.SizeX).Skip(tilesChecked))
+				foreach (var tile in PointCloudTileSet.GetTileOrdering(actualGrid.SizeY, actualGrid.SizeX).Skip(tilesChecked))
 				{
-					var indexCell = gridIndex.Data[tile.Col, tile.Row];
-					if (indexCell != null)
-					{
-						int count = indexCell.Count;
-						if (count > 0)
-						{
-							int tileSize = (count * source.PointSizeBytes);
-							if (currentSize + tileSize > segmentSize)
-								break;
+					// unfortunately, I cannot check the actual counts, because they have not been measured
+					// instead, I can count the estimated area, and undershoot
 
-							foreach (var chunkIndex in indexCell.Chunks)
-							{
-								if (cellList.ContainsKey(chunkIndex))
-									cellList[chunkIndex]++;
-								else
-									cellList.Add(chunkIndex, 1);
-							}
+					// get the x,y coords of the corresponding tiles
+					// get the associated counts
 
-							currentSize += tileSize;
-						}
-					}
+					//var count = actualGrid.Data[tile.Col, tile.Row];
+					//if (count > 0)
+					//{
+					//    int tileSize = (count * source.PointSizeBytes);
+					//    if (currentSize + tileSize > segmentSize)
+					//        break;
+
+					// get the matching index cell(s)
+					// NOT QUITE WHAT I WANT -- THIS SHOULD BE COORDS SO I CAN LOOK UP COUNTS
+					// (unless I merge counts with index, which I hesitate to do until I am certain of this mechanism)
+					var correspondingIndexCells = estimatedIndex.GetCellsInScaledRange(tile.Col, tile.Row, actualGrid).Where(indexCell => indexCell != null).ToList();
+
+					//currentSize += tileSize;
+
 					++tilesChecked;
 				}
 
-				var sortedChunkIndices = cellList.Keys.OrderBy(i => i).ToArray();
+				//var sortedChunkIndices = cellList.OrderBy(i => i).ToArray();
+
 				// group by sequential regions
 				int lastIndex = -2;
 				var regions = new SortedDictionary<int, int>();
-				foreach (var index in sortedChunkIndices)
+				foreach (var index in cellList)
 				{
 					if (regions.Count == 0 || index > lastIndex + regions[lastIndex])
 					{
@@ -335,7 +322,7 @@ namespace CloudAE.Core
 			if (m_gridIndex != null)
 			{
 				m_gridIndex.CorrectCountOverflow();
-				m_gridIndexGenerator.Generate(m_source, m_gridIndex, m_maxPointCount);
+				m_gridIndexGenerator.Generate(m_source, m_gridIndex, m_grid, null, m_maxPointCount);
 			}
 		}
 	}
