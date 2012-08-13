@@ -31,8 +31,23 @@ namespace CloudAE.Core
 
 		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
 		{
-			//LAZInterop laz = new LAZInterop();
-			//laz.unzip(FilePath);
+			LAZInterop laz = new LAZInterop(FilePath, m_header.OffsetToPointData, m_lazEncodedVLR.Data);
+
+			//using (var stream = StreamManager.OpenWriteStream("c:\\test.las", 0, 0))
+			//{
+			//    using (var writer = new BinaryWriter(stream))
+			//    {
+			//        m_header.Serialize(writer);
+			//    }
+
+			//    LASVLR[] vlrs = m_header.ReadVLRs(stream, r => r.RecordIdentifier.Equals(record));
+			//    m_lazEncodedVLR = vlrs[0];
+			//}
+
+			//using (var stream = StreamManager.OpenWriteStream("c:\\test.las", 0, 0))
+			//{
+				
+			//}
 
 			throw new NotImplementedException("");
 		}

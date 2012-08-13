@@ -55,12 +55,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>..\lib\laszip-2.1.0-2\include\laszip</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\laszip</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>laszip.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\lib\laszip-2.1.0-2\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\lib\x86</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(SolutionDir)\bin\"</Command>
@@ -71,12 +71,12 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>..\lib\laszip-2.1.0-2\include\laszip</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\laszip</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>laszip.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\lib\laszip-2.1.0-2\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\lib\x86</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(SolutionDir)\bin\"</Command>
@@ -102,7 +102,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.ico" />
-    <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />

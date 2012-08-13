@@ -68,18 +68,17 @@ namespace CloudAE.Core
 
 		public bool IsKnown
 		{
-			get
-			{
-				return IsKnownRecord(RecordIdentifier);
-			}
+			get { return IsKnownRecord(RecordIdentifier); }
 		}
 
 		public bool IsInteresting
 		{
-			get
-			{
-				return IsInterestingRecord(RecordIdentifier);
-			}
+			get { return IsInterestingRecord(RecordIdentifier); }
+		}
+
+		public byte[] Data
+		{
+			get { return m_data; }
 		}
 
 		public LASVLR(BinaryReader reader)
