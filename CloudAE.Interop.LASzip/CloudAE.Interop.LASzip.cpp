@@ -16,7 +16,8 @@ LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byt
 	if (m_file == NULL)
 		throw gcnew System::Exception();
 
-	if (!fseek(m_file, dataOffset, SEEK_SET))
+	// fseek returns 0 if successful
+	if (fseek(m_file, dataOffset, SEEK_SET))
 		throw gcnew System::Exception("Unable to seek");
 
 	m_zip = new LASzip();
