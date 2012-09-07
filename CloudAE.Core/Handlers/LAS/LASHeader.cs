@@ -188,11 +188,11 @@ namespace CloudAE.Core
 		static LASHeader()
 		{
 			c_minHeaderSize = new Dictionary<LASVersion,ushort>();
-			c_minHeaderSize.Add(LASVersion.LAS_1_0, 219);
-			c_minHeaderSize.Add(LASVersion.LAS_1_1, 219);
-			c_minHeaderSize.Add(LASVersion.LAS_1_2, 219);
-			c_minHeaderSize.Add(LASVersion.LAS_1_3, 227);
-			c_minHeaderSize.Add(LASVersion.LAS_1_4, 367);
+			c_minHeaderSize.Add(LASVersion.LAS_1_0, 227);
+			c_minHeaderSize.Add(LASVersion.LAS_1_1, 227);
+			c_minHeaderSize.Add(LASVersion.LAS_1_2, 227);
+			c_minHeaderSize.Add(LASVersion.LAS_1_3, 235);
+			c_minHeaderSize.Add(LASVersion.LAS_1_4, 375);
 		}
 
 		public LASHeader(BinaryReader reader)
