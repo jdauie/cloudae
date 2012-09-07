@@ -9,7 +9,7 @@ namespace CloudAE.Core
 	// it would be nice if I could get sector-aligned numbers, but that's too much for now
 	public class GridIndexCell
 	{
-		private readonly SortedSet<int> m_chunks;
+		private readonly HashSet<int> m_chunks;
 
 		public IEnumerable<int> Chunks
 		{
@@ -23,12 +23,12 @@ namespace CloudAE.Core
 
 		public GridIndexCell()
 		{
-			m_chunks = new SortedSet<int>();
+			m_chunks = new HashSet<int>();
 		}
 
 		public GridIndexCell(GridIndexCell a, GridIndexCell b)
 		{
-			m_chunks = new SortedSet<int>();
+			m_chunks = new HashSet<int>();
 
 			if (a != null)
 				foreach (var c in a.m_chunks)
@@ -162,7 +162,7 @@ namespace CloudAE.Core
 
 			while (pointDataRemainingBytes > 0)
 			{
-				var cellList = new SortedSet<int>();
+				var cellList = new HashSet<int>();
 				int currentSize = 0;
 				foreach (var tile in PointCloudTileSet.GetTileOrdering(actualGrid.SizeY, actualGrid.SizeX).Skip(tilesChecked))
 				{
@@ -271,32 +271,54 @@ namespace CloudAE.Core
 
 			if (m_quantized)
 			{
+				// get the tile indices for this chunk
+				var tileIndices = new HashSet<PointCloudTileCoord>();
+				PointCloudTileCoord lastIndex = PointCloudTileCoord.Empty;
+
 				byte* pb = chunk.PointDataPtr;
 				while (pb < chunk.PointDataEndPtr)
 				{
 					SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
 
-					int tileX = (int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX);
-					int tileY = (int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY);
+					//ushort tileX = (ushort)(((*p).X - m_extent.MinX) * m_tilesOverRangeX);
+					//ushort tileY = (ushort)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY);
+
+					PointCloudTileCoord tileIndex = new PointCloudTileCoord(
+						(ushort)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY), 
+						(ushort)(((*p).X - m_extent.MinX) * m_tilesOverRangeX)
+					);
 
 					//if (tileX < 0) tileX = 0; else if (tileX > m_grid.SizeX) tileX = m_grid.SizeX;
 					//if (tileY < 0) tileY = 0; else if (tileY > m_grid.SizeY) tileY = m_grid.SizeY;
 
-					++m_grid.Data[tileX, tileY];
+					++m_grid.Data[tileIndex.Col, tileIndex.Row];
 
 					// indexing
 					if(m_gridIndex != null)
 					{
-						var indexCell = m_gridIndex.Data[tileX, tileY];
-						if (indexCell == null)
+						if (tileIndex != lastIndex)
 						{
-							indexCell = new GridIndexCell();
-							m_gridIndex.Data[tileX, tileY] = indexCell;
+							tileIndices.Add(tileIndex);
+							lastIndex = tileIndex;
 						}
-						indexCell.Add(chunk.Index);
 					}
 
 					pb += chunk.PointSizeBytes;
+				}
+
+				// update index cells
+				if (m_gridIndex != null)
+				{
+					foreach (var tileIndex in tileIndices)
+					{
+						var indexCell = m_gridIndex.Data[tileIndex.Col, tileIndex.Row];
+						if (indexCell == null)
+						{
+							indexCell = new GridIndexCell();
+							m_gridIndex.Data[tileIndex.Col, tileIndex.Row] = indexCell;
+						}
+						indexCell.Add(chunk.Index);
+					}
 				}
 			}
 			else
