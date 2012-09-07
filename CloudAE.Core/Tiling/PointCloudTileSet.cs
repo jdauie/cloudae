@@ -62,7 +62,7 @@ namespace CloudAE.Core
 				if (count > 0)
 				{
 					m_tiles[validTileIndex] = new PointCloudTile(this, tile.Col, tile.Row, validTileIndex, offset, count);
-					m_tileIndex.Add((tile.Row << 16) | tile.Col, validTileIndex);
+					m_tileIndex.Add(tile.Index, validTileIndex);
 					++validTileIndex;
 					offset += count;
 				}
@@ -108,7 +108,7 @@ namespace CloudAE.Core
 				if (count > 0)
 				{
 					tempTiles.Add(new PointCloudTile(this, tile.Col, tile.Row, validTileIndex, offset, count));
-					m_tileIndex.Add((tile.Row << 16) | tile.Col, validTileIndex);
+					m_tileIndex.Add(tile.Index, validTileIndex);
 					++validTileIndex;
 					offset += count;
 				}
@@ -163,7 +163,7 @@ namespace CloudAE.Core
 				int count = reader.ReadInt32();
 
 				m_tiles[i] = new PointCloudTile(this, x, y, i, pointOffset, count);
-				m_tileIndex.Add((y << 16) | x, i);
+				m_tileIndex.Add(PointCloudTileCoord.GetIndex(y, x), i);
 
 				pointOffset += count;
 			}
@@ -204,7 +204,7 @@ namespace CloudAE.Core
 		private PointCloudTile GetTileInternal(int row, int col)
 		{
 			int index = -1;
-			return (m_tileIndex.TryGetValue((row << 16) | col, out index) ? m_tiles[index] : null);
+			return (m_tileIndex.TryGetValue(PointCloudTileCoord.GetIndex(row, col), out index) ? m_tiles[index] : null);
 		}
 
 		public IEnumerable<PointCloudTile> GetTileReadOrder(IEnumerable<PointCloudTile> tiles)

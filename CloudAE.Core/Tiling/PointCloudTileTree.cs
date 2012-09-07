@@ -231,10 +231,25 @@ namespace CloudAE.Core
 		ushort Col { get; }
 	}
 
-	public struct PointCloudTileCoord : ISerializeBinary, ITileCoord
+	public struct PointCloudTileCoord : ISerializeBinary, ITileCoord, IEquatable<PointCloudTileCoord>
 	{
 		private readonly ushort m_row;
 		private readonly ushort m_col;
+
+		public static int GetIndex(ushort row, ushort col)
+		{
+			return ((row << 16) | col);
+		}
+
+		public static int GetIndex(int row, int col)
+		{
+			return ((row << 16) | col);
+		}
+
+		public static PointCloudTileCoord Empty
+		{
+			get { return new PointCloudTileCoord(ushort.MaxValue, ushort.MaxValue); }
+		}
 
 		public ushort Row
 		{
@@ -244,6 +259,16 @@ namespace CloudAE.Core
 		public ushort Col
 		{
 			get { return m_col; }
+		}
+
+		public int Index
+		{
+			get { return ((m_row << 16) | m_col); }
+		}
+
+		public bool IsEmpty
+		{
+			get { return Equals(Empty); }
 		}
 
 		public PointCloudTileCoord(ushort y, ushort x)
@@ -262,6 +287,31 @@ namespace CloudAE.Core
 		{
 			writer.Write(m_row);
 			writer.Write(m_col);
+		}
+
+		public override int GetHashCode()
+		{
+			return Index;
+		}
+
+		public override bool Equals(object obj)
+		{
+			return Equals((PointCloudTileCoord)obj);
+		}
+
+		public bool Equals(PointCloudTileCoord other)
+		{
+			return (other.m_col == m_col && other.m_row == m_row);
+		}
+
+		public static bool operator ==(PointCloudTileCoord c1, PointCloudTileCoord c2)
+		{
+			return c1.Equals(c2);
+		}
+
+		public static bool operator !=(PointCloudTileCoord c1, PointCloudTileCoord c2)
+		{
+			return !c1.Equals(c2);
 		}
 
 		public override string ToString()
