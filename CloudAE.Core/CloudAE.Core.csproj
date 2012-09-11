@@ -92,6 +92,7 @@
     <Compile Include="Managers\IProgress.cs" />
     <Compile Include="Managers\PointBufferWrapper.cs" />
     <Compile Include="Managers\PointBufferWrapperChunk.cs" />
+    <Compile Include="Managers\PointCloudTileCacheManager.cs" />
     <Compile Include="Managers\ProgressManagerProcess.cs" />
     <Compile Include="Managers\ManagedBackgroundWorker.cs">
       <SubType>Component</SubType>
