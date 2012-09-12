@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -8,7 +9,7 @@ namespace CloudAE.Core.Geometry
 	/// <summary>
 	/// Immutable point class.
 	/// </summary>
-	public struct Point3D : IPoint3D
+	public struct Point3D : IPoint3D, ISerializeBinary
 	{
 		private readonly double m_x;
 		private readonly double m_y;
@@ -34,6 +35,20 @@ namespace CloudAE.Core.Geometry
 			m_x = x;
 			m_y = y;
 			m_z = z;
+		}
+
+		public Point3D(BinaryReader reader)
+		{
+			m_x = reader.ReadDouble();
+			m_y = reader.ReadDouble();
+			m_z = reader.ReadDouble();
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(X);
+			writer.Write(Y);
+			writer.Write(Z);
 		}
 
 		/// <summary>
