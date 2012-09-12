@@ -46,16 +46,33 @@ LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byt
 		point_offset += m_zip->items[i].size;
 	}
 
+	m_pointIndex = 0;
+}
 
-	//for (int i = 0; i < 1000; i++)
-	//{
-	//	ok = unzipper->read(m_lz_point);
+void LAZInterop::Seek(long byteOffset) {
+	long pointOffset = (byteOffset / m_lz_point_size);
 
-	//	for (int j = 0; j < m_lz_point_size; j++)
-	//	{
-	//		//m_lz_point_data[j];
-	//	}
-	//}
+	if (pointOffset != m_pointIndex) {
+		m_unzipper->seek(pointOffset);
+		m_pointIndex = pointOffset;
+	}
+}
+
+void LAZInterop::Read(array<Byte>^ buffer, int byteOffset, int byteCount) {
+	long pointCount = (byteCount / m_lz_point_size);
+	int offset = byteOffset;
+
+	for (int i = 0; i < pointCount; i++)
+	{
+		if (m_unzipper->read(m_lz_point)) {
+			for (int j = 0; j < m_lz_point_size; j++)
+			{
+				buffer[offset] = m_lz_point_data[j];
+				++offset;
+			}
+		}
+		++m_pointIndex;
+	}
 }
 
 LAZInterop::~LAZInterop() {

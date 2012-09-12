@@ -15,6 +15,10 @@ public:
 	LAZInterop(System::String^ path, unsigned long dataOffset, array<Byte>^ vlr);
     ~LAZInterop();
 
+	// provide a logical byte-based access (even though it is actually compressed)
+	void Seek(long byteIndex);
+	void Read(array<Byte>^ buffer, int byteOffset, int byteCount);
+
 private:
 
 	System::String^ m_path;
@@ -25,6 +29,7 @@ private:
 
 	LASzip* m_zip;
 	LASunzipper* m_unzipper;
+	long m_pointIndex;
 
 	unsigned char** m_lz_point;
 	unsigned char* m_lz_point_data;
