@@ -261,14 +261,19 @@ namespace CloudAE.Core
 			double rangeX = (double)extent.RangeX / Cols;
 			double rangeY = (double)extent.RangeY / Rows;
 
-			uint minX = (uint)(rangeX * tile.Col + extent.MinX);
-			uint minY = (uint)(rangeY * tile.Row + extent.MinY);
-			uint minZ = extent.MinZ;
-			uint maxX = (uint)(Math.Min(minX + rangeX, extent.MaxX));
-			uint maxY = (uint)(Math.Min(minY + rangeY, extent.MaxY));
-			uint maxZ = extent.MaxZ;
+			var min = new UQuantizedPoint3D(
+				(uint)(rangeX * tile.Col + extent.MinX),
+				(uint)(rangeY * tile.Row + extent.MinY),
+				extent.MinZ
+			);
 
-			return new UQuantizedExtent3D(minX, minY, minZ, maxX, maxY, maxZ);
+			var max = new UQuantizedPoint3D(
+				(uint)(Math.Min(min.X + rangeX, extent.MaxX)),
+				(uint)(Math.Min(min.Y + rangeY, extent.MaxY)),
+				extent.MaxZ
+			);
+
+			return new UQuantizedExtent3D(min, max);
 		}
 
 		#region IEnumerable Members

@@ -54,5 +54,10 @@ namespace CloudAE.Core.Geometry
 		{
 			return String.Format("({0}, {1}, {2})", X, Y, Z);
 		}
+
+		public Point3D GetPoint3D()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

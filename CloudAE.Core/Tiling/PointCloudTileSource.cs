@@ -313,7 +313,7 @@ namespace CloudAE.Core
 		{
 			Open();
 
-			UQuantizedExtent2D quantizedExtent = tile.QuantizedExtent;
+			var quantizedExtent = tile.QuantizedExtent;
 
 			double cellSizeX = (double)quantizedExtent.RangeX / grid.SizeX;
 			double cellSizeY = (double)quantizedExtent.RangeY / grid.SizeY;

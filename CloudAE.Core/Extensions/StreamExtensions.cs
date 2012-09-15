@@ -39,6 +39,11 @@ namespace CloudAE.Core
 			return obj;
 		}
 
+		public static Point3D ReadPoint3D(this BinaryReader reader)
+		{
+			return new Point3D(reader);
+		}
+
 		public static Extent3D ReadExtent3D(this BinaryReader reader)
 		{
 			return new Extent3D(reader);
@@ -47,6 +52,21 @@ namespace CloudAE.Core
 		public static UQuantizedExtent3D ReadUQuantizedExtent3D(this BinaryReader reader)
 		{
 			return new UQuantizedExtent3D(reader);
+		}
+
+		public static UQuantizedPoint3D ReadUQuantizedPoint3D(this BinaryReader reader)
+		{
+			return new UQuantizedPoint3D(reader);
+		}
+
+		public static SQuantizedExtent3D ReadSQuantizedExtent3D(this BinaryReader reader)
+		{
+			return new SQuantizedExtent3D(reader);
+		}
+
+		public static SQuantizedPoint3D ReadSQuantizedPoint3D(this BinaryReader reader)
+		{
+			return new SQuantizedPoint3D(reader);
 		}
 
 		public static PointCloudTileDensity ReadTileDensity(this BinaryReader reader)

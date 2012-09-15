@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace CloudAE.Core.Geometry
@@ -10,54 +9,45 @@ namespace CloudAE.Core.Geometry
 	{
 		private const int LOG_ROUNDING_PRECISION = 12;
 
-		public readonly double OffsetX;
-		public readonly double OffsetY;
-		public readonly double OffsetZ;
+		protected readonly Point3D Offset;
+		protected readonly Point3D ScaleFactor;
+		protected readonly Point3D ScaleFactorInverse;
 
-		public readonly double ScaleFactorX;
-		public readonly double ScaleFactorY;
-		public readonly double ScaleFactorZ;
+		public double OffsetX { get { return Offset.X; } }
+		public double OffsetY { get { return Offset.Y; } }
+		public double OffsetZ { get { return Offset.Z; } }
 
-		public readonly double ScaleFactorInverseX;
-		public readonly double ScaleFactorInverseY;
-		public readonly double ScaleFactorInverseZ;
+		public double ScaleFactorX { get { return ScaleFactor.X; } }
+		public double ScaleFactorY { get { return ScaleFactor.Y; } }
+		public double ScaleFactorZ { get { return ScaleFactor.Z; } }
+
+		public double ScaleFactorInverseX { get { return ScaleFactorInverse.X; } }
+		public double ScaleFactorInverseY { get { return ScaleFactorInverse.Y; } }
+		public double ScaleFactorInverseZ { get { return ScaleFactorInverse.Z; } }
+
+		protected abstract Type SupportedPointType { get; }
+		protected abstract Type SupportedExtentType { get; }
 
 		protected Quantization3D(double sfX, double sfY, double sfZ, double oX, double oY, double oZ)
 		{
-			ScaleFactorX = sfX;
-			ScaleFactorY = sfY;
-			ScaleFactorZ = sfZ;
-			OffsetX = oX;
-			OffsetY = oY;
-			OffsetZ = oZ;
+			ScaleFactor = new Point3D(sfX, sfY, sfZ);
+			Offset = new Point3D(oX, oY, oZ);
 
-			ScaleFactorInverseX = 1.0 / ScaleFactorX;
-			ScaleFactorInverseY = 1.0 / ScaleFactorY;
-			ScaleFactorInverseZ = 1.0 / ScaleFactorZ;
+			ScaleFactorInverse = 1.0 / ScaleFactor;
 		}
 
 		protected Quantization3D(BinaryReader reader)
 		{
-			ScaleFactorX = reader.ReadDouble();
-			ScaleFactorY = reader.ReadDouble();
-			ScaleFactorZ = reader.ReadDouble();
-			OffsetX = reader.ReadDouble();
-			OffsetY = reader.ReadDouble();
-			OffsetZ = reader.ReadDouble();
+			ScaleFactor = reader.ReadPoint3D();
+			Offset = reader.ReadPoint3D();
 
-			ScaleFactorInverseX = 1.0 / ScaleFactorX;
-			ScaleFactorInverseY = 1.0 / ScaleFactorY;
-			ScaleFactorInverseZ = 1.0 / ScaleFactorZ;
+			ScaleFactorInverse = 1.0 / ScaleFactor;
 		}
 
 		public void Serialize(BinaryWriter writer)
 		{
-			writer.Write(ScaleFactorX);
-			writer.Write(ScaleFactorY);
-			writer.Write(ScaleFactorZ);
-			writer.Write(OffsetX);
-			writer.Write(OffsetY);
-			writer.Write(OffsetZ);
+			writer.Write(ScaleFactor);
+			writer.Write(Offset);
 		}
 
 		public static Extent3D CreateOffsetExtent(Extent3D extent)
@@ -245,9 +235,41 @@ namespace CloudAE.Core.Geometry
 			return scaleBase;
 		}
 
-		public abstract IQuantizedPoint3D Convert(Point3D point);
-		public abstract Point3D Convert(IQuantizedPoint3D point);
-		public abstract IQuantizedExtent3D Convert(Extent3D extent);
-		public abstract Extent3D Convert(IQuantizedExtent3D extent);
+		public Point3D Convert(IQuantizedPoint3D point)
+		{
+			if (point.GetType() != SupportedPointType)
+				throw new ArgumentException("Quantization type mismatch", "point");
+
+			return point.GetPoint3D() * ScaleFactor + Offset;
+		}
+
+		public Extent3D Convert(IQuantizedExtent3D extent)
+		{
+			if (extent.GetType() != SupportedExtentType)
+				throw new ArgumentException("Quantization type mismatch", "extent");
+
+			Extent3D e = extent.GetExtent3D();
+			return new Extent3D(
+				e.GetMinPoint3D() * ScaleFactor + Offset,
+				e.GetMaxPoint3D() * ScaleFactor + Offset
+			);
+		}
+
+		public IQuantizedPoint3D Convert(Point3D point)
+		{
+			return ConvertInternal((point - Offset) / ScaleFactor);
+		}
+
+		public IQuantizedExtent3D Convert(Extent3D extent)
+		{
+			var e = new Extent3D(
+				(extent.GetMinPoint3D() - Offset) / ScaleFactor,
+				(extent.GetMaxPoint3D() - Offset) / ScaleFactor
+			);
+			return ConvertInternal(e);
+		}
+
+		protected abstract IQuantizedPoint3D ConvertInternal(Point3D point);
+		protected abstract IQuantizedExtent3D ConvertInternal(Extent3D extent);
 	}
 }

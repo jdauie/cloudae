@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace CloudAE.Core.Geometry
 {
@@ -11,6 +9,50 @@ namespace CloudAE.Core.Geometry
 	/// </summary>
 	public struct Point3D : IPoint3D, ISerializeBinary
 	{
+		#region Operators
+
+		public static Point3D operator +(Point3D p1, Point3D p2)
+		{
+			return new Point3D(p1.X + p2.X, p1.Y + p2.Y, p1.Z + p2.Z);
+		}
+
+		public static Point3D operator -(Point3D p1, Point3D p2)
+		{
+			return new Point3D(p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z);
+		}
+
+		public static Point3D operator *(Point3D p, double m)
+		{
+			return new Point3D(p.X * m, p.Y * m, p.Z * m);
+		}
+
+		public static Point3D operator *(double m, Point3D p)
+		{
+			return new Point3D(p.X * m, p.Y * m, p.Z * m);
+		}
+
+		public static Point3D operator *(Point3D p1, Point3D p2)
+		{
+			return new Point3D(p1.X * p2.X, p1.Y * p2.Y, p1.Z * p2.Z);
+		}
+
+		public static Point3D operator /(Point3D p, double d)
+		{
+			return new Point3D(p.X / d, p.Y / d, p.Z / d);
+		}
+
+		public static Point3D operator /(double d, Point3D p)
+		{
+			return new Point3D(d / p.X, d / p.Y, d / p.Z);
+		}
+
+		public static Point3D operator /(Point3D p1, Point3D p2)
+		{
+			return new Point3D(p1.X / p2.X, p1.Y / p2.Y, p1.Z / p2.Z);
+		}
+
+		#endregion
+
 		private readonly double m_x;
 		private readonly double m_y;
 		private readonly double m_z;

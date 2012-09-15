@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace CloudAE.Core.Geometry
 {
@@ -10,63 +10,101 @@ namespace CloudAE.Core.Geometry
 	/// </summary>
 	public class SQuantizedExtent3D : IQuantizedExtent3D
 	{
-		public readonly int MinX;
-		public readonly int MinY;
-		public readonly int MinZ;
-
-		public readonly int MaxX;
-		public readonly int MaxY;
-		public readonly int MaxZ;
+		private readonly SQuantizedPoint3D m_min;
+		private readonly SQuantizedPoint3D m_max;
 
 		#region Properties
 
+		public IQuantizedPoint3D Min
+		{
+			get { return m_min; }
+		}
+
+		public IQuantizedPoint3D Max
+		{
+			get { return m_max; }
+		}
+
+		public int MinX
+		{
+			get { return m_min.X; }
+		}
+
+		public int MinY
+		{
+			get { return m_min.Y; }
+		}
+
+		public int MinZ
+		{
+			get { return m_min.Z; }
+		}
+
+		public int MaxX
+		{
+			get { return m_max.X; }
+		}
+
+		public int MaxY
+		{
+			get { return m_max.Y; }
+		}
+
+		public int MaxZ
+		{
+			get { return m_max.Z; }
+		}
+
 		public uint RangeX
 		{
-			get { return (uint)((long)MaxX - MinX); }
+			get { return (uint)(m_max.X - m_min.X); }
 		}
 
 		public uint RangeY
 		{
-			get { return (uint)((long)MaxY - MinY); }
+			get { return (uint)(m_max.Y - m_min.Y); }
 		}
 
 		public uint RangeZ
 		{
-			get { return (uint)((long)MaxZ - MinZ); }
+			get { return (uint)(m_max.Z - m_min.Z); }
 		}
 
 		#endregion
 
 		public SQuantizedExtent3D(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
 		{
-			MinX = minX;
-			MinY = minY;
-			MinZ = minZ;
-			MaxX = maxX;
-			MaxY = maxY;
-			MaxZ = maxZ;
+			m_min = new SQuantizedPoint3D(minX, minY, minZ);
+			m_max = new SQuantizedPoint3D(maxX, maxY, maxZ);
 		}
 
-		public unsafe SQuantizedExtent3D(SQuantizedPoint3D* p, int count)
+		public SQuantizedExtent3D(SQuantizedPoint3D min, SQuantizedPoint3D max)
 		{
-			MinX = int.MaxValue;
-			MinY = int.MaxValue;
-			MinZ = int.MaxValue;
-			MaxX = int.MinValue;
-			MaxY = int.MinValue;
-			MaxZ = int.MaxValue;
+			m_min = min;
+			m_max = max;
+		}
 
-			for (int i = 0; i < count; i++)
-			{
-				SQuantizedPoint3D qPoint = p[i];
+		public SQuantizedExtent3D(Extent3D extent)
+		{
+			m_min = new SQuantizedPoint3D((int)extent.MinX, (int)extent.MinY, (int)extent.MinZ);
+			m_max = new SQuantizedPoint3D((int)extent.MaxX, (int)extent.MaxY, (int)extent.MaxZ);
+		}
 
-				MinX = Math.Min(MinX, qPoint.X);
-				MinY = Math.Min(MinY, qPoint.Y);
-				MinZ = Math.Min(MinZ, qPoint.Z);
-				MaxX = Math.Max(MinX, qPoint.X);
-				MaxY = Math.Max(MinY, qPoint.Y);
-				MaxZ = Math.Max(MinZ, qPoint.Z);
-			}
+		public SQuantizedExtent3D(BinaryReader reader)
+		{
+			m_min = reader.ReadSQuantizedPoint3D();
+			m_max = reader.ReadSQuantizedPoint3D();
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(m_min);
+			writer.Write(m_max);
+		}
+
+		public Extent3D GetExtent3D()
+		{
+			return new Extent3D(Min.GetPoint3D(), Max.GetPoint3D());
 		}
 
 		/// <summary>

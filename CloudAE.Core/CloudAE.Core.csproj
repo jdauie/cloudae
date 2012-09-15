@@ -119,8 +119,6 @@
     <Compile Include="DelaunayIncremental\Triangle.cs" />
     <Compile Include="Extensions\ArrayExtensions.cs" />
     <Compile Include="Extensions\NumericExtensions.cs" />
-    <Compile Include="Geometry\UQuantizedExtent2D.cs" />
-    <Compile Include="Geometry\IQuantizedExtent2D.cs" />
     <Compile Include="Geometry\Extent2D.cs" />
     <Compile Include="Geometry\IPoint3D.cs" />
     <Compile Include="Geometry\IQuantizedExtent3D.cs" />

@@ -20,6 +20,13 @@ namespace CloudAE.Core.Geometry
 			MaxZ = maxZ;
 		}
 
+		public Extent3D(Point3D min, Point3D max)
+			: base(min.X, min.Y, max.X, max.Y)
+		{
+			MinZ = min.Z;
+			MaxZ = max.Z;
+		}
+
 		public Extent3D(BinaryReader reader)
 			: base(reader)
 		{
@@ -44,6 +51,16 @@ namespace CloudAE.Core.Geometry
 			get { return (MaxZ + MinZ) / 2; }
 		}
 
+		public Point3D GetMinPoint3D()
+		{
+			return new Point3D(MinX, MinY, MinZ);
+		}
+
+		public Point3D GetMaxPoint3D()
+		{
+			return new Point3D(MaxX, MaxY, MaxZ);
+		}
+
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
 		/// </summary>
@@ -57,7 +74,7 @@ namespace CloudAE.Core.Geometry
 
 		public override bool Equals(object obj)
 		{
-			Extent3D extent = obj as Extent3D;
+			var extent = obj as Extent3D;
 			return (extent != null &&
 				extent.MinX == MinX &&
 				extent.MinY == MinY &&

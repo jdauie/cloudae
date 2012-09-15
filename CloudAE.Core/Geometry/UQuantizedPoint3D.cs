@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace CloudAE.Core.Geometry
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct UQuantizedPoint3D : IComparable<UQuantizedPoint3D>, IQuantizedPoint3D
+	public struct UQuantizedPoint3D : IComparable<UQuantizedPoint3D>, IQuantizedPoint3D, ISerializeBinary
 	{
 		public uint X;
 		public uint Y;
@@ -17,6 +18,32 @@ namespace CloudAE.Core.Geometry
 			X = x;
 			Y = y;
 			Z = z;
+		}
+
+		public UQuantizedPoint3D(Point3D point)
+		{
+			X = (uint)point.X;
+			Y = (uint)point.Y;
+			Z = (uint)point.Z;
+		}
+
+		public UQuantizedPoint3D(BinaryReader reader)
+		{
+			X = reader.ReadUInt32();
+			Y = reader.ReadUInt32();
+			Z = reader.ReadUInt32();
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(X);
+			writer.Write(Y);
+			writer.Write(Z);
+		}
+
+		public Point3D GetPoint3D()
+		{
+			return new Point3D(X, Y, Z);
 		}
 
 		public int CompareTo(UQuantizedPoint3D other)
