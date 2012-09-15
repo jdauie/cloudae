@@ -66,7 +66,13 @@ namespace CloudAE.Core
 
 		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
 		{
-			return CreateLASToBinaryWrapper(progressManager);
+			var sources = new List<IPointCloudBinarySource>();
+			foreach (var file in m_files)
+				sources.Add(file.GenerateBinarySource(progressManager));
+
+			var extent = sources.Select(s => s.Extent).Union3D();
+			var source = new PointCloudBinarySourceComposite(FilePath, extent, sources.ToArray());
+			return source;
 		}
 
 		public override string GetPreview()
@@ -76,17 +82,6 @@ namespace CloudAE.Core
 			sb.AppendLine("LAS Composite");
 
 			return sb.ToString();
-		}
-
-		public IPointCloudBinarySource CreateLASToBinaryWrapper(ProgressManager progressManager)
-		{
-			var sources = new List<IPointCloudBinarySource>();
-			foreach (var file in m_files)
-				sources.Add(file.CreateLASToBinaryWrapper(progressManager));
-
-			var extent = sources.Select(s => s.Extent).Union3D();
-			var source = new PointCloudBinarySourceComposite(FilePath, extent, sources.ToArray());
-			return source;
 		}
 	}
 }

@@ -328,7 +328,7 @@ namespace CloudAE.Core
 
 			if (m_version.Version >= LASVersion.LAS_1_3)
 			{
-				writer.Write(m_startOfFirstExtendedVariableLengthRecord);
+				writer.Write(m_startOfWaveformDataPacketRecord);
 			}
 
 			if (m_version.Version >= LASVersion.LAS_1_4)
@@ -365,7 +365,7 @@ namespace CloudAE.Core
 						}
 						else
 						{
-							if (vlr.IsKnown)
+							if (vlr.IsInteresting)
 								vlrs.Add(vlr);
 						}
 					}
@@ -410,7 +410,7 @@ namespace CloudAE.Core
 					for (int i = 0; i < m_numberOfExtendedVariableLengthRecords; i++)
 					{
 						var vlr = reader.ReadObject(typeof(LASEVLR)) as LASEVLR;
-						if (vlr != null && vlr.IsKnown)
+						if (vlr != null && vlr.IsInteresting)
 							vlrs.Add(vlr);
 					}
 				}

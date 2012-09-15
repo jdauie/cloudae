@@ -18,5 +18,7 @@ namespace CloudAE.Core
 	public interface IPointCloudBinarySourceSequentialEnumerable : IPointCloudBinarySourceEnumerable
 	{
 		long PointDataOffset { get; }
+
+		IStreamReader GetStreamReader();
 	}
 }

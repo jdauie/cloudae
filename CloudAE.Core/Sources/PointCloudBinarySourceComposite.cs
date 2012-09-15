@@ -64,6 +64,11 @@ namespace CloudAE.Core
 			m_pointSizeBytes = m_sources[0].PointSizeBytes;
 		}
 
+		public IStreamReader GetStreamReader()
+		{
+			throw new NotImplementedException();
+		}
+
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(BufferInstance buffer)
 		{
 			// this would only be meaningful for a composite of composites

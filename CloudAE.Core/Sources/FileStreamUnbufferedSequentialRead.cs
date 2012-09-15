@@ -40,7 +40,7 @@ namespace CloudAE.Core
 		public FileStreamUnbufferedSequentialRead(string path, long startPosition)
 		{
 			m_path = path;
-			m_id = IdentityManager.AcquireIdentity(string.Format("{0}:{1}", this.GetType().Name, m_path));
+			m_id = IdentityManager.AcquireIdentity(string.Format("{0}:{1}", GetType().Name, m_path));
 			m_buffer = BufferManager.AcquireBuffer(m_id, true);
 			m_sectorSize = PathUtil.GetDriveSectorSize(m_path);
 			m_bufferValidSize = m_buffer.Length;

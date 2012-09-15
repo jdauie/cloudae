@@ -16,8 +16,10 @@ LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byt
 	if (m_file == NULL)
 		throw gcnew System::Exception();
 
+	m_pointDataOffset = dataOffset;
+
 	// fseek returns 0 if successful
-	if (fseek(m_file, dataOffset, SEEK_SET))
+	if (fseek(m_file, m_pointDataOffset, SEEK_SET))
 		throw gcnew System::Exception("Unable to seek");
 
 	m_zip = new LASzip();
@@ -49,8 +51,10 @@ LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byt
 	m_pointIndex = 0;
 }
 
-void LAZInterop::Seek(long byteOffset) {
-	long pointOffset = (byteOffset / m_lz_point_size);
+void LAZInterop::Seek(long long byteOffset) {
+	
+	long long byteOffsetIntoPointData = (byteOffset - m_pointDataOffset);
+	long long pointOffset = (byteOffsetIntoPointData / m_lz_point_size);
 
 	if (pointOffset != m_pointIndex) {
 		m_unzipper->seek(pointOffset);
@@ -58,21 +62,31 @@ void LAZInterop::Seek(long byteOffset) {
 	}
 }
 
-void LAZInterop::Read(array<Byte>^ buffer, int byteOffset, int byteCount) {
+int LAZInterop::Read(array<Byte>^ buffer, int byteOffset, int byteCount) {
 	long pointCount = (byteCount / m_lz_point_size);
 	int offset = byteOffset;
 
 	for (int i = 0; i < pointCount; i++)
 	{
-		if (m_unzipper->read(m_lz_point)) {
-			for (int j = 0; j < m_lz_point_size; j++)
-			{
-				buffer[offset] = m_lz_point_data[j];
-				++offset;
-			}
+		if (!m_unzipper->read(m_lz_point))
+		{
+			break;
+		}
+
+		for (int j = 0; j < m_lz_point_size; j++)
+		{
+			buffer[offset] = m_lz_point_data[j];
+			++offset;
 		}
 		++m_pointIndex;
 	}
+
+	return (offset - byteOffset);
+}
+
+long long LAZInterop::GetPosition() {
+	
+	return (m_pointIndex * m_lz_point_size + m_pointDataOffset);
 }
 
 LAZInterop::~LAZInterop() {

@@ -68,8 +68,10 @@
     <Compile Include="Handlers\LAS\LASHeader.cs" />
     <Compile Include="Handlers\LAS\LASRecordIdentifier.cs" />
     <Compile Include="Handlers\LAS\LASVLR.cs" />
+    <Compile Include="Handlers\LAZ\LAZBinarySource.cs" />
     <Compile Include="Handlers\LAZ\LAZCreator.cs" />
     <Compile Include="Handlers\LAZ\LAZFile.cs" />
+    <Compile Include="Handlers\LAZ\LAZStreamReader.cs" />
     <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />
     <Compile Include="Cache.cs" />

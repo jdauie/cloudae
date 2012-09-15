@@ -63,6 +63,11 @@ namespace CloudAE.Core
 			m_pointSizeBytes = pointSizeBytes;
 		}
 
+		public virtual IStreamReader GetStreamReader()
+		{
+			return StreamManager.OpenReadStream(FilePath);
+		}
+
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
 		{
 			return new PointCloudBinarySourceEnumerator(this, process);

@@ -16,8 +16,9 @@ public:
     ~LAZInterop();
 
 	// provide a logical byte-based access (even though it is actually compressed)
-	void Seek(long byteIndex);
-	void Read(array<Byte>^ buffer, int byteOffset, int byteCount);
+	void Seek(long long byteIndex);
+	int Read(array<Byte>^ buffer, int byteOffset, int byteCount);
+	long long GetPosition();
 
 private:
 
@@ -29,7 +30,7 @@ private:
 
 	LASzip* m_zip;
 	LASunzipper* m_unzipper;
-	long m_pointIndex;
+	long long m_pointIndex;
 
 	unsigned char** m_lz_point;
 	unsigned char* m_lz_point_data;

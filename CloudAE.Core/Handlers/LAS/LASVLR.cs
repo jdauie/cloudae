@@ -47,6 +47,12 @@ namespace CloudAE.Core
 			c_knownRecordMapping.Add(new LASRecordIdentifier("LASF_Spec", 7), false);
 		}
 
+		public static void AddInterestingRecord(LASRecordIdentifier recordIdentifier)
+		{
+			if (!c_knownRecordMapping.ContainsKey(recordIdentifier))
+				c_knownRecordMapping.Add(recordIdentifier, true);
+		}
+
 		public static bool IsKnownRecord(LASRecordIdentifier recordIdentifier)
 		{
 			return c_knownRecordMapping.ContainsKey(recordIdentifier);

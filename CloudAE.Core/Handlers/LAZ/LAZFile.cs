@@ -1,60 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
-
-using CloudAE.Interop.LAZ;
 
 namespace CloudAE.Core
 {
-	class LAZFile : FileHandlerBase
+	class LAZFile : LASFile
 	{
-		private readonly LASHeader m_header;
+		private static readonly LASRecordIdentifier c_record;
 		private readonly LASVLR m_lazEncodedVLR;
+
+		static LAZFile()
+		{
+			c_record = new LASRecordIdentifier("laszip encoded", 22204);
+			LASVLR.AddInterestingRecord(c_record);
+		}
+
+		public LASVLR EncodedVLR
+		{
+			get { return m_lazEncodedVLR; }
+		}
 
 		public LAZFile(string path)
 			: base(path)
 		{
-			var record = new LASRecordIdentifier("laszip encoded", 22204);
+			m_lazEncodedVLR = m_vlrs.FirstOrDefault(vlr => vlr.RecordIdentifier.Equals(c_record));
 
-			using (var stream = StreamManager.OpenReadStream(FilePath))
-			{
-				using (var reader = new FlexibleBinaryReader(stream))
-				{
-					m_header = reader.ReadLASHeader();
-				}
-
-				LASVLR[] vlrs = m_header.ReadVLRs(stream, r => r.RecordIdentifier.Equals(record));
-				m_lazEncodedVLR = vlrs[0];
-			}
+			if (m_lazEncodedVLR == null)
+				throw new Exception("no laz record");
 		}
 
-		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
+		public override IStreamReader GetStreamReader()
 		{
-			LAZInterop laz = new LAZInterop(FilePath, m_header.OffsetToPointData, m_lazEncodedVLR.Data);
-
-			//using (var stream = StreamManager.OpenWriteStream("c:\\test.las", 0, 0))
-			//{
-			//    using (var writer = new BinaryWriter(stream))
-			//    {
-			//        m_header.Serialize(writer);
-			//    }
-
-			//    LASVLR[] vlrs = m_header.ReadVLRs(stream, r => r.RecordIdentifier.Equals(record));
-			//    m_lazEncodedVLR = vlrs[0];
-			//}
-
-			//using (var stream = StreamManager.OpenWriteStream("c:\\test.las", 0, 0))
-			//{
-				
-			//}
-
-			throw new NotImplementedException("");
+			return new LAZStreamReader(FilePath, Header, m_lazEncodedVLR);
 		}
 
-		public override string GetPreview()
+		protected override PointCloudBinarySource CreateBinaryWrapper()
 		{
-			return "LAZ";
+			var source = new LAZBinarySource(this, Count, Extent, Header.Quantization, PointDataOffset, PointSizeBytes);
+
+			return source;
 		}
 	}
 }
