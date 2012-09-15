@@ -119,18 +119,6 @@ namespace CloudAE.Core
 			return new LASEVLR(reader);
 		}
 
-		public static Extent3D ReadLASExtent3D(this BinaryReader reader)
-		{
-			double hMaxX = reader.ReadDouble();
-			double hMinX = reader.ReadDouble();
-			double hMaxY = reader.ReadDouble();
-			double hMinY = reader.ReadDouble();
-			double hMaxZ = reader.ReadDouble();
-			double hMinZ = reader.ReadDouble();
-
-			return new Extent3D(hMinX, hMinY, hMinZ, hMaxX, hMaxY, hMaxZ);
-		}
-
 		public static LASHeader ReadLASHeader(this BinaryReader reader)
 		{
 			return new LASHeader(reader);

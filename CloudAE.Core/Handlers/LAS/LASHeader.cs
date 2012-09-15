@@ -232,7 +232,7 @@ namespace CloudAE.Core
 			m_legacyNumberOfPointsByReturn  = reader.ReadUInt32Array(5);
 
 			m_quantization = reader.ReadSQuantization3D();
-			m_extent       = reader.ReadLASExtent3D();
+			m_extent       = reader.ReadExtent3D();
 
 			if (m_version.Version >= LASVersion.LAS_1_3)
 			{

@@ -64,18 +64,19 @@ namespace CloudAE.Core.Geometry
 
 		public Extent2D(BinaryReader reader)
 		{
-			MinX = reader.ReadDouble();
 			MaxX = reader.ReadDouble();
-			MinY = reader.ReadDouble();
+			MinX = reader.ReadDouble();
 			MaxY = reader.ReadDouble();
+			MinY = reader.ReadDouble();
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
 		{
-			writer.Write(MinX);
+			// this ordering conforms to the LAS header
 			writer.Write(MaxX);
-			writer.Write(MinY);
+			writer.Write(MinX);
 			writer.Write(MaxY);
+			writer.Write(MinY);
 		}
 
 		public double RangeX

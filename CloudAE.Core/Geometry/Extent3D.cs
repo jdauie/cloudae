@@ -30,15 +30,15 @@ namespace CloudAE.Core.Geometry
 		public Extent3D(BinaryReader reader)
 			: base(reader)
 		{
-			MinZ = reader.ReadDouble();
 			MaxZ = reader.ReadDouble();
+			MinZ = reader.ReadDouble();
 		}
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
-			writer.Write(MinZ);
 			writer.Write(MaxZ);
+			writer.Write(MinZ);
 		}
 
 		public double RangeZ
