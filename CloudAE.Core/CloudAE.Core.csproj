@@ -189,6 +189,7 @@
     <Compile Include="Tools3D\MeshUtils.cs" />
     <Compile Include="Tools3D\ScreenSpaceLines3D.cs" />
     <Compile Include="Tools3D\Trackball.cs" />
+    <Compile Include="Utilities\PEHeader.cs" />
     <Compile Include="Utilities\SingleInstance.cs" />
     <Compile Include="Utilities\XCopy.cs" />
     <Compile Include="Windows\WinConsoleColorHandler.cs" />

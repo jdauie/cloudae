@@ -21,7 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.ComponentModel;
-
+using CloudAE.Core.Util;
 using Microsoft.Win32;
 
 using CloudAE.Core.Windows;
@@ -414,10 +414,18 @@ namespace CloudAE.Core
 					char result = '-';
 					try
 					{
-						AssemblyName assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
-						Assembly assembly = Assembly.Load(assemblyName);
-						assemblyLookup.Add(assemblyPath, assembly);
-						result = '+';
+						PEHeader header = PEHeader.Load(assemblyPath);
+						if (header.IsManaged)
+						{
+							// figure a way to check this properly in the future
+							// (taking into account "Any CPU", etc.)
+							//if (header.Is64Bit == Environment.Is64BitProcess)
+							
+							AssemblyName assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
+							Assembly assembly = Assembly.Load(assemblyName);
+							assemblyLookup.Add(assemblyPath, assembly);
+							result = '+';
+						}
 					}
 					catch (Exception)
 					{
