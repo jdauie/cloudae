@@ -26,7 +26,7 @@ private:
 	array<Byte>^ m_lazVLR;
 	unsigned long m_pointDataOffset;
 
-	FILE* m_file;
+	ifstream* m_stream;
 
 	LASzip* m_zip;
 	LASunzipper* m_unzipper;

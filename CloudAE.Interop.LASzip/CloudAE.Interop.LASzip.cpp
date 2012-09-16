@@ -4,6 +4,9 @@
 
 #include "CloudAE.Interop.LASzip.h"
 
+#include <iostream>
+#include <fstream>
+
 using namespace CloudAE::Interop::LAZ;
 
 // the decoder can be initialized with point format/size instead of vlr
@@ -12,15 +15,15 @@ LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byt
 
 	msclr::interop::marshal_context context;
 	const char* pathStr = context.marshal_as<const char*>(path);
-	m_file = fopen(pathStr, "r");
-	if (m_file == NULL)
-		throw gcnew System::Exception();
+	
+	m_stream = new ifstream(pathStr, ios::in | ios::binary);
+
+	if (!m_stream->is_open())
+		throw gcnew System::Exception("Unable to open");
 
 	m_pointDataOffset = dataOffset;
 
-	// fseek returns 0 if successful
-	if (fseek(m_file, m_pointDataOffset, SEEK_SET))
-		throw gcnew System::Exception("Unable to seek");
+	m_stream->seekg(dataOffset, ios::beg);
 
 	m_zip = new LASzip();
 
@@ -29,7 +32,7 @@ LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byt
 		throw gcnew System::Exception("Unable to unpack() LAZ VLR");
 	
 	m_unzipper = new LASunzipper();
-	if (!m_unzipper->open(m_file, m_zip))
+	if (!m_unzipper->open(*m_stream, m_zip))
 		throw gcnew System::Exception("Unable to open() unzipper");
 
 	// compute the point size
@@ -93,7 +96,8 @@ LAZInterop::~LAZInterop() {
 	
 	m_unzipper->close();
 
-	fclose(m_file);
+	m_stream->close();
+	delete m_stream;
 
 	delete[] m_lz_point;
 	delete[] m_lz_point_data;
