@@ -3,6 +3,7 @@
 #include <msclr/marshal_cppstd.h>
 
 #include "CloudAE.Interop.LASzip.h"
+#include "LAZBlockReader.h"
 
 #include <iostream>
 #include <fstream>
@@ -66,7 +67,17 @@ void LAZInterop::Seek(long long byteOffset) {
 }
 
 int LAZInterop::Read(array<Byte>^ buffer, int byteOffset, int byteCount) {
-	long pointCount = (byteCount / m_lz_point_size);
+	
+	cli::pin_ptr<unsigned char> pBuffer = &buffer[0];
+
+	LAZBlockReader blockReader(m_unzipper, m_lz_point, m_lz_point_data, m_lz_point_size);
+	int bytesRead = blockReader.Read(pBuffer, byteOffset, byteCount);
+
+	m_pointIndex += (bytesRead / m_lz_point_size);
+
+	return bytesRead;
+	
+	/*long pointCount = (byteCount / m_lz_point_size);
 	int offset = byteOffset;
 
 	for (int i = 0; i < pointCount; i++)
@@ -84,7 +95,7 @@ int LAZInterop::Read(array<Byte>^ buffer, int byteOffset, int byteCount) {
 		++m_pointIndex;
 	}
 
-	return (offset - byteOffset);
+	return (offset - byteOffset);*/
 }
 
 long long LAZInterop::GetPosition() {
@@ -95,6 +106,7 @@ long long LAZInterop::GetPosition() {
 LAZInterop::~LAZInterop() {
 	
 	m_unzipper->close();
+	delete m_unzipper;
 
 	m_stream->close();
 	delete m_stream;

@@ -162,12 +162,14 @@ copy "..\lib\x64\laszip.dll" "$(SolutionDir)\bin\"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CloudAE.Interop.LASzip.h" />
+    <ClInclude Include="LAZBlockReader.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="CloudAE.Interop.LASzip.cpp" />
+    <ClCompile Include="LAZBlockReader.cpp" />
     <ClCompile Include="Stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
