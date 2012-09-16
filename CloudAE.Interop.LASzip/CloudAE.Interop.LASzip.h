@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "lasunzipper.hpp"
+#include "LAZBlockReader.h"
 
 using namespace System;
 
@@ -35,6 +36,8 @@ private:
 	unsigned char** m_lz_point;
 	unsigned char* m_lz_point_data;
 	unsigned int m_lz_point_size;
+
+	LAZBlockReader* m_blockReader;
 
 };
 

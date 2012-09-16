@@ -53,6 +53,8 @@ LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byt
 	}
 
 	m_pointIndex = 0;
+
+	m_blockReader = new LAZBlockReader(m_unzipper, m_lz_point, m_lz_point_data, m_lz_point_size);
 }
 
 void LAZInterop::Seek(long long byteOffset) {
@@ -70,32 +72,10 @@ int LAZInterop::Read(array<Byte>^ buffer, int byteOffset, int byteCount) {
 	
 	cli::pin_ptr<unsigned char> pBuffer = &buffer[0];
 
-	LAZBlockReader blockReader(m_unzipper, m_lz_point, m_lz_point_data, m_lz_point_size);
-	int bytesRead = blockReader.Read(pBuffer, byteOffset, byteCount);
-
+	int bytesRead = m_blockReader->Read(pBuffer, byteOffset, byteCount);
 	m_pointIndex += (bytesRead / m_lz_point_size);
 
 	return bytesRead;
-	
-	/*long pointCount = (byteCount / m_lz_point_size);
-	int offset = byteOffset;
-
-	for (int i = 0; i < pointCount; i++)
-	{
-		if (!m_unzipper->read(m_lz_point))
-		{
-			break;
-		}
-
-		for (int j = 0; j < m_lz_point_size; j++)
-		{
-			buffer[offset] = m_lz_point_data[j];
-			++offset;
-		}
-		++m_pointIndex;
-	}
-
-	return (offset - byteOffset);*/
 }
 
 long long LAZInterop::GetPosition() {
@@ -105,6 +85,8 @@ long long LAZInterop::GetPosition() {
 
 LAZInterop::~LAZInterop() {
 	
+	delete m_blockReader;
+
 	m_unzipper->close();
 	delete m_unzipper;
 
