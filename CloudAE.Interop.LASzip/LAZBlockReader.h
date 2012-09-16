@@ -2,7 +2,7 @@
 
 #include "lasunzipper.hpp"
 
-public class LAZBlockReader
+class LAZBlockReader
 {
 public:
 

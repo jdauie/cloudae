@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "LAZBlockReader.h"
 
 LAZBlockReader::LAZBlockReader(LASunzipper* unzipper, unsigned char** lz_point, unsigned char* lz_point_data, unsigned int lz_point_size) {
@@ -10,25 +8,24 @@ LAZBlockReader::LAZBlockReader(LASunzipper* unzipper, unsigned char** lz_point, 
 }
 
 int LAZBlockReader::Read(unsigned char* buffer, int byteOffset, int byteCount) {
-	long pointCount = (byteCount / m_lz_point_size);
-	int offset = byteOffset;
+	
+	unsigned char* bufferStart = buffer + byteOffset;
+	unsigned char* bufferEnd = bufferStart + byteCount;
+	unsigned char* bufferCurrent = bufferStart;
 
-	for (int i = 0; i < pointCount; i++)
+	while (bufferCurrent < bufferEnd)
 	{
 		if (!m_unzipper->read(m_lz_point))
-		{
 			break;
-		}
 
 		for (int j = 0; j < m_lz_point_size; j++)
 		{
-			buffer[offset] = m_lz_point_data[j];
-			++offset;
+			*bufferCurrent = m_lz_point_data[j];
+			++bufferCurrent;
 		}
-		//++m_pointIndex;
 	}
 
-	return (offset - byteOffset);
+	return (bufferCurrent - bufferStart);
 }
 
 LAZBlockReader::~LAZBlockReader() {
