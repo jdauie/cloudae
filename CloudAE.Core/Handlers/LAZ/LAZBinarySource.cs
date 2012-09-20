@@ -10,7 +10,7 @@ namespace CloudAE.Core
 		private readonly LAZFile m_handler;
 
 		public LAZBinarySource(FileHandlerBase file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes)
-			: base(file.FilePath, count, extent, quantization, dataOffset, pointSizeBytes)
+			: base(file, count, extent, quantization, dataOffset, pointSizeBytes)
 		{
 			m_handler = (LAZFile)file;
 		}

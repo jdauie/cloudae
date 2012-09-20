@@ -20,5 +20,17 @@ namespace CloudAE.Core
 		{
 			m_path = path;
 		}
+
+		public OpenFailedException(IFileContainer file, string message)
+			: base(message)
+		{
+			m_path = file.FilePath;
+		}
+
+		public OpenFailedException(IFileContainer file, string message, Exception innerException)
+			: base(message, innerException)
+		{
+			m_path = file.FilePath;
+		}
 	}
 }

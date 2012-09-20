@@ -71,7 +71,7 @@ namespace CloudAE.Core
 				sources.Add(file.GenerateBinarySource(progressManager));
 
 			var extent = sources.Select(s => s.Extent).Union3D();
-			var source = new PointCloudBinarySourceComposite(FilePath, extent, sources.ToArray());
+			var source = new PointCloudBinarySourceComposite(this, extent, sources.ToArray());
 			return source;
 		}
 

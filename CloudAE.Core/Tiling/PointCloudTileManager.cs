@@ -46,7 +46,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public PointCloudTileSource TilePointFile(string tiledPath, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
+		public PointCloudTileSource TilePointFile(LASFile tiledFile, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
 		{
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
@@ -55,10 +55,10 @@ namespace CloudAE.Core
 			var analysis = AnalyzePointFile(segmentBuffer, progressManager);
 			segmentBuffer = segmentBuffer.Initialize();
 
-			return TilePointFileSegment(tiledPath, analysis, segmentBuffer, progressManager);
+			return TilePointFileSegment(tiledFile, analysis, segmentBuffer, progressManager);
 		}
 
-		public PointCloudTileSource TilePointFileSegment(string tiledPath, PointCloudAnalysisResult analysis, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
+		public PointCloudTileSource TilePointFileSegment(LASFile tiledFile, PointCloudAnalysisResult analysis, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
 		{
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
@@ -68,7 +68,7 @@ namespace CloudAE.Core
 			progressManager.Log(stopwatch, "Computed Tile Offsets");
 
 			// pass 3
-			var tileSource = TilePoints(m_source, segmentBuffer, tiledPath, tileSet, analysis, progressManager);
+			var tileSource = TilePoints(m_source, segmentBuffer, tiledFile, tileSet, analysis, progressManager);
 			progressManager.Log(stopwatch, "Finished Tiling");
 
 			return tileSource;
@@ -106,19 +106,19 @@ namespace CloudAE.Core
 			return tileSet;
 		}
 
-		private PointCloudTileSource TilePoints(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, string path, PointCloudTileSet tileSet, PointCloudAnalysisResult analysis, ProgressManager progressManager)
+		private PointCloudTileSource TilePoints(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, LASFile file, PointCloudTileSet tileSet, PointCloudAnalysisResult analysis, ProgressManager progressManager)
 		{
-			if (File.Exists(path))
-				File.Delete(path);
+			if (File.Exists(file.FilePath))
+				File.Delete(file.FilePath);
 
 #warning this point size is incorrect for unquantized inputs
-			var tileSource = new PointCloudTileSource(path, tileSet, analysis.Quantization, source.PointSizeBytes, analysis.Statistics);
+			var tileSource = new PointCloudTileSource(file, tileSet, analysis.Quantization, source.PointSizeBytes, analysis.Statistics);
 			
 			m_tilePointsFunc(source, segmentBuffer, tileSource, progressManager);
 
 			using (var process = progressManager.StartProcess("FinalizeTiles"))
 			{
-				using (var outputStream = StreamManager.OpenWriteStream(path, tileSource.FileSize, tileSource.PointDataOffset))
+				using (var outputStream = StreamManager.OpenWriteStream(file.FilePath, tileSource.FileSize, tileSource.PointDataOffset))
 				{
 					var stopwatch = new Stopwatch();
 					stopwatch.Start();

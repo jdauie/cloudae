@@ -6,7 +6,12 @@ using System.IO;
 
 namespace CloudAE.Core
 {
-	public abstract class FileHandlerBase
+	public interface IFileContainer
+	{
+		string FilePath { get; }
+	}
+
+	public abstract class FileHandlerBase : IFileContainer
 	{
 		private string m_path;
 		private string m_name;
@@ -17,14 +22,13 @@ namespace CloudAE.Core
 			get { return m_path; }
 			set
 			{
-				if (!File.Exists(value))
-					throw new InvalidOperationException("FilePath cannot be set to a non-existent file.");
+				//if (!File.Exists(value))
+				//	throw new InvalidOperationException("FilePath cannot be set to a non-existent file.");
 
 				m_path = value;
 				m_name = Path.GetFileName(m_path);
 
-				FileInfo fileInfo = new FileInfo(m_path);
-				m_size = fileInfo.Length;
+				m_size = Size;
 			}
 		}
 
@@ -35,7 +39,26 @@ namespace CloudAE.Core
 
 		public long Size
 		{
-			get { return m_size; }
+			get
+			{
+				if (m_size == 0)
+				{
+					FileInfo fileInfo = new FileInfo(m_path);
+					if (fileInfo.Exists)
+						m_size = fileInfo.Length;
+				}
+				return m_size;
+			}
+		}
+
+		public bool Exists
+		{
+			get { return File.Exists(FilePath); }
+		}
+
+		public virtual bool IsValid
+		{
+			get { return Exists; }
 		}
 
 		protected FileHandlerBase(string path)

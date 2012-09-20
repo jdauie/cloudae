@@ -51,7 +51,7 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudBinarySourceComposite(string path, Extent3D extent, IPointCloudBinarySource[] sources)
+		public PointCloudBinarySourceComposite(FileHandlerBase path, Extent3D extent, IPointCloudBinarySource[] sources)
 			: base(path)
 		{
 			m_sources = sources;
@@ -107,7 +107,7 @@ namespace CloudAE.Core
 				pointsRemaining -= segmentLength;
 			}
 
-			var composite = new PointCloudBinarySourceComposite(FilePath, Extent, subset.ToArray());
+			var composite = new PointCloudBinarySourceComposite(FileHandler, Extent, subset.ToArray());
 			return composite;
 		}
 

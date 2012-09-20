@@ -8,7 +8,7 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	class LASFile : FileHandlerBase, IPointCloudBinarySourceSequentialEnumerable
+	public class LASFile : FileHandlerBase, IPointCloudBinarySourceSequentialEnumerable
 	{
 		private const bool TRUST_HEADER_EXTENT = true;
 
@@ -51,18 +51,25 @@ namespace CloudAE.Core
 		public LASFile(string path)
 			: base(path)
 		{
-			using (var stream = StreamManager.OpenReadStream(FilePath))
+			if (Exists)
 			{
-				using (var reader = new FlexibleBinaryReader(stream))
+				try
 				{
-					m_header = reader.ReadLASHeader();
+					using (var stream = StreamManager.OpenReadStream(FilePath))
+					{
+						using (var reader = new FlexibleBinaryReader(stream))
+						{
+							m_header = reader.ReadLASHeader();
+						}
+
+						m_vlrs = m_header.ReadVLRs(stream);
+						m_evlrs = m_header.ReadEVLRs(stream);
+					}
+
+					m_extent = m_header.Extent;
 				}
-
-				m_vlrs = m_header.ReadVLRs(stream);
-				m_evlrs = m_header.ReadEVLRs(stream);
+				catch { }
 			}
-
-			m_extent = m_header.Extent;
 		}
 
 		public virtual IStreamReader GetStreamReader()
@@ -154,7 +161,7 @@ namespace CloudAE.Core
 
 		protected virtual PointCloudBinarySource CreateBinaryWrapper()
 		{
-			var source = new PointCloudBinarySource(FilePath, Count, m_extent, m_header.Quantization, PointDataOffset, PointSizeBytes);
+			var source = new PointCloudBinarySource(this, Count, m_extent, m_header.Quantization, PointDataOffset, PointSizeBytes);
 
 			return source;
 		}

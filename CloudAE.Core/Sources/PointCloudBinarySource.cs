@@ -53,7 +53,7 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudBinarySource(string file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes)
+		public PointCloudBinarySource(FileHandlerBase file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes)
 			: base(file)
 		{
 			m_count = count;
@@ -81,7 +81,7 @@ namespace CloudAE.Core
 		public virtual IPointCloudBinarySource CreateSegment(long pointIndex, long pointCount)
 		{
 			long offset = PointDataOffset + pointIndex * PointSizeBytes;
-			var segment = new PointCloudBinarySource(FilePath, pointCount, Extent, Quantization, offset, PointSizeBytes);
+			var segment = new PointCloudBinarySource(FileHandler, pointCount, Extent, Quantization, offset, PointSizeBytes);
 			return segment;
 		}
 
@@ -96,7 +96,7 @@ namespace CloudAE.Core
 				regionSegments.Add(regionSegment);
 			}
 
-			var sparseComposite = new PointCloudBinarySourceComposite(FilePath, Extent, regionSegments.ToArray());
+			var sparseComposite = new PointCloudBinarySourceComposite(FileHandler, Extent, regionSegments.ToArray());
 
 			return sparseComposite;
 		}

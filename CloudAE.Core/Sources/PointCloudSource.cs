@@ -9,13 +9,18 @@ namespace CloudAE.Core
 	{
 		private readonly Identity m_id;
 
-		private readonly string m_filePath;
+		private readonly FileHandlerBase m_handler;
 		
 		private readonly string m_name;
 
+		public FileHandlerBase FileHandler
+		{
+			get { return m_handler; }
+		}
+
 		public virtual string FilePath
 		{
-			get { return m_filePath; }
+			get { return m_handler.FilePath; }
 		}
 
 		public virtual string Name
@@ -28,11 +33,11 @@ namespace CloudAE.Core
 			get { return m_id; }
 		}
 
-		protected PointCloudSource(string file)
+		protected PointCloudSource(FileHandlerBase handler)
 		{
 			m_id = IdentityManager.AcquireIdentity(GetType().Name);
 
-			m_filePath = file;
+			m_handler = handler;
 			m_name = Path.GetFileName(FilePath);
 		}
 

@@ -20,7 +20,8 @@ namespace CloudAE.Core
 		private PointCloudTileSource m_tileSource;
 
 		private readonly bool m_isInputPathLocal;
-		private readonly string m_tiledPath;
+		//private readonly string m_tiledPath;
+		private readonly LASFile m_tiledHandler;
 
 		static ProcessingSet()
 		{
@@ -34,9 +35,10 @@ namespace CloudAE.Core
 
 			m_inputHandler = inputFile;
 			m_isInputPathLocal = PathUtil.IsLocalPath(m_inputHandler.FilePath);
-			m_tiledPath = PointCloudTileSource.GetTileSourcePath(m_inputHandler.FilePath);
+			string tiledPath = PointCloudTileSource.GetTileSourcePath(m_inputHandler.FilePath);
+			m_tiledHandler = new LASFile(tiledPath);
 
-			Directory.CreateDirectory(Path.GetDirectoryName(m_tiledPath));
+			Directory.CreateDirectory(Path.GetDirectoryName(m_tiledHandler.FilePath));
 		}
 
 		public PointCloudTileSource Process(ProgressManager progressManager)
@@ -73,7 +75,7 @@ namespace CloudAE.Core
 						{
 							var segmentWrapper = new PointBufferWrapper(segmentBuffer, m_binarySource);
 							var tileManager = new PointCloudTileManager(m_binarySource);
-							m_tileSource = tileManager.TilePointFile(m_tiledPath, segmentWrapper, progressManager);
+							m_tileSource = tileManager.TilePointFile(m_tiledHandler, segmentWrapper, progressManager);
 
 							if (!process.IsCanceled())
 							{
@@ -207,11 +209,12 @@ namespace CloudAE.Core
 					for (int i = 0; i < segments.Length; i++)
 					{
 						string tiledSegmentPath = GetTileSourcePath(m_binarySource.FilePath, i);
+						var tiledSegmentHandler = new LASFile(tiledSegmentPath);
 						process.Log("~ Processing Segment {0}/{1}", i + 1, segments.Length);
 
 						var tileManager = new PointCloudTileManager(segments[i]);
 						var segmentWrapper = new PointBufferWrapper(segmentBuffer, segments[i]);
-						tiledSegments[i] = tileManager.TilePointFileSegment(tiledSegmentPath, analysis, segmentWrapper, progressManager);
+						tiledSegments[i] = tileManager.TilePointFileSegment(tiledSegmentHandler, analysis, segmentWrapper, progressManager);
 
 						// do I want to switch to an abort mechanism instead?
 						//if (process.IsCanceled())
@@ -227,9 +230,9 @@ namespace CloudAE.Core
 					// reassemble tiled files
 					var mergedTileSet = new PointCloudTileSet(tiledSegments.Select(s => s.TileSet).ToArray());
 
-					var tileSource = new PointCloudTileSource(m_tiledPath, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
-					
-					using (var outputStream = StreamManager.OpenWriteStream(m_tiledPath, tileSource.FileSize, tileSource.PointDataOffset, true))
+					var tileSource = new PointCloudTileSource(m_tiledHandler, mergedTileSet, tiledSegments[0].Quantization, tiledSegments[0].PointSizeBytes, tiledSegments[0].StatisticsZ);
+
+					using (var outputStream = StreamManager.OpenWriteStream(m_tiledHandler.FilePath, tileSource.FileSize, tileSource.PointDataOffset, true))
 					{
 						int bytesInCurrentSegment = 0;
 
@@ -316,17 +319,17 @@ namespace CloudAE.Core
 		{
 			if (PROPERTY_REUSE_TILING.Value)
 			{
-				if (File.Exists(m_tiledPath))
+				if (m_tiledHandler.Exists)
 				{
-					progressManager.Log("Loading from Cache: {0}", Path.GetFileNameWithoutExtension(m_tiledPath));
+					progressManager.Log("Loading from Cache: {0}", Path.GetFileNameWithoutExtension(m_tiledHandler.FilePath));
 					try
 					{
-						m_tileSource = PointCloudTileSource.Open(m_tiledPath);
+						m_tileSource = PointCloudTileSource.Open(m_tiledHandler);
 					}
 					catch
 					{
 						progressManager.Log("Cache Invalid; Regenerating.");
-						File.Delete(m_tiledPath);
+						File.Delete(m_tiledHandler.FilePath);
 					}
 				}
 			}

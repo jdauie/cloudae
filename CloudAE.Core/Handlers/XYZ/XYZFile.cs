@@ -149,7 +149,7 @@ namespace CloudAE.Core
 
 			var extent = new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
 
-			var source = new PointCloudBinarySource(binaryPath, pointCount, extent, null, 0, pointSizeBytes);
+			var source = new PointCloudBinarySource(this, pointCount, extent, null, 0, pointSizeBytes);
 
 			return source;
 		}

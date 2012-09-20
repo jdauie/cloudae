@@ -146,12 +146,12 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, short pointSizeBytes, Statistics zStats)
+		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, Quantization3D quantization, short pointSizeBytes, Statistics zStats)
 			: this(file, tileSet, quantization, 0, pointSizeBytes, zStats)
 		{
 		}
 
-		public PointCloudTileSource(string file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats)
+		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats)
 			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, pointSizeBytes)
 		{
 			m_tileSet = tileSet;
@@ -178,7 +178,7 @@ namespace CloudAE.Core
 			return tilePath;
 		}
 
-		public static PointCloudTileSource Open(string file)
+		public static PointCloudTileSource Open(LASFile file)
 		{
 			long pointDataOffset;
 			short pointSizeBytes;
@@ -187,7 +187,7 @@ namespace CloudAE.Core
 			Statistics zStats;
 			PointCloudTileSet tileSet;
 
-			using (var reader = new BinaryReader(File.OpenRead(file)))
+			using (var reader = new BinaryReader(File.OpenRead(file.FilePath)))
 			{
 				if (Encoding.ASCII.GetString(reader.ReadBytes(FILE_IDENTIFIER.Length)) != FILE_IDENTIFIER)
 					throw new OpenFailedException(file, "File identifier does not match.");
