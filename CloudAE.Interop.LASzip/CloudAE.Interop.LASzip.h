@@ -23,20 +23,6 @@ public:
 
 private:
 
-	System::String^ m_path;
-	array<Byte>^ m_lazVLR;
-	unsigned long m_pointDataOffset;
-
-	ifstream* m_stream;
-
-	LASzip* m_zip;
-	LASunzipper* m_unzipper;
-	long long m_pointIndex;
-
-	unsigned char** m_lz_point;
-	unsigned char* m_lz_point_data;
-	unsigned int m_lz_point_size;
-
 	LAZBlockReader* m_blockReader;
 
 };
