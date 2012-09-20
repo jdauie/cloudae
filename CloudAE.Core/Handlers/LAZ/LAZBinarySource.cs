@@ -19,5 +19,12 @@ namespace CloudAE.Core
 		{
 			return new LAZStreamReader(FilePath, m_handler.Header, m_handler.EncodedVLR);
 		}
+
+		public override IPointCloudBinarySource CreateSegment(long pointIndex, long pointCount)
+		{
+			long offset = PointDataOffset + pointIndex * PointSizeBytes;
+			var segment = new LAZBinarySource(m_handler, pointCount, Extent, Quantization, offset, PointSizeBytes);
+			return segment;
+		}
 	}
 }
