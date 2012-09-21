@@ -58,6 +58,31 @@ namespace CloudAE.Core.Handlers
 		private Type m_type;
 		private int m_components;
 
+		public bool HasNoData
+		{
+			get { return (m_options & 1) != 0; }
+		}
+
+		public bool HasMin
+		{
+			get { return (m_options & 1 << 1) != 0; }
+		}
+
+		public bool HasMax
+		{
+			get { return (m_options & 1 << 2) != 0; }
+		}
+
+		public bool HasScale
+		{
+			get { return (m_options & 1 << 3) != 0; }
+		}
+
+		public bool HasOffset
+		{
+			get { return (m_options & 1 << 4) != 0; }
+		}
+
 		public LASPointExtraBytes(BinaryReader reader)
 		{
 			reader.ReadBytes(2);
@@ -83,7 +108,14 @@ namespace CloudAE.Core.Handlers
 
 		private static Type GetTypeFromAttributeDataType(LASPointAttributeDataType dataType)
 		{
-			switch (dataType)
+			// return the underlying type, even if the actual data is an array
+			// (decide later how to clear this up)
+
+			if (!Enum.IsDefined(typeof(LASPointAttributeDataType), dataType) || dataType == LASPointAttributeDataType.Undocumented)
+				return null;
+
+			var dataTypeIndex = (LASPointAttributeDataType)((int)dataType % 10);
+			switch (dataTypeIndex)
 			{
 				case LASPointAttributeDataType.Byte:   return typeof(Byte);
 				case LASPointAttributeDataType.SByte:  return typeof(SByte);
@@ -102,10 +134,10 @@ namespace CloudAE.Core.Handlers
 
 		private static int GetComponentCountFromAttributeDataType(LASPointAttributeDataType dataType)
 		{
-			if (dataType == LASPointAttributeDataType.Undocumented)
-				return 0;
+			if (!Enum.IsDefined(typeof(LASPointAttributeDataType), dataType) || dataType == LASPointAttributeDataType.Undocumented)
+				return 1;
 
-			return ((int)dataType - 1) / 10;
+			return ((int)dataType - 1) / 10 + 1;
 		}
 
 		#region ISerializeBinary Members
