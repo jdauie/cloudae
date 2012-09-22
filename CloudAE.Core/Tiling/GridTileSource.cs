@@ -5,6 +5,7 @@ using System.Text;
 
 using CloudAE.Core.Geometry;
 using System.IO;
+using CloudAE.Core.Util;
 
 namespace CloudAE.Core
 {
@@ -184,52 +185,5 @@ namespace CloudAE.Core
 		}
 
 		#endregion
-	}
-
-	public class SupportedType
-	{
-		public readonly Type Type;
-		public readonly TypeCode TypeCode;
-		public readonly int Size;
-
-		private SupportedType(Type type, TypeCode typeCode, int size)
-		{
-			Type = type;
-			TypeCode = typeCode;
-			Size = size;
-		}
-
-		public static SupportedType GetType<T>()
-		{
-			Type type = typeof(T);
-			TypeCode typeCode = Type.GetTypeCode(type);
-			int size = GetSize(typeCode);
-
-			return new SupportedType(type, typeCode, size);
-		}
-
-		public static int GetSize(TypeCode typeCode)
-		{
-			int size = 0;
-
-			switch (typeCode)
-			{
-				case TypeCode.Byte:   size = sizeof(byte);   break;
-				case TypeCode.SByte:  size = sizeof(sbyte);  break;
-				case TypeCode.Int16:  size = sizeof(short);  break;
-				case TypeCode.UInt16: size = sizeof(ushort); break;
-				case TypeCode.Int32:  size = sizeof(int);    break;
-				case TypeCode.UInt32: size = sizeof(uint);   break;
-				case TypeCode.Int64:  size = sizeof(long);   break;
-				case TypeCode.UInt64: size = sizeof(ulong);  break;
-				case TypeCode.Single: size = sizeof(float);  break;
-				case TypeCode.Double: size = sizeof(double); break;
-
-				default:
-					throw new NotSupportedException();
-			}
-
-			return size;
-		}
 	}
 }

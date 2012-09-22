@@ -193,6 +193,7 @@
     <Compile Include="Tools3D\Trackball.cs" />
     <Compile Include="Utilities\PEHeader.cs" />
     <Compile Include="Utilities\SingleInstance.cs" />
+    <Compile Include="Utilities\SupportedType.cs" />
     <Compile Include="Utilities\XCopy.cs" />
     <Compile Include="Windows\WinConsoleColorHandler.cs" />
     <Compile Include="Windows\NativeMethods.cs" />

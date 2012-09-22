@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CloudAE.Core.Util;
 
 namespace CloudAE.Core.Handlers
 {
@@ -46,24 +47,25 @@ namespace CloudAE.Core.Handlers
 
 	public class LASPointExtraBytes : ISerializeBinary
 	{
-		private LASPointAttributeDataType m_dataType;
-		private byte m_options;
-		private string m_name;
+		private readonly LASPointAttributeDataType m_dataType;
+		private readonly byte m_options;
+		private readonly string m_name;
 
-		private ulong[] m_noData;
-		private ulong[] m_min;
-		private ulong[] m_max;
+		private readonly ulong[] m_noData;
+		private readonly ulong[] m_min;
+		private readonly ulong[] m_max;
 
-		private double[] m_scale;
-		private double[] m_offset;
-		private string m_description;
+		private readonly double[] m_scale;
+		private readonly double[] m_offset;
+		private readonly string m_description;
 
-		private Type m_type;
-		private int m_components;
+		private readonly Type m_type;
+		private readonly int m_typeSize;
+		private readonly int m_components;
 
 		public int Size
 		{
-			get { return IsUndocumented ? m_options : SupportedType.GetSize(Type.GetTypeCode(m_type)) * m_components; }
+			get { return IsUndocumented ? m_options : m_typeSize * m_components; }
 		}
 
 		public bool IsUndocumented
@@ -117,6 +119,8 @@ namespace CloudAE.Core.Handlers
 
 			m_type = GetTypeFromAttributeDataType(m_dataType);
 			m_components = GetComponentCountFromAttributeDataType(m_dataType);
+
+			m_typeSize = (m_type != null) ? SupportedType.GetSize(m_type) : m_options;
 		}
 
 		private static Type GetTypeFromAttributeDataType(LASPointAttributeDataType dataType)
