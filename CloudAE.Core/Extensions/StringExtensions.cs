@@ -7,7 +7,7 @@ namespace CloudAE.Core
 {
 	public static class StringExtensions
 	{
-		public static byte[] ToUnsafeAsciiBytes(this string input, int length)
+		public static byte[] ToAsciiBytes(this string input, int length)
 		{
 			int inputLength = input.Length;
 			if (inputLength > length)

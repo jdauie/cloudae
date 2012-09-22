@@ -203,6 +203,13 @@ namespace CloudAE.Core
 		{
 			Type type = typeof(T);
 			TypeCode typeCode = Type.GetTypeCode(type);
+			int size = GetSize(typeCode);
+
+			return new SupportedType(type, typeCode, size);
+		}
+
+		public static int GetSize(TypeCode typeCode)
+		{
 			int size = 0;
 
 			switch (typeCode)
@@ -222,7 +229,7 @@ namespace CloudAE.Core
 					throw new NotSupportedException();
 			}
 
-			return new SupportedType(type, typeCode, size);
+			return size;
 		}
 	}
 }

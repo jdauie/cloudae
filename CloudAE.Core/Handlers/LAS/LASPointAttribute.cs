@@ -6,6 +6,9 @@ using System.Text;
 
 namespace CloudAE.Core.Handlers
 {
+	/// <summary>
+	/// This can be simplified to the first set if that is more clear.
+	/// </summary>
 	public enum LASPointAttributeDataType : byte
 	{
 		Undocumented,
@@ -58,29 +61,39 @@ namespace CloudAE.Core.Handlers
 		private Type m_type;
 		private int m_components;
 
+		public int DataLength
+		{
+			get { return IsUndocumented ? m_options : SupportedType.GetSize(Type.GetTypeCode(m_type)) * m_components; }
+		}
+
+		public bool IsUndocumented
+		{
+			get { return (m_type == null); }
+		}
+
 		public bool HasNoData
 		{
-			get { return (m_options & 1) != 0; }
+			get { return !IsUndocumented && (m_options & 1) != 0; }
 		}
 
 		public bool HasMin
 		{
-			get { return (m_options & 1 << 1) != 0; }
+			get { return !IsUndocumented && (m_options & 1 << 1) != 0; }
 		}
 
 		public bool HasMax
 		{
-			get { return (m_options & 1 << 2) != 0; }
+			get { return !IsUndocumented && (m_options & 1 << 2) != 0; }
 		}
 
 		public bool HasScale
 		{
-			get { return (m_options & 1 << 3) != 0; }
+			get { return !IsUndocumented && (m_options & 1 << 3) != 0; }
 		}
 
 		public bool HasOffset
 		{
-			get { return (m_options & 1 << 4) != 0; }
+			get { return !IsUndocumented && (m_options & 1 << 4) != 0; }
 		}
 
 		public LASPointExtraBytes(BinaryReader reader)
@@ -89,7 +102,7 @@ namespace CloudAE.Core.Handlers
 			
 			m_dataType = (LASPointAttributeDataType)reader.ReadByte();
 			m_options = reader.ReadByte();
-			m_name = reader.ReadBytes(32).UnsafeAsciiBytesToString();
+			m_name = reader.ReadBytes(32).ToAsciiString();
 			
 			reader.ReadBytes(4);
 
@@ -100,7 +113,7 @@ namespace CloudAE.Core.Handlers
 			m_scale = reader.ReadDoubleArray(3);
 			m_offset = reader.ReadDoubleArray(3);
 
-			m_description = reader.ReadBytes(32).UnsafeAsciiBytesToString();
+			m_description = reader.ReadBytes(32).ToAsciiString();
 
 			m_type = GetTypeFromAttributeDataType(m_dataType);
 			m_components = GetComponentCountFromAttributeDataType(m_dataType);
@@ -148,7 +161,7 @@ namespace CloudAE.Core.Handlers
 
 			writer.Write((byte)m_dataType);
 			writer.Write(m_options);
-			writer.Write(m_name.ToUnsafeAsciiBytes(32));
+			writer.Write(m_name.ToAsciiBytes(32));
 
 			writer.Write((uint)0);
 
@@ -159,7 +172,7 @@ namespace CloudAE.Core.Handlers
 			writer.Write(m_scale);
 			writer.Write(m_offset);
 
-			writer.Write(m_description.ToUnsafeAsciiBytes(32));
+			writer.Write(m_description.ToAsciiBytes(32));
 		}
 
 		#endregion
@@ -191,6 +204,11 @@ namespace CloudAE.Core.Handlers
 		}
 	}
 
+	/// <summary>
+	/// I might want T to implement an interface that will allow the creation of sub-attributes
+	/// (see example below).
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class LASPointAttribute<T> : LASPointAttributeBase where T : struct
 	{
 		private T[] m_noData;
@@ -203,6 +221,10 @@ namespace CloudAE.Core.Handlers
 			Type type = actualType.IsEnum ? Enum.GetUnderlyingType(actualType) : actualType;
 			TypeCode typeCode = Type.GetTypeCode(type);
 
+			// I can just ask SupportedType for this
+			// but I might want it to be more general
+			// ...e.g. a SQuantizedPoint3D attribute has X,Y,Z child attributes
+			// thus I would support a tree of arbitrary types
 			switch (typeCode)
 			{
 				case TypeCode.Byte:

@@ -122,8 +122,8 @@ namespace CloudAE.Core.Geometry
 						diffCountsLookup.Add(diff, 1);
 				}
 
-				int diffsLength = diffCountsLookup.Count - 1;
 				uint[] diffs = diffCountsLookup.Select(kvp => kvp.Key).Where(k => k > 0).ToArray();
+				int diffsLength = diffs.Length;
 				int[] diffCounts = new int[diffsLength];
 				for (int d = 0; d < diffs.Length; d++)
 					diffCounts[d] = diffCountsLookup[diffs[d]];

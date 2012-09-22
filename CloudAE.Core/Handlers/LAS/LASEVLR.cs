@@ -62,10 +62,10 @@ namespace CloudAE.Core
 		public LASEVLR(BinaryReader reader)
 		{
 			m_reserved = reader.ReadUInt16();
-			m_userID = reader.ReadBytes(16).UnsafeAsciiBytesToString();
+			m_userID = reader.ReadBytes(16).ToAsciiString();
 			m_recordID = reader.ReadUInt16();
 			m_recordLengthAfterHeader = reader.ReadUInt64();
-			m_description = reader.ReadBytes(32).UnsafeAsciiBytesToString();
+			m_description = reader.ReadBytes(32).ToAsciiString();
 
 			// this data could be massive...such as the waveform data packets
 			// I should only read records that I want
@@ -78,10 +78,10 @@ namespace CloudAE.Core
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(m_reserved);
-			writer.Write(m_userID.ToUnsafeAsciiBytes(16));
+			writer.Write(m_userID.ToAsciiBytes(16));
 			writer.Write(m_recordID);
 			writer.Write(m_recordLengthAfterHeader);
-			writer.Write(m_description.ToUnsafeAsciiBytes(32));
+			writer.Write(m_description.ToAsciiBytes(32));
 			//writer.Write(m_data);
 		}
 

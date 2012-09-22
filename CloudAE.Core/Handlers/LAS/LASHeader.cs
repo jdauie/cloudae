@@ -211,8 +211,8 @@ namespace CloudAE.Core
 			m_projectID             = reader.ReadLASProjectID();
 			m_version               = reader.ReadLASVersionInfo();
 			
-			m_systemIdentifier      = reader.ReadBytes(32).UnsafeAsciiBytesToString();
-			m_generatingSoftware    = reader.ReadBytes(32).UnsafeAsciiBytesToString();
+			m_systemIdentifier      = reader.ReadBytes(32).ToAsciiString();
+			m_generatingSoftware    = reader.ReadBytes(32).ToAsciiString();
 			m_fileCreationDayOfYear = reader.ReadUInt16();
 			m_fileCreationYear      = reader.ReadUInt16();
 
@@ -311,8 +311,8 @@ namespace CloudAE.Core
 			writer.Write(m_projectID);
 			writer.Write(m_version);
 
-			writer.Write(m_systemIdentifier.ToUnsafeAsciiBytes(32));
-			writer.Write(m_generatingSoftware.ToUnsafeAsciiBytes(32));
+			writer.Write(m_systemIdentifier.ToAsciiBytes(32));
+			writer.Write(m_generatingSoftware.ToAsciiBytes(32));
 			writer.Write(m_fileCreationDayOfYear);
 			writer.Write(m_fileCreationYear);
 			writer.Write(m_headerSize);

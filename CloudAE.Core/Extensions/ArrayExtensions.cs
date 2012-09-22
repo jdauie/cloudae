@@ -14,7 +14,7 @@ namespace CloudAE.Core
 				yield return (T)item;
 		}
 
-		public static string UnsafeAsciiBytesToString(this byte[] buffer)
+		public static string ToAsciiString(this byte[] buffer)
 		{
 			int nullLocation = Array.IndexOf<byte>(buffer, 0);
 			if (nullLocation > -1)
