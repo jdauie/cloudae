@@ -61,7 +61,7 @@ namespace CloudAE.Core.Handlers
 		private Type m_type;
 		private int m_components;
 
-		public int DataLength
+		public int Size
 		{
 			get { return IsUndocumented ? m_options : SupportedType.GetSize(Type.GetTypeCode(m_type)) * m_components; }
 		}
@@ -207,6 +207,7 @@ namespace CloudAE.Core.Handlers
 	/// <summary>
 	/// I might want T to implement an interface that will allow the creation of sub-attributes
 	/// (see example below).
+	/// The interface might also need to define the translation into "Extra Bytes" which may be more limited.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	public class LASPointAttribute<T> : LASPointAttributeBase where T : struct
