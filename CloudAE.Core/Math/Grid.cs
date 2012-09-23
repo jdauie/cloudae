@@ -95,7 +95,8 @@ namespace CloudAE.Core
 
 			for (int x = startX; x < endX; x++)
 				for (int y = startY; y < endY; y++)
-					yield return Data[x, y];
+					if (!EqualityComparer<T>.Default.Equals(Data[x, y], default(T)))
+						yield return Data[x, y];
 		}
 	}
 

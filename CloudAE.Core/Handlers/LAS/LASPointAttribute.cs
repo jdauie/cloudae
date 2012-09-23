@@ -184,8 +184,24 @@ namespace CloudAE.Core.Handlers
 
 	public class LASPointAttributeBase
 	{
-		// maybe have two different classes for "Attribute" and "Extra Bytes"
-		// they aren't necessarily the same structure
+		// byte range
+		private readonly int m_startByte;
+		private readonly int m_endByte;
+
+		// bit range (for sub-byte values)
+		private readonly int m_startBit;
+		private readonly int m_endBit;
+
+		// name
+		// min
+		// max
+		// stats
+
+		// valid range? (like scan angle rank -90..90)
+
+		// more info may be needed
+		// e.g. GPS time format interpretation depends on LAS header flags
+
 
 		private LASPointAttributeDataType m_dataType;
 		private byte m_options;
@@ -211,7 +227,8 @@ namespace CloudAE.Core.Handlers
 	/// <summary>
 	/// I might want T to implement an interface that will allow the creation of sub-attributes
 	/// (see example below).
-	/// The interface might also need to define the translation into "Extra Bytes" which may be more limited.
+	/// The interface might also need to define the translation into "Extra Bytes" which may be 
+	/// more limited...and will not have nested attributes.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	public class LASPointAttribute<T> : LASPointAttributeBase where T : struct

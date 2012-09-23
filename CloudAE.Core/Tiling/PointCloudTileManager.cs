@@ -10,7 +10,7 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileManager : IPropertyContainer
 	{
-		private static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
+		public static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
 		private static readonly PropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;
 		private static readonly PropertyState<bool> PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION;
 
@@ -100,7 +100,7 @@ namespace CloudAE.Core
 
 		private PointCloudTileSet InitializeCounts(IPointCloudBinarySource source, PointCloudAnalysisResult analysis, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
 		{
-			var tileCounts = CreateTileCountsForInitialization(source, analysis.Density);
+			var tileCounts = analysis.Density.CreateTileCountsForInitialization();
 			var actualDensity = m_initializeCountsFunc(source, segmentBuffer, tileCounts, analysis.Quantization, progressManager);
 			var tileSet = new PointCloudTileSet(actualDensity, tileCounts);
 			return tileSet;
@@ -282,7 +282,7 @@ namespace CloudAE.Core
 			if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
 				quantizationTest = new QuantizationTest<int>(source);
 
-			GridIndexGenerator gridIndexGenerator = null;// (segmentBuffer != null) ? null : new GridIndexGenerator();
+			GridIndexGenerator gridIndexGenerator = (segmentBuffer != null) ? null : new GridIndexGenerator();
 
 			using (var process = progressManager.StartProcess("QuantEstimateDensity"))
 			{
@@ -308,13 +308,14 @@ namespace CloudAE.Core
 					quantization = quantizationTest.CreateQuantization();
 			}
 
-			if (gridIndexGenerator != null)
-				gridIndexSegments = gridIndexGenerator.GetGridIndex();
-
 			if (quantization == null)
 				quantization = Quantization3D.Create(extent, true);
 
 			var density = new PointCloudTileDensity(tileCounts, extent);
+
+			if (gridIndexGenerator != null)
+				gridIndexSegments = gridIndexGenerator.GetGridIndex(density);
+
 			var result = new PointCloudAnalysisResult(density, stats, quantization, gridIndexSegments);
 
 			return result;
@@ -415,23 +416,23 @@ namespace CloudAE.Core
 			return new Grid<int>(tilesX, tilesY, extent, true);
 		}
 
-		private static Grid<int> CreateTileCountsForInitialization(IPointCloudBinarySource source, PointCloudTileDensity density)
-		{
-			Extent3D extent = source.Extent;
+//        private static Grid<int> CreateTileCountsForInitialization(PointCloudTileDensity density)
+//        {
+//            Extent3D extent = density.Extent;
 
-			// median works better usually, but max is safer for substantially varying density
-			// (like terrestrial, although that requires a more thorough redesign)
-			//double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MaxTileDensity;
-			double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MedianTileDensity;
-			double tileSide = Math.Sqrt(tileArea);
+//            // median works better usually, but max is safer for substantially varying density
+//            // (like terrestrial, although that requires a more thorough redesign)
+//            //double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MaxTileDensity;
+//            double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MedianTileDensity;
+//            double tileSide = Math.Sqrt(tileArea);
 
-#warning this results in non-square tiles
+//#warning this results in non-square tiles
 
-			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
-			ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
+//            ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
+//            ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
 
-			return new Grid<int>(tilesX, tilesY, extent, true);
-		}
+//            return new Grid<int>(tilesX, tilesY, extent, true);
+//        }
 
 		#endregion
 	}

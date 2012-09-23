@@ -139,23 +139,24 @@ namespace CloudAE.Core
 
 	public class GridIndexGenerator
 	{
-		private GridIndexSegments m_gridIndexSegments;
+		private IPointCloudBinarySource m_source;
+		private Grid<GridIndexCell> m_estimatedIndex;
+		private Grid<int> m_estimatedCounts;
+		private Grid<int> m_actualGrid;
+		private int m_maxPointCountPerChunk;
 
 		public GridIndexGenerator()
 		{
 		}
 
-		public GridIndexSegments GetGridIndex()
-		{
-			return m_gridIndexSegments;
-		}
-
-		public void Generate(IPointCloudBinarySource source, Grid<GridIndexCell> estimatedIndex, Grid<int> estimatedCounts, Grid<int> actualGrid, int maxPointCountPerChunk)
+		public GridIndexSegments GetGridIndex(PointCloudTileDensity density)
 		{
 			const int segmentSize = (int)ByteSizesSmall.MB_256;
 
+			m_actualGrid = density.CreateTileCountsForInitialization();
+
 			var regionSourcesBySegment = new List<SortedDictionary<int, int>>();
-			long pointDataBytes = source.PointSizeBytes * source.Count;
+			long pointDataBytes = m_source.PointSizeBytes * m_source.Count;
 			long pointDataRemainingBytes = pointDataBytes;
 
 			int tilesChecked = 0;
@@ -164,27 +165,28 @@ namespace CloudAE.Core
 			{
 				var cellList = new HashSet<int>();
 				int currentSize = 0;
-				foreach (var tile in PointCloudTileSet.GetTileOrdering(actualGrid.SizeY, actualGrid.SizeX).Skip(tilesChecked))
+				// this repeated enumeration can be improved later
+				foreach (var tile in PointCloudTileSet.GetTileOrdering(m_actualGrid.SizeY, m_actualGrid.SizeX).Skip(tilesChecked))
 				{
 					// unfortunately, I cannot check the actual counts, because they have not been measured
 					// instead, I can count the estimated area, and undershoot
 
-					// get the x,y coords of the corresponding tiles
-					// get the associated counts
+					var correspondingEstimatedCounts = m_estimatedCounts.GetCellsInScaledRange(tile.Col, tile.Row, m_actualGrid).ToList();
 
-					//var count = actualGrid.Data[tile.Col, tile.Row];
-					//if (count > 0)
-					//{
-					//    int tileSize = (count * source.PointSizeBytes);
-					//    if (currentSize + tileSize > segmentSize)
-					//        break;
+					var count = correspondingEstimatedCounts.Sum();
+					if (count > 0)
+					{
+						int tileSize = (count * m_source.PointSizeBytes);
+						if (currentSize + tileSize > segmentSize)
+							break;
 
-					// get the matching index cell(s)
-					// NOT QUITE WHAT I WANT -- THIS SHOULD BE COORDS SO I CAN LOOK UP COUNTS
-					// (unless I merge counts with index, which I hesitate to do until I am certain of this mechanism)
-					var correspondingIndexCells = estimatedIndex.GetCellsInScaledRange(tile.Col, tile.Row, actualGrid).Where(indexCell => indexCell != null).ToList();
+						var correspondingEstimatedIndex = m_estimatedIndex.GetCellsInScaledRange(tile.Col, tile.Row, m_actualGrid).ToList();
+						foreach (var estimatedIndex in correspondingEstimatedIndex)
+							foreach (var index in estimatedIndex.Chunks)
+								cellList.Add(index);
 
-					//currentSize += tileSize;
+						currentSize += tileSize;
+					}
 
 					++tilesChecked;
 				}
@@ -215,7 +217,16 @@ namespace CloudAE.Core
 			Context.WriteLine("chunkRangeSumForAllSegments: {0}", chunkRangeSumForAllSegments);
 			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * (int)ByteSizesSmall.MB_1 / pointDataBytes);
 
-			m_gridIndexSegments = new GridIndexSegments(regionSourcesBySegment, maxPointCountPerChunk);
+			var gridIndexSegments = new GridIndexSegments(regionSourcesBySegment, m_maxPointCountPerChunk);
+			return gridIndexSegments;
+		}
+
+		public void Update(IPointCloudBinarySource source, Grid<GridIndexCell> estimatedIndex, Grid<int> estimatedCounts, int maxPointCountPerChunk)
+		{
+			m_source = source;
+			m_estimatedIndex = estimatedIndex;
+			m_estimatedCounts = estimatedCounts;
+			m_maxPointCountPerChunk = maxPointCountPerChunk;
 		}
 	}
 
@@ -344,7 +355,7 @@ namespace CloudAE.Core
 			if (m_gridIndex != null)
 			{
 				m_gridIndex.CorrectCountOverflow();
-				m_gridIndexGenerator.Generate(m_source, m_gridIndex, m_grid, null, m_maxPointCount);
+				m_gridIndexGenerator.Update(m_source, m_gridIndex, m_grid, m_maxPointCount);
 			}
 		}
 	}

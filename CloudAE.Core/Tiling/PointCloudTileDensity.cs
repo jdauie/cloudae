@@ -25,6 +25,8 @@ namespace CloudAE.Core
 
 		public readonly Extent3D Extent;
 
+		private Grid<int> m_tileCountsForInitialization;
+
 		public PointCloudTileDensity(Grid<int> tileCounts, Extent3D extent)
 			: this(tileCounts.CellCount, tileCounts.Data.Cast<int>(), extent)
 		{
@@ -87,6 +89,29 @@ namespace CloudAE.Core
 			writer.Write(MaxTileDensity);
 			writer.Write(MedianTileDensity);
 			writer.Write(MeanTileDensity);
+		}
+
+		public Grid<int> CreateTileCountsForInitialization()
+		{
+			if (m_tileCountsForInitialization == null)
+			{
+				Extent3D extent = Extent;
+
+				// median works better usually, but max is safer for substantially varying density
+				// (like terrestrial, although that requires a more thorough redesign)
+				//double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MaxTileDensity;
+				double tileArea = PointCloudTileManager.PROPERTY_DESIRED_TILE_COUNT.Value / MedianTileDensity;
+				double tileSide = Math.Sqrt(tileArea);
+
+#warning this results in non-square tiles
+
+				ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
+				ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
+
+				m_tileCountsForInitialization = new Grid<int>(tilesX, tilesY, extent, true);
+			}
+
+			return m_tileCountsForInitialization;
 		}
 
 		public override string ToString()

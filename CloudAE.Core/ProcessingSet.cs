@@ -69,7 +69,7 @@ namespace CloudAE.Core
 					{
 						if (pointDataSize > maxSegmentBytes)
 						{
-							ProcessFileSegments(segmentBuffer, progressManager);
+							ProcessFileSegments2(segmentBuffer, progressManager);
 						}
 						else
 						{
@@ -163,8 +163,8 @@ namespace CloudAE.Core
 				//{
 				//}
 
-				// read in segment and put it in order
-				// write out the ordered 256MB
+				// read in segment and order points that actually belong
+				// write out the ordered data (up to 256MB...it could be much less)
 			}
 		}
 
@@ -179,13 +179,13 @@ namespace CloudAE.Core
 				// step 1
 				{
 					// check total point data size; try to keep it within reasonable chunks
-					long pointDataSize = m_binarySource.Count*m_binarySource.PointSizeBytes;
+					long pointDataSize = m_binarySource.Count * m_binarySource.PointSizeBytes;
 
 					// determine density (for consistent tile size across chunks)
 					var tileManager = new PointCloudTileManager(m_binarySource);
 					analysis = tileManager.AnalyzePointFile(null, progressManager);
 
-					int chunks = (int)Math.Ceiling((double)pointDataSize/segmentBuffer.Length);
+					int chunks = (int)Math.Ceiling((double)pointDataSize / segmentBuffer.Length);
 					long pointsPerChunk = m_binarySource.Count/chunks;
 					long pointsRemaining = m_binarySource.Count;
 
@@ -197,7 +197,7 @@ namespace CloudAE.Core
 							pointsInCurrentChunk = pointsRemaining;
 						pointsRemaining -= pointsInCurrentChunk;
 
-						segments[i] = m_binarySource.CreateSegment(pointsPerChunk*i, pointsInCurrentChunk);
+						segments[i] = m_binarySource.CreateSegment(pointsPerChunk * i, pointsInCurrentChunk);
 					}
 				}
 
