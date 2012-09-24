@@ -114,12 +114,26 @@ namespace CloudAE.Core
 	public class GridIndexSegments : IEnumerable<PointCloudBinarySourceEnumeratorSparseRegion>
 	{
 		private readonly List<PointCloudBinarySourceEnumeratorSparseRegion> m_regionSourcesBySegment;
+		private readonly int[] m_tilesPerSegment;
 
-		public GridIndexSegments(IEnumerable<SortedDictionary<int, int>> regionSourcesBySegment, int maxPointCountPerChunk)
+		public int GetSegmentTileRange(PointCloudBinarySourceEnumeratorSparseRegion region)
+		{
+			int index = m_regionSourcesBySegment.IndexOf(region);
+			if (index == -1)
+				throw new Exception("Region does not belong");
+
+			return m_tilesPerSegment[index];
+		}
+
+		public GridIndexSegments(IEnumerable<SortedDictionary<int, int>> regionSourcesBySegment, List<int> tilesPerSegment, int maxPointCountPerChunk)
 		{
 			m_regionSourcesBySegment = new List<PointCloudBinarySourceEnumeratorSparseRegion>();
 			foreach (var segment in regionSourcesBySegment)
 				m_regionSourcesBySegment.Add(new PointCloudBinarySourceEnumeratorSparseRegion(segment, maxPointCountPerChunk));
+			m_tilesPerSegment = tilesPerSegment.ToArray();
+
+			if (m_regionSourcesBySegment.Count != m_tilesPerSegment.Length)
+				throw new Exception("GridIndex Tile/Segment mismatch");
 		}
 
 		#region IEnumerable Members
@@ -156,6 +170,7 @@ namespace CloudAE.Core
 			m_actualGrid = density.CreateTileCountsForInitialization();
 
 			var regionSourcesBySegment = new List<SortedDictionary<int, int>>();
+			var tilesPerSegment = new List<int>();
 			long pointDataBytes = m_source.PointSizeBytes * m_source.Count;
 			long pointDataRemainingBytes = pointDataBytes;
 
@@ -165,6 +180,7 @@ namespace CloudAE.Core
 			{
 				var cellList = new HashSet<int>();
 				int currentSize = 0;
+				int currentTiles = 0;
 				// this repeated enumeration can be improved later
 				foreach (var tile in PointCloudTileSet.GetTileOrdering(m_actualGrid.SizeY, m_actualGrid.SizeX).Skip(tilesChecked))
 				{
@@ -186,12 +202,11 @@ namespace CloudAE.Core
 								cellList.Add(index);
 
 						currentSize += tileSize;
+						++currentTiles;
 					}
 
 					++tilesChecked;
 				}
-
-				//var sortedChunkIndices = cellList.OrderBy(i => i).ToArray();
 
 				// group by sequential regions
 				int lastIndex = -2;
@@ -210,6 +225,7 @@ namespace CloudAE.Core
 				}
 
 				regionSourcesBySegment.Add(regions);
+				tilesPerSegment.Add(currentTiles);
 				pointDataRemainingBytes -= currentSize;
 			}
 
@@ -217,7 +233,7 @@ namespace CloudAE.Core
 			Context.WriteLine("chunkRangeSumForAllSegments: {0}", chunkRangeSumForAllSegments);
 			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * (int)ByteSizesSmall.MB_1 / pointDataBytes);
 
-			var gridIndexSegments = new GridIndexSegments(regionSourcesBySegment, m_maxPointCountPerChunk);
+			var gridIndexSegments = new GridIndexSegments(regionSourcesBySegment, tilesPerSegment, m_maxPointCountPerChunk);
 			return gridIndexSegments;
 		}
 

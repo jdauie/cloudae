@@ -154,17 +154,22 @@ namespace CloudAE.Core
 			var tileManager = new PointCloudTileManager(m_binarySource);
 			PointCloudAnalysisResult analysis = tileManager.AnalyzePointFile(null, progressManager);
 
-			foreach (var segment in analysis.GridIndex)
+			using (var sharedStream = StreamManager.CreateSharedStream(m_binarySource))
 			{
-				var sparse = m_binarySource.CreateSparseSegment(segment);
+				int tileIndex = 0;
+				foreach (var segment in analysis.GridIndex)
+				{
+					int segmentTileCount = analysis.GridIndex.GetSegmentTileRange(segment);
+					var sparse = m_binarySource.CreateSparseSegment(segment);
 
-				//// usage
-				//using (var sharedStream = StreamManager.CreateSharedStream(m_binarySource))
-				//{
-				//}
+					// which tiles am I checking?
+					// (from tileIndex => tileIndex + segmentTileCount)
+					
+					// read in segment and order points that actually belong
+					// write out the ordered data (up to 256MB...it could be much less)
 
-				// read in segment and order points that actually belong
-				// write out the ordered data (up to 256MB...it could be much less)
+					tileIndex += segmentTileCount;
+				}
 			}
 		}
 
