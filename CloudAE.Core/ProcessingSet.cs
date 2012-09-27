@@ -69,7 +69,7 @@ namespace CloudAE.Core
 					{
 						if (pointDataSize > maxSegmentBytes)
 						{
-							ProcessFileSegments2(segmentBuffer, progressManager);
+							ProcessFileSegments(segmentBuffer, progressManager);
 						}
 						else
 						{
@@ -154,7 +154,7 @@ namespace CloudAE.Core
 			var tileManager = new PointCloudTileManager(m_binarySource);
 			PointCloudAnalysisResult analysis = tileManager.AnalyzePointFile(null, progressManager);
 
-			using (var sharedStream = StreamManager.CreateSharedStream(m_binarySource))
+			using (StreamManager.CreateSharedStream(m_binarySource))
 			{
 				int tileIndex = 0;
 				foreach (var segment in analysis.GridIndex)
@@ -179,7 +179,7 @@ namespace CloudAE.Core
 			PointCloudTileSource[] tiledSegments = null;
 			PointCloudAnalysisResult analysis = null;
 
-			using (var sharedStream = StreamManager.CreateSharedStream(m_binarySource))
+			using (StreamManager.CreateSharedStream(m_binarySource))
 			{
 				// step 1
 				{

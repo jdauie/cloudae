@@ -100,7 +100,7 @@ namespace CloudAE.Core
 
 		private PointCloudTileSet InitializeCounts(IPointCloudBinarySource source, PointCloudAnalysisResult analysis, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
 		{
-			var tileCounts = analysis.Density.CreateTileCountsForInitialization();
+			var tileCounts = analysis.Density.CreateTileCountsForInitialization(true);
 			var actualDensity = m_initializeCountsFunc(source, segmentBuffer, tileCounts, analysis.Quantization, progressManager);
 			var tileSet = new PointCloudTileSet(actualDensity, tileCounts);
 			return tileSet;

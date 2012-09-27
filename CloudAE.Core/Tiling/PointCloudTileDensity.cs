@@ -91,7 +91,7 @@ namespace CloudAE.Core
 			writer.Write(MeanTileDensity);
 		}
 
-		public Grid<int> CreateTileCountsForInitialization()
+		public Grid<int> CreateTileCountsForInitialization(bool clear)
 		{
 			if (m_tileCountsForInitialization == null)
 			{
@@ -109,6 +109,10 @@ namespace CloudAE.Core
 				ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
 
 				m_tileCountsForInitialization = new Grid<int>(tilesX, tilesY, extent, true);
+			}
+			else if (clear)
+			{
+				m_tileCountsForInitialization.Reset();
 			}
 
 			return m_tileCountsForInitialization;

@@ -167,7 +167,7 @@ namespace CloudAE.Core
 		{
 			const int segmentSize = (int)ByteSizesSmall.MB_256;
 
-			m_actualGrid = density.CreateTileCountsForInitialization();
+			m_actualGrid = density.CreateTileCountsForInitialization(false);
 
 			var regionSourcesBySegment = new List<SortedDictionary<int, int>>();
 			var tilesPerSegment = new List<int>();
