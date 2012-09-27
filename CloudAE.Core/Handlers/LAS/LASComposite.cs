@@ -54,7 +54,11 @@ namespace CloudAE.Core
 					currentPath = Path.Combine(baseDirectory, line);
 
 				if (File.Exists(currentPath))
-					files.Add(new LASFile(currentPath));
+				{
+					var lasHandler = HandlerFactory.GetInputHandler(currentPath) as LASFile;
+					if (lasHandler != null)
+						files.Add(lasHandler);
+				}
 			}
 
 			// verify that all inputs are compatible
