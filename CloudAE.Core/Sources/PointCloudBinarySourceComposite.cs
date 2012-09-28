@@ -6,7 +6,10 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class PointCloudBinarySourceComposite : PointCloudSource, IPointCloudBinarySource
+	/// <summary>
+	/// 
+	/// </summary>
+	public sealed class PointCloudBinarySourceComposite : PointCloudSource, IPointCloudBinarySource
 	{
 		private readonly IPointCloudBinarySource[] m_sources;
 
@@ -51,8 +54,8 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudBinarySourceComposite(FileHandlerBase path, Extent3D extent, IPointCloudBinarySource[] sources)
-			: base(path)
+		public PointCloudBinarySourceComposite(FileHandlerBase file, Extent3D extent, IPointCloudBinarySource[] sources)
+			: base(file)
 		{
 			m_sources = sources;
 
@@ -66,13 +69,13 @@ namespace CloudAE.Core
 
 		public IStreamReader GetStreamReader()
 		{
+			// should never be called
 			throw new NotImplementedException();
 		}
 
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(BufferInstance buffer)
 		{
-			// this would only be meaningful for a composite of composites
-			throw new NotImplementedException();
+			return new PointCloudBinarySourceCompositeEnumerator(m_sources, buffer);
 		}
 
 		public IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process)
@@ -81,6 +84,17 @@ namespace CloudAE.Core
 		}
 
 		public IPointCloudBinarySource CreateSegment(long pointIndex, long pointCount)
+		{
+			var subset = CreateSegmentSources(pointIndex, pointCount);
+
+			if (subset.Count == 1)
+				return subset[0];
+
+			var composite = new PointCloudBinarySourceComposite(FileHandler, Extent, subset.ToArray());
+			return composite;
+		}
+
+		private List<IPointCloudBinarySource> CreateSegmentSources(long pointIndex, long pointCount)
 		{
 			// make a new set of binary sources
 			var subset = new List<IPointCloudBinarySource>(m_sources.Length);
@@ -106,30 +120,24 @@ namespace CloudAE.Core
 
 				pointsRemaining -= segmentLength;
 			}
-
-			var composite = new PointCloudBinarySourceComposite(FileHandler, Extent, subset.ToArray());
-			return composite;
+			return subset;
 		}
 
 		public IPointCloudBinarySource CreateSparseSegment(PointCloudBinarySourceEnumeratorSparseRegion regions)
 		{
-			// transform these into segments that do not span files
-			// (I still want to avoid composites of composites)
+			// break into segments that do not span files
+			var regionSegments = new List<IPointCloudBinarySource>();
+			foreach (var region in regions)
+			{
+				long pointIndex = regions.PointsPerChunk * region.ChunkStart;
+				long pointCount = regions.PointsPerChunk * region.ChunkCount;
+				var regionSegmentSources = CreateSegmentSources(pointIndex, pointCount);
+				regionSegments.AddRange(regionSegmentSources);
+			}
 
-			//var regionSegments = new List<IPointCloudBinarySource>();
-			//foreach (var region in regions)
-			//{
-			//    long pointIndex = regions.PointsPerChunk * region.ChunkStart;
-			//    long pointCount = regions.PointsPerChunk * region.ChunkCount;
-			//    var regionSegment = CreateSegment(pointIndex, pointCount);
-			//    regionSegments.Add(regionSegment);
-			//}
+			var sparseComposite = new PointCloudBinarySourceComposite(FileHandler, Extent, regionSegments.ToArray());
 
-			//var sparseComposite = new PointCloudBinarySourceComposite(FilePath, Extent, regionSegments.ToArray());
-
-			//return sparseComposite;
-
-			throw new NotImplementedException();
+			return sparseComposite;
 		}
 	}
 }

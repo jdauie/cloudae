@@ -25,6 +25,22 @@ namespace CloudAE.Core
 			Reset();
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PointCloudBinarySourceCompositeEnumerator"/> class.
+		/// This version does not use a process, so that it can be managed by a composite.
+		/// </summary>
+		/// <param name="sources">The sources.</param>
+		/// <param name="buffer">The buffer.</param>
+		public PointCloudBinarySourceCompositeEnumerator(IEnumerable<IPointCloudBinarySourceEnumerable> sources, BufferInstance buffer)
+		{
+			m_sources = sources.ToArray();
+			m_process = null;
+			m_buffer = buffer;
+			m_points = m_sources.Sum(s => s.Count);
+
+			Reset();
+		}
+
 		public PointCloudBinarySourceEnumeratorChunk Current
 		{
 			get { return m_current; }
@@ -38,7 +54,7 @@ namespace CloudAE.Core
 		public bool MoveNext()
 		{
 			// check for cancel
-			if (m_current != null)
+			if (m_current != null && m_process != null)
 			{
 				long pointsReadInPreviousSources = m_sources.Take(m_currentSourceIndex).Sum(s => s.Count);
 				float progress = (pointsReadInPreviousSources + m_current.Progress * m_sources[m_currentSourceIndex].Count) / m_points;
