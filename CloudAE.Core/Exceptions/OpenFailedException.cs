@@ -9,6 +9,12 @@ namespace CloudAE.Core
 	{
 		private string m_path;
 
+		public OpenFailedException(string message)
+			: base(message)
+		{
+			m_path = null;
+		}
+
 		public OpenFailedException(string path, string message)
 			: base(message)
 		{

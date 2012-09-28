@@ -60,6 +60,7 @@ namespace CloudAE.Core
 
 		public void Dispose()
 		{
+			m_laz.Dispose();
 		}
 	}
 }

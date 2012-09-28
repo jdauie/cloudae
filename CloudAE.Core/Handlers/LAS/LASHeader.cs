@@ -200,10 +200,10 @@ namespace CloudAE.Core
 			long length = reader.BaseStream.Length;
 
 			if (length < c_minHeaderSize[LASVersion.LAS_1_0])
-				throw new Exception("Invalid format: header too short");
+				throw new OpenFailedException("Invalid format: header too short");
 
 			if (Encoding.ASCII.GetString(reader.ReadBytes(FILE_SIGNATURE.Length)) != FILE_SIGNATURE)
-				throw new Exception("Invalid format: signature does not match");
+				throw new OpenFailedException("Invalid format: signature does not match");
 
 			m_fileSourceID          = reader.ReadUInt16();
 
@@ -221,9 +221,9 @@ namespace CloudAE.Core
 
 			ushort minHeaderSize = c_minHeaderSize[m_version.Version];
 			if (length < minHeaderSize)
-				throw new Exception("Invalid format: header too short for version");
+				throw new OpenFailedException("Invalid format: header too short for version");
 			if(minHeaderSize > m_headerSize)
-				throw new Exception("Invalid format: header size incorrect");
+				throw new OpenFailedException("Invalid format: header size incorrect");
 
 			m_numberOfVariableLengthRecords = reader.ReadUInt32();
 			m_pointDataRecordFormat         = reader.ReadByte();
