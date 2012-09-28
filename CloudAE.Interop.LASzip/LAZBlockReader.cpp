@@ -122,23 +122,37 @@ long long LAZBlockReader::GetPosition() {
 }
 
 LAZBlockReader::~LAZBlockReader() {
-	m_unzipper->close();
-	delete m_unzipper;
+	
+	if (m_unzipper) {
+		m_unzipper->close();
+		delete m_unzipper;
+		m_unzipper = NULL;
+	}
 
 	if (m_stream) {
 		m_stream->close();
 		delete m_stream;
+		m_stream = NULL;
 	}
 
 	if (m_file) {
 		fclose(m_file);
 		delete m_file;
+		m_file = NULL;
 	}
 
 	if (m_streamBuffer) {
 		delete m_streamBuffer;
+		m_streamBuffer = NULL;
 	}
 
-	delete[] m_lz_point;
-	delete[] m_lz_point_data;
+	if (m_lz_point) {
+		delete[] m_lz_point;
+		m_lz_point = NULL;
+	}
+
+	if (m_lz_point_data) {
+		delete[] m_lz_point_data;
+		m_lz_point_data = NULL;
+	}
 }

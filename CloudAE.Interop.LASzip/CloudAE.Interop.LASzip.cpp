@@ -41,5 +41,8 @@ long long LAZInterop::GetPosition() {
 
 LAZInterop::~LAZInterop() {
 	
-	delete m_blockReader;
+	if (m_blockReader) {
+		delete m_blockReader;
+		m_blockReader = NULL;
+	}
 }
