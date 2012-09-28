@@ -128,19 +128,18 @@ LAZBlockReader::~LAZBlockReader() {
 		delete m_unzipper;
 		m_unzipper = NULL;
 	}
-
+	
 	if (m_stream) {
 		m_stream->close();
 		delete m_stream;
 		m_stream = NULL;
 	}
-
+	
 	if (m_file) {
 		fclose(m_file);
-		delete m_file;
 		m_file = NULL;
 	}
-
+	
 	if (m_streamBuffer) {
 		delete m_streamBuffer;
 		m_streamBuffer = NULL;
