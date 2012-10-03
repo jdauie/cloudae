@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class SimpleStatisticsMapping
+	public class SimpleStatisticsMapping : IChunkProcess
 	{
 		private readonly int m_intervals;
 		private readonly long[] m_counts;

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
-	public unsafe class PointBufferWrapper : IPointDataChunk, IEnumerable<IPointDataChunk>
+	public unsafe class PointBufferWrapper : IPointDataChunk, IEnumerable<IPointDataChunk>, IChunkProcess
 	{
 		private readonly IPointCloudBinarySource m_source;
 		private readonly BufferInstance m_buffer;
@@ -102,8 +102,16 @@ namespace CloudAE.Core
 			if (m_initialized)
 				throw new InvalidOperationException("Cannot append to initialized buffer");
 
+			if (m_bufferIndex + chunk.Length > Length)
+				throw new Exception("Too much data");
+
 			Buffer.BlockCopy(chunk.Data, 0, m_buffer.Data, m_bufferIndex, chunk.Length);
 			m_bufferIndex += chunk.Length;
+		}
+
+		public void Process(IPointDataChunk chunk)
+		{
+			Append(chunk);
 		}
 
 		public PointBufferWrapper Initialize()

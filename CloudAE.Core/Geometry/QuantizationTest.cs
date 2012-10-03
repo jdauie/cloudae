@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CloudAE.Core.Geometry
 {
-	public class QuantizationTest<T>
+	public class QuantizationTest<T> : IChunkProcess
 	{
 		private static readonly PropertyState<ByteSizesSmall> PROPERTY_QUANTIZATION_MEMORY_LIMIT;
 

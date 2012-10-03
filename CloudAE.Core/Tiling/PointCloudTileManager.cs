@@ -290,17 +290,15 @@ namespace CloudAE.Core
 
 				using (var gridCounter = new GridCounter(source, tileCounts, gridIndexGenerator))
 				{
+					var chunkProcesses = new ChunkProcessSet(
+						gridCounter,
+						statsMapping,
+						quantizationTest,
+						segmentBuffer
+					);
+
 					foreach (var chunk in source.GetBlockEnumerator(process))
-					{
-						gridCounter.Process(chunk);
-						statsMapping.Process(chunk);
-
-						if (quantizationTest != null)
-							quantizationTest.Process(chunk);
-
-						if (segmentBuffer != null)
-							segmentBuffer.Append(chunk);
-					}
+						chunkProcesses.Process(chunk);
 				}
 
 				stats = statsMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);

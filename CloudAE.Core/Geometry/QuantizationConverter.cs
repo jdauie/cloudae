@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CloudAE.Core.Geometry
 {
-	public class QuantizationConverter : IDisposable
+	public class QuantizationConverter : IDisposable, IChunkProcess
 	{
 		private readonly Grid<int> m_tileCounts;
 		private readonly short m_pointSizeBytes;

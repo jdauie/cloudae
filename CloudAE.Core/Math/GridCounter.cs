@@ -246,7 +246,7 @@ namespace CloudAE.Core
 		}
 	}
 
-	public class GridCounter : IDisposable
+	public class GridCounter : IDisposable, IChunkProcess
 	{
 		private readonly IPointCloudBinarySource m_source;
 		private readonly Grid<int> m_grid;

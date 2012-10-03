@@ -164,9 +164,12 @@ namespace CloudAE.Core
 
 					// which tiles am I checking?
 					// (from tileIndex => tileIndex + segmentTileCount)
+					// build a filter for the specified tiles
 					
 					// read in segment and order points that actually belong
 					// write out the ordered data (up to 256MB...it could be much less)
+
+					// keep in mind that I also want this to work in the future when I have an accurate tile index
 
 					tileIndex += segmentTileCount;
 				}

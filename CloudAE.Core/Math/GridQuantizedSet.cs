@@ -6,7 +6,7 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public unsafe class GridQuantizedSet
+	public unsafe class GridQuantizedSet : IChunkProcess
 	{
 		private readonly PointCloudTileSource m_source;
 

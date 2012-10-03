@@ -4,7 +4,7 @@ using CloudAE.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class ScaledStatisticsMapping
+	public class ScaledStatisticsMapping : IChunkProcess
 	{
 		private readonly int m_sourceMin;
 		private readonly uint m_sourceRange;

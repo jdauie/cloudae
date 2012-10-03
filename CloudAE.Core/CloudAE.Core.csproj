@@ -89,6 +89,7 @@
     <Compile Include="Handlers\IHandlerCreator.cs" />
     <Compile Include="Handlers\LAS\LASCreator.cs" />
     <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
+    <Compile Include="Managers\IChunkProcess.cs" />
     <Compile Include="Managers\Identity.cs" />
     <Compile Include="Managers\IdentityManager.cs" />
     <Compile Include="Managers\IProgress.cs" />
