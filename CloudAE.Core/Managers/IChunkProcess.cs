@@ -7,7 +7,7 @@ namespace CloudAE.Core
 {
 	public interface IChunkProcess
 	{
-		void Process(IPointDataChunk chunk);
+		IPointDataChunk Process(IPointDataChunk chunk);
 	}
 
 	public class ChunkProcessSet : IChunkProcess
@@ -22,10 +22,21 @@ namespace CloudAE.Core
 					m_chunkProcesses.Add(chunkProcess);
 		}
 
-		public void Process(IPointDataChunk chunk)
+		public IPointDataChunk Process(IPointDataChunk chunk)
 		{
+			var currentChunk = chunk;
 			foreach (var chunkProcess in m_chunkProcesses)
-				chunkProcess.Process(chunk);
+				currentChunk = chunkProcess.Process(currentChunk);
+
+			return currentChunk;
+		}
+	}
+
+	public class TileRegionFilter : IChunkProcess
+	{
+		public IPointDataChunk Process(IPointDataChunk chunk)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

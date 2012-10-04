@@ -79,7 +79,7 @@ namespace CloudAE.Core
 			return validBins;
 		}
 
-		public unsafe void Process(IPointDataChunk chunk)
+		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
 			byte* pb = chunk.PointDataPtr;
 			while (pb < chunk.PointDataEndPtr)
@@ -88,6 +88,8 @@ namespace CloudAE.Core
 				++m_bins[((*p).Z >> SourceRightShift) - SourceMinShifted];
 				pb += chunk.PointSizeBytes;
 			}
+
+			return chunk;
 		}
 
 		public Statistics ComputeStatistics(double destinationMin, double destinationRange)

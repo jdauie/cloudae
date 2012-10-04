@@ -63,6 +63,14 @@ namespace CloudAE.Core
 			get { return m_pointCount; }
 		}
 
+		public IPointDataChunk CreateSegment(int pointCount)
+		{
+			if (pointCount > m_pointCount)
+				throw new Exception("Too many points");
+
+			return new PointBufferWrapper(m_buffer, m_source, pointCount);
+		}
+
 		#endregion
 
 		/// <summary>
@@ -109,9 +117,10 @@ namespace CloudAE.Core
 			m_bufferIndex += chunk.Length;
 		}
 
-		public void Process(IPointDataChunk chunk)
+		public IPointDataChunk Process(IPointDataChunk chunk)
 		{
 			Append(chunk);
+			return chunk;
 		}
 
 		public PointBufferWrapper Initialize()

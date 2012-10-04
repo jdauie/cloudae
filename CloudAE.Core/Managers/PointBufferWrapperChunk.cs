@@ -58,6 +58,11 @@ namespace CloudAE.Core
 			get { return m_pointsRead; }
 		}
 
+		public IPointDataChunk CreateSegment(int pointCount)
+		{
+			return new PointBufferWrapperChunk(m_index, m_buffer, 0, 0, m_pointSizeBytes, m_progress);
+		}
+
 		#endregion
 
 		public PointBufferWrapperChunk(int index, BufferInstance buffer, int byteIndex, int byteLength, short pointSizeBytes, float progress)
@@ -71,6 +76,19 @@ namespace CloudAE.Core
 			m_dataEndPtr = m_dataPtr + m_bytesRead;
 
 			m_progress = progress;
+		}
+
+		public PointBufferWrapperChunk(PointBufferWrapperChunk chunk, int pointCount)
+		{
+			m_buffer = chunk.m_buffer;
+			m_index = chunk.m_index;
+			m_pointSizeBytes = chunk.m_pointSizeBytes;
+			m_pointsRead = pointCount;
+			m_bytesRead = m_pointsRead * m_pointSizeBytes;
+			m_dataPtr = chunk.m_dataPtr;
+			m_dataEndPtr = m_dataPtr + m_bytesRead;
+
+			m_progress = chunk.m_progress;
 		}
 	}
 }

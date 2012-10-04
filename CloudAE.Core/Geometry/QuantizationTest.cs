@@ -31,7 +31,7 @@ namespace CloudAE.Core.Geometry
 				m_values[i] = new T[m_count];
 		}
 
-		public unsafe void Process(IPointDataChunk chunk)
+		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
 			if (m_index + chunk.PointCount <= m_count)
 			{
@@ -64,6 +64,8 @@ namespace CloudAE.Core.Geometry
 					}
 				}
 			}
+
+			return chunk;
 		}
 
 		public Quantization3D CreateQuantization()

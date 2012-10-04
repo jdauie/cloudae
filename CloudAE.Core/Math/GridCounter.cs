@@ -291,7 +291,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public unsafe void Process(IPointDataChunk chunk)
+		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
 			if (chunk.PointCount > m_maxPointCount)
 				m_maxPointCount = chunk.PointCount;
@@ -362,6 +362,8 @@ namespace CloudAE.Core
 					pb += chunk.PointSizeBytes;
 				}
 			}
+
+			return chunk;
 		}
 
 		public void Dispose()

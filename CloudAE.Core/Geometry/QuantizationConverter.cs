@@ -47,7 +47,7 @@ namespace CloudAE.Core.Geometry
 			m_offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
 		}
 
-		public unsafe void Process(IPointDataChunk chunk)
+		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
 			byte* pb = chunk.PointDataPtr;
 			while (pb < chunk.PointDataEndPtr)
@@ -66,6 +66,8 @@ namespace CloudAE.Core.Geometry
 
 				pb += m_pointSizeBytes;
 			}
+
+			return chunk;
 		}
 
 		public void Dispose()

@@ -24,7 +24,7 @@ namespace CloudAE.Core
 			m_intervalsOverRangeZ = (float)(m_intervals / range);
 		}
 
-		public unsafe void Process(IPointDataChunk chunk)
+		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
 			byte* pb = chunk.PointDataPtr;
 			while (pb < chunk.PointDataEndPtr)
@@ -33,9 +33,11 @@ namespace CloudAE.Core
 				++m_counts[(int)(((*p).Z - m_min) * m_intervalsOverRangeZ)];
 				pb += chunk.PointSizeBytes;
 			}
+
+			return chunk;
 		}
 
-		public unsafe Statistics ComputeStatistics()
+		public Statistics ComputeStatistics()
 		{
 			return ScaledStatisticsMapping.ComputeStatistics(m_counts, true, m_min, m_range);
 		}

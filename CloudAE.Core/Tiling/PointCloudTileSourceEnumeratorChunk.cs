@@ -6,10 +6,10 @@ namespace CloudAE.Core
 {
 	public unsafe class PointCloudTileSourceEnumeratorChunk : IProgress, IPointDataTileChunk
 	{
-		public readonly PointCloudTile m_tile;
+		private readonly PointCloudTile m_tile;
 
-		public readonly byte* DataPtr;
-		public readonly byte* DataEndPtr;
+		private readonly byte* m_dataPtr;
+		private readonly byte* m_dataEndPtr;
 
 		private readonly BufferInstance m_buffer;
 		private readonly short m_pointSizeBytes;
@@ -31,24 +31,24 @@ namespace CloudAE.Core
 			get { return Tile.ValidIndex; }
 		}
 
-		byte[] IPointDataChunk.Data
+		public byte[] Data
 		{
 			get { return m_buffer.Data; }
 		}
 
 		public byte* PointDataPtr
 		{
-			get { return DataPtr; }
+			get { return m_dataPtr; }
 		}
 
 		public byte* PointDataEndPtr
 		{
-			get { return DataEndPtr; }
+			get { return m_dataEndPtr; }
 		}
 
 		public int Length
 		{
-			get { return m_tile.StorageSize; }
+			get { return (int)(m_dataEndPtr - m_dataPtr); }
 		}
 
 		public short PointSizeBytes
@@ -61,6 +61,11 @@ namespace CloudAE.Core
 			get { return m_tile.PointCount; }
 		}
 
+		public IPointDataChunk CreateSegment(int pointCount)
+		{
+			return new PointCloudTileSourceEnumeratorChunk(this, pointCount);
+		}
+
 		#endregion
 
 		public PointCloudTileSourceEnumeratorChunk(PointCloudTile tile, BufferInstance buffer)
@@ -70,8 +75,17 @@ namespace CloudAE.Core
 			m_buffer = buffer;
 			m_pointSizeBytes = m_tile.TileSet.TileSource.PointSizeBytes;
 
-			DataPtr = buffer.DataPtr;
-			DataEndPtr = DataPtr + m_tile.StorageSize;
+			m_dataPtr = buffer.DataPtr;
+			m_dataEndPtr = m_dataPtr + m_tile.StorageSize;
+		}
+
+		public PointCloudTileSourceEnumeratorChunk(PointCloudTileSourceEnumeratorChunk chunk, int pointCount)
+			: this(chunk.m_tile, chunk.m_buffer)
+		{
+			if (pointCount > m_tile.PointCount)
+				throw new Exception("Too many points");
+
+			m_dataEndPtr = m_dataPtr + pointCount * m_pointSizeBytes;
 		}
 	}
 }

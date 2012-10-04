@@ -58,6 +58,11 @@ namespace CloudAE.Core
 			get { return m_pointsRead; }
 		}
 
+		public IPointDataChunk CreateSegment(int pointCount)
+		{
+			return new PointCloudBinarySourceEnumeratorChunk(m_index, m_buffer, pointCount * m_pointSizeBytes, m_pointSizeBytes, m_progress);
+		}
+
 		#endregion
 
 		public PointCloudBinarySourceEnumeratorChunk(int index, BufferInstance buffer, int bytesRead, short pointSizeBytes, float progress)

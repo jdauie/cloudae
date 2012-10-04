@@ -327,10 +327,12 @@ namespace CloudAE.Core
 				{
 					if (segmentBuffer.Initialized)
 					{
+						// small file (fit entirely within buffer)
 						quantizationConverter.Process(segmentBuffer);
 					}
 					else
 					{
+						// this is operating on one segment of a larger file
 						foreach (var chunk in source.GetBlockEnumerator(process))
 						{
 							quantizationConverter.Process(chunk);

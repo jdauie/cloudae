@@ -53,7 +53,7 @@ namespace CloudAE.Core
 			m_minY = m_source.QuantizedExtent.MinY;
 		}
 
-		public void Process(IPointDataChunk chunk)
+		public IPointDataChunk Process(IPointDataChunk chunk)
 		{
 			byte* pb = chunk.PointDataPtr;
 			while (pb < chunk.PointDataEndPtr)
@@ -68,6 +68,8 @@ namespace CloudAE.Core
 
 				pb += chunk.PointSizeBytes;
 			}
+
+			return chunk;
 		}
 
 		public void Populate()

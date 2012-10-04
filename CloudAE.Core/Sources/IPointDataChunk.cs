@@ -11,5 +11,7 @@ namespace CloudAE.Core
 		int Length { get; }
 		short PointSizeBytes { get; }
 		int PointCount { get; }
+
+		IPointDataChunk CreateSegment(int pointCount);
 	}
 }
