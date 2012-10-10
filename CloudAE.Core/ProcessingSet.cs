@@ -149,31 +149,8 @@ namespace CloudAE.Core
 
 		private void ProcessFileSegments2(BufferInstance segmentBuffer, ProgressManager progressManager)
 		{
-			long pointDataSize = m_binarySource.Count * m_binarySource.PointSizeBytes;
-
 			var tileManager = new PointCloudTileManager(m_binarySource);
-			PointCloudAnalysisResult analysis = tileManager.AnalyzePointFile(null, progressManager);
-
-			using (StreamManager.CreateSharedStream(m_binarySource))
-			{
-				int tileIndex = 0;
-				foreach (var segment in analysis.GridIndex)
-				{
-					int segmentTileCount = analysis.GridIndex.GetSegmentTileRange(segment);
-					var sparse = m_binarySource.CreateSparseSegment(segment);
-
-					// which tiles am I checking?
-					// (from tileIndex => tileIndex + segmentTileCount)
-					// build a filter for the specified tiles
-					
-					// read in segment and order points that actually belong
-					// write out the ordered data (up to 256MB...it could be much less)
-
-					// keep in mind that I also want this to work in the future when I have an accurate tile index
-
-					tileIndex += segmentTileCount;
-				}
-			}
+			m_tileSource = tileManager.TilePointFileIndex(m_tiledHandler, segmentBuffer, progressManager);
 		}
 
 		private unsafe void ProcessFileSegments(BufferInstance segmentBuffer, ProgressManager progressManager)

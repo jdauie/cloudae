@@ -277,6 +277,12 @@ namespace CloudAE.Core
 			m_col = x;
 		}
 
+		public PointCloudTileCoord(uint index)
+		{
+			m_row = (ushort)(index >> 16);
+			m_col = (ushort)((index << 16) >> 16);
+		}
+
 		public PointCloudTileCoord(BinaryReader reader)
 		{
 			m_row = reader.ReadUInt16();

@@ -21,6 +21,7 @@ namespace CloudAE.Core
 			}
 		}
 
+		// this might keep too many file handles open when processing hundreds of archive tiles
 		private const bool SUPPORT_SHARED_STREAMS = false;
 
 		private static readonly Dictionary<string, FileStreamUnbufferedSequentialRead> c_sharedStreams;

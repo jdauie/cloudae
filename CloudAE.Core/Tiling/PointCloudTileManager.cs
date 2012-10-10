@@ -74,6 +74,44 @@ namespace CloudAE.Core
 			return tileSource;
 		}
 
+		public PointCloudTileSource TilePointFileIndex(LASFile tiledFile, BufferInstance segmentBuffer, ProgressManager progressManager)
+		{
+			var stopwatch = new Stopwatch();
+			stopwatch.Start();
+
+			var analysis = AnalyzePointFile(null, progressManager);
+			var tileCounts = analysis.Density.CreateTileCountsForInitialization(true);
+
+			var quantizedExtent = (UQuantizedExtent3D)analysis.Quantization.Convert(analysis.Density.Extent);
+			
+			uint tileIndex = 0;
+			foreach (var segment in analysis.GridIndex)
+			{
+				int segmentTileCount = analysis.GridIndex.GetSegmentTileRange(segment);
+				var sparseSegment = m_source.CreateSparseSegment(segment);
+				var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
+
+				var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, tileIndex, segmentTileCount);
+
+				// this call will fill the buffer with points, add the counts, and sort
+				QuantTilePointsIndexed(m_source, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
+
+				// next, write out the buffer
+
+				tileIndex += (uint)segmentTileCount;
+			}
+
+			// at this point, counts have been completed
+			// I can now make a tileSet and a tileSource
+			// However, the tileSource constructor cannot stomp on the data that I have already written
+
+			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Extent);
+			var tileSet = new PointCloudTileSet(actualDensity, tileCounts);
+			var tileSource = new PointCloudTileSource(tiledFile, tileSet, analysis.Quantization, m_source.PointSizeBytes, analysis.Statistics);
+
+			return tileSource;
+		}
+
 		public PointCloudAnalysisResult AnalyzePointFile(PointBufferWrapper segmentBuffer, ProgressManager progressManager)
 		{
 			var stopwatch = new Stopwatch();
@@ -267,6 +305,64 @@ namespace CloudAE.Core
 		#endregion
 
 		#region Quantized Methods
+
+		private static void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		{
+			// I don't need to generate full tile counts, 
+			// I can just make an array of the counts I will include (it might be faster).
+
+			using (var process = progressManager.StartProcess("QuantTilePointsIndexedFilter"))
+			{
+				using (var quantizationConverter = new QuantizationConverter(source, outputQuantization, tileCounts))
+				{
+					var chunkProcesses = new ChunkProcessSet(
+						quantizationConverter,
+						tileFilter,
+						segmentBuffer
+					);
+
+					foreach (var chunk in source.GetBlockEnumerator(process))
+						chunkProcesses.Process(chunk);
+				}
+			}
+
+			// sort points in wrapper
+
+			using (var process = progressManager.StartProcess("QuantTilePointsIndexedSort"))
+			{
+			//    var tilePositions = tileSet.CreatePositionGrid(segmentBuffer);
+
+			//    foreach (PointCloudTile tile in tileSet)
+			//    {
+			//        var currentPosition = tilePositions[tile.Col, tile.Row];
+
+			//        while (currentPosition.DataPtr < currentPosition.DataEndPtr)
+			//        {
+			//            UQuantizedPoint3D* p = (UQuantizedPoint3D*)currentPosition.DataPtr;
+
+			//            var targetPosition = tilePositions[
+			//                (int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
+			//                (int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
+			//            ];
+
+			//            if (targetPosition != currentPosition)
+			//            {
+			//                // the point tile is not the current traversal tile,
+			//                // so swap the points and resume on the swapped point
+			//                targetPosition.Swap(currentPosition.DataPtr);
+			//            }
+			//            else
+			//            {
+			//                // this point is in the correct tile, move on
+			//                currentPosition.Increment();
+			//            }
+			//        }
+
+			//        if (!process.Update(tile))
+			//            break;
+			//    }
+			}
+		}
 
 		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
 		{
