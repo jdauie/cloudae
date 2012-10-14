@@ -110,7 +110,7 @@ namespace CloudAE.Core
 			if (m_initialized)
 				throw new InvalidOperationException("Cannot append to initialized buffer");
 
-			if (m_bufferIndex + chunk.Length > Length)
+			if (m_bufferIndex + chunk.Length > m_buffer.Data.Length)
 				throw new Exception("Too much data");
 
 			Buffer.BlockCopy(chunk.Data, 0, m_buffer.Data, m_bufferIndex, chunk.Length);

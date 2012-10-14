@@ -176,6 +176,8 @@ namespace CloudAE.Core
 
 			int tilesChecked = 0;
 
+			int chunksPerSegment = segmentSize / (m_maxPointCountPerChunk * m_source.PointSizeBytes);
+
 			while (pointDataRemainingBytes > 0)
 			{
 				var cellList = new HashSet<int>();
@@ -196,10 +198,22 @@ namespace CloudAE.Core
 						if (currentSize + tileSize > segmentSize)
 							break;
 
+						// get unique chunks
+						var cellList2 = new HashSet<int>();
 						var correspondingEstimatedIndex = m_estimatedIndex.GetCellsInScaledRange(tile.Col, tile.Row, m_actualGrid).ToList();
 						foreach (var estimatedIndex in correspondingEstimatedIndex)
 							foreach (var index in estimatedIndex.Chunks)
-								cellList.Add(index);
+								if (!cellList.Contains(index))
+									cellList2.Add(index);
+
+						// undershoot again by counting the data read, not just the valid points
+						// I really only need to do this for testing -- it slows things down a bit.
+						// Once I am sure that filtering is working properly, this won't matter.
+						if (cellList.Count + cellList2.Count > chunksPerSegment)
+							break;
+
+						foreach (var index in cellList2)
+							cellList.Add(index);
 
 						currentSize += tileSize;
 						++currentTiles;
@@ -211,7 +225,9 @@ namespace CloudAE.Core
 				// group by sequential regions
 				int lastIndex = -2;
 				var regions = new SortedDictionary<int, int>();
-				foreach (var index in cellList)
+				int[] sortedCellList = cellList.ToArray();
+				Array.Sort(sortedCellList);
+				foreach (var index in sortedCellList)
 				{
 					if (regions.Count == 0 || index > lastIndex + regions[lastIndex])
 					{

@@ -11,6 +11,9 @@ namespace CloudAE.Core
 		IPointDataChunk Process(IPointDataChunk chunk);
 	}
 
+	/// <summary>
+	/// Processing stack.
+	/// </summary>
 	public class ChunkProcessSet : IChunkProcess
 	{
 		private readonly List<IChunkProcess> m_chunkProcesses;
@@ -36,27 +39,35 @@ namespace CloudAE.Core
 
 	public class TileRegionFilter : IChunkProcess
 	{
-		private readonly PointCloudTileCoord m_index;
+		private readonly int m_index;
 		private readonly int m_count;
+		private readonly IGrid m_grid;
+
+		private readonly PointCloudTileCoord[] m_tiles;
+		private readonly HashSet<int> m_tileLookup;
+
 		private readonly double m_tilesOverRangeX;
 		private readonly double m_tilesOverRangeY;
 		private readonly UQuantizedExtent3D m_quantizedExtent;
 
-		public TileRegionFilter(IGrid grid, UQuantizedExtent3D quantizedExtent, uint tileIndex, int count)
+		public TileRegionFilter(IGrid grid, UQuantizedExtent3D quantizedExtent, int tileIndex, int count)
 		{
-			m_index = new PointCloudTileCoord(tileIndex);
+			m_index = tileIndex;
 			m_count = count;
+			m_grid = grid;
+
+			m_tiles = PointCloudTileSet.GetTileOrdering(m_grid).Skip(m_index).Take(m_count).ToArray();
+			m_tileLookup = new HashSet<int>(m_tiles.Select(t => t.Index));
 
 			m_quantizedExtent = quantizedExtent;
-			m_tilesOverRangeX = (double)grid.SizeX / quantizedExtent.RangeX;
-			m_tilesOverRangeY = (double)grid.SizeY / quantizedExtent.RangeY;
+			m_tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
+			m_tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
-			int tileMin = m_index.Index;
-			int tileMax = tileMin + m_count;
-
+			return chunk;
+			
 			byte* pb = chunk.PointDataPtr;
 			byte* pbDestination = pb;
 			while (pb < chunk.PointDataEndPtr)
@@ -64,11 +75,11 @@ namespace CloudAE.Core
 				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
 
 				int index = PointCloudTileCoord.GetIndex(
-					(int)(((double)(*p).Y - m_quantizedExtent.MinY) * m_tilesOverRangeY),
-					(int)(((double)(*p).X - m_quantizedExtent.MinX) * m_tilesOverRangeX)
+					(ushort)(((double)(*p).Y - m_quantizedExtent.MinY) * m_tilesOverRangeY),
+					(ushort)(((double)(*p).X - m_quantizedExtent.MinX) * m_tilesOverRangeX)
 				);
 
-				if(index >= tileMin && index < tileMax)
+				if (m_tileLookup.Contains(index))
 				{
 					if(pb != pbDestination)
 					{
@@ -82,7 +93,8 @@ namespace CloudAE.Core
 				pb += chunk.PointSizeBytes;
 			}
 
-			return chunk;
+			int pointsRemaining = (int)((pbDestination - chunk.PointDataPtr) / chunk.PointSizeBytes);
+			return chunk.CreateSegment(pointsRemaining);
 		}
 	}
 

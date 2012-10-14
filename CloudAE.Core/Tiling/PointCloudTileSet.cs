@@ -122,6 +122,11 @@ namespace CloudAE.Core
 			Density = new PointCloudTileDensity(TileCount, this.Select(t => t.PointCount), Extent);
 		}
 
+		public static IEnumerable<PointCloudTileCoord> GetTileOrdering(IGrid grid)
+		{
+			return GetTileOrdering(grid.SizeY, grid.SizeX);
+		}
+
 		public static IEnumerable<PointCloudTileCoord> GetTileOrdering(ushort rows, ushort cols)
 		{
 			if (USE_TREE_ORDER)

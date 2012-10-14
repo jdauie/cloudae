@@ -84,21 +84,23 @@ namespace CloudAE.Core
 
 			var quantizedExtent = (UQuantizedExtent3D)analysis.Quantization.Convert(analysis.Density.Extent);
 			
-			uint tileIndex = 0;
+			int tileIndex = 0;
 			foreach (var segment in analysis.GridIndex)
 			{
 				int segmentTileCount = analysis.GridIndex.GetSegmentTileRange(segment);
 				var sparseSegment = m_source.CreateSparseSegment(segment);
+				// this wrapper has a larger count than the buffer can hold
+				// FIX THIS
 				var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
 
 				var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, tileIndex, segmentTileCount);
 
 				// this call will fill the buffer with points, add the counts, and sort
-				QuantTilePointsIndexed(m_source, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
+				QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
 
 				// next, write out the buffer
 
-				tileIndex += (uint)segmentTileCount;
+				tileIndex += segmentTileCount;
 			}
 
 			// at this point, counts have been completed
@@ -311,6 +313,8 @@ namespace CloudAE.Core
 			// I don't need to generate full tile counts, 
 			// I can just make an array of the counts I will include (it might be faster).
 
+			// If I count before tile filtering, I will get duplicate counts.
+
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedFilter"))
 			{
 				using (var quantizationConverter = new QuantizationConverter(source, outputQuantization, tileCounts))
@@ -378,7 +382,7 @@ namespace CloudAE.Core
 			if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
 				quantizationTest = new QuantizationTest<int>(source);
 
-			GridIndexGenerator gridIndexGenerator = null;// (segmentBuffer != null) ? null : new GridIndexGenerator();
+			GridIndexGenerator gridIndexGenerator = (segmentBuffer != null) ? null : new GridIndexGenerator();
 
 			using (var process = progressManager.StartProcess("QuantEstimateDensity"))
 			{

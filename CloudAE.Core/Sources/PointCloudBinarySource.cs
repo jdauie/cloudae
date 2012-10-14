@@ -92,6 +92,16 @@ namespace CloudAE.Core
 			{
 				long pointIndex = regions.PointsPerChunk * region.ChunkStart;
 				long pointCount = regions.PointsPerChunk * region.ChunkCount;
+
+				if (pointIndex + pointCount > Count)
+				{
+					long diff = pointIndex + pointCount - Count;
+					if (diff < regions.PointsPerChunk)
+						pointCount -= diff;
+					else
+						throw new Exception("right off the end");
+				}
+
 				var regionSegment = CreateSegment(pointIndex, pointCount);
 				regionSegments.Add(regionSegment);
 			}

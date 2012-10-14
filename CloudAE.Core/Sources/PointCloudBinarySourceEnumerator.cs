@@ -69,6 +69,9 @@ namespace CloudAE.Core
 			{
 				int bytesRead = m_stream.Read(m_buffer.Data, 0, m_usableBytesPerBuffer);
 
+				if (bytesRead == 0)
+					throw new Exception("I did something wrong");
+
 				if (m_stream.Position > m_endPosition)
 					bytesRead -= (int)(m_stream.Position - m_endPosition);
 
