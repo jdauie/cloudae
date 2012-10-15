@@ -66,8 +66,6 @@ namespace CloudAE.Core
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
-			return chunk;
-			
 			byte* pb = chunk.PointDataPtr;
 			byte* pbDestination = pb;
 			while (pb < chunk.PointDataEndPtr)
