@@ -419,12 +419,13 @@ namespace CloudAE.Core
 						{
 							// figure a way to check this properly in the future
 							// (taking into account "Any CPU", etc.)
-							//if (header.Is64Bit == Environment.Is64BitProcess)
-							
-							AssemblyName assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
-							Assembly assembly = Assembly.Load(assemblyName);
-							assemblyLookup.Add(assemblyPath, assembly);
-							result = '+';
+							if (header.Is64Bit == Environment.Is64BitProcess)
+							{
+								AssemblyName assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
+								Assembly assembly = Assembly.Load(assemblyName);
+								assemblyLookup.Add(assemblyPath, assembly);
+								result = '+';
+							}
 						}
 					}
 					catch (Exception)
