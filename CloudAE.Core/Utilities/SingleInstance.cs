@@ -12,8 +12,10 @@ using System.Windows.Threading;
 namespace CloudAE.Core.Util
 {
 	/// <summary>
-	/// This class checks to make sure that only one instance of 
-	/// this application is running at a time.
+	/// This class checks to make sure that only one instance of this application is running at a time.
+	/// 
+	/// Based on:
+	/// http://blogs.microsoft.co.il/blogs/arik/archive/2010/05/28/wpf-single-instance-application.aspx
 	/// </summary>
 	public static class SingleInstance
 	{
