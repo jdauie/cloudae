@@ -165,14 +165,14 @@ copy "..\lib\x64\laszip.dll" "$(SolutionDir)\bin\"</Command>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CloudAE.Interop.LASzip.h" />
+    <ClInclude Include="LAZInterop.h" />
     <ClInclude Include="LAZBlockReader.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="CloudAE.Interop.LASzip.cpp" />
+    <ClCompile Include="LAZInterop.cpp" />
     <ClCompile Include="LAZBlockReader.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
