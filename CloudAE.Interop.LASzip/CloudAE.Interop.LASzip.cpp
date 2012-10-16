@@ -5,13 +5,8 @@
 #include "CloudAE.Interop.LASzip.h"
 #include "LAZBlockReader.h"
 
-#include <iostream>
-#include <fstream>
-
 using namespace CloudAE::Interop::LAZ;
 
-// the decoder can be initialized with point format/size instead of vlr
-// I don't know whether that works in general
 LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byte>^ vlr) {
 
 	msclr::interop::marshal_context context;
