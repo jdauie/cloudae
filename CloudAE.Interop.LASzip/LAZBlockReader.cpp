@@ -5,7 +5,6 @@
 LAZBlockReader::LAZBlockReader(const char* path, unsigned long dataOffset, unsigned char* vlr, unsigned int vlrLength) {
 	
 	m_streamBuffer = NULL;
-	m_stream = NULL;
 	m_file = NULL;
 	m_zip = NULL;
 	m_unzipper = NULL;
@@ -13,23 +12,10 @@ LAZBlockReader::LAZBlockReader(const char* path, unsigned long dataOffset, unsig
 	m_lz_point_data = NULL;
 	m_lz_point_size = NULL;
 
-
 	m_pointDataOffset = dataOffset;
 
 	int bufferSize = 1024 * 1024;
-	//int bufferSize = 64 * 1024;
-
-	//m_streamBuffer = new char[bufferSize];
-	//m_stream = new ifstream(path, ios::in | ios::binary);
-	////if (!m_stream->rdbuf()->pubsetbuf(m_streamBuffer, bufferSize))
-	////	return;
-	////m_stream->open(path, ios::in | ios::binary);
-
-	//if (!m_stream->is_open())
-	//	return;
-
-	//m_stream->seekg(dataOffset, ios::beg);
-
+	
 	m_file = fopen(path, "rb");
 	if (!m_file) {
 		printf ("Error opening file: %s\n", strerror(errno));
@@ -42,14 +28,11 @@ LAZBlockReader::LAZBlockReader(const char* path, unsigned long dataOffset, unsig
 	if (fseek(m_file, dataOffset, SEEK_SET))
 		return;
 
-
 	m_zip = new LASzip();
 	if (!m_zip->unpack(vlr, vlrLength))
 		return;
 	
 	m_unzipper = new LASunzipper();
-	//if (!m_unzipper->open(*m_stream, m_zip))
-	//	return;
 	if (!m_unzipper->open(m_file, m_zip))
 		return;
 
@@ -57,12 +40,6 @@ LAZBlockReader::LAZBlockReader(const char* path, unsigned long dataOffset, unsig
 	m_lz_point_size = 0;
 	for (unsigned int i = 0; i < m_zip->num_items; i++)
 		m_lz_point_size += m_zip->items[i].size;
-
-	if (m_zip->num_items == 0)
-		throw 101;
-
-	if (m_lz_point_size == 0)
-		throw 102;
 
 	// create the point data
 	unsigned int point_offset = 0;
@@ -121,12 +98,6 @@ LAZBlockReader::~LAZBlockReader() {
 		m_unzipper->close();
 		delete m_unzipper;
 		m_unzipper = NULL;
-	}
-	
-	if (m_stream) {
-		m_stream->close();
-		delete m_stream;
-		m_stream = NULL;
 	}
 	
 	if (m_file) {

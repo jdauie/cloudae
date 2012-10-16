@@ -19,8 +19,6 @@ private:
 	long long m_pointIndex;
 
 	char* m_streamBuffer;
-	ifstream* m_stream;
-
 	FILE* m_file;
 
 	LASzip* m_zip;
