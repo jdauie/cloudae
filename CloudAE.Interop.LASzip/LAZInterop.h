@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-
 #include "lasunzipper.hpp"
 #include "LAZBlockReader.h"
 

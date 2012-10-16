@@ -98,6 +98,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>laszip.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(SolutionDir)\bin\"
@@ -117,6 +118,7 @@ copy "..\lib\x86\laszip.dll" "$(SolutionDir)\bin\"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>laszip.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(SolutionDir)\bin\"
@@ -135,6 +137,7 @@ copy "..\lib\x64\laszip.dll" "$(SolutionDir)\bin\"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>laszip.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(SolutionDir)\bin\"
@@ -153,6 +156,7 @@ copy "..\lib\x86\laszip.dll" "$(SolutionDir)\bin\"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>laszip.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(TargetPath)" "$(SolutionDir)\bin\"

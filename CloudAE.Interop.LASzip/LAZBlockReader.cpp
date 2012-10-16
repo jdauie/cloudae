@@ -102,15 +102,9 @@ int LAZBlockReader::Read(unsigned char* buffer, int byteOffset, int byteCount) {
 
 		memcpy(bufferCurrent, m_lz_point_data, m_lz_point_size);
 		bufferCurrent += m_lz_point_size;
-
-		/*for (int j = 0; j < m_lz_point_size; j++)
-		{
-			*bufferCurrent = m_lz_point_data[j];
-			++bufferCurrent;
-		}*/
 	}
 
-	int bytesRead = (bufferCurrent - bufferStart);
+	int bytesRead = (int)(bufferCurrent - bufferStart);
 	m_pointIndex += (bytesRead / m_lz_point_size);
 
 	return bytesRead;
