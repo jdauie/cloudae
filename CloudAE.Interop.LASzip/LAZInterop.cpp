@@ -1,8 +1,6 @@
-#include "stdafx.h"
-
 #include <msclr/marshal_cppstd.h>
 
-#include "CloudAE.Interop.LASzip.h"
+#include "LAZInterop.h"
 #include "LAZBlockReader.h"
 
 using namespace CloudAE::Interop::LAZ;
