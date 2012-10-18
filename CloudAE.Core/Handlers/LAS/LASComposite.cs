@@ -12,8 +12,11 @@ namespace CloudAE.Core
 	{
 		private readonly LASFile[] m_files;
 
+		private readonly long m_size;
 		private readonly long m_count;
 		private readonly short m_pointSizeBytes;
+
+		private Extent3D m_extent;
 
 		public long Count
 		{
@@ -71,9 +74,20 @@ namespace CloudAE.Core
 				}
 			}
 
-			// verify that all inputs are compatible
-
 			m_files = files.ToArray();
+
+			if (m_files.Length == 0)
+				throw new Exception("no files loaded for composite");
+
+			// verify that all inputs are compatible
+			var templateFile = m_files[0];
+			for (int i = 1; i < m_files.Length; i++)
+			{
+				if (m_files[i].Header.IsCompatible(templateFile.Header))
+				{
+					throw new Exception("files are not compatible");
+				}
+			}
 
 			m_count = m_files.Sum(f => f.Count);
 			m_pointSizeBytes = m_files[0].PointSizeBytes;
@@ -92,9 +106,23 @@ namespace CloudAE.Core
 
 		public override string GetPreview()
 		{
+			var quantization = m_files[0].Header.Quantization;
+
 			var sb = new StringBuilder();
 
 			sb.AppendLine("LAS Composite");
+			sb.AppendLine(String.Format("Points: {0:0,0}", m_count));
+			//sb.AppendLine(String.Format("Extent: {0}", m_header.Extent));
+			//sb.AppendLine(String.Format("File Size: {0}", m_size.ToSize()));
+			sb.AppendLine();
+			sb.AppendLine(String.Format("Point Size: {0} bytes", m_pointSizeBytes));
+			sb.AppendLine();
+			sb.AppendLine(String.Format("Offset X: {0}", quantization.OffsetX));
+			sb.AppendLine(String.Format("Offset Y: {0}", quantization.OffsetY));
+			sb.AppendLine(String.Format("Offset Z: {0}", quantization.OffsetZ));
+			sb.AppendLine(String.Format("Scale X: {0}", quantization.ScaleFactorX));
+			sb.AppendLine(String.Format("Scale Y: {0}", quantization.ScaleFactorY));
+			sb.AppendLine(String.Format("Scale Z: {0}", quantization.ScaleFactorZ));
 
 			return sb.ToString();
 		}
