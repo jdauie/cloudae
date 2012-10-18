@@ -55,13 +55,24 @@ namespace CloudAE.Core
 
 				if (File.Exists(currentPath))
 				{
-					var lasHandler = HandlerFactory.GetInputHandler(currentPath) as LASFile;
-					if (lasHandler != null)
-						files.Add(lasHandler);
+					var handler = HandlerFactory.GetInputHandler(currentPath);
+					var compositeHandler = handler as LASComposite;
+					if (compositeHandler != null)
+					{
+						if (compositeHandler.m_files.Length > 0)
+							files.AddRange(compositeHandler.m_files);
+					}
+					else
+					{
+						var lasHandler = handler as LASFile;
+						if (lasHandler != null)
+							files.Add(lasHandler);
+					}
 				}
 			}
 
 			// verify that all inputs are compatible
+
 			m_files = files.ToArray();
 
 			m_count = m_files.Sum(f => f.Count);
