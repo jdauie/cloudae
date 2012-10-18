@@ -18,7 +18,7 @@ namespace CloudAE.Core.Geometry
 
 		public static bool operator !=(Point3D p1, Point3D p2)
 		{
-			return p1.Equals(p2);
+			return !p1.Equals(p2);
 		}
 
 		public static Point3D operator +(Point3D p1, Point3D p2)
