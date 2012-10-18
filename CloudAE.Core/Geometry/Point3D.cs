@@ -7,9 +7,19 @@ namespace CloudAE.Core.Geometry
 	/// <summary>
 	/// Immutable point class.
 	/// </summary>
-	public struct Point3D : IPoint3D, ISerializeBinary
+	public struct Point3D : IPoint3D, ISerializeBinary, IEquatable<Point3D>
 	{
 		#region Operators
+
+		public static bool operator ==(Point3D p1, Point3D p2)
+		{
+			return p1.Equals(p2);
+		}
+
+		public static bool operator !=(Point3D p1, Point3D p2)
+		{
+			return p1.Equals(p2);
+		}
 
 		public static Point3D operator +(Point3D p1, Point3D p2)
 		{
@@ -91,6 +101,11 @@ namespace CloudAE.Core.Geometry
 			writer.Write(X);
 			writer.Write(Y);
 			writer.Write(Z);
+		}
+
+		public bool Equals(Point3D other)
+		{
+			return (m_x == other.m_x && m_y == other.m_y && m_z == other.m_z);
 		}
 
 		/// <summary>

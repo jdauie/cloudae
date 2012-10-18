@@ -5,7 +5,7 @@ using System.IO;
 
 namespace CloudAE.Core.Geometry
 {
-	public abstract class Quantization3D : IQuantization3D, ISerializeBinary
+	public abstract class Quantization3D : IQuantization3D, ISerializeBinary, IEquatable<Quantization3D>
 	{
 		private const int LOG_ROUNDING_PRECISION = 12;
 
@@ -48,6 +48,11 @@ namespace CloudAE.Core.Geometry
 		{
 			writer.Write(ScaleFactor);
 			writer.Write(Offset);
+		}
+
+		public bool Equals(Quantization3D other)
+		{
+			return (Offset == other.Offset && ScaleFactor == other.ScaleFactor);
 		}
 
 		public static Extent3D CreateOffsetExtent(Extent3D extent)
