@@ -340,6 +340,15 @@ namespace CloudAE.Core
 			}
 		}
 
+		public bool IsCompatible(LASHeader other)
+		{
+			return (
+				m_quantization == other.m_quantization &&
+				m_pointDataRecordFormat == other.m_pointDataRecordFormat &&
+				m_pointDataRecordLength == other.m_pointDataRecordLength
+			);
+		}
+
 		public LASVLR[] ReadVLRs(Stream stream)
 		{
 			return ReadVLRs(stream, null);
