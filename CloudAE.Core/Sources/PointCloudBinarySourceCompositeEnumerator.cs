@@ -13,7 +13,7 @@ namespace CloudAE.Core
 
 		private int m_currentSourceIndex = -1;
 		private IPointCloudBinarySourceEnumerator m_currentSourceEnumerator;
-		private PointCloudBinarySourceEnumeratorChunk m_current;
+		private IPointDataProgressChunk m_current;
 
 		public PointCloudBinarySourceCompositeEnumerator(IEnumerable<IPointCloudBinarySourceEnumerable> sources, ProgressManagerProcess process)
 		{
@@ -41,7 +41,7 @@ namespace CloudAE.Core
 			Reset();
 		}
 
-		public PointCloudBinarySourceEnumeratorChunk Current
+		public IPointDataProgressChunk Current
 		{
 			get { return m_current; }
 		}
@@ -103,7 +103,7 @@ namespace CloudAE.Core
 			Reset();
 		}
 
-		public IEnumerator<PointCloudBinarySourceEnumeratorChunk> GetEnumerator()
+		public IEnumerator<IPointDataProgressChunk> GetEnumerator()
 		{
 			return this;
 		}

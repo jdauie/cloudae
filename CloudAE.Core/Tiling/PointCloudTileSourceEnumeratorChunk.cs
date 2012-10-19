@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
-	public unsafe class PointCloudTileSourceEnumeratorChunk : IProgress, IPointDataTileChunk
+	public unsafe class PointCloudTileSourceEnumeratorChunk : IPointDataTileChunk
 	{
 		private readonly PointCloudTile m_tile;
 

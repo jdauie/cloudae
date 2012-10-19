@@ -2,7 +2,7 @@
 
 namespace CloudAE.Core
 {
-	public interface IPointDataTileChunk : IPointDataChunk
+	public interface IPointDataTileChunk : IPointDataProgressChunk
 	{
 		PointCloudTile Tile { get; }
 	}

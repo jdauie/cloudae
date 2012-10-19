@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
-	public class PointCloudTileSourceEnumerator : IEnumerator<PointCloudTileSourceEnumeratorChunk>, IEnumerable<PointCloudTileSourceEnumeratorChunk>
+	public class PointCloudTileSourceEnumerator : IPointCloudChunkEnumerator<IPointDataTileChunk>
 	{
 		private readonly PointCloudTileSource m_source;
 		private readonly BufferInstance m_buffer;
@@ -26,7 +26,7 @@ namespace CloudAE.Core
 			Reset();
 		}
 
-		public PointCloudTileSourceEnumeratorChunk Current
+		public IPointDataTileChunk Current
 		{
 			get { return m_current; }
 		}
@@ -67,7 +67,7 @@ namespace CloudAE.Core
 			m_current = null;
 		}
 
-		public IEnumerator<PointCloudTileSourceEnumeratorChunk> GetEnumerator()
+		public IEnumerator<IPointDataTileChunk> GetEnumerator()
 		{
 			return this;
 		}

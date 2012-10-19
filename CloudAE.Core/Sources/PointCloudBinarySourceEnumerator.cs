@@ -49,7 +49,7 @@ namespace CloudAE.Core
 			Reset();
 		}
 
-		public PointCloudBinarySourceEnumeratorChunk Current
+		public IPointDataProgressChunk Current
 		{
 			get { return m_current; }
 		}
@@ -96,7 +96,7 @@ namespace CloudAE.Core
 			m_current = null;
 		}
 
-		public IEnumerator<PointCloudBinarySourceEnumeratorChunk> GetEnumerator()
+		public IEnumerator<IPointDataProgressChunk> GetEnumerator()
 		{
 			return this;
 		}

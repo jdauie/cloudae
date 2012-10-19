@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
-	public unsafe class PointCloudBinarySourceEnumeratorChunk : IProgress, IPointDataChunk
+	public unsafe class PointCloudBinarySourceEnumeratorChunk : IPointDataProgressChunk
 	{
 		private readonly int m_index;
 

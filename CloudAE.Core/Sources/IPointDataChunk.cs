@@ -14,4 +14,8 @@ namespace CloudAE.Core
 
 		IPointDataChunk CreateSegment(int pointCount);
 	}
+
+	public interface IPointDataProgressChunk : IPointDataChunk, IProgress
+	{
+	}
 }
