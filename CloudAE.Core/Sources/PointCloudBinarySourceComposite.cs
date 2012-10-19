@@ -87,8 +87,9 @@ namespace CloudAE.Core
 		{
 			var subset = CreateSegmentSources(pointIndex, pointCount);
 
-			if (subset.Count == 1)
-				return subset[0];
+			// this will break extents, etc.
+			//if (subset.Count == 1)
+			//    return subset[0];
 
 			var composite = new PointCloudBinarySourceComposite(FileHandler, Extent, subset.ToArray());
 			return composite;
