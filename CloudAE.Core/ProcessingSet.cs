@@ -69,7 +69,7 @@ namespace CloudAE.Core
 					{
 						if (pointDataSize > maxSegmentBytes)
 						{
-							ProcessFileSegments2(segmentBuffer, progressManager);
+							ProcessFileSegments(segmentBuffer, progressManager);
 						}
 						else
 						{
