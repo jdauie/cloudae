@@ -108,6 +108,7 @@
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />
+    <Compile Include="Options\RegistryPropertyManager.cs" />
     <Compile Include="ProcessingQueue.cs" />
     <Compile Include="Serialization\FlexibleBinaryReader.cs" />
     <Compile Include="Serialization\ISerializeStateBinary.cs" />
@@ -135,7 +136,7 @@
     <Compile Include="Math\Statistics.cs" />
     <Compile Include="MotionControllers\FlyMotionController.cs" />
     <Compile Include="Options\IPropertyContainer.cs" />
-    <Compile Include="Options\PropertyState.cs" />
+    <Compile Include="Options\RegistryPropertyState.cs" />
     <Compile Include="Options\IPropertyState.cs" />
     <Compile Include="Options\PropertyName.cs" />
     <Compile Include="Serialization\SerializationHelper.cs" />

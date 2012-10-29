@@ -6,9 +6,13 @@ namespace CloudAE.Core
 	public interface IPropertyState : INotifyPropertyChanged
 	{
 		PropertyName Property { get; }
-		RegistryValueKind ValueKind { get; }
 
 		object GetConvertedValue();
 		void SetConvertedValue(object value);
+	}
+
+	public interface IPropertyState<T> : IPropertyState
+	{
+		T Value { get; set; }
 	}
 }

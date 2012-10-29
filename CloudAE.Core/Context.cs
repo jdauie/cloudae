@@ -488,7 +488,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public static PropertyState<T> RegisterOption<T>(OptionCategory category, string name, T defaultValue)
+		public static IPropertyState<T> RegisterOption<T>(OptionCategory category, string name, T defaultValue)
 		{
 			if (!Enum.IsDefined(typeof(OptionCategory), category))
 				throw new ArgumentException("Invalid category.");
@@ -496,26 +496,25 @@ namespace CloudAE.Core
 			if (string.IsNullOrWhiteSpace(name))
 				throw new ArgumentException("Option registration is empty.", "name");
 
-			if (name.IndexOfAny(new[] { '.', '\\', ' ' }) > 0)
+			if (name.IndexOfAny(new[] { '.', '\\', ' ', ':' }) > 0)
 				throw new ArgumentException("Option registration contains invalid characters.", "name");
 
 			string categoryName = Enum.GetName(typeof(OptionCategory), category);
 			string optionName = String.Format("{0}.{1}", categoryName, name);
 
-			PropertyState<T> state = null;
-			PropertyName propertyName = PropertyManager.ParsePropertyName(optionName);
+			IPropertyState<T> state = null;
+			var propertyName = PropertyManager.CreatePropertyName(optionName);
 			if (c_registeredProperties.ContainsKey(propertyName))
 			{
-				state = c_registeredProperties[propertyName] as PropertyState<T>;
+				state = c_registeredProperties[propertyName] as IPropertyState<T>;
 				if (state == null)
 					throw new Exception("Duplicate option registration with a different type for {0}.");
 
-				Debug.Assert(false, "Duplicate option registration");
 				WriteLine("Duplicate option registration: ", propertyName);
 			}
 			else
 			{
-				state = PropertyState<T>.Create(propertyName, defaultValue);
+				state = PropertyManager.Create(propertyName, defaultValue);
 				c_registeredProperties.Add(propertyName, state);
 				c_registeredPropertiesList.Add(state);
 			}

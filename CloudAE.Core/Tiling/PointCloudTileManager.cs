@@ -10,9 +10,9 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileManager : IPropertyContainer
 	{
-		public static readonly PropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
-		private static readonly PropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;
-		private static readonly PropertyState<bool> PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION;
+		public static readonly IPropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
+		private static readonly IPropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;
+		private static readonly IPropertyState<bool> PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION;
 
 		private readonly IPointCloudBinarySource m_source;
 		private readonly bool m_quantized;

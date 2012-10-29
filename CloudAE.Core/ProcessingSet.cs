@@ -10,8 +10,8 @@ namespace CloudAE.Core
 {
 	public class ProcessingSet : IPropertyContainer
 	{
-		private static readonly PropertyState<ByteSizesSmall> PROPERTY_SEGMENT_SIZE;
-		private static readonly PropertyState<bool> PROPERTY_REUSE_TILING;
+		private static readonly IPropertyState<ByteSizesSmall> PROPERTY_SEGMENT_SIZE;
+		private static readonly IPropertyState<bool> PROPERTY_REUSE_TILING;
 
 		private readonly Identity m_id;
 

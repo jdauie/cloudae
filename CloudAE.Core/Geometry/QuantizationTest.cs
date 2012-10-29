@@ -7,7 +7,7 @@ namespace CloudAE.Core.Geometry
 {
 	public class QuantizationTest<T> : IChunkProcess
 	{
-		private static readonly PropertyState<ByteSizesSmall> PROPERTY_QUANTIZATION_MEMORY_LIMIT;
+		private static readonly IPropertyState<ByteSizesSmall> PROPERTY_QUANTIZATION_MEMORY_LIMIT;
 
 		private readonly IPointCloudBinarySource m_source;
 		private readonly bool m_quantized;

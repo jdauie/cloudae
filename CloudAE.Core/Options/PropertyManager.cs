@@ -15,6 +15,8 @@ namespace CloudAE.Core
 		public static readonly string APP_DATA_DIR;
 		public static readonly string APP_TEMP_DIR;
 
+		private static readonly IPropertyManager c_manager;
+
 		static PropertyManager()
 		{
 			Assembly entryAssembly = Assembly.GetEntryAssembly();
@@ -25,20 +27,18 @@ namespace CloudAE.Core
 			APP_DATA_KEY = @"Software\" + COMPANY_NAME + @"\" + PRODUCT_NAME;
 			APP_DATA_DIR = Path.Combine(localAppData, COMPANY_NAME, PRODUCT_NAME);
 			APP_TEMP_DIR = Path.Combine(Path.GetTempPath(), COMPANY_NAME);
+
+			c_manager = new RegistryPropertyManager();
 		}
 
-		public static PropertyName ParsePropertyName(string name)
+		public static PropertyName CreatePropertyName(string name)
 		{
-			string[] names = name.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
-			string valueName = names[names.Length - 1];
+			return c_manager.CreatePropertyName(name);
+		}
 
-			string subKeyPath = APP_DATA_KEY;
-			for (int i = 0; i < names.Length - 1; i++)
-				subKeyPath += @"\" + names[i];
-
-			string identifier = String.Join<string>(@"\", names);
-
-			return new PropertyName(identifier, subKeyPath, valueName);
+		public static IPropertyState<T> Create<T>(PropertyName propertyName, T defaultValue)
+		{
+			return c_manager.Create(propertyName, defaultValue);
 		}
 
 		#region ISerializeStateBinary Handlers
@@ -48,32 +48,7 @@ namespace CloudAE.Core
 			if (value == null)
 				throw new ArgumentNullException("value");
 
-			PropertyName property = ParsePropertyName(name);
-			bool success = false;
-			
-			try
-			{
-				using (RegistryKey hiveKey = Registry.CurrentUser)
-				{
-					using (RegistryKey subKey = hiveKey.CreateSubKey(property.Path))
-					{
-						if (subKey != null)
-						{
-							MemoryStream ms = new MemoryStream();
-							using (BinaryWriter writer = new BinaryWriter(ms))
-							{
-								writer.Write(value);
-								writer.Flush();
-								subKey.SetValue(property.Name, ms.ToArray(), RegistryValueKind.Binary);
-							}
-							success = true;
-						}
-					}
-				}
-			}
-			catch { }
-
-			return success;
+			return c_manager.SetProperty(name, value);
 		}
 
 		public static bool GetProperty(string name, ISerializeStateBinary value)
@@ -81,32 +56,7 @@ namespace CloudAE.Core
 			if (value == null)
 				throw new ArgumentNullException("value");
 
-			PropertyName property = ParsePropertyName(name);
-			bool success = false;
-
-			try
-			{
-				using (RegistryKey hiveKey = Registry.CurrentUser)
-				{
-					using (RegistryKey subKey = hiveKey.OpenSubKey(property.Path))
-					{
-						if (subKey != null)
-						{
-							byte[] bytes = subKey.GetValue(property.Name) as byte[];
-							if (bytes != null)
-							{
-								MemoryStream ms = new MemoryStream(bytes);
-								using (BinaryReader reader = new BinaryReader(ms))
-									value.Deserialize(reader);
-								success = true;
-							}
-						}
-					}
-				}
-			}
-			catch { }
-
-			return success;
+			return c_manager.GetProperty(name, value);
 		}
 
 		#endregion
@@ -117,26 +67,8 @@ namespace CloudAE.Core
 		{
 			if (state == null)
 				throw new ArgumentNullException("state");
-
-			bool success = false;
-
-			try
-			{
-				using (RegistryKey hiveKey = Registry.CurrentUser)
-				{
-					using (RegistryKey subKey = hiveKey.CreateSubKey(state.Property.Path))
-					{
-						if (subKey != null)
-						{
-							subKey.SetValue(state.Property.Name, state.GetConvertedValue(), state.ValueKind);
-							success = true;
-						}
-					}
-				}
-			}
-			catch { }
-
-			return success;
+			
+			return c_manager.SetProperty(state);
 		}
 
 		public static bool GetProperty(IPropertyState state)
@@ -144,29 +76,7 @@ namespace CloudAE.Core
 			if (state == null)
 				throw new ArgumentNullException("state");
 
-			bool success = false;
-
-			try
-			{
-				using (RegistryKey hiveKey = Registry.CurrentUser)
-				{
-					using (RegistryKey subKey = hiveKey.OpenSubKey(state.Property.Path))
-					{
-						if (subKey != null)
-						{
-							object value = subKey.GetValue(state.Property.Name);
-							if (value != null)
-							{
-								state.SetConvertedValue(value);
-								success = true;
-							}
-						}
-					}
-				}
-			}
-			catch { }
-
-			return success;
+			return c_manager.GetProperty(state);
 		}
 
 		#endregion

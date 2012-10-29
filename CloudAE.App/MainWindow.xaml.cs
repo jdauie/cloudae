@@ -21,7 +21,7 @@ namespace CloudAE.App
 	{
 		private static readonly ITileSourceControl[] c_controls;
 
-		private static readonly PropertyState<bool> SWITCH_TO_LOG_TAB_ON_PROCESSING_START;
+		private static readonly IPropertyState<bool> SWITCH_TO_LOG_TAB_ON_PROCESSING_START;
 
 		private PointCloudTileSource m_currentTileSource;
 
