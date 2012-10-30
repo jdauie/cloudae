@@ -36,6 +36,11 @@ namespace CloudAE.Core
 			return c_manager.CreatePropertyName(name);
 		}
 
+		private static PropertyName CreatePropertyName(string prefix, string name)
+		{
+			return c_manager.CreatePropertyName(prefix, name);
+		}
+
 		public static IPropertyState<T> Create<T>(PropertyName propertyName, T defaultValue)
 		{
 			return c_manager.Create(propertyName, defaultValue);
@@ -43,7 +48,7 @@ namespace CloudAE.Core
 
 		#region ISerializeStateBinary Handlers
 
-		public static bool SetProperty(string name, ISerializeStateBinary value)
+		private static bool SetProperty(PropertyName name, ISerializeStateBinary value)
 		{
 			if (value == null)
 				throw new ArgumentNullException("value");
@@ -51,12 +56,24 @@ namespace CloudAE.Core
 			return c_manager.SetProperty(name, value);
 		}
 
-		public static bool GetProperty(string name, ISerializeStateBinary value)
+		private static bool GetProperty(PropertyName name, ISerializeStateBinary value)
 		{
 			if (value == null)
 				throw new ArgumentNullException("value");
 
 			return c_manager.GetProperty(name, value);
+		}
+
+		public static bool SetProperty(ISerializeStateBinary state, string prefix)
+		{
+			var name = CreatePropertyName(prefix, state.GetIdentifier());
+			return SetProperty(name, state);
+		}
+
+		public static bool GetProperty(ISerializeStateBinary state, string prefix)
+		{
+			var name = CreatePropertyName(prefix, state.GetIdentifier());
+			return GetProperty(name, state);
 		}
 
 		#endregion

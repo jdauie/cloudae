@@ -8,11 +8,12 @@ namespace CloudAE.Core
 	public interface IPropertyManager
 	{
 		PropertyName CreatePropertyName(string name);
-		bool SetProperty(string name, ISerializeStateBinary value);
-		bool GetProperty(string name, ISerializeStateBinary value);
+		PropertyName CreatePropertyName(string prefix, string name);
+		IPropertyState<T> Create<T>(PropertyName name, T defaultValue);
+		bool SetProperty(PropertyName name, ISerializeStateBinary value);
+		bool GetProperty(PropertyName name, ISerializeStateBinary value);
 		bool SetProperty(IPropertyState state);
 		bool GetProperty(IPropertyState state);
-		IPropertyState<T> Create<T>(PropertyName propertyName, T defaultValue);
 	}
 
 	public class RegistryPropertyManager : IPropertyManager
@@ -101,11 +102,18 @@ namespace CloudAE.Core
 			return new PropertyName(identifier, subKeyPath, valueName);
 		}
 
+		public PropertyName CreatePropertyName(string prefix, string name)
+		{
+			if (!string.IsNullOrWhiteSpace(prefix))
+				name = string.Format("{0}{1}{2}", prefix.Trim(), @"\", name);
+
+			return CreatePropertyName(name);
+		}
+
 		#region ISerializeStateBinary Handlers
 
-		public bool SetProperty(string name, ISerializeStateBinary value)
+		public bool SetProperty(PropertyName property, ISerializeStateBinary value)
 		{
-			PropertyName property = CreatePropertyName(name);
 			return WriteKey(property, RegistryValueKind.Binary, () => {
 				var ms = new MemoryStream();
 				using (var writer = new BinaryWriter(ms))
@@ -117,9 +125,8 @@ namespace CloudAE.Core
 			});
 		}
 
-		public bool GetProperty(string name, ISerializeStateBinary value)
+		public bool GetProperty(PropertyName property, ISerializeStateBinary value)
 		{
-			PropertyName property = CreatePropertyName(name);
 			return ReadKey(property, o => {
 				byte[] bytes = o as byte[];
 				if (bytes != null)

@@ -541,36 +541,12 @@ namespace CloudAE.Core
 
 		public static void SaveWindowState(ISerializeStateBinary window)
 		{
-			SaveState(window, SETTINGS_TYPE_WINDOWS);
+			PropertyManager.SetProperty(window, SETTINGS_TYPE_WINDOWS);
 		}
 
 		public static void LoadWindowState(ISerializeStateBinary window)
 		{
-			LoadState(window, SETTINGS_TYPE_WINDOWS);
-		}
-
-		#endregion
-
-		#region Property Helpers
-
-		private static void SaveState(ISerializeStateBinary state, string prefix)
-		{
-			PropertyManager.SetProperty(CreatePathPrefix(prefix) + state.GetIdentifier(), state);
-		}
-
-		private static void LoadState(ISerializeStateBinary state, string prefix)
-		{
-			PropertyManager.GetProperty(CreatePathPrefix(prefix) + state.GetIdentifier(), state);
-		}
-
-		private static string CreatePathPrefix(string prefix)
-		{
-			if (!string.IsNullOrWhiteSpace(prefix))
-				prefix = prefix.Trim() + @"\";
-			else
-				prefix = "";
-
-			return prefix;
+			PropertyManager.GetProperty(window, SETTINGS_TYPE_WINDOWS);
 		}
 
 		#endregion
