@@ -6,6 +6,10 @@ using System.Text;
 
 namespace CloudAE.Core.Windows
 {
+	/// <summary>
+	/// Derived from WinConsole by Wesner Moise.
+	/// http://www.codeproject.com/Articles/4426/Console-Enhancements
+	/// </summary>
 	public class WinConsole : IPropertyContainer
 	{
 		private class WinConsoleStateHandler : ISerializeStateBinary
