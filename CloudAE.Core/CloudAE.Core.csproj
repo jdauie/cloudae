@@ -108,6 +108,7 @@
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />
+    <Compile Include="Options\IPropertyManager.cs" />
     <Compile Include="Options\RegistryPropertyManager.cs" />
     <Compile Include="ProcessingQueue.cs" />
     <Compile Include="Serialization\FlexibleBinaryReader.cs" />
