@@ -7,7 +7,7 @@ using System.Windows.Media.Media3D;
 using System.Diagnostics;
 using System.Windows;
 
-namespace CloudAE.Core.Tools3D
+namespace CloudAE.Tools3D
 {
 	public class MeshUtils
 	{

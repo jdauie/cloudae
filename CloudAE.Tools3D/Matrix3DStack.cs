@@ -17,7 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Media.Media3D;
 
-namespace CloudAE.Core.Tools3D
+namespace CloudAE.Tools3D
 {
 	/// <summary>
 	///     Matrix3DStack is a stack of Matrix3Ds.

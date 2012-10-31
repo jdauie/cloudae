@@ -18,7 +18,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
-namespace CloudAE.Core.Tools3D
+namespace CloudAE.Tools3D
 {
 	/// <summary>
 	///     ScreenSpaceLines3D are a 3D line primitive whose thickness

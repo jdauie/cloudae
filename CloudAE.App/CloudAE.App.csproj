@@ -166,6 +166,10 @@
       <Project>{3AE0AF74-13AE-46F9-89FD-7BFE60F985ED}</Project>
       <Name>CloudAE.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CloudAE.Tools3D\CloudAE.Tools3D.csproj">
+      <Project>{009F83E9-A201-44E2-8CEB-6B195DF764C7}</Project>
+      <Name>CloudAE.Tools3D</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">

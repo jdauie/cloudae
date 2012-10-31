@@ -25,7 +25,7 @@ using System.Windows.Input;
 using System.Windows.Media.Media3D;
 using System.Windows.Markup;
 
-namespace CloudAE.Core.Tools3D
+namespace CloudAE.Tools3D
 {
 	/// <summary>
 	///     Trackball is a utility class which observes the mouse events

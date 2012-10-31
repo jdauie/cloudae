@@ -12,6 +12,7 @@
     <AssemblyName>CloudAE.Core</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -189,11 +190,6 @@
     <Compile Include="Geometry\UQuantization3D.cs" />
     <Compile Include="Handlers\XYZ\XYZFile.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumerator.cs" />
-    <Compile Include="Tools3D\MathUtils.cs" />
-    <Compile Include="Tools3D\Matrix3DStack.cs" />
-    <Compile Include="Tools3D\MeshUtils.cs" />
-    <Compile Include="Tools3D\ScreenSpaceLines3D.cs" />
-    <Compile Include="Tools3D\Trackball.cs" />
     <Compile Include="Utilities\PEHeader.cs" />
     <Compile Include="Utilities\SingleInstance.cs" />
     <Compile Include="Utilities\SupportedType.cs" />
