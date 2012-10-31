@@ -9,12 +9,12 @@ using namespace System::Security::Permissions;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-[assembly:AssemblyTitleAttribute("CloudAEInteropLASzip")];
+[assembly:AssemblyTitleAttribute("CloudAE.Interop.LASzip")];
 [assembly:AssemblyDescriptionAttribute("")];
 [assembly:AssemblyConfigurationAttribute("")];
-[assembly:AssemblyCompanyAttribute("Overwatch")];
-[assembly:AssemblyProductAttribute("CloudAEInteropLASzip")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c) Overwatch 2012")];
+[assembly:AssemblyCompanyAttribute("Jacere")];
+[assembly:AssemblyProductAttribute("CloudAE.Interop.LASzip")];
+[assembly:AssemblyCopyrightAttribute("Copyright © Joshua Morey 2012")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
 
