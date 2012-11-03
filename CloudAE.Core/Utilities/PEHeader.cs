@@ -70,6 +70,10 @@ namespace CloudAE.Core.Util
 		public uint Size;
 	}
 
+	/// <summary>
+	/// This file is derived from work by Kris Stanton.
+	/// https://blogs.msdn.com/b/kstanton/archive/2004/03/31/105060.aspx?Redirected=true
+	/// </summary>
 	public class PEHeader
 	{
 		private readonly bool m_isManaged;
