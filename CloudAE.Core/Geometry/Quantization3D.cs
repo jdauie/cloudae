@@ -144,10 +144,10 @@ namespace CloudAE.Core.Geometry
 					diffPowComponentRatio[d] = diffPow[d] * diffCounts[d] / nonZeroDiffPointCount;
 
 				// this rounding is a WAG
-				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 4);
+				double componentSum = Math.Round(diffPowComponentRatio.Sum(), 3);
 				int componentSumPow = (int)componentSum;
 #warning this is a bit sketchy -- look at this again, with a range of data
-				if (componentSumPow > 1)
+				if (componentSumPow < scalePow && componentSumPow > 0)
 					scaleFactors[i] = Math.Pow(scaleBase, componentSumPow - scalePow);
 			}
 
