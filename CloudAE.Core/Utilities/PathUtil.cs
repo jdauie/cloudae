@@ -17,9 +17,9 @@ namespace CloudAE.Core.Util
 		/// <returns>Device sector size (bytes)</returns>
 		public static uint GetDriveSectorSize(string path)
 		{
-			uint size = 512;
+			uint size;
 			uint ignore;
-			NativeMethods.GetDiskFreeSpace(Path.GetPathRoot(path), out ignore, out ignore, out ignore, out ignore);
+			NativeMethods.GetDiskFreeSpace(Path.GetPathRoot(path), out ignore, out size, out ignore, out ignore);
 			return size;
 		}
 
