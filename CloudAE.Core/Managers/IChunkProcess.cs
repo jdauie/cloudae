@@ -8,11 +8,6 @@ using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
-	public interface IChunkProcess
-	{
-		IPointDataChunk Process(IPointDataChunk chunk);
-	}
-
 	/// <summary>
 	/// Processing stack.
 	/// </summary>

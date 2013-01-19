@@ -62,6 +62,7 @@
     <Compile Include="Managers\PointBufferWrapper.cs" />
     <Compile Include="Managers\PointBufferWrapperChunk.cs" />
     <Compile Include="Managers\PointCloudTileCacheManager.cs" />
+    <Compile Include="Math\Grid.cs" />
     <Compile Include="Math\GridQuantizedSet.cs" />
     <Compile Include="Math\GridCounter.cs" />
     <Compile Include="ProcessingQueue.cs" />
@@ -70,7 +71,6 @@
     <Compile Include="DelaunayIncremental\DelaunayGeometry.cs" />
     <Compile Include="DelaunayIncremental\DelaunayPoint.cs" />
     <Compile Include="DelaunayIncremental\Triangle.cs" />
-    <Compile Include="Extensions\NumericExtensions.cs" />
     <Compile Include="MotionControllers\FlyMotionController.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
     <Compile Include="SystemInfo.cs" />

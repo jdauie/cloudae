@@ -56,6 +56,7 @@
     <Compile Include="Exceptions\OpenFailedException.cs" />
     <Compile Include="Extensions\ArrayExtensions.cs" />
     <Compile Include="Extensions\LongToSizeExtension.cs" />
+    <Compile Include="Extensions\NumericExtensions.cs" />
     <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
     <Compile Include="Extensions\GeometryExtensions.cs" />
     <Compile Include="Extensions\SerializeArrayExtensions.cs" />
@@ -99,7 +100,6 @@
     <Compile Include="Managers\ProgressManager.cs" />
     <Compile Include="Managers\ProgressManagerProcess.cs" />
     <Compile Include="Managers\StreamManager.cs" />
-    <Compile Include="Math\Grid.cs" />
     <Compile Include="Math\Statistics.cs" />
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\ColorMap.cs" />

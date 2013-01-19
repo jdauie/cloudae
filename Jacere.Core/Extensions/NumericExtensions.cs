@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public static class NumericExtensions
 	{

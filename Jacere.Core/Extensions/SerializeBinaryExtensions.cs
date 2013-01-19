@@ -37,5 +37,10 @@ namespace Jacere.Core
 
 			return obj;
 		}
+
+		public static Statistics ReadStatistics(this BinaryReader reader)
+		{
+			return new Statistics(reader);
+		}
 	}
 }

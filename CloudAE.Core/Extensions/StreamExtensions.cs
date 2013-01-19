@@ -17,10 +17,5 @@ namespace CloudAE.Core
 		{
 			return new PointCloudTileDensity(reader);
 		}
-
-		public static Statistics ReadStatistics(this BinaryReader reader)
-		{
-			return new Statistics(reader);
-		}
 	}
 }
