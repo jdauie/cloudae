@@ -156,8 +156,6 @@
     <Compile Include="Tiling\PointCloudTileBufferPosition.cs" />
     <Compile Include="Tiling\PointCloudTileSourceUtilities.cs" />
     <Compile Include="Tiling\PointCloudTileTree.cs" />
-    <Compile Include="Utilities\EncodingConverter.cs" />
-    <Compile Include="Utilities\PathUtil.cs" />
     <Compile Include="Managers\PerformanceManager.cs" />
     <Compile Include="Geometry\UQuantizedExtent3D.cs" />
     <Compile Include="Geometry\UQuantizedPoint3D.cs" />
@@ -187,14 +185,6 @@
     <Compile Include="Geometry\UQuantization3D.cs" />
     <Compile Include="Handlers\XYZ\XYZFile.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumerator.cs" />
-    <Compile Include="Utilities\PEHeader.cs" />
-    <Compile Include="Utilities\SingleInstance.cs" />
-    <Compile Include="Utilities\SupportedType.cs" />
-    <Compile Include="Utilities\XCopy.cs" />
-    <Compile Include="Windows\WinConsoleColorHandler.cs" />
-    <Compile Include="Windows\NativeMethods.cs" />
-    <Compile Include="Windows\WinConsoleColor.cs" />
-    <Compile Include="Windows\WinConsole.cs" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\bullet_green.png" />
