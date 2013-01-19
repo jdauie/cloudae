@@ -54,12 +54,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\WindowExtensions.cs" />
-    <Compile Include="Geometry\Polygon2DConvex.cs" />
-    <Compile Include="Geometry\Point2D.cs" />
-    <Compile Include="Geometry\Polygon2D.cs" />
-    <Compile Include="Geometry\PolygonBase.cs" />
     <Compile Include="Geometry\QuantizationConverter.cs" />
-    <Compile Include="Geometry\QuantizationTest.cs" />
     <Compile Include="Handlers\LAS\LASComposite.cs" />
     <Compile Include="Handlers\LAS\LASPointAttribute.cs" />
     <Compile Include="Handlers\LAS\LASEVLR.cs" />
@@ -80,7 +75,6 @@
     <Compile Include="Extensions\ReflectionExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
-    <Compile Include="Geometry\Plane.cs" />
     <Compile Include="Discovery\IFactory.cs" />
     <Compile Include="Handlers\XYZ\XYZCreator.cs" />
     <Compile Include="Handlers\HandlerCreatorBase.cs" />
@@ -122,15 +116,7 @@
     <Compile Include="DelaunayIncremental\Triangle.cs" />
     <Compile Include="Extensions\ArrayExtensions.cs" />
     <Compile Include="Extensions\NumericExtensions.cs" />
-    <Compile Include="Geometry\Extent2D.cs" />
-    <Compile Include="Geometry\IPoint3D.cs" />
-    <Compile Include="Geometry\IQuantizedExtent3D.cs" />
     <Compile Include="Geometry\Quantization3D.cs" />
-    <Compile Include="Geometry\SQuantizedExtent3D.cs" />
-    <Compile Include="Geometry\SQuantization3D.cs" />
-    <Compile Include="Geometry\SQuantizedPoint3D.cs" />
-    <Compile Include="Geometry\IQuantization3D.cs" />
-    <Compile Include="Geometry\IQuantizedPoint3D.cs" />
     <Compile Include="Math\Grid.cs" />
     <Compile Include="Math\Statistics.cs" />
     <Compile Include="MotionControllers\FlyMotionController.cs" />
@@ -157,11 +143,7 @@
     <Compile Include="Tiling\PointCloudTileSourceUtilities.cs" />
     <Compile Include="Tiling\PointCloudTileTree.cs" />
     <Compile Include="Managers\PerformanceManager.cs" />
-    <Compile Include="Geometry\UQuantizedExtent3D.cs" />
-    <Compile Include="Geometry\UQuantizedPoint3D.cs" />
     <Compile Include="Handlers\HandlerFactory.cs" />
-    <Compile Include="Geometry\Extent3D.cs" />
-    <Compile Include="Geometry\Point3D.cs" />
     <Compile Include="Handlers\FileHandlerBase.cs" />
     <Compile Include="Handlers\LAS\LASFile.cs" />
     <Compile Include="Points\LASPointFormat0.cs" />
@@ -182,7 +164,6 @@
     <Compile Include="Tiling\PointCloudTileSource.cs" />
     <Compile Include="Managers\ProgressManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Geometry\UQuantization3D.cs" />
     <Compile Include="Handlers\XYZ\XYZFile.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumerator.cs" />
   </ItemGroup>
