@@ -5,7 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudAE.App", "CloudAE.App\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudAE.Core", "CloudAE.Core\CloudAE.Core.csproj", "{3AE0AF74-13AE-46F9-89FD-7BFE60F985ED}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CloudAE.Interop.LASzip", "CloudAE.Interop.LASzip\CloudAE.Interop.LASzip.vcxproj", "{961E1A9D-C8AC-4C12-8DA9-4A7A3EE8EEAC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Jacere.Interop.LASzip", "Jacere.Interop.LASzip\Jacere.Interop.LASzip.vcxproj", "{961E1A9D-C8AC-4C12-8DA9-4A7A3EE8EEAC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudAE.Tools3D", "CloudAE.Tools3D\CloudAE.Tools3D.csproj", "{009F83E9-A201-44E2-8CEB-6B195DF764C7}"
 EndProject
