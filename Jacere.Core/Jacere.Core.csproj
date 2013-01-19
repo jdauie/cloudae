@@ -43,6 +43,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
+    <Compile Include="IO\FileStreamUnbufferedSequentialRead.cs" />
+    <Compile Include="IO\FileStreamUnbufferedSequentialWrite.cs" />
     <Compile Include="IO\IStreamReader.cs" />
     <Compile Include="IO\IStreamWriter.cs" />
     <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
@@ -63,6 +65,8 @@
     <Compile Include="Serialization\ISerializeBinary.cs" />
     <Compile Include="Serialization\ISerializeStateBinary.cs" />
     <Compile Include="Serialization\SerializationHelper.cs" />
+    <Compile Include="Util\PathUtil.cs" />
+    <Compile Include="Windows\NativeMethods.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

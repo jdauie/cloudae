@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Jacere.Data.PointCloud
+namespace Jacere.Core
 {
 	public interface IStreamWriter : IDisposable
 	{
