@@ -8,9 +8,9 @@ namespace Jacere.Core
 	{
 		public class StreamManagerSharedStream : IDisposable
 		{
-			private readonly IPointCloudBinarySourceEnumerable m_source;
+			private readonly ISourcePaths m_source;
 
-			public StreamManagerSharedStream(IPointCloudBinarySourceEnumerable source)
+			public StreamManagerSharedStream(ISourcePaths source)
 			{
 				m_source = source;
 			}
@@ -39,7 +39,7 @@ namespace Jacere.Core
 				return false;
 		}
 
-		public static StreamManagerSharedStream CreateSharedStream(IPointCloudBinarySourceEnumerable source)
+		public static StreamManagerSharedStream CreateSharedStream(ISourcePaths source)
 		{
 			foreach (string path in source.SourcePaths)
 			{
@@ -54,7 +54,7 @@ namespace Jacere.Core
 			return shared;
 		}
 
-		private static void DisposeStream(IPointCloudBinarySourceEnumerable source)
+		private static void DisposeStream(ISourcePaths source)
 		{
 			foreach (string path in source.SourcePaths)
 			{

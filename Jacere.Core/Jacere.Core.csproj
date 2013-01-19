@@ -43,9 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Discovery\IFactory.cs" />
+    <Compile Include="Extensions\LongToSizeExtension.cs" />
     <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
     <Compile Include="IO\FileStreamUnbufferedSequentialRead.cs" />
     <Compile Include="IO\FileStreamUnbufferedSequentialWrite.cs" />
+    <Compile Include="IO\IPointCloudBinarySourceEnumerable.cs" />
     <Compile Include="IO\IStreamReader.cs" />
     <Compile Include="IO\IStreamWriter.cs" />
     <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />

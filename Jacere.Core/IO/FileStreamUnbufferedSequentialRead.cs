@@ -8,7 +8,7 @@ using Jacere.Core.Windows;
 using Jacere.Core.Util;
 using System.Diagnostics;
 
-namespace Jacere.Data.PointCloud
+namespace Jacere.Core
 {
 	public class FileStreamUnbufferedSequentialRead : Stream, IStreamReader
 	{

@@ -4,13 +4,11 @@ using Jacere.Core;
 
 namespace Jacere.Data.PointCloud
 {
-	public interface IPointCloudBinarySourceEnumerable
+	public interface IPointCloudBinarySourceEnumerable : ISourcePaths
 	{
 		string FilePath       { get; }
 		long   Count          { get; }
 		short  PointSizeBytes { get; }
-
-		IEnumerable<string> SourcePaths { get; }
 
 		IPointCloudBinarySourceEnumerator GetBlockEnumerator(BufferInstance buffer);
 		IPointCloudBinarySourceEnumerator GetBlockEnumerator(ProgressManagerProcess process);

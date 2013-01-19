@@ -5,7 +5,7 @@ using Jacere.Core;
 using Jacere.Core.Util;
 using System.Diagnostics;
 
-namespace Jacere.Data.PointCloud
+namespace Jacere.Core
 {
 	public class FileStreamUnbufferedSequentialWrite : Stream, IStreamWriter
 	{

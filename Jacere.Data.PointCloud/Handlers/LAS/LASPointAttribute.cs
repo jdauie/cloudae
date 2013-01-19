@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Jacere.Core;
-using Jacere.Data.PointCloud.Util;
+using Jacere.Core.Util;
 
 namespace Jacere.Data.PointCloud.Handlers
 {
