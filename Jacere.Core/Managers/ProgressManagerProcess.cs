@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using CloudAE.Core;
 
 namespace Jacere.Core
 {
@@ -38,7 +39,7 @@ namespace Jacere.Core
 
 			//Context.WriteLine(string.Format("{0}{1} -> Start", string.Empty.PadRight(2 * i), m_id));
 			//Context.WriteLine("{0}{1} {2}", string.Empty.PadRight(2 * i), m_id, "{");
-			Context.WriteLine("{0}{1}", string.Empty.PadRight(2 * i), m_id);
+			ContextManager.WriteLine("{0}{1}", string.Empty.PadRight(2 * i), m_id);
 		}
 
 		public void Dispose()

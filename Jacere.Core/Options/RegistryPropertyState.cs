@@ -77,7 +77,8 @@ namespace Jacere.Core
 
 			m_type = typeof(T);
 
-			if (Config.StorePropertyRegistration)
+#warning Removed reference to Config
+			//if (Config.StorePropertyRegistration)
 			{
 				T storedValue = Value;
 				if (!m_hasValue)

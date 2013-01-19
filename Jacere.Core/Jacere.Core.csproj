@@ -54,6 +54,7 @@
     <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
     <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />
+    <Compile Include="Managers\ContextManager.cs" />
     <Compile Include="Managers\Identity.cs" />
     <Compile Include="Managers\IdentityManager.cs" />
     <Compile Include="Managers\IProgress.cs" />
@@ -76,7 +77,7 @@
     <Compile Include="Serialization\ISerializeBinary.cs" />
     <Compile Include="Serialization\ISerializeStateBinary.cs" />
     <Compile Include="Serialization\SerializationHelper.cs" />
-    <Compile Include="Util\PathUtil.cs" />
+    <Compile Include="Utilities\PathUtil.cs" />
     <Compile Include="Windows\NativeMethods.cs" />
     <Compile Include="Windows\WinConsole.cs" />
     <Compile Include="Windows\WinConsoleColor.cs" />

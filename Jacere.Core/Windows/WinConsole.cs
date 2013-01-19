@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
+using CloudAE.Core;
 
 namespace Jacere.Core.Windows
 {
@@ -235,7 +236,7 @@ namespace Jacere.Core.Windows
 
 			if (Initialized)
 			{
-				Context.SaveWindowState(c_rect);
+				ContextManager.SaveWindowState(c_rect);
 
 				if (NativeMethods.FreeConsole())
 				{
@@ -330,7 +331,7 @@ namespace Jacere.Core.Windows
 			
 			Console.SetError(writer);
 
-			Context.LoadWindowState(c_rect);
+			ContextManager.LoadWindowState(c_rect);
 		}
 
 		public static void WriteLine(string format, params object[] args)
