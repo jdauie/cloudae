@@ -8,9 +8,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Jacere.Data.PointCloud;
 using Microsoft.Win32;
 
 using CloudAE.Core;
+using Jacere.Core;
 
 namespace CloudAE.App
 {

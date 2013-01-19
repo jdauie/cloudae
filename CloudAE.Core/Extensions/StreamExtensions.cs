@@ -13,6 +13,11 @@ namespace CloudAE.Core
 			return new PointCloudTileSet(reader);
 		}
 
+		public static PointCloudTileDensity ReadTileDensity(this BinaryReader reader)
+		{
+			return new PointCloudTileDensity(reader);
+		}
+
 		public static Statistics ReadStatistics(this BinaryReader reader)
 		{
 			return new Statistics(reader);

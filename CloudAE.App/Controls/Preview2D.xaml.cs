@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 using CloudAE.Core;
+using Jacere.Core;
 
 namespace CloudAE.App
 {

@@ -174,6 +174,10 @@
       <Project>{E1EB7D60-3632-4F12-AE13-B360D2B66C24}</Project>
       <Name>Jacere.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Jacere.Data.PointCloud\Jacere.Data.PointCloud.csproj">
+      <Project>{0CFC88FE-A4AB-4336-97CD-03A41D6106AF}</Project>
+      <Name>Jacere.Data.PointCloud</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">

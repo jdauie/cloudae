@@ -3,7 +3,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:local="clr-namespace:CloudAE.App"
-		xmlns:core="clr-namespace:CloudAE.Core;assembly=CloudAE.Core"
+		xmlns:core="clr-namespace:Jacere.Core;assembly=Jacere.Core"
         Title="CloudAE Console" Height="423" Width="682" Icon="/CloudAE.App;component/Icons/world.png">
     <Grid>
 		<Grid.RowDefinitions>

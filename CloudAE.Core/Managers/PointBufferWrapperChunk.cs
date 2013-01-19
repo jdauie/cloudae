@@ -1,5 +1,7 @@
 ﻿using System;
-using System.Linq;
+
+using Jacere.Core;
+using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+
 using Jacere.Core.Geometry;
+using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-using Jacere.Core.Geometry;
+using Jacere.Core;
 using System.IO;
 using Jacere.Core.Util;
 

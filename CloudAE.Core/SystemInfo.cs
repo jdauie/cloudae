@@ -8,6 +8,7 @@ using System.Management;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
+using Jacere.Core;
 using Jacere.Core.Windows;
 using Jacere.Core.Util;
 

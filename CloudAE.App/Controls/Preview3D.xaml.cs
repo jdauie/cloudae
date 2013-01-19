@@ -15,6 +15,8 @@ using System.ComponentModel;
 using System.Timers;
 using System.Windows.Threading;
 
+using Jacere.Core;
+
 namespace CloudAE.App
 {
 	public enum TileStitchingEdge

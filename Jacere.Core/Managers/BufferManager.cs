@@ -184,7 +184,7 @@ namespace Jacere.Core
 			}
 		}
 
-		internal static void Shutdown()
+		public static void Shutdown()
 		{
 			lock (typeof(BufferManager))
 			{

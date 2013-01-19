@@ -5,6 +5,7 @@ using System.IO;
 using System.Diagnostics;
 
 using CloudAE.Core.Geometry;
+using Jacere.Core;
 using Jacere.Core.Geometry;
 using Jacere.Data.PointCloud;
 
