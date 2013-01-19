@@ -99,8 +99,7 @@
     <Compile Include="Managers\ProgressManager.cs" />
     <Compile Include="Managers\ProgressManagerProcess.cs" />
     <Compile Include="Managers\StreamManager.cs" />
-    <Compile Include="Math\ScaledStatisticsMapping.cs" />
-    <Compile Include="Math\SimpleStatsMapping.cs" />
+    <Compile Include="Math\Grid.cs" />
     <Compile Include="Math\Statistics.cs" />
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\ColorMap.cs" />

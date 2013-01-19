@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Jacere.Core.Geometry;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public interface IGrid
 	{

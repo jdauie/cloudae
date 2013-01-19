@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 
+using Jacere.Core;
 using Jacere.Core.Geometry;
-using Jacere.Data.PointCloud;
 
-namespace Jacere.Core
+namespace Jacere.Data.PointCloud
 {
 	public class ScaledStatisticsMapping : IChunkProcess
 	{

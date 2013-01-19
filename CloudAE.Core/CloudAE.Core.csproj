@@ -71,7 +71,6 @@
     <Compile Include="DelaunayIncremental\DelaunayPoint.cs" />
     <Compile Include="DelaunayIncremental\Triangle.cs" />
     <Compile Include="Extensions\NumericExtensions.cs" />
-    <Compile Include="Math\Grid.cs" />
     <Compile Include="MotionControllers\FlyMotionController.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
     <Compile Include="SystemInfo.cs" />
