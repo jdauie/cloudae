@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Jacere.Core;
 using CloudAE.Interop.LAZ;
 
 namespace Jacere.Data.PointCloud

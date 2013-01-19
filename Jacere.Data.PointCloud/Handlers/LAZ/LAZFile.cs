@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Jacere.Core;
+
 namespace Jacere.Data.PointCloud
 {
 	class LAZFile : LASFile

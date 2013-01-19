@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-
+using Jacere.Core;
 using Jacere.Data.PointCloud.Geometry;
 
 namespace Jacere.Data.PointCloud

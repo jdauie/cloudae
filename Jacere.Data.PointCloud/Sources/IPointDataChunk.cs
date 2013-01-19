@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Jacere.Core;
+
 namespace Jacere.Data.PointCloud
 {
 	public interface IPointDataChunk

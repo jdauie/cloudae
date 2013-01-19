@@ -74,6 +74,7 @@
     <Compile Include="Sources\PointCloudBinarySourceCompositeEnumerator.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumerator.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumeratorChunk.cs" />
+    <Compile Include="Sources\PointCloudBinarySourceEnumeratorSparseRegion.cs" />
     <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="Sources\PointStream.cs" />
   </ItemGroup>
