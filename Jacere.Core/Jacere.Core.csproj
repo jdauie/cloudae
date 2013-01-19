@@ -46,10 +46,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Discovery\IFactory.cs" />
+    <Compile Include="Exceptions\IgnorableException.cs" />
+    <Compile Include="Exceptions\OpenFailedException.cs" />
     <Compile Include="Extensions\ArrayExtensions.cs" />
     <Compile Include="Extensions\LongToSizeExtension.cs" />
     <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
     <Compile Include="Extensions\GeometryExtensions.cs" />
+    <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Geometry\Extent2D.cs" />
     <Compile Include="Geometry\Extent3D.cs" />
     <Compile Include="Geometry\IPoint3D.cs" />
