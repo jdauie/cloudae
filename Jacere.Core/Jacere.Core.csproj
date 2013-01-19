@@ -33,6 +33,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -41,11 +42,33 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Discovery\IFactory.cs" />
     <Compile Include="Extensions\LongToSizeExtension.cs" />
     <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
+    <Compile Include="Geometry\Extent2D.cs" />
+    <Compile Include="Geometry\Extent3D.cs" />
+    <Compile Include="Geometry\IPoint3D.cs" />
+    <Compile Include="Geometry\IQuantization3D.cs" />
+    <Compile Include="Geometry\IQuantizedExtent3D.cs" />
+    <Compile Include="Geometry\IQuantizedPoint3D.cs" />
+    <Compile Include="Geometry\Plane.cs" />
+    <Compile Include="Geometry\Point2D.cs" />
+    <Compile Include="Geometry\Point3D.cs" />
+    <Compile Include="Geometry\Polygon2D.cs" />
+    <Compile Include="Geometry\Polygon2DConvex.cs" />
+    <Compile Include="Geometry\PolygonBase.cs" />
+    <Compile Include="Geometry\Quantization3D.cs" />
+    <Compile Include="Geometry\QuantizationConverter.cs" />
+    <Compile Include="Geometry\QuantizationTest.cs" />
+    <Compile Include="Geometry\SQuantization3D.cs" />
+    <Compile Include="Geometry\SQuantizedExtent3D.cs" />
+    <Compile Include="Geometry\SQuantizedPoint3D.cs" />
+    <Compile Include="Geometry\UQuantization3D.cs" />
+    <Compile Include="Geometry\UQuantizedExtent3D.cs" />
+    <Compile Include="Geometry\UQuantizedPoint3D.cs" />
     <Compile Include="IO\FileStreamUnbufferedSequentialRead.cs" />
     <Compile Include="IO\FileStreamUnbufferedSequentialWrite.cs" />
     <Compile Include="IO\IPointCloudBinarySourceEnumerable.cs" />

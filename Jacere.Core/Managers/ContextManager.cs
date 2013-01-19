@@ -26,7 +26,7 @@ using System.ComponentModel;
 using Jacere.Core;
 using Jacere.Core.Windows;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public static class ContextManager
 	{
