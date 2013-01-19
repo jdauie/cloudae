@@ -50,15 +50,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\ObservableQueue.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Extensions\WindowExtensions.cs" />
     <Compile Include="Geometry\QuantizationConverter.cs" />
     <Compile Include="Geometry\QuantizationTest.cs" />
     <Compile Include="Cache.cs" />
-    <Compile Include="Attributes\ProductExtensionAttribute.cs" />
-    <Compile Include="Exceptions\IgnorableException.cs" />
-    <Compile Include="Exceptions\OpenFailedException.cs" />
     <Compile Include="Extensions\ReflectionExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
@@ -76,7 +72,6 @@
     <Compile Include="ProcessingQueue.cs" />
     <Compile Include="Media\ColorMap.cs" />
     <Compile Include="Media\ColorRamp.cs" />
-    <Compile Include="Compression\MemorableMemoryStream.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="DelaunayIncremental\Delaunay2DIncremental.cs" />
     <Compile Include="DelaunayIncremental\DelaunayGeometry.cs" />

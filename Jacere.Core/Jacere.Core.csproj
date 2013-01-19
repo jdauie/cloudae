@@ -48,6 +48,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\ProductExtensionAttribute.cs" />
+    <Compile Include="Collections\ObservableQueue.cs" />
+    <Compile Include="Compression\MemorableMemoryStream.cs" />
     <Compile Include="Discovery\IFactory.cs" />
     <Compile Include="Exceptions\IgnorableException.cs" />
     <Compile Include="Exceptions\OpenFailedException.cs" />
