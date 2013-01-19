@@ -145,7 +145,7 @@ namespace Jacere.Core.Windows
 		internal static unsafe extern int WriteFile(SafeFileHandle handle, byte* bytes, int numBytesToWrite, out int numBytesWritten, IntPtr mustBeZero);
 
 		[DllImport(KERNEL32, BestFitMapping = false, CharSet = CharSet.Auto, SetLastError = true)]
-		internal static extern bool GetDiskFreeSpaceEx(string drive, out long freeBytesForUser, out long totalBytes, out long freeBytes);
+		public static extern bool GetDiskFreeSpaceEx(string drive, out long freeBytesForUser, out long totalBytes, out long freeBytes);
 
 		[DllImport(KERNEL32, BestFitMapping = false, CharSet = CharSet.Auto, SetLastError = true)]
 		internal static extern bool GetDiskFreeSpace(string path, out uint sectorsPerCluster, out uint bytesPerSector, out uint numberOfFreeClusters, out uint totalNumberOfClusters);

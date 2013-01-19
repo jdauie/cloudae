@@ -26,7 +26,7 @@ namespace Jacere.Core
 		/// <param name="offset"></param>
 		/// <param name="length"></param>
 		/// <returns></returns>
-		public static string ToBase64SafeString(byte[] inArray, int offset, int length)
+		public static string ToBase64SafeString(this byte[] inArray, int offset, int length)
 		{
 			string result = Convert.ToBase64String(inArray, offset, length);
 
@@ -36,7 +36,7 @@ namespace Jacere.Core
 			return result;
 		}
 
-		public static string ToBase64SafeString(byte[] inArray)
+		public static string ToBase64SafeString(this byte[] inArray)
 		{
 			return ToBase64SafeString(inArray, 0, inArray.Length);
 		}

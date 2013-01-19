@@ -34,9 +34,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -107,7 +110,9 @@
     <Compile Include="Serialization\SerializationHelper.cs" />
     <Compile Include="Utilities\PathUtil.cs" />
     <Compile Include="Utilities\PEHeader.cs" />
+    <Compile Include="Utilities\SingleInstance.cs" />
     <Compile Include="Utilities\SupportedType.cs" />
+    <Compile Include="Utilities\XCopy.cs" />
     <Compile Include="Windows\NativeMethods.cs" />
     <Compile Include="Windows\WinConsole.cs" />
     <Compile Include="Windows\WinConsoleColor.cs" />
