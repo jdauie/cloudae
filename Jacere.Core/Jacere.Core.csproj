@@ -40,7 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\StreamExtensions.cs" />
+    <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
+    <Compile Include="Managers\BufferInstance.cs" />
+    <Compile Include="Managers\BufferManager.cs" />
+    <Compile Include="Managers\Identity.cs" />
+    <Compile Include="Managers\IdentityManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\FlexibleBinaryReader.cs" />
     <Compile Include="Serialization\ISerializeBinary.cs" />
