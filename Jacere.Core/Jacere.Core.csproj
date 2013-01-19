@@ -46,8 +46,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Discovery\IFactory.cs" />
+    <Compile Include="Extensions\ArrayExtensions.cs" />
     <Compile Include="Extensions\LongToSizeExtension.cs" />
     <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
+    <Compile Include="Extensions\GeometryExtensions.cs" />
     <Compile Include="Geometry\Extent2D.cs" />
     <Compile Include="Geometry\Extent3D.cs" />
     <Compile Include="Geometry\IPoint3D.cs" />
@@ -61,8 +63,6 @@
     <Compile Include="Geometry\Polygon2DConvex.cs" />
     <Compile Include="Geometry\PolygonBase.cs" />
     <Compile Include="Geometry\Quantization3D.cs" />
-    <Compile Include="Geometry\QuantizationConverter.cs" />
-    <Compile Include="Geometry\QuantizationTest.cs" />
     <Compile Include="Geometry\SQuantization3D.cs" />
     <Compile Include="Geometry\SQuantizedExtent3D.cs" />
     <Compile Include="Geometry\SQuantizedPoint3D.cs" />
