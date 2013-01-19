@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 
 using Jacere.Core;
+using Microsoft.Win32;
 
 namespace Jacere.Data.PointCloud
 {
@@ -66,13 +67,13 @@ namespace Jacere.Data.PointCloud
 			return creators;
 		}
 
-		//public static OpenFileDialog GetOpenDialog()
-		//{
-		//    OpenFileDialog dialog = new OpenFileDialog();
-		//    dialog.Filter = c_filter;
-		//    dialog.Multiselect = true;
+		public static OpenFileDialog GetOpenDialog()
+		{
+			OpenFileDialog dialog = new OpenFileDialog();
+			dialog.Filter = c_filter;
+			dialog.Multiselect = true;
 
-		//    return dialog;
-		//}
+			return dialog;
+		}
 	}
 }
