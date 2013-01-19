@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public class ManagedBackgroundWorker : BackgroundWorker
 	{

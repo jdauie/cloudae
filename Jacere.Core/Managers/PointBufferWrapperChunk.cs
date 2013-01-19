@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public unsafe class PointBufferWrapperChunk : IProgress, IPointDataChunk
 	{

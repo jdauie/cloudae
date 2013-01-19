@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public unsafe class PointBufferWrapper : IPointDataChunk, IEnumerable<IPointDataChunk>, IChunkProcess
 	{

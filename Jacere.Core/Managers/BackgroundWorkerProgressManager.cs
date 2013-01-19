@@ -5,7 +5,7 @@ using System.Text;
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public class BackgroundWorkerProgressManager : ProgressManager
 	{

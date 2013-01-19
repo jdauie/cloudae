@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public abstract class ProgressManager
 	{
