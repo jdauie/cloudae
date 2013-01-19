@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CloudAE.Core.Util
+namespace Jacere.Core.Util
 {
 	public class SupportedType
 	{

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace CloudAE.Core.Util
+namespace Jacere.Core.Util
 {
 	[StructLayout(LayoutKind.Explicit)]
 	public struct IMAGE_DOS_HEADER

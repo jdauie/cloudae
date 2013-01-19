@@ -105,7 +105,6 @@
     <Compile Include="Serialization\ISerializeBinary.cs" />
     <Compile Include="Serialization\ISerializeStateBinary.cs" />
     <Compile Include="Serialization\SerializationHelper.cs" />
-    <Compile Include="Utilities\EncodingConverter.cs" />
     <Compile Include="Utilities\PathUtil.cs" />
     <Compile Include="Utilities\PEHeader.cs" />
     <Compile Include="Utilities\SupportedType.cs" />

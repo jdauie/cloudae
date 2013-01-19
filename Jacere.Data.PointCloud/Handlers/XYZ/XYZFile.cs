@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+
 using Jacere.Core;
 using Jacere.Core.Geometry;
 
@@ -25,8 +26,11 @@ namespace Jacere.Data.PointCloud
 
 		public override IPointCloudBinarySource GenerateBinarySource(ProgressManager progressManager)
 		{
-			string binaryPath = ProcessingSet.GetBinarySourceName(this);
-			return ConvertTextToBinary(binaryPath, progressManager);
+			throw new NotImplementedException();
+
+#warning removed call to ProcessingSet.GetBinarySourceName()
+			//string binaryPath = ProcessingSet.GetBinarySourceName(this);
+			//return ConvertTextToBinary(binaryPath, progressManager);
 		}
 
 		public override string GetPreview()
