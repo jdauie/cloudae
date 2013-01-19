@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -40,10 +42,46 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Handlers\FileHandlerBase.cs" />
+    <Compile Include="Handlers\HandlerCreatorBase.cs" />
+    <Compile Include="Handlers\HandlerFactory.cs" />
+    <Compile Include="Handlers\IHandlerCreator.cs" />
+    <Compile Include="Handlers\LAS\LASComposite.cs" />
+    <Compile Include="Handlers\LAS\LASCreator.cs" />
+    <Compile Include="Handlers\LAS\LASEVLR.cs" />
+    <Compile Include="Handlers\LAS\LASFile.cs" />
+    <Compile Include="Handlers\LAS\LASHeader.cs" />
+    <Compile Include="Handlers\LAS\LASPointAttribute.cs" />
+    <Compile Include="Handlers\LAS\LASRecordIdentifier.cs" />
+    <Compile Include="Handlers\LAS\LASVLR.cs" />
+    <Compile Include="Handlers\LAZ\LAZBinarySource.cs" />
+    <Compile Include="Handlers\LAZ\LAZCreator.cs" />
+    <Compile Include="Handlers\LAZ\LAZFile.cs" />
+    <Compile Include="Handlers\LAZ\LAZStreamReader.cs" />
+    <Compile Include="Handlers\XYZ\XYZCreator.cs" />
+    <Compile Include="Handlers\XYZ\XYZFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sources\FileStreamUnbufferedSequentialRead.cs" />
+    <Compile Include="Sources\FileStreamUnbufferedSequentialWrite.cs" />
+    <Compile Include="Sources\IPointCloudBinarySource.cs" />
+    <Compile Include="Sources\IPointCloudBinarySourceEnumerable.cs" />
+    <Compile Include="Sources\IPointCloudBinarySourceEnumerator.cs" />
+    <Compile Include="Sources\IPointDataChunk.cs" />
+    <Compile Include="Sources\IPointDataTileChunk.cs" />
+    <Compile Include="Sources\IStreamReader.cs" />
+    <Compile Include="Sources\IStreamWriter.cs" />
+    <Compile Include="Sources\PointCloudBinarySource.cs" />
+    <Compile Include="Sources\PointCloudBinarySourceComposite.cs" />
+    <Compile Include="Sources\PointCloudBinarySourceCompositeEnumerator.cs" />
+    <Compile Include="Sources\PointCloudBinarySourceEnumerator.cs" />
+    <Compile Include="Sources\PointCloudBinarySourceEnumeratorChunk.cs" />
+    <Compile Include="Sources\PointCloudSource.cs" />
+    <Compile Include="Sources\PointStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
