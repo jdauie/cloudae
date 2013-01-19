@@ -170,6 +170,10 @@
       <Project>{009F83E9-A201-44E2-8CEB-6B195DF764C7}</Project>
       <Name>CloudAE.Tools3D</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Jacere.Core\Jacere.Core.csproj">
+      <Project>{E1EB7D60-3632-4F12-AE13-B360D2B66C24}</Project>
+      <Name>Jacere.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
