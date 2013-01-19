@@ -10,7 +10,7 @@ using System.Windows.Media.Imaging;
 
 using CloudAE.Core;
 using CloudAE.Core.Geometry;
-using CloudAE.Core.Util;
+using Jacere.Core;
 
 namespace CloudAE.Core
 {
@@ -173,7 +173,7 @@ namespace CloudAE.Core
 		{
 			// mark with some low-order bytes of the file size
 			FileInfo fileInfo = new FileInfo(path);
-			string fileName = String.Format("{0}.{1}.{2}", fileInfo.Name, EncodingConverter.ToBase64SafeString(BitConverter.GetBytes(fileInfo.Length), 0, 3), PointCloudTileSource.FILE_EXTENSION);
+			string fileName = String.Format("{0}.{1}.{2}", fileInfo.Name, BitConverter.GetBytes(fileInfo.Length).ToBase64SafeString(0, 3), PointCloudTileSource.FILE_EXTENSION);
 			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
 			return tilePath;
 		}

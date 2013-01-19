@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CloudAE.Core.Windows;
-using CloudAE.Core.Util;
+using Jacere.Core.Windows;
+using Jacere.Core.Util;
 using System.Diagnostics;
 
 namespace CloudAE.Core

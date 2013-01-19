@@ -23,10 +23,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.ComponentModel;
-using CloudAE.Core.Util;
-using Microsoft.Win32;
 
-using CloudAE.Core.Windows;
+using Jacere.Core.Util;
+using Jacere.Core.Windows;
 
 namespace CloudAE.Core
 {

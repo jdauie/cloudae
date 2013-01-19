@@ -8,8 +8,8 @@ using System.Management;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-using CloudAE.Core.Windows;
-using CloudAE.Core.Util;
+using Jacere.Core.Windows;
+using Jacere.Core.Util;
 
 namespace CloudAE.Core
 {
