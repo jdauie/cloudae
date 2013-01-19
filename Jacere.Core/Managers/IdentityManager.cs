@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public static class IdentityManager
 	{

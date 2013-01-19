@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public enum ByteSizesSmall : int
 	{

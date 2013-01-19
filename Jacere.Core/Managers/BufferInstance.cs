@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public unsafe class BufferInstance : IDisposable
 	{
