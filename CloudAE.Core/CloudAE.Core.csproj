@@ -55,8 +55,6 @@
     <Compile Include="Extensions\WindowExtensions.cs" />
     <Compile Include="Geometry\QuantizationConverter.cs" />
     <Compile Include="Geometry\QuantizationTest.cs" />
-    <Compile Include="Managers\BufferInstance.cs" />
-    <Compile Include="Managers\BufferManager.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="Attributes\ProductExtensionAttribute.cs" />
     <Compile Include="Exceptions\IgnorableException.cs" />
@@ -65,19 +63,10 @@
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Discovery\IFactory.cs" />
-    <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
     <Compile Include="Managers\IChunkProcess.cs" />
-    <Compile Include="Managers\Identity.cs" />
-    <Compile Include="Managers\IdentityManager.cs" />
-    <Compile Include="Managers\IProgress.cs" />
     <Compile Include="Managers\PointBufferWrapper.cs" />
     <Compile Include="Managers\PointBufferWrapperChunk.cs" />
     <Compile Include="Managers\PointCloudTileCacheManager.cs" />
-    <Compile Include="Managers\ProgressManagerProcess.cs" />
-    <Compile Include="Managers\ManagedBackgroundWorker.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Managers\StreamManager.cs" />
     <Compile Include="Math\GridQuantizedSet.cs" />
     <Compile Include="Math\GridCounter.cs" />
     <Compile Include="Math\ScaledStatisticsMapping.cs" />
@@ -98,27 +87,14 @@
     <Compile Include="Math\Grid.cs" />
     <Compile Include="Math\Statistics.cs" />
     <Compile Include="MotionControllers\FlyMotionController.cs" />
-    <Compile Include="Sources\IPointCloudBinarySource.cs" />
-    <Compile Include="Sources\IPointDataChunk.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
-    <Compile Include="Sources\IStreamReader.cs" />
-    <Compile Include="Sources\FileStreamUnbufferedSequentialRead.cs" />
-    <Compile Include="Sources\FileStreamUnbufferedSequentialWrite.cs" />
-    <Compile Include="Sources\IPointCloudBinarySourceEnumerator.cs" />
-    <Compile Include="Sources\IStreamWriter.cs" />
-    <Compile Include="Sources\PointCloudBinarySourceCompositeEnumerator.cs" />
-    <Compile Include="Sources\PointCloudBinarySourceComposite.cs" />
     <Compile Include="Sources\PointStream.cs" />
-    <Compile Include="Sources\IPointCloudBinarySourceEnumerable.cs" />
     <Compile Include="SystemInfo.cs" />
     <Compile Include="Tiling\PointCloudAnalysisResult.cs" />
     <Compile Include="Tiling\PointCloudTileBufferPosition.cs" />
     <Compile Include="Tiling\PointCloudTileSourceUtilities.cs" />
     <Compile Include="Tiling\PointCloudTileTree.cs" />
-    <Compile Include="Managers\PerformanceManager.cs" />
     <Compile Include="SegmentationOriginal.cs" />
-    <Compile Include="Sources\PointCloudBinarySource.cs" />
-    <Compile Include="Sources\PointCloudBinarySourceEnumeratorChunk.cs" />
     <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="ProcessingSet.cs" />
     <Compile Include="Segmentation.cs" />
@@ -130,9 +106,7 @@
     <Compile Include="Tiling\PointCloudTileSet.cs" />
     <Compile Include="Tiling\PointCloudTileManager.cs" />
     <Compile Include="Tiling\PointCloudTileSource.cs" />
-    <Compile Include="Managers\ProgressManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sources\PointCloudBinarySourceEnumerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\bullet_green.png" />
