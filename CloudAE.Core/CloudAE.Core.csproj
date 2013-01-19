@@ -85,8 +85,6 @@
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />
-    <Compile Include="Options\IPropertyManager.cs" />
-    <Compile Include="Options\RegistryPropertyManager.cs" />
     <Compile Include="ProcessingQueue.cs" />
     <Compile Include="Media\ColorMap.cs" />
     <Compile Include="Media\ColorRamp.cs" />
@@ -100,10 +98,6 @@
     <Compile Include="Math\Grid.cs" />
     <Compile Include="Math\Statistics.cs" />
     <Compile Include="MotionControllers\FlyMotionController.cs" />
-    <Compile Include="Options\IPropertyContainer.cs" />
-    <Compile Include="Options\RegistryPropertyState.cs" />
-    <Compile Include="Options\IPropertyState.cs" />
-    <Compile Include="Options\PropertyName.cs" />
     <Compile Include="Sources\IPointCloudBinarySource.cs" />
     <Compile Include="Sources\IPointDataChunk.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
@@ -122,7 +116,6 @@
     <Compile Include="Tiling\PointCloudTileSourceUtilities.cs" />
     <Compile Include="Tiling\PointCloudTileTree.cs" />
     <Compile Include="Managers\PerformanceManager.cs" />
-    <Compile Include="Options\PropertyManager.cs" />
     <Compile Include="SegmentationOriginal.cs" />
     <Compile Include="Sources\PointCloudBinarySource.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumeratorChunk.cs" />
