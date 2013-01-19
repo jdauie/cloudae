@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public static class SerializeArrayExtensions
 	{

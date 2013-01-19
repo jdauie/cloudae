@@ -1,5 +1,5 @@
 ﻿using System;
-using Jacere.Data.PointCloud.Geometry;
+using Jacere.Core.Geometry;
 
 namespace Jacere.Data.PointCloud
 {

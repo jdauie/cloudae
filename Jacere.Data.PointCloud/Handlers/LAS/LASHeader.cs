@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+
 using Jacere.Core;
-using Jacere.Data.PointCloud.Geometry;
+using Jacere.Core.Geometry;
 
 namespace Jacere.Data.PointCloud
 {
@@ -259,49 +260,6 @@ namespace Jacere.Data.PointCloud
 			//ulong pointDataRegionLength = (ulong)length - m_offsetToPointData;
 			//if (pointDataRegionLength < m_pointDataRecordLength * PointCount)
 			//    throw new Exception("Invalid format: point data region is not the expected size");
-		}
-
-		public LASHeader(LASHeader[] headers, PointCloudTileSource source)
-		{
-			//LASHeader header = headers[0];
-
-			//m_fileSourceID = header.m_fileSourceID;
-
-			//m_globalEncoding = header.m_globalEncoding;
-			//m_projectID = header.m_projectID;
-			//m_version = LASVersionInfo.Create(LASVersion.LAS_1_4);
-
-			//m_systemIdentifier = header.m_systemIdentifier;
-			//m_generatingSoftware = header.m_generatingSoftware;
-			//m_fileCreationDayOfYear = header.m_fileCreationDayOfYear;
-			//m_fileCreationYear = header.m_fileCreationYear;
-
-			//m_headerSize = c_minHeaderSize[m_version.Version];
-			//m_offsetToPointData = reader.ReadUInt32();
-
-			//m_numberOfVariableLengthRecords = 0;
-			//m_pointDataRecordFormat = header.m_pointDataRecordFormat;
-			//m_pointDataRecordLength = header.m_pointDataRecordLength;
-			//m_legacyNumberOfPointRecords = header.m_legacyNumberOfPointRecords;
-			//m_legacyNumberOfPointsByReturn = header.m_legacyNumberOfPointsByReturn;
-
-			//m_quantization = quantization;
-			//m_extent = extent;
-
-			//if (m_version.Version >= LASVersion.LAS_1_4)
-			//{
-			//    m_startOfFirstExtendedVariableLengthRecord = reader.ReadUInt64();
-			//    m_numberOfExtendedVariableLengthRecords = reader.ReadUInt32();
-			//    m_numberOfPointRecords = reader.ReadUInt64();
-			//    m_numberOfPointsByReturn = reader.ReadUInt64Array(15);
-			//}
-			//else
-			//{
-			//    m_numberOfPointRecords = m_legacyNumberOfPointRecords;
-			//    m_numberOfPointsByReturn = new ulong[15];
-			//    for (int i = 0; i < m_legacyNumberOfPointsByReturn.Length; i++)
-			//        m_numberOfPointsByReturn[i] = m_legacyNumberOfPointsByReturn[i];
-			//}
 		}
 
 		public void Serialize(BinaryWriter writer)

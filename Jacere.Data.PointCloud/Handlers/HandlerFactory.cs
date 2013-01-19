@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
-using Microsoft.Win32;
+
+using Jacere.Core;
 
 namespace Jacere.Data.PointCloud
 {
@@ -22,9 +20,9 @@ namespace Jacere.Data.PointCloud
 
 		private static string GetFilterString()
 		{
-			List<string> filters = new List<string>();
+			var filters = new List<string>();
 
-			foreach (IHandlerCreator creator in c_creators)
+			foreach (var creator in c_creators)
 			{
 				string extensions = string.Join<string>(";", creator.SupportedExtensions.Select(e => string.Format("*.{0}", e)));
 				filters.Add(string.Format("{0} files ({1})|{1}", creator.HandlerName, extensions));
@@ -53,27 +51,28 @@ namespace Jacere.Data.PointCloud
 
 		private static List<IHandlerCreator> RegisterCreators()
 		{
-			List<IHandlerCreator> creators = new List<IHandlerCreator>();
+			var creators = new List<IHandlerCreator>();
 			Type baseType = typeof(IHandlerCreator);
 
-			Context.ProcessLoadedTypes(
-				1,
-				"Handlers",
-				baseType.IsAssignableFrom,
-				t => !t.IsAbstract,
-				t => creators.Add(Activator.CreateInstance(t) as IHandlerCreator)
-			);
+#warning removed ref to Context.ProcessLoadedTypes
+			//Context.ProcessLoadedTypes(
+			//    1,
+			//    "Handlers",
+			//    baseType.IsAssignableFrom,
+			//    t => !t.IsAbstract,
+			//    t => creators.Add(Activator.CreateInstance(t) as IHandlerCreator)
+			//);
 
 			return creators;
 		}
 
-		public static OpenFileDialog GetOpenDialog()
-		{
-			OpenFileDialog dialog = new OpenFileDialog();
-			dialog.Filter = c_filter;
-			dialog.Multiselect = true;
+		//public static OpenFileDialog GetOpenDialog()
+		//{
+		//    OpenFileDialog dialog = new OpenFileDialog();
+		//    dialog.Filter = c_filter;
+		//    dialog.Multiselect = true;
 
-			return dialog;
-		}
+		//    return dialog;
+		//}
 	}
 }

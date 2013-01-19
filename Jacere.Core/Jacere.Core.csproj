@@ -52,7 +52,8 @@
     <Compile Include="Extensions\LongToSizeExtension.cs" />
     <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
     <Compile Include="Extensions\GeometryExtensions.cs" />
-    <Compile Include="Extensions\StreamExtensions.cs" />
+    <Compile Include="Extensions\SerializeArrayExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Geometry\Extent2D.cs" />
     <Compile Include="Geometry\Extent3D.cs" />
     <Compile Include="Geometry\IPoint3D.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="Geometry\UQuantizedPoint3D.cs" />
     <Compile Include="IO\FileStreamUnbufferedSequentialRead.cs" />
     <Compile Include="IO\FileStreamUnbufferedSequentialWrite.cs" />
+    <Compile Include="IO\IFileContainer.cs" />
     <Compile Include="IO\IPointCloudBinarySourceEnumerable.cs" />
     <Compile Include="IO\IStreamReader.cs" />
     <Compile Include="IO\IStreamWriter.cs" />
@@ -103,7 +105,10 @@
     <Compile Include="Serialization\ISerializeBinary.cs" />
     <Compile Include="Serialization\ISerializeStateBinary.cs" />
     <Compile Include="Serialization\SerializationHelper.cs" />
+    <Compile Include="Utilities\EncodingConverter.cs" />
     <Compile Include="Utilities\PathUtil.cs" />
+    <Compile Include="Utilities\PEHeader.cs" />
+    <Compile Include="Utilities\SupportedType.cs" />
     <Compile Include="Windows\NativeMethods.cs" />
     <Compile Include="Windows\WinConsole.cs" />
     <Compile Include="Windows\WinConsoleColor.cs" />

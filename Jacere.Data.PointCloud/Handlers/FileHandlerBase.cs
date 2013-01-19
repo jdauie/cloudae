@@ -7,11 +7,6 @@ using Jacere.Core;
 
 namespace Jacere.Data.PointCloud
 {
-	public interface IFileContainer
-	{
-		string FilePath { get; }
-	}
-
 	public abstract class FileHandlerBase : IFileContainer
 	{
 		private string m_path;
