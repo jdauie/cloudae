@@ -78,6 +78,12 @@
     <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="Sources\PointStream.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Jacere.Core\Jacere.Core.csproj">
+      <Project>{E1EB7D60-3632-4F12-AE13-B360D2B66C24}</Project>
+      <Name>Jacere.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"</PostBuildEvent>
