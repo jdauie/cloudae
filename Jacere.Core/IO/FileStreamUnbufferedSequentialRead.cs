@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Jacere.Core;
-using Jacere.Data.PointCloud.Windows;
-using Jacere.Data.PointCloud.Util;
+using Jacere.Core.Windows;
+using Jacere.Core.Util;
 using System.Diagnostics;
 
 namespace Jacere.Data.PointCloud

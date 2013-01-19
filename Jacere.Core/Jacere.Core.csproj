@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -60,6 +61,13 @@
     <Compile Include="Managers\ProgressManager.cs" />
     <Compile Include="Managers\ProgressManagerProcess.cs" />
     <Compile Include="Managers\StreamManager.cs" />
+    <Compile Include="Options\IPropertyContainer.cs" />
+    <Compile Include="Options\IPropertyManager.cs" />
+    <Compile Include="Options\IPropertyState.cs" />
+    <Compile Include="Options\PropertyManager.cs" />
+    <Compile Include="Options\PropertyName.cs" />
+    <Compile Include="Options\RegistryPropertyManager.cs" />
+    <Compile Include="Options\RegistryPropertyState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\FlexibleBinaryReader.cs" />
     <Compile Include="Serialization\ISerializeBinary.cs" />
@@ -67,6 +75,9 @@
     <Compile Include="Serialization\SerializationHelper.cs" />
     <Compile Include="Util\PathUtil.cs" />
     <Compile Include="Windows\NativeMethods.cs" />
+    <Compile Include="Windows\WinConsole.cs" />
+    <Compile Include="Windows\WinConsoleColor.cs" />
+    <Compile Include="Windows\WinConsoleColorHandler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
