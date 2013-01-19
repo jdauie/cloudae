@@ -62,7 +62,6 @@
     <Compile Include="Extensions\ReflectionExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
-    <Compile Include="Discovery\IFactory.cs" />
     <Compile Include="Managers\IChunkProcess.cs" />
     <Compile Include="Managers\PointBufferWrapper.cs" />
     <Compile Include="Managers\PointBufferWrapperChunk.cs" />
@@ -88,14 +87,12 @@
     <Compile Include="Math\Statistics.cs" />
     <Compile Include="MotionControllers\FlyMotionController.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
-    <Compile Include="Sources\PointStream.cs" />
     <Compile Include="SystemInfo.cs" />
     <Compile Include="Tiling\PointCloudAnalysisResult.cs" />
     <Compile Include="Tiling\PointCloudTileBufferPosition.cs" />
     <Compile Include="Tiling\PointCloudTileSourceUtilities.cs" />
     <Compile Include="Tiling\PointCloudTileTree.cs" />
     <Compile Include="SegmentationOriginal.cs" />
-    <Compile Include="Sources\PointCloudSource.cs" />
     <Compile Include="ProcessingSet.cs" />
     <Compile Include="Segmentation.cs" />
     <Compile Include="Tiling\PointCloudTileSourceEnumeratorChunk.cs" />
