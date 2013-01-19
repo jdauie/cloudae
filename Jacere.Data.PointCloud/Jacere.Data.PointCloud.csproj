@@ -60,6 +60,9 @@
     <Compile Include="Handlers\LAZ\LAZStreamReader.cs" />
     <Compile Include="Handlers\XYZ\XYZCreator.cs" />
     <Compile Include="Handlers\XYZ\XYZFile.cs" />
+    <Compile Include="Managers\IChunkProcess.cs" />
+    <Compile Include="Managers\PointBufferWrapper.cs" />
+    <Compile Include="Managers\PointBufferWrapperChunk.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sources\FileStreamUnbufferedSequentialRead.cs" />
     <Compile Include="Sources\FileStreamUnbufferedSequentialWrite.cs" />

@@ -46,7 +46,6 @@
     <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
     <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />
-    <Compile Include="Managers\IChunkProcess.cs" />
     <Compile Include="Managers\Identity.cs" />
     <Compile Include="Managers\IdentityManager.cs" />
     <Compile Include="Managers\IProgress.cs" />
@@ -54,8 +53,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Managers\PerformanceManager.cs" />
-    <Compile Include="Managers\PointBufferWrapper.cs" />
-    <Compile Include="Managers\PointBufferWrapperChunk.cs" />
     <Compile Include="Managers\ProgressManager.cs" />
     <Compile Include="Managers\ProgressManagerProcess.cs" />
     <Compile Include="Managers\StreamManager.cs" />
