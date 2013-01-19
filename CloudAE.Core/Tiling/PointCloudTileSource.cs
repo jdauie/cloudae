@@ -9,8 +9,9 @@ using System.Text;
 using System.Windows.Media.Imaging;
 
 using CloudAE.Core;
-using Jacere.Core.Geometry;
 using Jacere.Core;
+using Jacere.Core.Geometry;
+using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {

@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.Win32;
 
+using Jacere.Core;
+
 namespace CloudAE.Core
 {
 	public class RegistryPropertyManager : IPropertyManager

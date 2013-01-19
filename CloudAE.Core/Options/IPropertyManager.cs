@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Jacere.Core;
+
 namespace CloudAE.Core
 {
 	public interface IPropertyManager

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
+using Jacere.Data.PointCloud;
+
 namespace CloudAE.Core
 {
 	public abstract class PointCloudSource

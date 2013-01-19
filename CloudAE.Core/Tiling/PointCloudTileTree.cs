@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Jacere.Core;
+
 namespace CloudAE.Core
 {
 	class PointCloudTileTree : IEnumerable<PointCloudTile>

@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+using Jacere.Core;
+
 namespace CloudAE.Core
 {
 	public static class PropertyManager

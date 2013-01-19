@@ -24,8 +24,10 @@ using System.Linq;
 using System.Reflection;
 using System.ComponentModel;
 
+using Jacere.Core;
 using Jacere.Core.Util;
 using Jacere.Core.Windows;
+using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {

@@ -5,6 +5,7 @@ using System.IO;
 using System.Diagnostics;
 
 using Jacere.Core.Util;
+using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
