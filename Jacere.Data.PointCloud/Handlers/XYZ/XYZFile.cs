@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
-using CloudAE.Core.Geometry;
+using Jacere.Data.PointCloud.Geometry;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	class XYZFile : FileHandlerBase
 	{

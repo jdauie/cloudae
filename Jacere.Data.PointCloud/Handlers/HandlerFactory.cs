@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	public class HandlerFactory : IFactory
 	{

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using CloudAE.Core.Util;
+using Jacere.Data.PointCloud.Util;
 using System.Diagnostics;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	public class FileStreamUnbufferedSequentialWrite : Stream, IStreamWriter
 	{

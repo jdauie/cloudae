@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	class FlexibleBinaryReader : BinaryReader
 	{

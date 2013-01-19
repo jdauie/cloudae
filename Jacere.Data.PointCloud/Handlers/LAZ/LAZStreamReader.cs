@@ -5,7 +5,7 @@ using System.Linq;
 
 using CloudAE.Interop.LAZ;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	/// <summary>
 	/// Wrapper providing access to an LAZ file as if it is logically an LAS.

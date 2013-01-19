@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	public unsafe class PointCloudBinarySourceEnumeratorChunk : IPointDataProgressChunk
 	{

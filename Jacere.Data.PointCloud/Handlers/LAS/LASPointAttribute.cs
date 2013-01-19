@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CloudAE.Core.Util;
+using Jacere.Data.PointCloud.Util;
 
-namespace CloudAE.Core.Handlers
+namespace Jacere.Data.PointCloud.Handlers
 {
 	/// <summary>
 	/// This can be simplified to the first set if that is more clear.

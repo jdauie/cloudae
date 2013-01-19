@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CloudAE.Core.Windows;
-using CloudAE.Core.Util;
+using Jacere.Data.PointCloud.Windows;
+using Jacere.Data.PointCloud.Util;
 using System.Diagnostics;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	public class FileStreamUnbufferedSequentialRead : Stream, IStreamReader
 	{

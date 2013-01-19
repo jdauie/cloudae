@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using CloudAE.Core.Geometry;
+using Jacere.Data.PointCloud.Geometry;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	public enum LASVersion : ushort
 	{

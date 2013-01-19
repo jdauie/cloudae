@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	public interface IFileContainer
 	{

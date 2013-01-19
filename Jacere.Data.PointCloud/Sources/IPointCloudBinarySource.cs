@@ -1,7 +1,7 @@
 ﻿using System;
-using CloudAE.Core.Geometry;
+using Jacere.Data.PointCloud.Geometry;
 
-namespace CloudAE.Core
+namespace Jacere.Data.PointCloud
 {
 	public interface IPointCloudBinarySource : IPointCloudBinarySourceSequentialEnumerable
 	{
