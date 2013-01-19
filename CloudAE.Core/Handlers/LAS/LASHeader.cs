@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Diagnostics;
-using CloudAE.Core.Geometry;
+
+using Jacere.Core;
+using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {

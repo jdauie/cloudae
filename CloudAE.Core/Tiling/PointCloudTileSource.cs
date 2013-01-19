@@ -9,7 +9,7 @@ using System.Text;
 using System.Windows.Media.Imaging;
 
 using CloudAE.Core;
-using CloudAE.Core.Geometry;
+using Jacere.Core.Geometry;
 using Jacere.Core;
 
 namespace CloudAE.Core

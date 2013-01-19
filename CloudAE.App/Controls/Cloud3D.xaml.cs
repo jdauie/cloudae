@@ -94,7 +94,7 @@ namespace CloudAE.App
 		private void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
 		{
 			/*PointCloudTileSource tileSource = e.Argument as PointCloudTileSource;
-			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
+			Jacere.Core.Geometry.Extent3D extent = tileSource.Extent;
 
 			m_overviewTextureBrush = new ImageBrush(tileSource.Preview.Image);
 			m_overviewTextureBrush.ViewportUnits = BrushMappingMode.Absolute;
@@ -108,7 +108,7 @@ namespace CloudAE.App
 				Action<string> logAction = value => Context.WriteLine(value);
 				m_progressManager = new BackgroundWorkerProgressManager(m_backgroundWorker, e, logAction);
 
-				CloudAE.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
+				Jacere.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				m_buffer = new byte[tileSource.TileSet.Density.MaxTileCount * tileSource.PointSizeBytes];
@@ -173,7 +173,7 @@ namespace CloudAE.App
 		public void LoadPreview3D()
 		{
 			PointCloudTileSource tileSource = CurrentTileSource;
-			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
+			Jacere.Core.Geometry.Extent3D extent = tileSource.Extent;
 
 			Model3DGroup modelGroup = new Model3DGroup();
 
@@ -186,7 +186,7 @@ namespace CloudAE.App
 			ModelVisual3D model = new ModelVisual3D();
 			model.Content = modelGroup;
 
-			CloudAE.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
+			Jacere.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
 			Point3D lookatPoint = new Point3D(0, 0, 0);
 			Point3D cameraPoint = new Point3D(0, extent.MinY - centerOfMass.Y, centerOfMass.Z - extent.MinZ + extent.RangeX);
 			Vector3D lookDirection = lookatPoint - cameraPoint;

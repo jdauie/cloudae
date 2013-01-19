@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-using CloudAE.Core.Geometry;
+using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {

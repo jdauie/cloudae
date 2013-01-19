@@ -64,6 +64,7 @@
     <Compile Include="Managers\IChunkProcess.cs" />
     <Compile Include="Managers\PointBufferWrapper.cs" />
     <Compile Include="Managers\PointBufferWrapperChunk.cs" />
+    <Compile Include="Points\LASPointFormat0.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sources\IPointCloudBinarySource.cs" />
     <Compile Include="Sources\IPointCloudBinarySourceEnumerable.cs" />

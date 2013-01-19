@@ -91,7 +91,7 @@ namespace CloudAE.App
 				RedrawLine();
 
 				// get points in region and display profile
-				CloudAE.Core.Geometry.Point3D[] pointsInRegion = CurrentTileSource.GetPointsNearLine(m_point0, m_point1, 1.0, true);
+				Jacere.Core.Geometry.Point3D[] pointsInRegion = CurrentTileSource.GetPointsNearLine(m_point0, m_point1, 1.0, true);
 			}
 			else
 			{

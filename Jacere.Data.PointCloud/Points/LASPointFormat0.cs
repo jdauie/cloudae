@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
-using CloudAE.Core.Handlers;
 
-namespace CloudAE.Core.Geometry
+using Jacere.Core.Geometry;
+using Jacere.Data.PointCloud.Handlers;
+
+namespace Jacere.Data.PointCloud
 {
 	/// <summary>
 	/// Point Data Record Format 0 contains the core 20 bytes 

@@ -289,7 +289,7 @@ namespace CloudAE.App
 		private void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
 		{
 			PointCloudTileSource tileSource = e.Argument as PointCloudTileSource;
-			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
+			Jacere.Core.Geometry.Extent3D extent = tileSource.Extent;
 
 			m_overviewTextureBrush = new ImageBrush(tileSource.Preview.Image);
 			m_overviewTextureBrush.ViewportUnits = BrushMappingMode.Absolute;
@@ -313,7 +313,7 @@ namespace CloudAE.App
 				//m_gridDimensionLowRes = (ushort)20;
 				//m_gridDimensionHighRes = (ushort)40;
 
-				CloudAE.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
+				Jacere.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				// load tiles
@@ -331,7 +331,7 @@ namespace CloudAE.App
 					if (ENABLE_HEIGHT_EXAGGERATION)
 						m_gridLowRes.Multiply(m_heightExaggerationFactor, (float)centerOfMass.Z);
 
-					CloudAE.Core.Geometry.Extent3D tileExtent = tile.Extent;
+					Jacere.Core.Geometry.Extent3D tileExtent = tile.Extent;
 					MeshGeometry3D mesh = tileSource.GenerateMesh(m_gridLowRes, tileExtent);
 
 					DiffuseMaterial material = new DiffuseMaterial();
@@ -641,7 +641,7 @@ namespace CloudAE.App
 		public void LoadPreview3D()
 		{
 			PointCloudTileSource tileSource = CurrentTileSource;
-			CloudAE.Core.Geometry.Extent3D extent = tileSource.Extent;
+			Jacere.Core.Geometry.Extent3D extent = tileSource.Extent;
 
 			Model3DGroup modelGroup = new Model3DGroup();
 
@@ -657,7 +657,7 @@ namespace CloudAE.App
 			ModelVisual3D model = new ModelVisual3D();
 			model.Content = modelGroup;
 
-			CloudAE.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
+			Jacere.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
 			Point3D lookatPoint = new Point3D(0, 0, 0);
 			Point3D cameraPoint = new Point3D(0, extent.MinY - centerOfMass.Y, centerOfMass.Z - extent.MinZ + extent.RangeX);
 			Vector3D lookDirection = lookatPoint - cameraPoint;
@@ -760,7 +760,7 @@ namespace CloudAE.App
 				}
 			}
 
-			CloudAE.Core.Geometry.Point3D centerOfMass = CurrentTileSource.CenterOfMass;
+			Jacere.Core.Geometry.Point3D centerOfMass = CurrentTileSource.CenterOfMass;
 
 			PointCloudTile[] tilesToLoadArray = tilesToLoad.ToArray();
 #warning sort so that disk reads are in order? or make a tile cache
@@ -772,7 +772,7 @@ namespace CloudAE.App
 				if (ENABLE_HEIGHT_EXAGGERATION)
 					m_gridHighRes.Multiply(m_heightExaggerationFactor, (float)centerOfMass.Z);
 
-				CloudAE.Core.Geometry.Extent3D tileExtent = currentTile.Extent;
+				Jacere.Core.Geometry.Extent3D tileExtent = currentTile.Extent;
 				MeshGeometry3D mesh = CurrentTileSource.GenerateMesh(m_gridHighRes, tileExtent);
 
 				DiffuseMaterial material = new DiffuseMaterial();

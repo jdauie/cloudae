@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CloudAE.Core.Geometry;
+using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {
