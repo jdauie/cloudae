@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
-using Jacere.Core;
 
-namespace Jacere.Data.PointCloud
+namespace CloudAE.Core
 {
-	public unsafe class PointCloudBinarySourceEnumeratorChunk : IPointDataProgressChunk
+	public unsafe class PointBufferWrapperChunk : IProgress, IPointDataChunk
 	{
 		private readonly int m_index;
 
@@ -46,7 +45,7 @@ namespace Jacere.Data.PointCloud
 
 		public int Length
 		{
-			get { return m_bytesRead; }
+			get { return (int)(m_dataEndPtr - m_dataPtr); }
 		}
 
 		public short PointSizeBytes
@@ -61,22 +60,35 @@ namespace Jacere.Data.PointCloud
 
 		public IPointDataChunk CreateSegment(int pointCount)
 		{
-			return new PointCloudBinarySourceEnumeratorChunk(m_index, m_buffer, pointCount * m_pointSizeBytes, m_pointSizeBytes, m_progress);
+			return new PointBufferWrapperChunk(m_index, m_buffer, 0, 0, m_pointSizeBytes, m_progress);
 		}
 
 		#endregion
 
-		public PointCloudBinarySourceEnumeratorChunk(int index, BufferInstance buffer, int bytesRead, short pointSizeBytes, float progress)
+		public PointBufferWrapperChunk(int index, BufferInstance buffer, int byteIndex, int byteLength, short pointSizeBytes, float progress)
 		{
 			m_buffer = buffer;
 			m_index = index;
 			m_pointSizeBytes = pointSizeBytes;
-			m_bytesRead = bytesRead;
+			m_bytesRead = byteLength;
 			m_pointsRead = m_bytesRead / m_pointSizeBytes;
-			m_dataPtr = buffer.DataPtr;
+			m_dataPtr = buffer.DataPtr + byteIndex;
 			m_dataEndPtr = m_dataPtr + m_bytesRead;
 
 			m_progress = progress;
+		}
+
+		public PointBufferWrapperChunk(PointBufferWrapperChunk chunk, int pointCount)
+		{
+			m_buffer = chunk.m_buffer;
+			m_index = chunk.m_index;
+			m_pointSizeBytes = chunk.m_pointSizeBytes;
+			m_pointsRead = pointCount;
+			m_bytesRead = m_pointsRead * m_pointSizeBytes;
+			m_dataPtr = chunk.m_dataPtr;
+			m_dataEndPtr = m_dataPtr + m_bytesRead;
+
+			m_progress = chunk.m_progress;
 		}
 	}
 }

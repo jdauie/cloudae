@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Jacere.Core;
 using Jacere.Data.PointCloud.Util;
 using System.Diagnostics;
 

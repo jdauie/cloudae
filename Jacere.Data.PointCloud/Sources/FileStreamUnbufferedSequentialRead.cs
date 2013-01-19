@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Jacere.Core;
 using Jacere.Data.PointCloud.Windows;
 using Jacere.Data.PointCloud.Util;
 using System.Diagnostics;
