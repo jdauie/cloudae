@@ -64,14 +64,7 @@
     <Compile Include="Managers\PointCloudTileCacheManager.cs" />
     <Compile Include="Math\GridQuantizedSet.cs" />
     <Compile Include="Math\GridCounter.cs" />
-    <Compile Include="Math\ScaledStatisticsMapping.cs" />
-    <Compile Include="Math\SimpleStatsMapping.cs" />
-    <Compile Include="Media\CachedColorRamp.cs" />
-    <Compile Include="Media\IColorHandler.cs" />
-    <Compile Include="Media\PreviewImage.cs" />
     <Compile Include="ProcessingQueue.cs" />
-    <Compile Include="Media\ColorMap.cs" />
-    <Compile Include="Media\ColorRamp.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="DelaunayIncremental\Delaunay2DIncremental.cs" />
     <Compile Include="DelaunayIncremental\DelaunayGeometry.cs" />
@@ -79,7 +72,6 @@
     <Compile Include="DelaunayIncremental\Triangle.cs" />
     <Compile Include="Extensions\NumericExtensions.cs" />
     <Compile Include="Math\Grid.cs" />
-    <Compile Include="Math\Statistics.cs" />
     <Compile Include="MotionControllers\FlyMotionController.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
     <Compile Include="SystemInfo.cs" />

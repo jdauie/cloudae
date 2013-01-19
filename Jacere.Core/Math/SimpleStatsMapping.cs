@@ -5,7 +5,7 @@ using System.Linq;
 using Jacere.Core.Geometry;
 using Jacere.Data.PointCloud;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public class SimpleStatisticsMapping : IChunkProcess
 	{

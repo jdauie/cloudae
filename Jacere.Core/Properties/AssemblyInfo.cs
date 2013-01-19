@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Jacere.Core")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Overwatch")]
+[assembly: AssemblyCompany("Jacere")]
 [assembly: AssemblyProduct("Jacere.Core")]
-[assembly: AssemblyCopyright("Copyright © Overwatch 2013")]
+[assembly: AssemblyCopyright("Copyright © Joshua Morey 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

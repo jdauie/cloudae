@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-//using System.Windows.Media;
 using System.Drawing;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	/// <summary>
 	/// Base ColorRamp implementation.

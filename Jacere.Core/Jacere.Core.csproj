@@ -99,6 +99,14 @@
     <Compile Include="Managers\ProgressManager.cs" />
     <Compile Include="Managers\ProgressManagerProcess.cs" />
     <Compile Include="Managers\StreamManager.cs" />
+    <Compile Include="Math\ScaledStatisticsMapping.cs" />
+    <Compile Include="Math\SimpleStatsMapping.cs" />
+    <Compile Include="Math\Statistics.cs" />
+    <Compile Include="Media\CachedColorRamp.cs" />
+    <Compile Include="Media\ColorMap.cs" />
+    <Compile Include="Media\ColorRamp.cs" />
+    <Compile Include="Media\IColorHandler.cs" />
+    <Compile Include="Media\PreviewImage.cs" />
     <Compile Include="Options\IPropertyContainer.cs" />
     <Compile Include="Options\IPropertyManager.cs" />
     <Compile Include="Options\IPropertyState.cs" />

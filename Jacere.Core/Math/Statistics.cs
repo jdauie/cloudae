@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
-using Jacere.Core;
 using Jacere.Core.Geometry;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public class Statistics : ISerializeBinary
 	{

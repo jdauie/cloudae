@@ -5,7 +5,7 @@ using System.Text;
 using Jacere.Core.Geometry;
 using System.Drawing;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	/// <summary>
 	/// Pre-calculated color ramp using the 2^n mapping mechanism.
