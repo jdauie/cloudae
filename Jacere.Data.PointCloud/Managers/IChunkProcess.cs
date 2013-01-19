@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Jacere.Core.Geometry;
 
-namespace Jacere.Core
+namespace Jacere.Data.PointCloud
 {
 	public interface IChunkProcess
 	{

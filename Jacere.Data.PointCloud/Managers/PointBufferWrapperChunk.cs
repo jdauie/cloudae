@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+using Jacere.Core;
 
-namespace Jacere.Core
+namespace Jacere.Data.PointCloud
 {
 	public unsafe class PointBufferWrapperChunk : IProgress, IPointDataChunk
 	{

@@ -71,8 +71,6 @@
     <Compile Include="Sources\IPointCloudBinarySourceEnumerator.cs" />
     <Compile Include="Sources\IPointDataChunk.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
-    <Compile Include="Sources\IStreamReader.cs" />
-    <Compile Include="Sources\IStreamWriter.cs" />
     <Compile Include="Sources\PointCloudBinarySource.cs" />
     <Compile Include="Sources\PointCloudBinarySourceComposite.cs" />
     <Compile Include="Sources\PointCloudBinarySourceCompositeEnumerator.cs" />

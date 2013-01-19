@@ -43,6 +43,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\SerializeBinaryExtensions.cs" />
+    <Compile Include="IO\IStreamReader.cs" />
+    <Compile Include="IO\IStreamWriter.cs" />
     <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
     <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />

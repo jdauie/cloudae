@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Jacere.Core;
 
-namespace Jacere.Core
+namespace Jacere.Data.PointCloud
 {
 	public unsafe class PointBufferWrapper : IPointDataChunk, IEnumerable<IPointDataChunk>, IChunkProcess
 	{
