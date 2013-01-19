@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public class ObservableQueue<T> : Queue<T>, INotifyCollectionChanged, INotifyPropertyChanged
 	{

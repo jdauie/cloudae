@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace CloudAE.Core.Compression
+namespace Jacere.Core.Compression
 {
 	public class MemorableMemoryStream : MemoryStream
 	{

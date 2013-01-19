@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Reflection;
-using CloudAE.Core.Attributes;
+
+using Jacere.Core.Attributes;
 
 namespace CloudAE.Core
 {
@@ -42,7 +42,7 @@ namespace CloudAE.Core
 
 			if (attributes != null && attributes.Length == 1)
 			{
-				ProductExtensionAttribute extensionAttribute = attributes[0] as ProductExtensionAttribute;
+				var extensionAttribute = attributes[0] as ProductExtensionAttribute;
 				if (extensionAttribute != null)
 					return extensionAttribute.ProductName.Equals(productName);
 			}
