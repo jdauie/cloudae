@@ -2,11 +2,10 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
-using CloudAE.Core.Geometry;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
-	public static class StreamExtensions
+	public static class SerializeBinaryExtensions
 	{
 		public static void Write(this BinaryWriter writer, ISerializeBinary obj)
 		{
@@ -37,112 +36,6 @@ namespace CloudAE.Core
 			obj = constructor.Invoke(new object[] { reader }) as ISerializeBinary;
 
 			return obj;
-		}
-
-		public static Point3D ReadPoint3D(this BinaryReader reader)
-		{
-			return new Point3D(reader);
-		}
-
-		public static Extent3D ReadExtent3D(this BinaryReader reader)
-		{
-			return new Extent3D(reader);
-		}
-
-		public static UQuantizedExtent3D ReadUQuantizedExtent3D(this BinaryReader reader)
-		{
-			return new UQuantizedExtent3D(reader);
-		}
-
-		public static UQuantizedPoint3D ReadUQuantizedPoint3D(this BinaryReader reader)
-		{
-			return new UQuantizedPoint3D(reader);
-		}
-
-		public static SQuantizedExtent3D ReadSQuantizedExtent3D(this BinaryReader reader)
-		{
-			return new SQuantizedExtent3D(reader);
-		}
-
-		public static SQuantizedPoint3D ReadSQuantizedPoint3D(this BinaryReader reader)
-		{
-			return new SQuantizedPoint3D(reader);
-		}
-
-		public static PointCloudTileDensity ReadTileDensity(this BinaryReader reader)
-		{
-			return new PointCloudTileDensity(reader);
-		}
-
-		public static UQuantization3D ReadUQuantization3D(this BinaryReader reader)
-		{
-			return new UQuantization3D(reader);
-		}
-
-		public static PointCloudTileSet ReadTileSet(this BinaryReader reader)
-		{
-			return new PointCloudTileSet(reader);
-		}
-
-		public static Statistics ReadStatistics(this BinaryReader reader)
-		{
-			return new Statistics(reader);
-		}
-
-		public static SQuantization3D ReadSQuantization3D(this BinaryReader reader)
-		{
-			return new SQuantization3D(reader);
-		}
-
-		public static LASProjectID ReadLASProjectID(this BinaryReader reader)
-		{
-			return new LASProjectID(reader);
-		}
-
-		public static LASVersionInfo ReadLASVersionInfo(this BinaryReader reader)
-		{
-			return new LASVersionInfo(reader);
-		}
-
-		public static LASGlobalEncoding ReadLASGlobalEncoding(this BinaryReader reader)
-		{
-			return new LASGlobalEncoding(reader);
-		}
-
-		public static LASVLR ReadLASVLR(this BinaryReader reader)
-		{
-			return new LASVLR(reader);
-		}
-
-		public static LASEVLR ReadLASEVLR(this BinaryReader reader)
-		{
-			return new LASEVLR(reader);
-		}
-
-		public static LASHeader ReadLASHeader(this BinaryReader reader)
-		{
-			return new LASHeader(reader);
-		}
-
-		public static uint[] ReadUInt32Array(this BinaryReader reader, int count)
-		{
-			var array = new uint[count];
-			for (int i = 0; i < count; i++) array[i] = reader.ReadUInt32();
-			return array;
-		}
-
-		public static ulong[] ReadUInt64Array(this BinaryReader reader, int count)
-		{
-			var array = new ulong[count];
-			for (int i = 0; i < count; i++) array[i] = reader.ReadUInt64();
-			return array;
-		}
-
-		public static double[] ReadDoubleArray(this BinaryReader reader, int count)
-		{
-			var array = new double[count];
-			for (int i = 0; i < count; i++) array[i] = reader.ReadDouble();
-			return array;
 		}
 	}
 }

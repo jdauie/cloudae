@@ -22,7 +22,7 @@ namespace Jacere.Core
 						writer.Write(obj);
 					}
 				}
-				using (MemoryStream ms = new MemoryStream(buffer.Data))
+				using (var ms = new MemoryStream(buffer.Data))
 				{
 					ms.Position = 0;
 					using (var reader = new BinaryReader(ms))
