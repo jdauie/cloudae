@@ -99,7 +99,7 @@
     <Resource Include="Icons\bricks.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CloudAE.Interop.LASzip\CloudAE.Interop.LASzip.vcxproj">
+    <ProjectReference Include="..\Jacere.Interop.LASzip\Jacere.Interop.LASzip.vcxproj">
       <Project>{961E1A9D-C8AC-4C12-8DA9-4A7A3EE8EEAC}</Project>
       <Name>CloudAE.Interop.LASzip</Name>
     </ProjectReference>
