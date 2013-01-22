@@ -89,6 +89,7 @@
     <Compile Include="Managers\BackgroundWorkerProgressManager.cs" />
     <Compile Include="Managers\BufferInstance.cs" />
     <Compile Include="Managers\BufferManager.cs" />
+    <Compile Include="Managers\ExtensionManager.cs" />
     <Compile Include="Managers\ContextManager.cs" />
     <Compile Include="Managers\Identity.cs" />
     <Compile Include="Managers\IdentityManager.cs" />
