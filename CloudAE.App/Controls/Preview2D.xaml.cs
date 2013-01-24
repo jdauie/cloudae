@@ -78,7 +78,7 @@ namespace CloudAE.App
 		{
 			get
 			{
-				ColorRamp ramp = ColorRamp.PredefinedColorRamps.Elevation1;
+				var ramp = ColorRamp.PredefinedColorRamps.Elevation1;
 				if (CurrentTileSource.Preview != null)
 					ramp = m_currentTileSource.Preview.ColorHandler as ColorRamp;
 
@@ -129,10 +129,10 @@ namespace CloudAE.App
 
 		private static List<ColorRamp> RegisterColorHandlers()
 		{
-			List<ColorRamp> instances = new List<ColorRamp>();
+			var instances = new List<ColorRamp>();
 			Type baseType = typeof(ColorRamp);
 
-			Context.ProcessLoadedTypes(
+			ExtensionManager.ProcessLoadedTypes(
 				2,
 				"ColorRamps",
 				baseType.IsAssignableFrom,
@@ -145,7 +145,7 @@ namespace CloudAE.App
 
 		private void OnColorHandlerSelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			ColorRamp ramp = (sender as ComboBox).SelectedItem as ColorRamp;
+			var ramp = (sender as ComboBox).SelectedItem as ColorRamp;
 			if (ramp != null)
 			{
 				PointCloudTileSource source = CurrentTileSource;
@@ -178,8 +178,8 @@ namespace CloudAE.App
 
 		private void OnPreviewMouseMove(object sender, MouseEventArgs e)
 		{
-			FrameworkElement image = sender as FrameworkElement;
-			PointCloudTile tile = GetTileFromMousePosition(image, e);
+			var image = sender as FrameworkElement;
+			var tile = GetTileFromMousePosition(image, e);
 
 			UpdateCurrentTile(tile);
 		}
@@ -206,7 +206,7 @@ namespace CloudAE.App
 			if (tile == null)
 				return;
 
-			List<PointCloudTile> tilesToLoad = new List<PointCloudTile>();
+			var tilesToLoad = new List<PointCloudTile>();
 			//int pointsToLoad = 0;
 
 			int radius = 4;

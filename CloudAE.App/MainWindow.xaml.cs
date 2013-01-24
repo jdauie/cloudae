@@ -103,7 +103,7 @@ namespace CloudAE.App
 			Type baseType0 = typeof(ITileSourceControl);
 			Type baseType1 = typeof(UserControl);
 
-			Context.ProcessLoadedTypes(
+			ExtensionManager.ProcessLoadedTypes(
 				1,
 				"Controls",
 				t => baseType0.IsAssignableFrom(t) && baseType1.IsAssignableFrom(t),

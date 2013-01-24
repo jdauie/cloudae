@@ -55,14 +55,13 @@ namespace Jacere.Data.PointCloud
 			var creators = new List<IHandlerCreator>();
 			Type baseType = typeof(IHandlerCreator);
 
-#warning removed ref to Context.ProcessLoadedTypes
-			//Context.ProcessLoadedTypes(
-			//    1,
-			//    "Handlers",
-			//    baseType.IsAssignableFrom,
-			//    t => !t.IsAbstract,
-			//    t => creators.Add(Activator.CreateInstance(t) as IHandlerCreator)
-			//);
+			ExtensionManager.ProcessLoadedTypes(
+				1,
+				"Handlers",
+				baseType.IsAssignableFrom,
+				t => !t.IsAbstract,
+				t => creators.Add(Activator.CreateInstance(t) as IHandlerCreator)
+			);
 
 			return creators;
 		}

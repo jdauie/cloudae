@@ -40,6 +40,45 @@ namespace Jacere.Core
 
 		#region Discovery
 
+		public static void ProcessLoadedTypesInitialize(string processName, Type baseType)
+		{
+			ProcessLoadedTypes(
+				0,
+				processName,
+				baseType.IsAssignableFrom,
+				t => !t.IsAbstract,
+				t => System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle)
+			);
+		}
+
+		public static void ProcessLoadedTypes(int level, string processName, Func<Type, bool> consider, Func<Type, bool> attempt, Action<Type> action)
+		{
+			string padding = "".PadRight(level * 2);
+
+			ContextManager.WriteLine("{0}[{1}]", padding, processName);
+
+			var types = ExtensionManager.GetLoadedTypes(consider);
+			foreach (Type type in types)
+			{
+				char result = '-';
+				if (attempt(type))
+				{
+					try
+					{
+						action(type);
+						result = '+';
+					}
+					catch (Exception)
+					{
+						result = 'x';
+					}
+				}
+
+				//if (Config.ShowAbstractTypesDuringDiscovery || result != '-')
+				//    ContextManager.WriteLine("{0} {1} {2}", padding, result, type.Name);
+			}
+		}
+
 		/// <summary>
 		/// Loads the extension assemblies.
 		/// This now just follows references -- It does not load dynamically.  Simple enough to change if I want it later.

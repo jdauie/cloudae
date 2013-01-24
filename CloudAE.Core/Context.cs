@@ -101,10 +101,10 @@ namespace CloudAE.Core
 			//    RegisterExtensions();
 
 			if (Config.EnableFactoryDiscovery)
-				RegisterFactories();
+				ExtensionManager.ProcessLoadedTypesInitialize("Factories", typeof(IFactory));
 
 			if (Config.EnablePropertyDiscovery)
-				RegisterProperties();
+				ExtensionManager.ProcessLoadedTypesInitialize("Properties", typeof(IPropertyContainer));
 
 			long startupElapsed = stopwatch.ElapsedMilliseconds;
 			stopwatch.Restart();
@@ -356,55 +356,6 @@ namespace CloudAE.Core
 		}
 
 		#region Discovery
-
-		private static void RegisterFactories()
-		{
-			ProcessLoadedTypesInitialize("Factories", typeof(IFactory));
-		}
-
-		private static void RegisterProperties()
-		{
-			ProcessLoadedTypesInitialize("Properties", typeof(IPropertyContainer));
-		}
-
-		private static void ProcessLoadedTypesInitialize(string processName, Type baseType)
-		{
-			ProcessLoadedTypes(
-				0,
-				processName,
-				baseType.IsAssignableFrom,
-				t => !t.IsAbstract,
-				t => System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(t.TypeHandle)
-			);
-		}
-
-		public static void ProcessLoadedTypes(int level, string processName, Func<Type, bool> consider, Func<Type, bool> attempt, Action<Type> action)
-		{
-			string padding = "".PadRight(level * 2);
-
-			WriteLine("{0}[{1}]", padding, processName);
-
-			var types = ExtensionManager.GetLoadedTypes(consider);
-			foreach (Type type in types)
-			{
-				char result = '-';
-				if (attempt(type))
-				{
-					try
-					{
-						action(type);
-						result = '+';
-					}
-					catch (Exception)
-					{
-						result = 'x';
-					}
-				}
-
-				if (Config.ShowAbstractTypesDuringDiscovery || result != '-')
-					WriteLine("{0} {1} {2}", padding, result, type.Name);
-			}
-		}
 
 		public static IPropertyState<T> RegisterOption<T>(OptionCategory category, string name, T defaultValue)
 		{
