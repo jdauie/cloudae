@@ -62,6 +62,9 @@ namespace CloudAE.Core
 
 		static Context()
 		{
+#warning TESTING
+			System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(ExtensionManager).TypeHandle);
+
 			Config.ContextStarted = true;
 
 			var stopwatch = new Stopwatch();

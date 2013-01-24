@@ -18,7 +18,7 @@ namespace Jacere.Core
 
 		static PropertyManager()
 		{
-			Assembly entryAssembly = Assembly.GetEntryAssembly();
+			var entryAssembly = Assembly.GetEntryAssembly();
 			COMPANY_NAME = ((AssemblyCompanyAttribute[])entryAssembly.GetCustomAttributes(typeof(AssemblyCompanyAttribute), false)).Single().Company;
 			PRODUCT_NAME = ((AssemblyProductAttribute[])entryAssembly.GetCustomAttributes(typeof(AssemblyProductAttribute), false)).Single().Product;
 
