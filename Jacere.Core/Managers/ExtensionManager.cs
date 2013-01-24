@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.ComponentModel;
-using Jacere.Core.Attributes;
 using Jacere.Core.Util;
 
 namespace Jacere.Core
@@ -18,20 +17,35 @@ namespace Jacere.Core
 	public static class ExtensionManager
 	{
 		private static readonly string c_baseDirectory;
-		private static readonly Assembly[] c_localAssemblies;
-		private static readonly Type[] c_localTypes;
+		private static readonly Assembly[] c_extensionAssemblies;
+		private static readonly Type[] c_extensionTypes;
 
 		static ExtensionManager()
 		{
 			c_baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-			c_localAssemblies = LoadAssemblies();
-			c_localTypes = c_localAssemblies.GetTypes();
+			c_extensionAssemblies = LoadExtensionAssemblies();
+			c_extensionTypes = c_extensionAssemblies.GetTypes();
+		}
+
+		public static Type[] LoadedTypes
+		{
+			get { return c_extensionTypes; }
+		}
+
+		public static IEnumerable<Type> GetLoadedTypes(Func<Type, bool> predicate)
+		{
+			return c_extensionTypes.Where(predicate);
 		}
 
 		#region Discovery
 
-		private static Assembly[] LoadAssemblies()
+		/// <summary>
+		/// Loads the extension assemblies.
+		/// This now just follows references -- It does not load dynamically.  Simple enough to change if I want it later.
+		/// </summary>
+		/// <returns></returns>
+		private static Assembly[] LoadExtensionAssemblies()
 		{
 			// this could be customized in the future to specify subdirectories/filters to search
 			var files = Directory.GetFiles(c_baseDirectory, "*.dll", SearchOption.AllDirectories);
@@ -71,7 +85,6 @@ namespace Jacere.Core
 					catch
 					{
 					}
-#warning I don't want to add assemblies that aren't marked as an extension
 					localAssemblyMap.Add(assemblyFullName, assembly);
 				}
 
@@ -94,53 +107,8 @@ namespace Jacere.Core
 				}
 			}
 
-			return localAssemblyMap.Values.ToArray();
+			return productExtensions.Values.SelectMany(e => e).ToArray();
 		}
-
-		///// <summary>
-		///// Currently, this looks at all directories below the current domain base, recursively.
-		///// </summary>
-		//private static void RegisterExtensions()
-		//{
-		//    ContextManager.WriteLine("[Extensions]");
-
-		//    var assemblyLookup = AppDomain.CurrentDomain.GetAssemblyLocationLookup();
-
-		//    String path = c_baseDirectory;
-		//    if (Directory.Exists(path))
-		//    {
-		//        var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
-
-		//        var newAssemblyPaths = files
-		//            .Where(f => Path.GetExtension(f) == ".dll" && !assemblyLookup.ContainsKey(f));
-
-		//        foreach (String assemblyPath in newAssemblyPaths)
-		//        {
-		//            char result = '-';
-		//            try
-		//            {
-		//                PEHeader header = PEHeader.Load(assemblyPath);
-		//                if (header.IsManaged)
-		//                {
-		//                    // figure a way to check this properly in the future
-		//                    // (taking into account "Any CPU", etc.)
-		//                    if (header.Is64Bit == Environment.Is64BitProcess)
-		//                    {
-		//                        AssemblyName assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
-		//                        Assembly assembly = Assembly.Load(assemblyName);
-		//                        assemblyLookup.Add(assemblyPath, assembly);
-		//                        result = '+';
-		//                    }
-		//                }
-		//            }
-		//            catch (Exception)
-		//            {
-		//                result = 'x';
-		//            }
-		//            ContextManager.WriteLine(" {0} {1}", result, Path.GetFileNameWithoutExtension(assemblyPath));
-		//        }
-		//    }
-		//}
 
 		//private static void RegisterFactories()
 		//{

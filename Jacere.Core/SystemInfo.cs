@@ -93,7 +93,7 @@ namespace CloudAE.Core
 
 			foreach (string line in outputLines)
 			{
-				Context.WriteLine(line);
+				ContextManager.WriteLine(line);
 			}
 		}
 
@@ -107,8 +107,8 @@ namespace CloudAE.Core
 
 		private static List<string> GenerateLines(string sourceLine, DebugInfo flags)
 		{
-			List<string> variables = GetVariableUsages(sourceLine);
-			List<string> newLines = new List<string>();
+			var variables = GetVariableUsages(sourceLine);
+			var newLines = new List<string>();
 
 			if (variables.Count == 0)
 			{
@@ -124,8 +124,8 @@ namespace CloudAE.Core
 						queryString += " WHERE DriveType = 3";
 					else
 						queryString += " WHERE NOT DriveType = 5";
-					SelectQuery query = new SelectQuery(queryString);
-					ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+					var query = new SelectQuery(queryString);
+					var searcher = new ManagementObjectSearcher(query);
 					var drives = searcher.Get().Cast<ManagementObject>().Select(o => new DriveInfo((string)o["Name"]));
 					foreach (DriveInfo d in drives)
 					{
@@ -137,7 +137,8 @@ namespace CloudAE.Core
 				}
 				else if (variables[0] == "Option")
 				{
-					newLines.AddRange(Context.RegisteredProperties.Select(p => ReplaceVariable(sourceLine, "Option", p.ToString())));
+#warning no property access at this point
+					//newLines.AddRange(Context.RegisteredProperties.Select(p => ReplaceVariable(sourceLine, "Option", p.ToString())));
 				}
 				else
 				{
@@ -180,11 +181,11 @@ namespace CloudAE.Core
 					case "Processors":            return GetProcessorInfo();
 					case "Graphics":              return GetVideoInfo();
 
-					case "Types":                 return Context.LoadedTypes.Length.ToString();
-					case "Options":               return Context.RegisteredProperties.Count.ToString();
-					case "BasePath":              return Context.BasePath;
-					case "Temp":                  return Cache.APP_CACHE_DIR;
-					case "TempUsed":              return Cache.CacheSize.ToSize();
+					case "Types":                 return ExtensionManager.LoadedTypes.Length.ToString();
+					//case "Options":               return Context.RegisteredProperties.Count.ToString();
+					//case "BasePath":              return Context.BasePath;
+					//case "Temp":                  return Cache.APP_CACHE_DIR;
+					//case "TempUsed":              return Cache.CacheSize.ToSize();
 
 					case "ProcName":              return m_process.ProcessName;
 					case "ProcId":                return m_process.Id.ToString();
@@ -210,7 +211,7 @@ namespace CloudAE.Core
 
 		private static List<string> GetSystemInfoTemplate(DebugInfo infoFlags)
 		{
-			List<string> templateLines = new List<string>();
+			var templateLines = new List<string>();
 
 			if ((infoFlags & DebugInfo.Environment) > 0)
 			{
@@ -266,8 +267,8 @@ namespace CloudAE.Core
 
 		private static string GetProcessorInfo()
 		{
-			SelectQuery query = new SelectQuery("SELECT Name, MaxClockSpeed, AddressWidth FROM Win32_Processor");
-			using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+			var query = new SelectQuery("SELECT Name, MaxClockSpeed, AddressWidth FROM Win32_Processor");
+			using (var searcher = new ManagementObjectSearcher(query))
 			{
 				var cpu = searcher.Get().Cast<ManagementObject>().First();
 				return string.Format("{0}, {1}, {2}Mhz, {3}-bit", Environment.ProcessorCount, (string)cpu["Name"], (uint)cpu["MaxClockSpeed"], (ushort)cpu["AddressWidth"]);
@@ -276,8 +277,8 @@ namespace CloudAE.Core
 
 		private static string GetOSInfo()
 		{
-			SelectQuery query = new SelectQuery("SELECT Caption, Version, CSDVersion FROM Win32_OperatingSystem");
-			using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+			var query = new SelectQuery("SELECT Caption, Version, CSDVersion FROM Win32_OperatingSystem");
+			using (var searcher = new ManagementObjectSearcher(query))
 			{
 				var os = searcher.Get().Cast<ManagementObject>().First();
 				return string.Format("{0} ({1} {2})", (string)os["Caption"], (string)os["Version"], (string)os["CSDVersion"]);
@@ -286,8 +287,8 @@ namespace CloudAE.Core
 
 		private static string GetVideoInfo()
 		{
-			SelectQuery query = new SelectQuery("SELECT Name, DriverVersion, AdapterRAM, VideoModeDescription FROM Win32_VideoController");
-			ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+			var query = new SelectQuery("SELECT Name, DriverVersion, AdapterRAM, VideoModeDescription FROM Win32_VideoController");
+			var searcher = new ManagementObjectSearcher(query);
 			var os = searcher.Get().Cast<ManagementObject>().First();
 
 			return string.Format("{0}, {1}, {2}, {3}", (string)os["Name"], (string)os["DriverVersion"], ((uint)os["AdapterRAM"]).ToSize(), (string)os["VideoModeDescription"]); ;

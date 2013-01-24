@@ -46,11 +46,6 @@ namespace CloudAE.Core
 		private static readonly Dictionary<PropertyName, IPropertyState> c_registeredProperties;
 		private static readonly List<IPropertyState> c_registeredPropertiesList;
 
-		private static readonly Dictionary<string, string> c_fileIndex;
-
-		private static readonly string c_baseDirectory;
-		private static readonly Type[] c_loadedTypes;
-
 		private static readonly Action<string, object[]> c_writeLineAction;
 
 		private static readonly Dictionary<string, FileHandlerBase> c_loadedPaths;
@@ -62,9 +57,6 @@ namespace CloudAE.Core
 
 		static Context()
 		{
-#warning TESTING
-			System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(ExtensionManager).TypeHandle);
-
 			Config.ContextStarted = true;
 
 			var stopwatch = new Stopwatch();
@@ -76,10 +68,6 @@ namespace CloudAE.Core
 			{
 				throw new NotSupportedException();
 			}
-
-			var appDomain = AppDomain.CurrentDomain;
-
-			c_baseDirectory = appDomain.BaseDirectory;
 
 			if (Config.ShowConsole)
 			{
@@ -93,7 +81,6 @@ namespace CloudAE.Core
 
 			c_registeredProperties = new Dictionary<PropertyName, IPropertyState>();
 			c_registeredPropertiesList = new List<IPropertyState>();
-			c_fileIndex = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 			c_sources = new Dictionary<PointCloudTileSource, FileHandlerBase>();
 			c_loadedPaths = new Dictionary<string, FileHandlerBase>(StringComparer.OrdinalIgnoreCase);
 			c_queue = new ProcessingQueue();
@@ -107,10 +94,11 @@ namespace CloudAE.Core
 
 			Config.Write();
 
-			if (Config.EnableExtensionDiscovery)
-				RegisterExtensions();
-			
-			c_loadedTypes = appDomain.GetExtensionTypes(PropertyManager.PRODUCT_NAME).ToArray();
+
+#warning EXTENSION SEARCH IS AUTOMATIC (for testing)
+			System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(ExtensionManager).TypeHandle);
+			//if (Config.EnableExtensionDiscovery)
+			//    RegisterExtensions();
 
 			if (Config.EnableFactoryDiscovery)
 				RegisterFactories();
@@ -180,11 +168,6 @@ namespace CloudAE.Core
 
 		#region Properties
 
-		public static Type[] LoadedTypes
-		{
-			get { return c_loadedTypes; }
-		}
-
 		public static List<IPropertyState> RegisteredProperties
 		{
 			get { return c_registeredPropertiesList; }
@@ -193,11 +176,6 @@ namespace CloudAE.Core
 		public static ProcessingQueue ProcessingQueue
 		{
 			get { return c_queue; }
-		}
-
-		public static string BasePath
-		{
-			get { return c_baseDirectory; }
 		}
 
 		public static bool IsProcessing
@@ -282,7 +260,7 @@ namespace CloudAE.Core
 			if (!File.Exists(path))
 				throw new FileNotFoundException("Item cannot be added to queue.", path);
 
-			FileHandlerBase handler = HandlerFactory.GetInputHandler(path);
+			var handler = HandlerFactory.GetInputHandler(path);
 			if (handler != null)
 			{
 				c_queue.Enqueue(handler);
@@ -310,7 +288,7 @@ namespace CloudAE.Core
 			if (paths == null || paths.Length == 0)
 				return;
 
-			List<string> skipped = new List<string>();
+			var skipped = new List<string>();
 			foreach (string path in paths.OrderBy(p => p))
 			{
 				if (c_loadedPaths.ContainsKey(path))
@@ -377,71 +355,7 @@ namespace CloudAE.Core
 				c_writeLineAction(value, args);
 		}
 
-		public static IEnumerable<Type> GetLoadedTypes(Func<Type, bool> predicate)
-		{
-			return c_loadedTypes.Where(predicate);
-		}
-
-		public static string GetFilePath(string file)
-		{
-			if (c_fileIndex.ContainsKey(file))
-				return c_fileIndex[file];
-			return null;
-		}
-
 		#region Discovery
-
-		/// <summary>
-		/// Currently, this looks at all directories below the current domain base, recursively.
-		/// </summary>
-		private static void RegisterExtensions()
-		{
-			WriteLine("[Extensions]");
-
-			var assemblyLookup = AppDomain.CurrentDomain.GetAssemblyLocationLookup();
-
-			String path = c_baseDirectory;
-			if (Directory.Exists(path))
-			{
-				var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
-
-				foreach (string file in files)
-				{
-					string key = Path.GetFileName(file);
-					if (!c_fileIndex.ContainsKey(key))
-						c_fileIndex.Add(key, file);
-				}
-
-				var newAssemblyPaths = files
-					.Where(f => Path.GetExtension(f) == ".dll" && !assemblyLookup.ContainsKey(f));
-
-				foreach (String assemblyPath in newAssemblyPaths)
-				{
-					char result = '-';
-					try
-					{
-						PEHeader header = PEHeader.Load(assemblyPath);
-						if (header.IsManaged)
-						{
-							// figure a way to check this properly in the future
-							// (taking into account "Any CPU", etc.)
-							if (header.Is64Bit == Environment.Is64BitProcess)
-							{
-								AssemblyName assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
-								Assembly assembly = Assembly.Load(assemblyName);
-								assemblyLookup.Add(assemblyPath, assembly);
-								result = '+';
-							}
-						}
-					}
-					catch (Exception)
-					{
-						result = 'x';
-					}
-					WriteLine(" {0} {1}", result, Path.GetFileNameWithoutExtension(assemblyPath));
-				}
-			}
-		}
 
 		private static void RegisterFactories()
 		{
@@ -470,7 +384,7 @@ namespace CloudAE.Core
 
 			WriteLine("{0}[{1}]", padding, processName);
 
-			var types = GetLoadedTypes(consider);
+			var types = ExtensionManager.GetLoadedTypes(consider);
 			foreach (Type type in types)
 			{
 				char result = '-';
