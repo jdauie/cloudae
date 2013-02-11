@@ -31,7 +31,7 @@ namespace CloudAE.Core
 		private readonly Statistics m_statisticsZ;
 		private readonly QuantizedStatistics m_statisticsQuantizedZ;
 		
-		private UQuantizedExtent3D m_quantizedExtent;
+		private SQuantizedExtent3D m_quantizedExtent;
 
 		private IStreamReader m_inputStream;
 		private bool m_isDirty;
@@ -99,7 +99,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public UQuantizedExtent3D QuantizedExtent
+		public SQuantizedExtent3D QuantizedExtent
 		{
 			get { return m_quantizedExtent; }
 			set
@@ -159,9 +159,9 @@ namespace CloudAE.Core
 			m_tileSet.TileSource = this;
 
 			m_statisticsZ = zStats;
-			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization as UQuantization3D);
+			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization as SQuantization3D);
 #warning this should be stored in the tileset, rather than converted
-			QuantizedExtent = (UQuantizedExtent3D)Quantization.Convert(Extent);
+			QuantizedExtent = (SQuantizedExtent3D)Quantization.Convert(Extent);
 
 			if (pointDataOffset == 0)
 			{
@@ -173,7 +173,7 @@ namespace CloudAE.Core
 		public static string GetTileSourcePath(string path)
 		{
 			// mark with some low-order bytes of the file size
-			FileInfo fileInfo = new FileInfo(path);
+			var fileInfo = new FileInfo(path);
 			string fileName = String.Format("{0}.{1}.{2}", fileInfo.Name, BitConverter.GetBytes(fileInfo.Length).ToBase64SafeString(0, 3), PointCloudTileSource.FILE_EXTENSION);
 			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
 			return tilePath;
@@ -184,7 +184,7 @@ namespace CloudAE.Core
 			long pointDataOffset;
 			short pointSizeBytes;
 
-			UQuantization3D quantization;
+			SQuantization3D quantization;
 			Statistics zStats;
 			PointCloudTileSet tileSet;
 
@@ -202,7 +202,7 @@ namespace CloudAE.Core
 				pointDataOffset = reader.ReadInt64();
 				pointSizeBytes = reader.ReadInt16();
 
-				quantization = reader.ReadUQuantization3D();
+				quantization = reader.ReadSQuantization3D();
 				zStats = reader.ReadStatistics();
 				tileSet = reader.ReadTileSet();
 			}
@@ -299,18 +299,18 @@ namespace CloudAE.Core
 			return null;
 		}
 
-		public KeyValuePair<Grid<uint>, Grid<float>> GenerateGrid(PointCloudTile template, ushort maxDimension)
+		public KeyValuePair<Grid<int>, Grid<float>> GenerateGrid(PointCloudTile template, ushort maxDimension)
 		{
 			Extent3D extent = template.Extent;
 
 			float fillVal = (float)extent.MinZ - 1;
-			Grid<float> grid = new Grid<float>(extent, 2, maxDimension, fillVal, true);
-			Grid<uint> quantizedGrid = new Grid<uint>(grid.SizeX, grid.SizeY, extent, true);
+			var grid = new Grid<float>(extent, 2, maxDimension, fillVal, true);
+			var quantizedGrid = new Grid<int>(grid.SizeX, grid.SizeY, extent, true);
 
-			return new KeyValuePair<Grid<uint>, Grid<float>>(quantizedGrid, grid);
+			return new KeyValuePair<Grid<int>, Grid<float>>(quantizedGrid, grid);
 		}
 
-		public unsafe void LoadTileGrid(PointCloudTile tile, BufferInstance inputBuffer, Grid<float> grid, Grid<uint> quantizedGrid)
+		public unsafe void LoadTileGrid(PointCloudTile tile, BufferInstance inputBuffer, Grid<float> grid, Grid<int> quantizedGrid)
 		{
 			Open();
 
@@ -331,7 +331,7 @@ namespace CloudAE.Core
 			byte* pbEnd = inputBufferPtr + tile.StorageSize;
 			while (pb < pbEnd)
 			{
-				UQuantizedPoint3D* p = (UQuantizedPoint3D*)(pb);
+				var p = (SQuantizedPoint3D*)(pb);
 				pb += PointSizeBytes;
 
 				int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
@@ -347,78 +347,78 @@ namespace CloudAE.Core
 
 		private unsafe void TileOperationAction(IPointDataTileChunk chunk)
 		{
-			ushort gridSize = (ushort)Math.Sqrt(chunk.Tile.PointCount);
+            //ushort gridSize = (ushort)Math.Sqrt(chunk.Tile.PointCount);
 
-			var grid = new Grid<List<int>>(gridSize, gridSize, null, true);
+            //var grid = new Grid<List<int>>(gridSize, gridSize, null, true);
 
-			UQuantizedExtent3D quantizedExtent = chunk.Tile.QuantizedExtent;
+            //UQuantizedExtent3D quantizedExtent = chunk.Tile.QuantizedExtent;
 
-			double cellSizeX = (double)quantizedExtent.RangeX / gridSize;
-			double cellSizeY = (double)quantizedExtent.RangeY / gridSize;
+            //double cellSizeX = (double)quantizedExtent.RangeX / gridSize;
+            //double cellSizeY = (double)quantizedExtent.RangeY / gridSize;
 
-			int i = 0;
-			byte* pb = chunk.PointDataPtr;
-			while (pb < chunk.PointDataEndPtr)
-			{
-				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
+            //int i = 0;
+            //byte* pb = chunk.PointDataPtr;
+            //while (pb < chunk.PointDataEndPtr)
+            //{
+            //    var p = (SQuantizedPoint3D*)pb;
 
-				int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
-				int pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
+            //    int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
+            //    int pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
 
-				if (grid.Data[pixelX, pixelY] == null)
-					grid.Data[pixelX, pixelY] = new List<int>();
+            //    if (grid.Data[pixelX, pixelY] == null)
+            //        grid.Data[pixelX, pixelY] = new List<int>();
 
-				grid.Data[pixelX, pixelY].Add(i);
+            //    grid.Data[pixelX, pixelY].Add(i);
 
-				pb += chunk.PointSizeBytes;
-				++i;
-			}
+            //    pb += chunk.PointSizeBytes;
+            //    ++i;
+            //}
 
-			uint maxRegionCount = 0;
+            //uint maxRegionCount = 0;
 
-			int windowSize = 10;
-			int windowRadius = windowSize / 2;
-			for (int x = 0; x < grid.SizeX; x++)
-			{
-				for (int y = 0; y < grid.SizeY; y++)
-				{
-					var pointIndices = grid.Data[x, y];
-					if (pointIndices != null)
-					{
-						uint regionCount = 0;
-						for (int x1 = x - windowRadius; x1 < x + windowRadius; x1++)
-						{
-							for (int y1 = y - windowRadius; y1 < y + windowRadius; y1++)
-							{
-								var pointIndices1 = grid.Data[x, y];
-								if(pointIndices1 != null)
-									regionCount += (uint)pointIndices1.Count;
-							}
-						}
+            //int windowSize = 10;
+            //int windowRadius = windowSize / 2;
+            //for (int x = 0; x < grid.SizeX; x++)
+            //{
+            //    for (int y = 0; y < grid.SizeY; y++)
+            //    {
+            //        var pointIndices = grid.Data[x, y];
+            //        if (pointIndices != null)
+            //        {
+            //            uint regionCount = 0;
+            //            for (int x1 = x - windowRadius; x1 < x + windowRadius; x1++)
+            //            {
+            //                for (int y1 = y - windowRadius; y1 < y + windowRadius; y1++)
+            //                {
+            //                    var pointIndices1 = grid.Data[x, y];
+            //                    if(pointIndices1 != null)
+            //                        regionCount += (uint)pointIndices1.Count;
+            //                }
+            //            }
 
-						maxRegionCount = Math.Max(maxRegionCount, regionCount);
+            //            maxRegionCount = Math.Max(maxRegionCount, regionCount);
 
-						for (int index = 0; index < pointIndices.Count; index++)
-						{
-							UQuantizedPoint3D* p = (UQuantizedPoint3D*)(chunk.PointDataPtr + chunk.PointSizeBytes * pointIndices[index]);
-							(*p).Z = regionCount;
-						}
-					}
-				}
-			}
+            //            for (int index = 0; index < pointIndices.Count; index++)
+            //            {
+            //                UQuantizedPoint3D* p = (UQuantizedPoint3D*)(chunk.PointDataPtr + chunk.PointSizeBytes * pointIndices[index]);
+            //                (*p).Z = regionCount;
+            //            }
+            //        }
+            //    }
+            //}
 
-			pb = chunk.PointDataPtr;
-			while (pb < chunk.PointDataEndPtr)
-			{
-				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
+            //pb = chunk.PointDataPtr;
+            //while (pb < chunk.PointDataEndPtr)
+            //{
+            //    UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
 
-				if ((*p).Z > maxRegionCount)
-					(*p).Z = maxRegionCount;
+            //    if ((*p).Z > maxRegionCount)
+            //        (*p).Z = maxRegionCount;
 
-				(*p).Z = (*p).Z * quantizedExtent.RangeZ / maxRegionCount + quantizedExtent.MinZ;
+            //    (*p).Z = (*p).Z * quantizedExtent.RangeZ / maxRegionCount + quantizedExtent.MinZ;
 
-				pb += chunk.PointSizeBytes;
-			}
+            //    pb += chunk.PointSizeBytes;
+            //}
 		}
 
 		public BitmapSource GeneratePreviewImage(ColorRamp ramp, bool useStdDevStretch, int quality)
@@ -431,7 +431,7 @@ namespace CloudAE.Core
 			return Preview.Image;
 		}
 
-		private BitmapSource GeneratePreviewImage(Grid<uint> grid, ColorRamp ramp, bool useStdDevStretch, int quality)
+		private BitmapSource GeneratePreviewImage(Grid<int> grid, ColorRamp ramp, bool useStdDevStretch, int quality)
 		{
 			BitmapSource bmp = CreateBitmapSource(grid, QuantizedExtent, StatisticsQuantizedZ, useStdDevStretch, ramp, quality);
 			//BitmapSource bmp = CreateSegmentationBitmap(grid);
@@ -532,7 +532,7 @@ namespace CloudAE.Core
 			m_pixelGridSet = gridSet;
 		}
 
-		private unsafe BitmapSource CreateBitmapSource(Grid<uint> grid, UQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler, int quality)
+		private unsafe BitmapSource CreateBitmapSource(Grid<int> grid, SQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler, int quality)
 		{
 			var ramp = colorHandler as ColorRamp;
 			var map = colorHandler as ColorMapDistinct;
@@ -564,7 +564,7 @@ namespace CloudAE.Core
 					for (int c = 0; c < grid.SizeX; c++)
 					{
 						// flip y-axis
-						uint z = grid.Data[c, rr];
+						var z = grid.Data[c, rr];
 
 						if (z != grid.FillVal)
 							(*p) = cachedRamp.DestinationBins[z >> cachedRamp.SourceRightShift];
@@ -585,16 +585,16 @@ namespace CloudAE.Core
 
 		#region Color Buffer Methods
 
-		private unsafe void CreateColorBufferMap(Grid<uint> grid, int* p, ColorMapDistinct map)
+		private unsafe void CreateColorBufferMap(Grid<int> grid, int* p, ColorMapDistinct map)
 		{
 			for (int r = 0; r < grid.SizeY; r++)
 			{
 				for (int c = 0; c < grid.SizeX; c++)
 				{
 					// flip y-axis
-					uint z = grid.Data[c, grid.SizeY - r - 1];
+					var z = grid.Data[c, grid.SizeY - r - 1];
 
-					Color color = Color.Transparent;
+					var color = Color.Transparent;
 
 					if (z != grid.FillVal)
 						color = map.GetColor(z);

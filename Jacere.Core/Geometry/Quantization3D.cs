@@ -69,11 +69,37 @@ namespace Jacere.Core.Geometry
 			return new Extent3D(offsetX, offsetY, offsetZ, extent.MaxX, extent.MaxY, extent.MaxZ);
 		}
 
+        public static SQuantization3D Create(Extent3D extent)
+        {
+            Extent3D qOffsetExtent = CreateOffsetExtent(extent);
+
+            // midpoint doubles the signed range,
+            // but I don't really care
+            var qOffsetX = qOffsetExtent.MinX;
+            var qOffsetY = qOffsetExtent.MinY;
+            var qOffsetZ = qOffsetExtent.MinZ;
+
+            // Use only the non-negative int range
+            double range = Math.Pow(2, 31);
+            const double logBase = 10; // this value effects debugging and compressibility
+
+            var precisionMaxX = (int)Math.Floor(Math.Log(range / (qOffsetExtent.RangeX), logBase));
+            var precisionMaxY = (int)Math.Floor(Math.Log(range / (qOffsetExtent.RangeY), logBase));
+            var precisionMaxZ = (int)Math.Floor(Math.Log(range / (qOffsetExtent.RangeZ), logBase));
+
+            var qScaleFactorX = Math.Pow(logBase, -precisionMaxX);
+            var qScaleFactorY = Math.Pow(logBase, -precisionMaxY);
+            var qScaleFactorZ = Math.Pow(logBase, -precisionMaxZ);
+
+            return new SQuantization3D(qScaleFactorX, qScaleFactorY, qScaleFactorZ, qOffsetX, qOffsetY, qOffsetZ);
+        }
+
 		/// <summary>
 		/// This should only be called if it is not feasible to evaluate the 
 		/// input data to determine what the actual scale factor should be.
 		/// </summary>
-		public static Quantization3D Create(Extent3D extent, bool unsigned)
+        [Obsolete("Moving back to LAS compatibility", true)]
+        public static Quantization3D Create(Extent3D extent, bool unsigned)
 		{
 			Extent3D qOffsetExtent = CreateOffsetExtent(extent);
 
@@ -101,6 +127,7 @@ namespace Jacere.Core.Geometry
 				return new SQuantization3D(qScaleFactorX, qScaleFactorY, qScaleFactorZ, qOffsetX, qOffsetY, qOffsetZ);
 		}
 
+        [Obsolete("Moving back to LAS compatibility", true)]
 		public static UQuantization3D Create(Extent3D extent, SQuantization3D inputQuantization, int[][] testValues, int count)
 		{
 			// determine best scale factors
@@ -159,6 +186,7 @@ namespace Jacere.Core.Geometry
 			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], offsetExtent.MinX, offsetExtent.MinY, offsetExtent.MinZ);
 		}
 
+        [Obsolete("Moving back to LAS compatibility", true)]
 		public static UQuantization3D Create(Extent3D extent, double[][] testValues, int count)
 		{
 			// determine best scale factors

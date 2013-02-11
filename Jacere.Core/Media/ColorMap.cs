@@ -21,8 +21,9 @@ namespace Jacere.Core
 				.Select(Color.FromName).ToArray();
 		}
 
-		public Color GetColor(uint value)
+		public Color GetColor(int value)
 		{
+            throw new NotImplementedException();
 			return m_colors[value % m_colors.Length];
 		}
 	}

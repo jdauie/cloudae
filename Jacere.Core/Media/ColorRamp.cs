@@ -134,7 +134,7 @@ namespace Jacere.Core
 				throw new NotImplementedException("The specified ColorRamp does not return a useful mapping.");
 		}
 
-		public CachedColorRamp CreateCachedRamp(uint min, uint max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
+		public CachedColorRamp CreateCachedRamp(int min, int max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
 		{
 			var cachedRamp = new CachedColorRamp(this, min, max, stats, useStdDevStretch, desiredDestinationBins);
 			return cachedRamp;

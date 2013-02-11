@@ -262,24 +262,24 @@ namespace CloudAE.Core
 			return new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
 		}
 
-		public UQuantizedExtent3D ComputeTileExtent(PointCloudTile tile, UQuantizedExtent3D extent)
+		public SQuantizedExtent3D ComputeTileExtent(PointCloudTile tile, SQuantizedExtent3D extent)
 		{
 			double rangeX = (double)extent.RangeX / Cols;
 			double rangeY = (double)extent.RangeY / Rows;
 
-			var min = new UQuantizedPoint3D(
-				(uint)(rangeX * tile.Col + extent.MinX),
-				(uint)(rangeY * tile.Row + extent.MinY),
+			var min = new SQuantizedPoint3D(
+				(int)(rangeX * tile.Col + extent.MinX),
+				(int)(rangeY * tile.Row + extent.MinY),
 				extent.MinZ
 			);
 
-			var max = new UQuantizedPoint3D(
-				(uint)(Math.Min(min.X + rangeX, extent.MaxX)),
-				(uint)(Math.Min(min.Y + rangeY, extent.MaxY)),
+			var max = new SQuantizedPoint3D(
+				(int)(Math.Min(min.X + rangeX, extent.MaxX)),
+				(int)(Math.Min(min.Y + rangeY, extent.MaxY)),
 				extent.MaxZ
 			);
 
-			return new UQuantizedExtent3D(min, max);
+			return new SQuantizedExtent3D(min, max);
 		}
 
 		#region IEnumerable Members

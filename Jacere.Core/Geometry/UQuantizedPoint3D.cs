@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Jacere.Core.Geometry
 {
+    [Obsolete("Moving back to LAS compatibility", true)]
 	[StructLayout(LayoutKind.Sequential)]
 	public struct UQuantizedPoint3D : IComparable<UQuantizedPoint3D>, IQuantizedPoint3D, ISerializeBinary
 	{
@@ -70,44 +71,44 @@ namespace Jacere.Core.Geometry
 		}
 	}
 
-	public class UQuantizedPoint3DGridComparer : IComparer<UQuantizedPoint3D>
-	{
-		private readonly int m_gridSize;
-		private readonly int m_gridCellDimensionX;
-		private readonly int m_gridCellDimensionY;
+    //public class UQuantizedPoint3DGridComparer : IComparer<UQuantizedPoint3D>
+    //{
+    //    private readonly int m_gridSize;
+    //    private readonly int m_gridCellDimensionX;
+    //    private readonly int m_gridCellDimensionY;
 
-		public UQuantizedPoint3DGridComparer(int gridSize, int gridCellDimensionX, int gridCellDimensionY)
-		{
-			m_gridSize = gridSize;
+    //    public UQuantizedPoint3DGridComparer(int gridSize, int gridCellDimensionX, int gridCellDimensionY)
+    //    {
+    //        m_gridSize = gridSize;
 
-			m_gridCellDimensionX = gridCellDimensionX;
-			m_gridCellDimensionY = gridCellDimensionY;
-		}
+    //        m_gridCellDimensionX = gridCellDimensionX;
+    //        m_gridCellDimensionY = gridCellDimensionY;
+    //    }
 
-		public int Compare(UQuantizedPoint3D a, UQuantizedPoint3D b)
-		{
-			int xBinA = (int)(a.X / m_gridCellDimensionX);
-			int xBinB = (int)(b.X / m_gridCellDimensionX);
+    //    public int Compare(UQuantizedPoint3D a, UQuantizedPoint3D b)
+    //    {
+    //        int xBinA = (int)(a.X / m_gridCellDimensionX);
+    //        int xBinB = (int)(b.X / m_gridCellDimensionX);
 
-			if (xBinA == m_gridSize) --xBinA;
-			if (xBinB == m_gridSize) --xBinB;
+    //        if (xBinA == m_gridSize) --xBinA;
+    //        if (xBinB == m_gridSize) --xBinB;
 
-			int diff = xBinA - xBinB;
-			if (diff == 0)
-			{
-				int yBinA = (int)(a.Y / m_gridCellDimensionY);
-				int yBinB = (int)(b.Y / m_gridCellDimensionY);
+    //        int diff = xBinA - xBinB;
+    //        if (diff == 0)
+    //        {
+    //            int yBinA = (int)(a.Y / m_gridCellDimensionY);
+    //            int yBinB = (int)(b.Y / m_gridCellDimensionY);
 
-				if (yBinA == m_gridSize) --yBinA;
-				if (yBinB == m_gridSize) --yBinB;
+    //            if (yBinA == m_gridSize) --yBinA;
+    //            if (yBinB == m_gridSize) --yBinB;
 
-				diff = yBinA - yBinB;
-				if (diff == 0)
-				{
-					diff = a.Z.CompareTo(b.Z);
-				}
-			}
-			return diff;
-		}
-	}
+    //            diff = yBinA - yBinB;
+    //            if (diff == 0)
+    //            {
+    //                diff = a.Z.CompareTo(b.Z);
+    //            }
+    //        }
+    //        return diff;
+    //    }
+    //}
 }

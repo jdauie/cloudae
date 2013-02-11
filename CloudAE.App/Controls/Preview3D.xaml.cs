@@ -162,9 +162,9 @@ namespace CloudAE.App
 		private Model3DCollection m_stitchingModelCollection;
 
 		private BufferInstance m_buffer;
-		private Grid<uint> m_quantizedGridLowRes;
+		private Grid<int> m_quantizedGridLowRes;
 		private Grid<float> m_gridLowRes;
-		private Grid<uint> m_quantizedGridHighRes;
+		private Grid<int> m_quantizedGridHighRes;
 		private Grid<float> m_gridHighRes;
 
 		private ushort m_gridDimensionLowRes;
@@ -319,11 +319,11 @@ namespace CloudAE.App
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				// load tiles
-				KeyValuePair<Grid<uint>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.First(), m_gridDimensionLowRes);
+				KeyValuePair<Grid<int>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.First(), m_gridDimensionLowRes);
 				m_gridLowRes = gridsLowRes.Value;
 				m_quantizedGridLowRes = gridsLowRes.Key;
 
-				KeyValuePair<Grid<uint>, Grid<float>> gridsHighRes = tileSource.GenerateGrid(tileSource.TileSet.First(), m_gridDimensionHighRes);
+				KeyValuePair<Grid<int>, Grid<float>> gridsHighRes = tileSource.GenerateGrid(tileSource.TileSet.First(), m_gridDimensionHighRes);
 				m_gridHighRes = gridsHighRes.Value;
 				m_quantizedGridHighRes = gridsHighRes.Key;
 

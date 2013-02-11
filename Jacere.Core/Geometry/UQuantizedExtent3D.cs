@@ -8,6 +8,7 @@ namespace Jacere.Core.Geometry
 	/// <summary>
 	/// Immutable quantized extent class.
 	/// </summary>
+    [Obsolete("Moving back to LAS compatibility", true)]
 	public class UQuantizedExtent3D : IQuantizedExtent3D
 	{
 		private readonly UQuantizedPoint3D m_min;
@@ -133,6 +134,7 @@ namespace Jacere.Core.Geometry
 
 	public static class UQuantizedExtent3DExtensions
 	{
+        [Obsolete("Moving back to LAS compatibility", true)]
 		public static UQuantizedExtent3D Union(this IEnumerable<UQuantizedExtent3D> values)
 		{
 			UQuantizedExtent3D union = values.First();

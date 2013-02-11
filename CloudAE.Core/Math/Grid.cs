@@ -153,9 +153,9 @@ namespace CloudAE.Core
 			}
 		}
 
-		public static void CorrectMaxOverflow(this Grid<uint> target)
+		public static void CorrectMaxOverflow(this Grid<int> target)
 		{
-			uint[,] data = target.Data;
+			int[,] data = target.Data;
 
 			// correct max overflows
 			for (int x = 0; x <= target.SizeX; x++)
@@ -170,9 +170,9 @@ namespace CloudAE.Core
 			}
 		}
 
-		public static void CopyToUnquantized(this Grid<uint> target, Grid<float> output, Quantization3D quantization, Extent3D extent)
+		public static void CopyToUnquantized(this Grid<int> target, Grid<float> output, Quantization3D quantization, Extent3D extent)
 		{
-			uint[,] data0 = target.Data;
+			int[,] data0 = target.Data;
 			float[,] data1 = output.Data;
 
 			float scaleFactorZ = (float)quantization.ScaleFactorZ;

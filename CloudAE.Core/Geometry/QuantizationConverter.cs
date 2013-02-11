@@ -7,6 +7,7 @@ using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core.Geometry
 {
+    [Obsolete("Moving back to LAS compatibility", true)]
 	public class QuantizationConverter : IDisposable, IChunkProcess
 	{
 		private readonly Grid<int> m_tileCounts;

@@ -62,11 +62,11 @@ namespace Jacere.Core
 			writer.Write(ModeApproximate);
 		}
 
-		public QuantizedStatistics ConvertToQuantized(UQuantization3D quantization)
+        public QuantizedStatistics ConvertToQuantized(SQuantization3D quantization)
 		{
-			uint mean = (uint)((m_mean - quantization.OffsetZ) / quantization.ScaleFactorZ);
-			uint stdDev = (uint)(m_stdDev / quantization.ScaleFactorZ);
-			uint mode = (uint)((m_modeApproximate - quantization.OffsetZ) / quantization.ScaleFactorZ);
+			var mean = (int)((m_mean - quantization.OffsetZ) / quantization.ScaleFactorZ);
+			var stdDev = (uint)(m_stdDev / quantization.ScaleFactorZ);
+			var mode = (int)((m_modeApproximate - quantization.OffsetZ) / quantization.ScaleFactorZ);
 
 			return new QuantizedStatistics(mean, stdDev, mode);
 		}
@@ -74,15 +74,15 @@ namespace Jacere.Core
 
 	public class QuantizedStatistics : ISerializeBinary
 	{
-		public readonly uint m_mean;
+		public readonly int m_mean;
 		public readonly uint m_stdDev;
 		public readonly ulong m_variance;
 
-		public readonly uint m_modeApproximate;
+		public readonly int m_modeApproximate;
 
 		#region Properties
 
-		public uint Mean
+		public int Mean
 		{
 			get { return m_mean; }
 		}
@@ -97,14 +97,14 @@ namespace Jacere.Core
 			get { return m_variance; }
 		}
 
-		public uint ModeApproximate
+		public int ModeApproximate
 		{
 			get { return m_modeApproximate; }
 		}
 
 		#endregion
 
-		public QuantizedStatistics(uint mean, uint stdDev, uint mode)
+		public QuantizedStatistics(int mean, uint stdDev, int mode)
 		{
 			m_mean = mean;
 			m_stdDev = stdDev;
@@ -114,10 +114,10 @@ namespace Jacere.Core
 
 		public QuantizedStatistics(BinaryReader reader)
 		{
-			m_mean = reader.ReadUInt32();
+			m_mean = reader.ReadInt32();
 			m_stdDev = reader.ReadUInt32();
 			m_variance = (ulong)Math.Pow(Variance, 2);
-			m_modeApproximate = reader.ReadUInt32();
+			m_modeApproximate = reader.ReadInt32();
 		}
 
 		public void Serialize(BinaryWriter writer)

@@ -8,6 +8,7 @@ using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core.Geometry
 {
+    [Obsolete("Moving back to LAS compatibility", true)]
 	public class QuantizationTest<T> : IChunkProcess
 	{
 		private static readonly IPropertyState<ByteSizesSmall> PROPERTY_QUANTIZATION_MEMORY_LIMIT;

@@ -50,23 +50,23 @@ namespace CloudAE.App
 			}
 			set
 			{
-				if (m_currentTileSource != null)
-				{
-					colorRampsCombo.SelectedItem = null;
-				}
+                //if (m_currentTileSource != null)
+                //{
+                //    colorRampsCombo.SelectedItem = null;
+                //}
 
-				m_currentTileSource = value;
-                viewport.Children.Clear();
+                //m_currentTileSource = value;
+                //viewport.Children.Clear();
 
-				if (m_currentTileSource != null)
-				{
-					colorRampsCombo.SelectedItem = CurrentColorRamp;
-					colorUseStdDev.IsChecked = CurrentColorUseStdDev;
-				}
-				else
-				{
-					previewImage.Source = null;
-				}
+                //if (m_currentTileSource != null)
+                //{
+                //    colorRampsCombo.SelectedItem = CurrentColorRamp;
+                //    colorUseStdDev.IsChecked = CurrentColorUseStdDev;
+                //}
+                //else
+                //{
+                //    previewImage.Source = null;
+                //}
 			}
 		}
 
@@ -126,68 +126,68 @@ namespace CloudAE.App
 
 		private void OnColorHandlerSelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			var ramp = (sender as ComboBox).SelectedItem as ColorRamp;
-			if (ramp != null)
-			{
-				PointCloudTileSource source = CurrentTileSource;
-				if (source != null)
-                    previewImage.Source = source.GeneratePreviewImage(ramp, CurrentColorUseStdDev, MAX_COLOR_QUALITY);
-			}
+            //var ramp = (sender as ComboBox).SelectedItem as ColorRamp;
+            //if (ramp != null)
+            //{
+            //    PointCloudTileSource source = CurrentTileSource;
+            //    if (source != null)
+            //        previewImage.Source = source.GeneratePreviewImage(ramp, CurrentColorUseStdDev, MAX_COLOR_QUALITY);
+            //}
 		}
 
 		private void OnStdDevCheckedStateChanged(object sender, RoutedEventArgs e)
 		{
-			bool? useStdDev = (sender as ToggleButton).IsChecked;
-			if (useStdDev.HasValue)
-			{
-				PointCloudTileSource source = CurrentTileSource;
-				if (source != null)
-                    previewImage.Source = source.GeneratePreviewImage(CurrentColorRamp, useStdDev.Value, MAX_COLOR_QUALITY);
-			}
+            //bool? useStdDev = (sender as ToggleButton).IsChecked;
+            //if (useStdDev.HasValue)
+            //{
+            //    PointCloudTileSource source = CurrentTileSource;
+            //    if (source != null)
+            //        previewImage.Source = source.GeneratePreviewImage(CurrentColorRamp, useStdDev.Value, MAX_COLOR_QUALITY);
+            //}
 		}
 
         public void LoadPreview3D()
         {
-            PointCloudTileSource tileSource = CurrentTileSource;
-            Jacere.Core.Geometry.Extent3D extent = tileSource.Extent;
+            //PointCloudTileSource tileSource = CurrentTileSource;
+            //Jacere.Core.Geometry.Extent3D extent = tileSource.Extent;
 
-            Model3DGroup modelGroup = new Model3DGroup();
+            //Model3DGroup modelGroup = new Model3DGroup();
 
-            Model3DGroup modelSubGroup = new Model3DGroup();
-            modelGroup.Children.Add(modelSubGroup);
+            //Model3DGroup modelSubGroup = new Model3DGroup();
+            //modelGroup.Children.Add(modelSubGroup);
 
-            Model3DGroup modelStitchingGroup = new Model3DGroup();
-            modelGroup.Children.Add(modelStitchingGroup);
+            //Model3DGroup modelStitchingGroup = new Model3DGroup();
+            //modelGroup.Children.Add(modelStitchingGroup);
 
-            DirectionalLight lightSource = new DirectionalLight(System.Windows.Media.Colors.White, new Vector3D(-1, -1, -1));
-            modelGroup.Children.Add(lightSource);
+            //DirectionalLight lightSource = new DirectionalLight(System.Windows.Media.Colors.White, new Vector3D(-1, -1, -1));
+            //modelGroup.Children.Add(lightSource);
 
-            ModelVisual3D model = new ModelVisual3D();
-            model.Content = modelGroup;
+            //ModelVisual3D model = new ModelVisual3D();
+            //model.Content = modelGroup;
 
-            Jacere.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
-            Point3D lookatPoint = new Point3D(0, 0, 0);
-            Point3D cameraPoint = new Point3D(0, extent.MinY - centerOfMass.Y, centerOfMass.Z - extent.MinZ + extent.RangeX);
-            Vector3D lookDirection = lookatPoint - cameraPoint;
-            lookDirection.Normalize();
+            //Jacere.Core.Geometry.Point3D centerOfMass = tileSource.CenterOfMass;
+            //Point3D lookatPoint = new Point3D(0, 0, 0);
+            //Point3D cameraPoint = new Point3D(0, extent.MinY - centerOfMass.Y, centerOfMass.Z - extent.MinZ + extent.RangeX);
+            //Vector3D lookDirection = lookatPoint - cameraPoint;
+            //lookDirection.Normalize();
 
-            PerspectiveCamera camera = new PerspectiveCamera();
-            camera.Position = cameraPoint;
-            camera.LookDirection = lookDirection;
-            camera.UpDirection = new Vector3D(0, 0, 1);
-            camera.FieldOfView = 70;
+            //PerspectiveCamera camera = new PerspectiveCamera();
+            //camera.Position = cameraPoint;
+            //camera.LookDirection = lookDirection;
+            //camera.UpDirection = new Vector3D(0, 0, 1);
+            //camera.FieldOfView = 70;
 
-            RenderOptions.SetEdgeMode(viewport, EdgeMode.Aliased);
-            //viewport.ClipToBounds = false;
-            //viewport.IsHitTestVisible = false;
+            //RenderOptions.SetEdgeMode(viewport, EdgeMode.Aliased);
+            ////viewport.ClipToBounds = false;
+            ////viewport.IsHitTestVisible = false;
 
-            viewport.Camera = camera;
-            viewport.Children.Add(model);
+            //viewport.Camera = camera;
+            //viewport.Children.Add(model);
 
-            m_tileModelCollection = modelSubGroup.Children;
-            m_stitchingModelCollection = modelStitchingGroup.Children;
+            //m_tileModelCollection = modelSubGroup.Children;
+            //m_stitchingModelCollection = modelStitchingGroup.Children;
 
-            m_backgroundWorker.RunWorkerAsync(CurrentTileSource);
+            //m_backgroundWorker.RunWorkerAsync(CurrentTileSource);
         }
 	}
 }

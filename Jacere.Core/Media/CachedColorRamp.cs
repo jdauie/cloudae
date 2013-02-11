@@ -50,16 +50,17 @@ namespace Jacere.Core
 			get { return m_sourceRightShift; }
 		}
 
-		public CachedColorRamp(ColorRamp ramp, uint min, uint max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
+		public CachedColorRamp(ColorRamp ramp, int min, int max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
 		{
-			if (useStdDevStretch && stats == null)
+            if (useStdDevStretch && stats == null)
 				throw new ArgumentException("There must be a stats argument if stretching is enabled.");
 
 			m_ramp = ramp;
 			m_binCountDesired = desiredDestinationBins;
 
-			m_realMin = min;
-			m_realMax = max;
+            throw new NotImplementedException();
+            //m_realMin = min;
+            //m_realMax = max;
 
 			if (useStdDevStretch)
 			{

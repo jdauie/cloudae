@@ -34,7 +34,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public UQuantizedExtent3D QuantizedExtent
+		public SQuantizedExtent3D QuantizedExtent
 		{
 			get
 			{

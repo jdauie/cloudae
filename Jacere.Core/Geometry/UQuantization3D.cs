@@ -4,6 +4,7 @@ using System.IO;
 
 namespace Jacere.Core.Geometry
 {
+    [Obsolete("Moving back to LAS compatibility", true)]
 	public class UQuantization3D : Quantization3D
 	{
 		protected override Type SupportedPointType

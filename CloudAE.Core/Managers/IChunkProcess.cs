@@ -45,9 +45,9 @@ namespace CloudAE.Core
 
 		private readonly double m_tilesOverRangeX;
 		private readonly double m_tilesOverRangeY;
-		private readonly UQuantizedExtent3D m_quantizedExtent;
+		private readonly SQuantizedExtent3D m_quantizedExtent;
 
-		public TileRegionFilter(IGrid grid, UQuantizedExtent3D quantizedExtent, int tileIndex, int count)
+		public TileRegionFilter(IGrid grid, SQuantizedExtent3D quantizedExtent, int tileIndex, int count)
 		{
 			m_index = tileIndex;
 			m_count = count;
@@ -67,7 +67,7 @@ namespace CloudAE.Core
 			byte* pbDestination = pb;
 			while (pb < chunk.PointDataEndPtr)
 			{
-				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
+				var p = (SQuantizedPoint3D*)pb;
 
 				int index = PointCloudTileCoord.GetIndex(
 					(ushort)(((double)(*p).Y - m_quantizedExtent.MinY) * m_tilesOverRangeY),

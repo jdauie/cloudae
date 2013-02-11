@@ -12,20 +12,20 @@ namespace CloudAE.Core
 		private readonly PointCloudTileSource m_source;
 
 		private readonly Grid<float> m_grid;
-		private readonly Grid<uint> m_gridQuantized;
+		private readonly Grid<int> m_gridQuantized;
 
 		private readonly double m_pixelsOverRangeX;
 		private readonly double m_pixelsOverRangeY;
 
-		private readonly uint m_minX;
-		private readonly uint m_minY;
+		private readonly int m_minX;
+		private readonly int m_minY;
 
 		public Grid<float> Grid
 		{
 			get { return m_grid; }
 		}
 
-		public Grid<uint> GridQuantized
+		public Grid<int> GridQuantized
 		{
 			get { return m_gridQuantized; }
 		}
@@ -45,7 +45,7 @@ namespace CloudAE.Core
 			m_source = source;
 
 			m_grid = new Grid<float>(m_source.Extent, maxDimension, fillVal, true);
-			m_gridQuantized = new Grid<uint>(m_grid.SizeX, m_grid.SizeY, m_source.Extent, true);
+			m_gridQuantized = new Grid<int>(m_grid.SizeX, m_grid.SizeY, m_source.Extent, true);
 
 			m_pixelsOverRangeX = (double)m_grid.SizeX / m_source.QuantizedExtent.RangeX;
 			m_pixelsOverRangeY = (double)m_grid.SizeY / m_source.QuantizedExtent.RangeY;
@@ -59,7 +59,7 @@ namespace CloudAE.Core
 			byte* pb = chunk.PointDataPtr;
 			while (pb < chunk.PointDataEndPtr)
 			{
-				UQuantizedPoint3D* p = (UQuantizedPoint3D*)pb;
+				var p = (SQuantizedPoint3D*)pb;
 
 				int pixelX = (int)(((*p).X - m_minX) * m_pixelsOverRangeX);
 				int pixelY = (int)(((*p).Y - m_minY) * m_pixelsOverRangeY);
