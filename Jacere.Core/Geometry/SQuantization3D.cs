@@ -26,14 +26,18 @@ namespace Jacere.Core.Geometry
 		{
 		}
 
-		protected override IQuantizedPoint3D ConvertInternal(Point3D point)
-		{
-			return new SQuantizedPoint3D(point);
-		}
+        public SQuantizedPoint3D Convert(Point3D point)
+        {
+            return new SQuantizedPoint3D((point - Offset) / ScaleFactor);
+        }
 
-		protected override IQuantizedExtent3D ConvertInternal(Extent3D extent)
-		{
-			return new SQuantizedExtent3D(extent);
-		}
+        public SQuantizedExtent3D Convert(Extent3D extent)
+        {
+            var e = new Extent3D(
+                (extent.GetMinPoint3D() - Offset) / ScaleFactor,
+                (extent.GetMaxPoint3D() - Offset) / ScaleFactor
+            );
+            return new SQuantizedExtent3D(e);
+        }
 	}
 }

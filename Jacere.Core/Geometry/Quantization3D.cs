@@ -287,22 +287,5 @@ namespace Jacere.Core.Geometry
 				e.GetMaxPoint3D() * ScaleFactor + Offset
 			);
 		}
-
-		public IQuantizedPoint3D Convert(Point3D point)
-		{
-			return ConvertInternal((point - Offset) / ScaleFactor);
-		}
-
-		public IQuantizedExtent3D Convert(Extent3D extent)
-		{
-			var e = new Extent3D(
-				(extent.GetMinPoint3D() - Offset) / ScaleFactor,
-				(extent.GetMaxPoint3D() - Offset) / ScaleFactor
-			);
-			return ConvertInternal(e);
-		}
-
-		protected abstract IQuantizedPoint3D ConvertInternal(Point3D point);
-		protected abstract IQuantizedExtent3D ConvertInternal(Extent3D extent);
 	}
 }

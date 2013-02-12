@@ -27,14 +27,14 @@ namespace Jacere.Core.Geometry
 		{
 		}
 
-		protected override IQuantizedPoint3D ConvertInternal(Point3D point)
-		{
-			return new UQuantizedPoint3D(point);
-		}
+        //protected override IQuantizedPoint3D ConvertInternal(Point3D point)
+        //{
+        //    return new UQuantizedPoint3D(point);
+        //}
 
-		protected override IQuantizedExtent3D ConvertInternal(Extent3D extent)
-		{
-			return new UQuantizedExtent3D(extent);
-		}
+        //protected override IQuantizedExtent3D ConvertInternal(Extent3D extent)
+        //{
+        //    return new UQuantizedExtent3D(extent);
+        //}
 	}
 }

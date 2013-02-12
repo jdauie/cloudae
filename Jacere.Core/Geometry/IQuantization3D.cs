@@ -7,10 +7,10 @@ namespace Jacere.Core.Geometry
 {
 	public interface IQuantization3D
 	{
-		IQuantizedPoint3D Convert(Point3D point);
-		Point3D Convert(IQuantizedPoint3D point);
+		//IQuantizedPoint3D Convert(Point3D point);
+		//Point3D Convert(IQuantizedPoint3D point);
 
-		IQuantizedExtent3D Convert(Extent3D extent);
-		Extent3D Convert(IQuantizedExtent3D extent);
+		//IQuantizedExtent3D Convert(Extent3D extent);
+		//Extent3D Convert(IQuantizedExtent3D extent);
 	}
 }

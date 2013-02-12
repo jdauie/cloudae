@@ -29,26 +29,26 @@ namespace CloudAE.Core.Geometry
 
 		public QuantizationConverter(IPointCloudBinarySource source, Quantization3D outputQuantization, Grid<int> tileCounts)
 		{
-			var extent = source.Extent;
-			var inputQuantization = (SQuantization3D)source.Quantization;
-			var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
+            //var extent = source.Extent;
+            //var inputQuantization = (SQuantization3D)source.Quantization;
+            //var quantizedExtent = (UQuantizedExtent3D)outputQuantization.Convert(extent);
 			
-			m_tileCounts = tileCounts;
-			m_pointSizeBytes = source.PointSizeBytes;
+            //m_tileCounts = tileCounts;
+            //m_pointSizeBytes = source.PointSizeBytes;
 
-			m_minX = quantizedExtent.MinX;
-			m_minY = quantizedExtent.MinY;
+            //m_minX = quantizedExtent.MinX;
+            //m_minY = quantizedExtent.MinY;
 
-			m_tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
-			m_tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
+            //m_tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
+            //m_tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
-			m_scaleTranslationX = inputQuantization.ScaleFactorX / outputQuantization.ScaleFactorX;
-			m_scaleTranslationY = inputQuantization.ScaleFactorY / outputQuantization.ScaleFactorY;
-			m_scaleTranslationZ = inputQuantization.ScaleFactorZ / outputQuantization.ScaleFactorZ;
+            //m_scaleTranslationX = inputQuantization.ScaleFactorX / outputQuantization.ScaleFactorX;
+            //m_scaleTranslationY = inputQuantization.ScaleFactorY / outputQuantization.ScaleFactorY;
+            //m_scaleTranslationZ = inputQuantization.ScaleFactorZ / outputQuantization.ScaleFactorZ;
 
-			m_offsetTranslationX = (inputQuantization.OffsetX - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX;
-			m_offsetTranslationY = (inputQuantization.OffsetY - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY;
-			m_offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
+            //m_offsetTranslationX = (inputQuantization.OffsetX - outputQuantization.OffsetX) / outputQuantization.ScaleFactorX;
+            //m_offsetTranslationY = (inputQuantization.OffsetY - outputQuantization.OffsetY) / outputQuantization.ScaleFactorY;
+            //m_offsetTranslationZ = (inputQuantization.OffsetZ - outputQuantization.OffsetZ) / outputQuantization.ScaleFactorZ;
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
