@@ -14,7 +14,7 @@ namespace Jacere.Data.PointCloud
 		private readonly IPointCloudBinarySource[] m_sources;
 
 		private readonly long m_count;
-		private readonly Quantization3D m_quantization;
+		private readonly SQuantization3D m_quantization;
 		private readonly short m_pointSizeBytes;
 
 		private Extent3D m_extent;
@@ -31,7 +31,7 @@ namespace Jacere.Data.PointCloud
 			get { throw new NotImplementedException(); }
 		}
 
-		public Quantization3D Quantization
+		public SQuantization3D Quantization
 		{
 			get { return m_quantization; }
 		}

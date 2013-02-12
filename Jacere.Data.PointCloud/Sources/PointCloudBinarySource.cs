@@ -11,7 +11,7 @@ namespace Jacere.Data.PointCloud
 		public const string FILE_EXTENSION = "bin";
 
 		private readonly long m_count;
-		private readonly Quantization3D m_quantization;
+		private readonly SQuantization3D m_quantization;
 		private readonly short m_pointSizeBytes;
 
 		private long m_pointDataOffset;
@@ -24,7 +24,7 @@ namespace Jacere.Data.PointCloud
 			get { return m_count; }
 		}
 
-		public Quantization3D Quantization
+		public SQuantization3D Quantization
 		{
 			get { return m_quantization; }
 		}
@@ -53,7 +53,7 @@ namespace Jacere.Data.PointCloud
 
 		#endregion
 
-		public PointCloudBinarySource(FileHandlerBase file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes)
+		public PointCloudBinarySource(FileHandlerBase file, long count, Extent3D extent, SQuantization3D quantization, long dataOffset, short pointSizeBytes)
 			: base(file)
 		{
 			m_count = count;

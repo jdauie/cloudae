@@ -147,12 +147,12 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, Quantization3D quantization, short pointSizeBytes, Statistics zStats)
+		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, SQuantization3D quantization, short pointSizeBytes, Statistics zStats)
 			: this(file, tileSet, quantization, 0, pointSizeBytes, zStats)
 		{
 		}
 
-		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, Quantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats)
+		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, SQuantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats)
 			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, pointSizeBytes)
 		{
 			m_tileSet = tileSet;

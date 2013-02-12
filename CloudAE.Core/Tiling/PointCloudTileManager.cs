@@ -374,18 +374,18 @@ namespace CloudAE.Core
 		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			Statistics stats = null;
-			Quantization3D quantization = null;
+			SQuantization3D quantization = null;
 			GridIndexSegments gridIndexSegments = null;
 
 			var extent = source.Extent;
-			var inputQuantization = (SQuantization3D)source.Quantization;
+			var inputQuantization = source.Quantization;
 			var quantizedExtent = (SQuantizedExtent3D)inputQuantization.Convert(extent);
 
             //QuantizationTest<int> quantizationTest = null;
             //if (PROPERTY_COMPUTE_OPTIMAL_QUANTIZATION.Value)
             //    quantizationTest = new QuantizationTest<int>(source);
 
-			GridIndexGenerator gridIndexGenerator = null;// (segmentBuffer != null) ? null : new GridIndexGenerator();
+			GridIndexGenerator gridIndexGenerator = (segmentBuffer != null) ? null : new GridIndexGenerator();
 
 			using (var process = progressManager.StartProcess("QuantEstimateDensity"))
 			{

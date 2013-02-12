@@ -11,7 +11,7 @@ namespace Jacere.Data.PointCloud
 	{
 		private readonly LAZFile m_handler;
 
-		public LAZBinarySource(FileHandlerBase file, long count, Extent3D extent, Quantization3D quantization, long dataOffset, short pointSizeBytes)
+		public LAZBinarySource(FileHandlerBase file, long count, Extent3D extent, SQuantization3D quantization, long dataOffset, short pointSizeBytes)
 			: base(file, count, extent, quantization, dataOffset, pointSizeBytes)
 		{
 			m_handler = (LAZFile)file;

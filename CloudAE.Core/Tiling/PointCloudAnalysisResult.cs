@@ -11,15 +11,15 @@ namespace CloudAE.Core
 	{
 		public PointCloudTileDensity Density { get; private set; }
 		public Statistics Statistics { get; private set; }
-		public Quantization3D Quantization { get; private set; }
+		public SQuantization3D Quantization { get; private set; }
 		public GridIndexSegments GridIndex { get; private set; }
 
-		public PointCloudAnalysisResult(PointCloudTileDensity density, Statistics statistics, Quantization3D quantization)
+		public PointCloudAnalysisResult(PointCloudTileDensity density, Statistics statistics, SQuantization3D quantization)
 			: this(density, statistics, quantization, null)
 		{
 		}
 
-		public PointCloudAnalysisResult(PointCloudTileDensity density, Statistics statistics, Quantization3D quantization, GridIndexSegments gridIndex)
+		public PointCloudAnalysisResult(PointCloudTileDensity density, Statistics statistics, SQuantization3D quantization, GridIndexSegments gridIndex)
 		{
 			Density = density;
 			Statistics = statistics;
