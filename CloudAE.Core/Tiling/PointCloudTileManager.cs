@@ -65,7 +65,7 @@ namespace CloudAE.Core
 			var analysis = AnalyzePointFile(null, progressManager);
 			var tileCounts = analysis.Density.CreateTileCountsForInitialization(true);
 
-			var quantizedExtent = (SQuantizedExtent3D)analysis.Quantization.Convert(analysis.Density.Extent);
+			var quantizedExtent = analysis.Quantization.Convert(analysis.Density.Extent);
 			
 			int tileIndex = 0;
 			foreach (var segment in analysis.GridIndex)
@@ -240,7 +240,7 @@ namespace CloudAE.Core
 
 			var extent = source.Extent;
 			var inputQuantization = source.Quantization;
-			var quantizedExtent = (SQuantizedExtent3D)inputQuantization.Convert(extent);
+			var quantizedExtent = inputQuantization.Convert(extent);
 
             var gridIndexGenerator = (segmentBuffer != null) ? null : new GridIndexGenerator();
 
@@ -266,8 +266,9 @@ namespace CloudAE.Core
                 //    quantization = quantizationTest.CreateQuantization();
 			}
 
-			if (quantization == null)
-				quantization = Quantization3D.Create(extent);
+            // use input quantization
+            //if (quantization == null)
+            //    quantization = Quantization3D.Create(extent);
 
 			var density = new PointCloudTileDensity(tileCounts, extent);
 
@@ -310,7 +311,7 @@ namespace CloudAE.Core
 		{
 			var extent = source.Extent;
 			var outputQuantization = tileSource.Quantization;
-			var quantizedExtent = (SQuantizedExtent3D)outputQuantization.Convert(extent);
+			var quantizedExtent = outputQuantization.Convert(extent);
 			var tileSet = tileSource.TileSet;
 
 			double tilesOverRangeX = (double)tileSet.Cols / quantizedExtent.RangeX;
@@ -375,24 +376,6 @@ namespace CloudAE.Core
 
 			return new Grid<int>(tilesX, tilesY, extent, true);
 		}
-
-//        private static Grid<int> CreateTileCountsForInitialization(PointCloudTileDensity density)
-//        {
-//            Extent3D extent = density.Extent;
-
-//            // median works better usually, but max is safer for substantially varying density
-//            // (like terrestrial, although that requires a more thorough redesign)
-//            //double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MaxTileDensity;
-//            double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MedianTileDensity;
-//            double tileSide = Math.Sqrt(tileArea);
-
-//#warning this results in non-square tiles
-
-//            ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
-//            ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
-
-//            return new Grid<int>(tilesX, tilesY, extent, true);
-//        }
 
 		#endregion
 	}
