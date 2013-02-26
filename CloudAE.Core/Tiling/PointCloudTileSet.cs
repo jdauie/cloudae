@@ -11,8 +11,6 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileSet : IEnumerable<PointCloudTile>, ISerializeBinary
 	{
-		private const bool USE_TREE_ORDER = false;
-
 		private PointCloudTileSource m_tileSource;
 
 		private readonly PointCloudTile[] m_tiles;
@@ -130,17 +128,9 @@ namespace CloudAE.Core
 
 		public static IEnumerable<PointCloudTileCoord> GetTileOrdering(ushort rows, ushort cols)
 		{
-			if (USE_TREE_ORDER)
-			{
-				foreach (var t in PointCloudTileTree.GetTileOrderEnumerator(rows, cols))
-					yield return t;
-			}
-			else
-			{
-				for (ushort y = 0; y < rows; y++)
-					for (ushort x = 0; x < cols; x++)
-						yield return new PointCloudTileCoord(y, x);
-			}
+            for (ushort y = 0; y < rows; y++)
+                for (ushort x = 0; x < cols; x++)
+                    yield return new PointCloudTileCoord(y, x);
 		}
 
 		#region Serialization

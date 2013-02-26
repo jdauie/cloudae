@@ -7,6 +7,7 @@ using Jacere.Core;
 
 namespace CloudAE.Core
 {
+    [Obsolete("Not worth the trouble")]
 	class PointCloudTileTree : IEnumerable<PointCloudTile>
 	{
 		private readonly IPointCloudTileTreeNode m_rootNode;
