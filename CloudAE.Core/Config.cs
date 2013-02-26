@@ -80,7 +80,7 @@ namespace CloudAE.Core
 		{
 			m_contextStarted = false;
 
-			m_showConsole = true;
+			m_showConsole = false;
 			m_enableInstrumentation = true;
 			m_enableExtensionDiscovery = true;
 			m_enableFactoryDiscovery = true;

@@ -34,53 +34,75 @@ namespace CloudAE.Core
 		}
 	}
 
+    /// <summary>
+    /// I am merging counting into this class for now, 
+    /// but I might want to split it into two classes later.
+    /// </summary>
 	public class TileRegionFilter : IChunkProcess
 	{
 		private readonly int m_index;
 		private readonly int m_count;
-		private readonly IGrid m_grid;
+        private readonly Grid<int> m_grid;
 
-		private readonly PointCloudTileCoord[] m_tiles;
-		private readonly HashSet<int> m_tileLookup;
+		//private readonly PointCloudTileCoord[] m_tiles;
+		//private readonly HashSet<int> m_tileLookup;
 
-		private readonly double m_tilesOverRangeX;
-		private readonly double m_tilesOverRangeY;
+		//private readonly double m_tilesOverRangeX;
+		//private readonly double m_tilesOverRangeY;
 		private readonly SQuantizedExtent3D m_quantizedExtent;
 
-		public TileRegionFilter(IGrid grid, SQuantizedExtent3D quantizedExtent, int tileIndex, int count)
+		public TileRegionFilter(Grid<int> grid, SQuantizedExtent3D quantizedExtent, int tileIndex, int count)
 		{
+            // this index is just an incremental index, not a coord index.
 			m_index = tileIndex;
 			m_count = count;
 			m_grid = grid;
 
-			m_tiles = PointCloudTileSet.GetTileOrdering(m_grid).Skip(m_index).Take(m_count).ToArray();
-			m_tileLookup = new HashSet<int>(m_tiles.Select(t => t.Index));
+            // I am removed tree-ordering, so I don't need to be this elaborate
+			//m_tiles = PointCloudTileSet.GetTileOrdering(m_grid).Skip(m_index).Take(m_count).ToArray();
+			//m_tileLookup = new HashSet<int>(m_tiles.Select(t => t.Index));
 
 			m_quantizedExtent = quantizedExtent;
-			m_tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
-			m_tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
+			//m_tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
+			//m_tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
+            double minY = m_quantizedExtent.MinY;
+            double minX = m_quantizedExtent.MinX;
+
+            double tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
+            double tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
+
+            int startTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index);
+            int endTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index + m_count);
+
 			byte* pb = chunk.PointDataPtr;
 			byte* pbDestination = pb;
 			while (pb < chunk.PointDataEndPtr)
 			{
 				var p = (SQuantizedPoint3D*)pb;
 
-				int index = PointCloudTileCoord.GetIndex(
-					(ushort)(((double)(*p).Y - m_quantizedExtent.MinY) * m_tilesOverRangeY),
-					(ushort)(((double)(*p).X - m_quantizedExtent.MinX) * m_tilesOverRangeX)
-				);
+                var row = (ushort)(((*p).Y - minY) * tilesOverRangeY);
+                var col = (ushort)(((*p).X - minX) * tilesOverRangeX);
 
-				if (m_tileLookup.Contains(index))
+				int index = PointCloudTileCoord.GetIndex(row, col);
+
+				if (index >= startTileIndex && index < endTileIndex)
 				{
-					if(pb != pbDestination)
-					{
+                    // make copy faster?
+
+                    // assume that most points will be shifted?
+                    //if(pb != pbDestination)
+                    //{
 						for (int i = 0; i < chunk.PointSizeBytes; i++)
 							pbDestination[i] = pb[i];
-					}
+					//}
+
+                    // increment count
+                    ++m_grid.Data[row, col];
+                    // better would be to do it nearby and add them to the grid at the end (possibly)
 
 					pbDestination += chunk.PointSizeBytes;
 				}

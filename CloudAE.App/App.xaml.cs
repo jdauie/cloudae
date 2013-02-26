@@ -19,10 +19,11 @@ namespace CloudAE.App
 			if (!SingleInstance.InitializeAsFirstInstance(SignalExternalCommandLineArgs))
 				Environment.Exit(0);
 
-			SplashScreen appSplash = new SplashScreen("splash.png");
+			var appSplash = new SplashScreen("splash.png");
 			appSplash.Show(false);
 			{
 				base.OnStartup(e);
+			    Config.ShowConsole = true;
 				Context.Startup();
 			}
 			appSplash.Close(TimeSpan.FromMilliseconds(300));
@@ -34,8 +35,9 @@ namespace CloudAE.App
 
 		private void ShowMainWindow()
 		{
-			MainWindow window = new MainWindow();
-			ShutdownMode = System.Windows.ShutdownMode.OnMainWindowClose;
+            var window = new MainWindow();
+            //var window = new MapWindow();
+            ShutdownMode = System.Windows.ShutdownMode.OnMainWindowClose;
 			MainWindow = window;
 			window.Show();
 		}

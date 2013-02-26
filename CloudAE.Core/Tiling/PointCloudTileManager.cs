@@ -65,7 +65,7 @@ namespace CloudAE.Core
 			var analysis = AnalyzePointFile(null, progressManager);
 			var tileCounts = analysis.Density.CreateTileCountsForInitialization(true);
 
-			var quantizedExtent = analysis.Quantization.Convert(analysis.Density.Extent);
+			var quantizedExtent = m_source.Quantization.Convert(analysis.Density.Extent);
 			
 			int tileIndex = 0;
 			foreach (var segment in analysis.GridIndex)

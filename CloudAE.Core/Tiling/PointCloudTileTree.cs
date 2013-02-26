@@ -249,6 +249,14 @@ namespace CloudAE.Core
 			return ((row << 16) | col);
 		}
 
+        public static int GetIndex(IGrid grid, int incrementalIndex)
+        {
+            var row = incrementalIndex / grid.SizeX;
+            var col = incrementalIndex % grid.SizeX;
+
+            return ((row << 16) | col);
+        }
+
 		public static PointCloudTileCoord Empty
 		{
 			get { return new PointCloudTileCoord(ushort.MaxValue, ushort.MaxValue); }
@@ -283,7 +291,7 @@ namespace CloudAE.Core
 		public PointCloudTileCoord(uint index)
 		{
 			m_row = (ushort)(index >> 16);
-			m_col = (ushort)((index << 16) >> 16);
+			m_col = (ushort)(index | ((1 << 16) - 1));
 		}
 
 		public PointCloudTileCoord(BinaryReader reader)
