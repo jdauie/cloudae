@@ -38,7 +38,7 @@ namespace CloudAE.Core
     /// I am merging counting into this class for now, 
     /// but I might want to split it into two classes later.
     /// </summary>
-	public class TileRegionFilter : IChunkProcess
+	public class TileRegionFilter : IChunkProcess, IDisposable
 	{
 		private readonly int m_index;
 		private readonly int m_count;
@@ -113,6 +113,11 @@ namespace CloudAE.Core
 			int pointsRemaining = (int)((pbDestination - chunk.PointDataPtr) / chunk.PointSizeBytes);
 			return chunk.CreateSegment(pointsRemaining);
 		}
+
+        public void Dispose()
+        {
+            m_grid.CorrectCountOverflow();
+        }
 	}
 
 	//public class SparseSegment

@@ -47,7 +47,7 @@ namespace CloudAE.Core
 
 			int edgeBufferSize = bufferEdge ? 1 : 0;
 
-			Data = new T[SizeX + edgeBufferSize, SizeY + edgeBufferSize];
+            Data = new T[SizeY + edgeBufferSize, SizeX + edgeBufferSize];
 		}
 
 		public Grid(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal, bool bufferEdge)
@@ -66,7 +66,7 @@ namespace CloudAE.Core
 
 			int edgeBufferSize = bufferEdge ? 1 : 0;
 
-			Data = new T[SizeX + edgeBufferSize, SizeY + edgeBufferSize];
+            Data = new T[SizeY + edgeBufferSize, SizeX + edgeBufferSize];
 			Reset();
 		}
 
@@ -78,12 +78,12 @@ namespace CloudAE.Core
 		public void Reset()
 		{
 			T fillVal = FillVal;
-			int sizeX = Data.GetLength(0);
-			int sizeY = Data.GetLength(1);
+			int sizeY = Data.GetLength(0);
+			int sizeX = Data.GetLength(1);
 
-			for (int x = 0; x < sizeX; x++)
-				for (int y = 0; y < sizeY; y++)
-					Data[x, y] = fillVal;
+			for (int y = 0; y < sizeY; y++)
+				for (int x = 0; x < sizeX; x++)
+					Data[y, x] = fillVal;
 		}
 
 		public IEnumerable<T> GetCellsInScaledRange(int scaledX, int scaledY, IGrid scaledGrid)
@@ -94,10 +94,10 @@ namespace CloudAE.Core
 			int endX = (int)Math.Ceiling(((double)(scaledX + 1) / scaledGrid.SizeX) * SizeX);
 			int endY = (int)Math.Ceiling(((double)(scaledY + 1) / scaledGrid.SizeY) * SizeY);
 
-			for (int x = startX; x < endX; x++)
-				for (int y = startY; y < endY; y++)
-					if (!EqualityComparer<T>.Default.Equals(Data[x, y], default(T)))
-						yield return Data[x, y];
+			for (int y = startY; y < endY; y++)
+				for (int x = startX; x < endX; x++)
+					if (!EqualityComparer<T>.Default.Equals(Data[y, x], default(T)))
+						yield return Data[y, x];
 		}
 	}
 
@@ -114,25 +114,25 @@ namespace CloudAE.Core
 			int sizeX = data.GetLength(0);
 			int sizeY = data.GetLength(1);
 
-			for (int x = 0; x < sizeX; x++)
-				for (int y = 0; y < sizeY; y++)
-					data[x, y] = ((data[x, y] - offset) * value) + offset;
+			for (int y = 0; y < sizeY; y++)
+				for (int x = 0; x < sizeX; x++)
+					data[y, x] = ((data[y, x] - offset) * value) + offset;
 		}
 
 		public static void CorrectCountOverflow(this Grid<GridIndexCell> target)
 		{
 			GridIndexCell[,] data = target.Data;
 
-			// correct count overflows
+            // correct count overflows
+            for (int y = 0; y < target.SizeY; y++)
+            {
+                data[y, target.SizeX - 1] = new GridIndexCell(data[y, target.SizeX - 1], data[y, target.SizeX]);
+                data[y, target.SizeX] = new GridIndexCell();
+            }
 			for (int x = 0; x <= target.SizeX; x++)
 			{
-				data[x, target.SizeY - 1] = new GridIndexCell(data[x, target.SizeY - 1], data[x, target.SizeY]);
-				data[x, target.SizeY] = new GridIndexCell();
-			}
-			for (int y = 0; y < target.SizeY; y++)
-			{
-				data[target.SizeX - 1, y] = new GridIndexCell(data[target.SizeX - 1, y], data[target.SizeX, y]);
-				data[target.SizeX, y] = new GridIndexCell();
+                data[target.SizeY - 1, x] = new GridIndexCell(data[target.SizeY - 1, x], data[target.SizeY, x]);
+				data[target.SizeY, x] = new GridIndexCell();
 			}
 		}
 
@@ -140,16 +140,16 @@ namespace CloudAE.Core
 		{
 			int[,] data = target.Data;
 
-			// correct count overflows
+            // correct count overflows
+            for (int y = 0; y < target.SizeY; y++)
+            {
+				data[y, target.SizeX - 1] += data[y, target.SizeX];
+                data[y, target.SizeX] = 0;
+            }
 			for (int x = 0; x <= target.SizeX; x++)
 			{
-				data[x, target.SizeY - 1] += data[x, target.SizeY];
-				data[x, target.SizeY] = 0;
-			}
-			for (int y = 0; y < target.SizeY; y++)
-			{
-				data[target.SizeX - 1, y] += data[target.SizeX, y];
-				data[target.SizeX, y] = 0;
+				data[target.SizeY - 1, x] += data[target.SizeY, x];
+				data[target.SizeY, x] = 0;
 			}
 		}
 
@@ -157,16 +157,16 @@ namespace CloudAE.Core
 		{
 			int[,] data = target.Data;
 
-			// correct max overflows
+            // correct max overflows
+            for (int y = 0; y < target.SizeY; y++)
+            {
+				data[y, target.SizeX - 1] = Math.Max(data[y, target.SizeX], data[y, target.SizeX - 1]);
+				data[y, target.SizeX] = 0;
+            }
 			for (int x = 0; x <= target.SizeX; x++)
 			{
-				data[x, target.SizeY - 1] = Math.Max(data[x, target.SizeY], data[x, target.SizeY - 1]);
-				data[x, target.SizeY] = 0;
-			}
-			for (int y = 0; y < target.SizeY; y++)
-			{
-				data[target.SizeX - 1, y] = Math.Max(data[target.SizeX, y], data[target.SizeX - 1, y]);
-				data[target.SizeX, y] = 0;
+				data[target.SizeY - 1, x] = Math.Max(data[target.SizeY, x], data[target.SizeY - 1, x]);
+				data[target.SizeY, x] = 0;
 			}
 		}
 
@@ -180,10 +180,10 @@ namespace CloudAE.Core
 
 			// ">" zero is not quite what I want here
 			// it could lose some min values (not important for now)
-			for (int x = 0; x < target.SizeX; x++)
-				for (int y = 0; y < target.SizeY; y++)
-					if (data0[x, y] > 0)
-						data1[x, y] = data0[x, y] * scaleFactorZ + adjustedOffset;
+			for (int y = 0; y < target.SizeY; y++)
+				for (int x = 0; x < target.SizeX; x++)
+					if (data0[y, x] > 0)
+						data1[y, x] = data0[y, x] * scaleFactorZ + adjustedOffset;
 		}
 	}
 }

@@ -277,7 +277,7 @@ namespace CloudAE.Core
 					//if (tileX < 0) tileX = 0; else if (tileX > m_grid.SizeX) tileX = m_grid.SizeX;
 					//if (tileY < 0) tileY = 0; else if (tileY > m_grid.SizeY) tileY = m_grid.SizeY;
 
-					++m_grid.Data[tileIndex.Col, tileIndex.Row];
+					++m_grid.Data[tileIndex.Row, tileIndex.Col];
 
 					// indexing
 					if(m_gridIndex != null)
@@ -297,11 +297,11 @@ namespace CloudAE.Core
 				{
 					foreach (var tileIndex in tileIndices)
 					{
-						var indexCell = m_gridIndex.Data[tileIndex.Col, tileIndex.Row];
+						var indexCell = m_gridIndex.Data[tileIndex.Row, tileIndex.Col];
 						if (indexCell == null)
 						{
 							indexCell = new GridIndexCell();
-							m_gridIndex.Data[tileIndex.Col, tileIndex.Row] = indexCell;
+							m_gridIndex.Data[tileIndex.Row, tileIndex.Col] = indexCell;
 						}
 						indexCell.Add(chunk.Index);
 					}
@@ -314,8 +314,8 @@ namespace CloudAE.Core
 				{
 					Point3D* p = (Point3D*)pb;
 					++m_grid.Data[
-						(int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX),
-						(int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY)
+						(int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY),
+						(int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX)
 					];
 
 					pb += chunk.PointSizeBytes;
