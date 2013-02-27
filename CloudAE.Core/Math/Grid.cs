@@ -14,7 +14,12 @@ namespace CloudAE.Core
 		private readonly int m_bitsX;
 		private readonly int m_bitsY;
 
+		private readonly T m_fillVal;
+		private readonly Extent2D m_extent;
+
 		public readonly T[,] Data;
+
+		#region Properties
 
 		public ushort SizeX
 		{
@@ -31,9 +36,24 @@ namespace CloudAE.Core
 			get { return SizeX * SizeY; }
 		}
 
-		public T FillVal { get; set; }
+		public T FillVal
+		{
+			get { return m_fillVal; }
+		}
 
-		public Extent2D Extent { get; private set; }
+		public Extent2D Extent
+		{
+			get { return m_extent; }
+		}
+
+		private bool Buffered
+		{
+			get { return (Data.GetLength(0) > SizeY); }
+		}
+
+		#endregion
+
+		#region Creators
 
 		public static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent)
 		{
@@ -59,11 +79,13 @@ namespace CloudAE.Core
 			return new Grid<T>(sizeX, sizeY, extent, fillVal, bufferEdge);
 		}
 
+		#endregion
+
 		private Grid(ushort sizeX, ushort sizeY, Extent2D extent, T fillVal, bool bufferEdge)
 		{
-			bool fillValIsDefault = (!EqualityComparer<T>.Default.Equals(fillVal, default(T)));
+			bool fillValIsDefault = EqualityComparer<T>.Default.Equals(fillVal, default(T));
 
-			FillVal = fillVal;
+			m_fillVal = fillVal;
 
 			m_sizeX = sizeX;
 			m_sizeY = sizeY;
@@ -71,7 +93,7 @@ namespace CloudAE.Core
 			m_bitsX = GetBits(m_sizeX);
 			m_bitsY = GetBits(m_sizeY);
 
-			Extent = extent;
+			m_extent = extent;
 
 			int edgeBufferSize = bufferEdge ? 1 : 0;
 
@@ -108,8 +130,7 @@ namespace CloudAE.Core
 
 		public Grid<TNew> Copy<TNew>()
 		{
-			bool bufferEdge = (Data.GetLength(0) > SizeY);
-			return new Grid<TNew>(SizeX, SizeY, Extent, default(TNew), bufferEdge);
+			return new Grid<TNew>(SizeX, SizeY, Extent, default(TNew), Buffered);
 		}
 
 		private static int GetBits(ushort val)
