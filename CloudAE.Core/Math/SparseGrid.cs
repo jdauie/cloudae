@@ -6,35 +6,13 @@ using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public abstract class SparseGridBase<T> : IGrid
+	public abstract class SparseGridBase<T> : Grid
 	{
-		private readonly GridDefinition m_def;
-
 		private readonly T[] m_data;
 
-		#region Properties
-
-		public GridDefinition Def
+		protected SparseGridBase(GridDefinition def, int validCellCount)
+			: base(def)
 		{
-			get { return m_def; }
-		}
-
-		public ushort SizeX
-		{
-			get { return m_def.SizeX; }
-		}
-
-		public ushort SizeY
-		{
-			get { return m_def.SizeY; }
-		}
-
-		#endregion
-
-		protected SparseGridBase(ushort sizeX, ushort sizeY, int validCellCount)
-		{
-			m_def = GridDefinition.Create(sizeX, sizeY);
-
 			m_data = new T[validCellCount];
 		}
 
@@ -46,8 +24,8 @@ namespace CloudAE.Core
 	{
 		private readonly int[] m_index;
 
-		private SparseGrid1(ushort sizeX, ushort sizeY, int validCellCount)
-			: base(sizeX, sizeY, validCellCount)
+		private SparseGrid1(GridDefinition def, int validCellCount)
+			: base(def, validCellCount)
 		{
 			m_index = new int[Def.IndexSize];
 		}
@@ -57,8 +35,8 @@ namespace CloudAE.Core
 	{
 		private readonly Dictionary<int, int> m_index;
 
-		private SparseGrid2(ushort sizeX, ushort sizeY, int validCellCount)
-			: base(sizeX, sizeY, validCellCount)
+		private SparseGrid2(GridDefinition def, int validCellCount)
+			: base(def, validCellCount)
 		{
 			m_index = new Dictionary<int, int>(validCellCount);
 		}

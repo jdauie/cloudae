@@ -6,16 +6,16 @@ using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class Grid<T> : IGrid
+	public abstract class Grid : IGrid
 	{
 		private readonly GridDefinition m_def;
 
-		private readonly T m_fillVal;
-		private readonly Extent2D m_extent;
-
-		public readonly T[,] Data;
-
 		#region Properties
+
+		public GridDefinition Def
+		{
+			get { return m_def; }
+		}
 
 		public ushort SizeX
 		{
@@ -26,6 +26,23 @@ namespace CloudAE.Core
 		{
 			get { return m_def.SizeY; }
 		}
+
+		#endregion
+
+		protected Grid(GridDefinition def)
+		{
+			m_def = def;
+		}
+	}
+
+	public class Grid<T> : Grid
+	{
+		private readonly T m_fillVal;
+		private readonly Extent2D m_extent;
+
+		public readonly T[,] Data;
+
+		#region Properties
 
 		public int CellCount
 		{
@@ -77,14 +94,14 @@ namespace CloudAE.Core
 		#endregion
 
 		private Grid(GridDefinition def, Extent2D extent, T fillVal)
+			: base(def)
 		{
 			bool fillValIsDefault = EqualityComparer<T>.Default.Equals(fillVal, default(T));
-			
-			m_def = def;
+
 			m_fillVal = fillVal;
 			m_extent = extent;
 
-            Data = new T[m_def.UnderlyingSizeY, m_def.UnderlyingSizeX];
+			Data = new T[Def.UnderlyingSizeY,Def.UnderlyingSizeX];
 
 			if (!fillValIsDefault)
 				Reset();
@@ -93,8 +110,8 @@ namespace CloudAE.Core
 		public void Reset()
 		{
 			T fillVal = FillVal;
-			int sizeY = m_def.UnderlyingSizeY;
-			int sizeX = m_def.UnderlyingSizeX;
+			int sizeY = Def.UnderlyingSizeY;
+			int sizeX = Def.UnderlyingSizeX;
 
 			for (int y = 0; y < sizeY; y++)
 				for (int x = 0; x < sizeX; x++)
@@ -117,7 +134,7 @@ namespace CloudAE.Core
 
 		public Grid<TNew> Copy<TNew>()
 		{
-			return new Grid<TNew>(m_def, Extent, default(TNew));
+			return new Grid<TNew>(Def, Extent, default(TNew));
 		}
 	}
 }
