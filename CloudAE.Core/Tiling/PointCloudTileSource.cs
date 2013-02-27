@@ -305,7 +305,7 @@ namespace CloudAE.Core
 
 			float fillVal = (float)extent.MinZ - 1;
 			var grid = new Grid<float>(extent, 2, maxDimension, fillVal, true);
-			var quantizedGrid = new Grid<int>(grid.SizeX, grid.SizeY, extent, true);
+			var quantizedGrid = grid.Copy<int>();
 
 			return new KeyValuePair<Grid<int>, Grid<float>>(quantizedGrid, grid);
 		}

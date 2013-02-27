@@ -57,7 +57,7 @@ namespace CloudAE.Core
 			int validTileIndex = 0;
 			foreach (var tile in GetTileOrdering(Rows, Cols))
 			{
-				int count = tileCounts.Data[tile.Col, tile.Row];
+				int count = tileCounts.Data[tile.Row, tile.Col];
 				if (count > 0)
 				{
 					m_tiles[validTileIndex] = new PointCloudTile(this, tile.Col, tile.Row, validTileIndex, offset, count);

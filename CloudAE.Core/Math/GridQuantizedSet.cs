@@ -45,7 +45,7 @@ namespace CloudAE.Core
 			m_source = source;
 
 			m_grid = new Grid<float>(m_source.Extent, maxDimension, fillVal, true);
-			m_gridQuantized = new Grid<int>(m_grid.SizeX, m_grid.SizeY, m_source.Extent, true);
+			m_gridQuantized = m_grid.Copy<int>();
 
 			m_pixelsOverRangeX = (double)m_grid.SizeX / m_source.QuantizedExtent.RangeX;
 			m_pixelsOverRangeY = (double)m_grid.SizeY / m_source.QuantizedExtent.RangeY;
@@ -64,8 +64,8 @@ namespace CloudAE.Core
 				int pixelX = (int)(((*p).X - m_minX) * m_pixelsOverRangeX);
 				int pixelY = (int)(((*p).Y - m_minY) * m_pixelsOverRangeY);
 
-				if ((*p).Z > m_gridQuantized.Data[pixelX, pixelY])
-					m_gridQuantized.Data[pixelX, pixelY] = (*p).Z;
+				if ((*p).Z > m_gridQuantized.Data[pixelY, pixelX])
+					m_gridQuantized.Data[pixelY, pixelX] = (*p).Z;
 
 				pb += chunk.PointSizeBytes;
 			}

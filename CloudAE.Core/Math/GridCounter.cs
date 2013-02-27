@@ -246,7 +246,7 @@ namespace CloudAE.Core
 			if (gridIndexGenerator != null)
 			{
 				m_gridIndexGenerator = gridIndexGenerator;
-				m_gridIndex = new Grid<GridIndexCell>(grid.SizeX, grid.SizeY, null, true);
+				m_gridIndex = grid.Copy<GridIndexCell>();
 			}
 		}
 
@@ -259,17 +259,17 @@ namespace CloudAE.Core
 			{
 				// get the tile indices for this chunk
 				var tileIndices = new HashSet<PointCloudTileCoord>();
-				PointCloudTileCoord lastIndex = PointCloudTileCoord.Empty;
+				var lastIndex = PointCloudTileCoord.Empty;
 
 				byte* pb = chunk.PointDataPtr;
 				while (pb < chunk.PointDataEndPtr)
 				{
-					SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
+					var p = (SQuantizedPoint3D*)pb;
 
 					//ushort tileX = (ushort)(((*p).X - m_extent.MinX) * m_tilesOverRangeX);
 					//ushort tileY = (ushort)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY);
 
-					PointCloudTileCoord tileIndex = new PointCloudTileCoord(
+					var tileIndex = new PointCloudTileCoord(
 						(ushort)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY), 
 						(ushort)(((*p).X - m_extent.MinX) * m_tilesOverRangeX)
 					);
@@ -312,7 +312,7 @@ namespace CloudAE.Core
 				byte* pb = chunk.PointDataPtr;
 				while (pb < chunk.PointDataEndPtr)
 				{
-					Point3D* p = (Point3D*)pb;
+					var p = (Point3D*)pb;
 					++m_grid.Data[
 						(int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY),
 						(int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX)

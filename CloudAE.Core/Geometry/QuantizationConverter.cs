@@ -56,7 +56,7 @@ namespace CloudAE.Core.Geometry
 			byte* pb = chunk.PointDataPtr;
 			while (pb < chunk.PointDataEndPtr)
 			{
-				SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
+				var p = (SQuantizedPoint3D*)pb;
 
 				// overwrite existing values
 				(*p).X = (int)((*p).X * m_scaleTranslationX + m_offsetTranslationX);
@@ -64,8 +64,8 @@ namespace CloudAE.Core.Geometry
 				(*p).Z = (int)((*p).Z * m_scaleTranslationZ + m_offsetTranslationZ);
 
 				++m_tileCounts.Data[
-					(int)(((double)(*p).X - m_minX) * m_tilesOverRangeX),
-					(int)(((double)(*p).Y - m_minY) * m_tilesOverRangeY)
+					(int)(((double)(*p).Y - m_minY) * m_tilesOverRangeY),
+					(int)(((double)(*p).X - m_minX) * m_tilesOverRangeX)
 				];
 
 				pb += m_pointSizeBytes;
