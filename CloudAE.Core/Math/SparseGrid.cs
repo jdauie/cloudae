@@ -6,7 +6,7 @@ using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public abstract class SparseGridBase<T> : Grid
+	public abstract class SparseGridBase<T> : GridBase
 	{
 		private readonly T[] m_data;
 

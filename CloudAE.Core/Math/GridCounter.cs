@@ -205,7 +205,7 @@ namespace CloudAE.Core
 		}
 	}
 
-	public class GridCounter : IDisposable, IChunkProcess
+	public class GridCounter : IChunkProcess, IFinalizeProcess
 	{
 		private readonly IPointCloudBinarySource m_source;
 		private readonly Grid<int> m_grid;
@@ -325,7 +325,7 @@ namespace CloudAE.Core
 			return chunk;
 		}
 
-		public void Dispose()
+		public void FinalizeProcess()
 		{
 			m_grid.CorrectCountOverflow();
 

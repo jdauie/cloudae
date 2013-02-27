@@ -7,7 +7,7 @@ using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
-	public unsafe class GridQuantizedSet : IChunkProcess
+	public unsafe class GridQuantizedSet : IChunkProcess, IFinalizeProcess
 	{
 		private readonly PointCloudTileSource m_source;
 
@@ -73,7 +73,7 @@ namespace CloudAE.Core
 			return chunk;
 		}
 
-		public void Populate()
+		public void FinalizeProcess()
 		{
 			m_gridQuantized.CorrectMaxOverflow();
 			m_gridQuantized.CopyToUnquantized(m_grid, m_source.Quantization, m_source.Extent);

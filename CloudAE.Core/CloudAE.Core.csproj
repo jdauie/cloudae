@@ -57,7 +57,7 @@
     <Compile Include="Cache.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
-    <Compile Include="Managers\IChunkProcess.cs" />
+    <Compile Include="Managers\TileRegionFilter.cs" />
     <Compile Include="Managers\PointBufferWrapper.cs" />
     <Compile Include="Managers\PointBufferWrapperChunk.cs" />
     <Compile Include="Managers\PointCloudTileCacheManager.cs" />

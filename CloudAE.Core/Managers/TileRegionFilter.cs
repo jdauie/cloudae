@@ -8,47 +8,16 @@ using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
-	/// <summary>
-	/// Processing stack.
-	/// </summary>
-	public class ChunkProcessSet : IChunkProcess
-	{
-		private readonly List<IChunkProcess> m_chunkProcesses;
-
-		public ChunkProcessSet(params IChunkProcess[] chunkProcesses)
-		{
-			m_chunkProcesses = new List<IChunkProcess>();
-			foreach (var chunkProcess in chunkProcesses)
-				if (chunkProcess != null)
-					m_chunkProcesses.Add(chunkProcess);
-		}
-
-		public IPointDataChunk Process(IPointDataChunk chunk)
-		{
-			// allow filters to replace the chunk definition
-			var currentChunk = chunk;
-			foreach (var chunkProcess in m_chunkProcesses)
-				currentChunk = chunkProcess.Process(currentChunk);
-
-			return currentChunk;
-		}
-	}
-
     /// <summary>
     /// I am merging counting into this class for now, 
     /// but I might want to split it into two classes later.
     /// </summary>
-	public class TileRegionFilter : IChunkProcess, IDisposable
+	public class TileRegionFilter : IChunkProcess, IFinalizeProcess
 	{
 		private readonly int m_index;
 		private readonly int m_count;
         private readonly Grid<int> m_grid;
 
-		//private readonly PointCloudTileCoord[] m_tiles;
-		//private readonly HashSet<int> m_tileLookup;
-
-		//private readonly double m_tilesOverRangeX;
-		//private readonly double m_tilesOverRangeY;
 		private readonly SQuantizedExtent3D m_quantizedExtent;
 
 		public TileRegionFilter(Grid<int> grid, SQuantizedExtent3D quantizedExtent, int tileIndex, int count)
@@ -58,13 +27,7 @@ namespace CloudAE.Core
 			m_count = count;
 			m_grid = grid;
 
-            // I am removed tree-ordering, so I don't need to be this elaborate
-			//m_tiles = PointCloudTileSet.GetTileOrdering(m_grid).Skip(m_index).Take(m_count).ToArray();
-			//m_tileLookup = new HashSet<int>(m_tiles.Select(t => t.Index));
-
 			m_quantizedExtent = quantizedExtent;
-			//m_tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
-			//m_tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
@@ -114,7 +77,7 @@ namespace CloudAE.Core
 			return chunk.CreateSegment(pointsRemaining);
 		}
 
-        public void Dispose()
+        public void FinalizeProcess()
         {
             m_grid.CorrectCountOverflow();
         }

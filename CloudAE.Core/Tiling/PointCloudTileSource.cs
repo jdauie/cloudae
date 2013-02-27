@@ -319,7 +319,8 @@ namespace CloudAE.Core
 			double cellSizeX = (double)quantizedExtent.RangeX / grid.SizeX;
 			double cellSizeY = (double)quantizedExtent.RangeY / grid.SizeY;
 
-			grid.FillVal = -1.0f;
+#warning Why did I do FillVal it this way?
+			//grid.FillVal = -1.0f;
 			grid.Reset();
 			quantizedGrid.Reset();
 
@@ -516,18 +517,17 @@ namespace CloudAE.Core
 		private void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
 		{
 			var gridSet = new GridQuantizedSet(this, maxPreviewDimension, -1.0f);
+			var group = new ChunkProcessSet(gridSet);
 
 			using (var process = progressManager.StartProcess("GeneratePreviewPixelGrid"))
 			{
-				foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(process))
-				{
-					//TileOperationAction(chunk);
-
-					gridSet.Process(chunk);
-				}
+				group.Process(GetTileEnumerator(process));
+				//foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(process))
+				//{
+				//	//TileOperationAction(chunk);
+				//	gridSet.Process(chunk);
+				//}
 			}
-
-			gridSet.Populate();
 
 			m_pixelGridSet = gridSet;
 		}

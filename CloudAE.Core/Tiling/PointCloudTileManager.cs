@@ -181,17 +181,8 @@ namespace CloudAE.Core
 
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedFilter"))
 			{
-                //using (var quantizationConverter = new QuantizationConverter(source, outputQuantization, tileCounts))
-                //{
-					var chunkProcesses = new ChunkProcessSet(
-						//quantizationConverter,
-						tileFilter,
-						segmentBuffer
-					);
-
-					foreach (var chunk in source.GetBlockEnumerator(process))
-						chunkProcesses.Process(chunk);
-				//}
+				var group = new ChunkProcessSet(tileFilter, segmentBuffer);
+				group.Process(source.GetBlockEnumerator(process));
 			}
 
 			// sort points in wrapper
@@ -247,28 +238,13 @@ namespace CloudAE.Core
 			using (var process = progressManager.StartProcess("QuantEstimateDensity"))
 			{
 				var statsMapping = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
-
-				using (var gridCounter = new GridCounter(source, tileCounts, gridIndexGenerator))
-				{
-					var chunkProcesses = new ChunkProcessSet(
-						gridCounter,
-						statsMapping,
-						//quantizationTest,
-						segmentBuffer
-					);
-
-					foreach (var chunk in source.GetBlockEnumerator(process))
-						chunkProcesses.Process(chunk);
-				}
+				var gridCounter = new GridCounter(source, tileCounts, gridIndexGenerator);
+				
+				var group = new ChunkProcessSet(gridCounter, statsMapping, segmentBuffer);
+				group.Process(source.GetBlockEnumerator(process));
 
 				stats = statsMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
-                //if (quantizationTest != null)
-                //    quantization = quantizationTest.CreateQuantization();
 			}
-
-            // use input quantization
-            //if (quantization == null)
-            //    quantization = Quantization3D.Create(extent);
 
 			var density = new PointCloudTileDensity(tileCounts, extent);
 

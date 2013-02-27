@@ -6,7 +6,7 @@ using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public abstract class Grid : IGrid
+	public abstract class GridBase : IGrid
 	{
 		private readonly GridDefinition m_def;
 
@@ -29,13 +29,13 @@ namespace CloudAE.Core
 
 		#endregion
 
-		protected Grid(GridDefinition def)
+		protected GridBase(GridDefinition def)
 		{
 			m_def = def;
 		}
 	}
 
-	public class Grid<T> : Grid
+	public class Grid<T> : GridBase
 	{
 		private readonly T m_fillVal;
 		private readonly Extent2D m_extent;
