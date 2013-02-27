@@ -11,6 +11,9 @@ namespace CloudAE.Core
 		private readonly ushort m_sizeX;
 		private readonly ushort m_sizeY;
 
+		private readonly ushort m_underlyingSizeX;
+		private readonly ushort m_underlyingSizeY;
+
 		private readonly int m_bitsX;
 		private readonly int m_bitsY;
 
@@ -26,14 +29,44 @@ namespace CloudAE.Core
 			get { return m_sizeY; }
 		}
 
+		public ushort UnderlyingSizeX
+		{
+			get { return m_underlyingSizeX; }
+		}
+
+		public ushort UnderlyingSizeY
+		{
+			get { return m_underlyingSizeY; }
+		}
+
 		public int Size
 		{
 			get { return SizeX * SizeY; }
 		}
 
+		public int IndexSize
+		{
+			get { return (1 << (m_bitsX + m_bitsY)); }
+		}
+
+		//public bool Buffered
+		//{
+		//    get { return (SizeX != UnderlyingSizeX); }
+		//}
+
 		#endregion
 
 		#region Creators
+
+		public static GridDefinition Create(ushort sizeX, ushort sizeY)
+		{
+			return new GridDefinition(sizeX, sizeY, false);
+		}
+
+		public static GridDefinition CreateBuffered(ushort sizeX, ushort sizeY)
+		{
+			return new GridDefinition(sizeX, sizeY, true);
+		}
 
 		public static GridDefinition Create(IAspect extent, ushort minDimension, ushort maxDimension)
 		{
@@ -46,22 +79,41 @@ namespace CloudAE.Core
 			else
 				sizeX = (ushort)Math.Max(sizeX * aspect, minDimension);
 
-			return new GridDefinition(sizeX, sizeY);
+			return Create(sizeX, sizeY);
+		}
+
+		public static GridDefinition CreateBuffered(IAspect extent, ushort minDimension, ushort maxDimension)
+		{
+			ushort sizeX = maxDimension;
+			ushort sizeY = maxDimension;
+
+			double aspect = extent.Aspect;
+			if (aspect > 1)
+				sizeY = (ushort)Math.Max(sizeX / aspect, minDimension);
+			else
+				sizeX = (ushort)Math.Max(sizeX * aspect, minDimension);
+
+			return CreateBuffered(sizeX, sizeY);
 		}
 
 		#endregion
 
-		public GridDefinition(ushort sizeX, ushort sizeY)
+		private GridDefinition(ushort sizeX, ushort sizeY, bool bufferEdge)
 		{
 			m_sizeX = sizeX;
 			m_sizeY = sizeY;
 
-#warning THIS DOES NOT ACCOUNT FOR BUFFERED EDGES
-			m_bitsX = GetBits(m_sizeX);
-			m_bitsY = GetBits(m_sizeY);
+			m_underlyingSizeX = m_sizeX;
+			m_underlyingSizeY = m_sizeY;
 
-			//int inflatedCount = (1 << (m_bitsX + m_bitsY));
-			//int inflatedMax = inflatedCount - 1;
+			if (bufferEdge)
+			{
+				++m_underlyingSizeX;
+				++m_underlyingSizeY;
+			}
+
+			m_bitsX = GetBits(m_underlyingSizeX);
+			m_bitsY = GetBits(m_underlyingSizeY);
 		}
 
 		public int GetIndex(ushort x, ushort y)

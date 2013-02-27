@@ -6,17 +6,18 @@ using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class SparseGrid<T> : IGrid
+	public abstract class SparseGridBase<T> : IGrid
 	{
 		private readonly GridDefinition m_def;
 
-		private readonly int m_bitsX;
-		private readonly int m_bitsY;
-
 		private readonly T[] m_data;
-		private readonly int[] m_index;
 
 		#region Properties
+
+		public GridDefinition Def
+		{
+			get { return m_def; }
+		}
 
 		public ushort SizeX
 		{
@@ -30,37 +31,36 @@ namespace CloudAE.Core
 
 		#endregion
 
-		private SparseGrid(ushort sizeX, ushort sizeY)
+		protected SparseGridBase(ushort sizeX, ushort sizeY, int validCellCount)
 		{
-			m_def = new GridDefinition(sizeX, sizeY);
+			m_def = GridDefinition.Create(sizeX, sizeY);
 
-			m_bitsX = GetBits(SizeX);
-			m_bitsY = GetBits(SizeY);
-
-			m_extent = extent;
-
-			int edgeBufferSize = bufferEdge ? 1 : 0;
-
-			Data = new T[SizeY + edgeBufferSize, SizeX + edgeBufferSize];
-
-			if (!fillValIsDefault)
-				Reset();
+			m_data = new T[validCellCount];
 		}
 
-		public void Reset()
-		{
-			T fillVal = FillVal;
-			int sizeY = Data.GetLength(0);
-			int sizeX = Data.GetLength(1);
+		//public abstract void Add();
+		//public abstract T Get();
+	}
 
-			for (int y = 0; y < sizeY; y++)
-				for (int x = 0; x < sizeX; x++)
-					Data[y, x] = fillVal;
+	public class SparseGrid1<T> : SparseGridBase<T>
+	{
+		private readonly int[] m_index;
+
+		private SparseGrid1(ushort sizeX, ushort sizeY, int validCellCount)
+			: base(sizeX, sizeY, validCellCount)
+		{
+			m_index = new int[Def.IndexSize];
 		}
+	}
 
-		public int GetIndex()
+	public class SparseGrid2<T> : SparseGridBase<T>
+	{
+		private readonly Dictionary<int, int> m_index;
+
+		private SparseGrid2(ushort sizeX, ushort sizeY, int validCellCount)
+			: base(sizeX, sizeY, validCellCount)
 		{
-			return 0;
+			m_index = new Dictionary<int, int>(validCellCount);
 		}
 	}
 }

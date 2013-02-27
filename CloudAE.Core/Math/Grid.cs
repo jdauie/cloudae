@@ -8,11 +8,7 @@ namespace CloudAE.Core
 {
 	public class Grid<T> : IGrid
 	{
-		private readonly ushort m_sizeX;
-		private readonly ushort m_sizeY;
-
-		private readonly int m_bitsX;
-		private readonly int m_bitsY;
+		private readonly GridDefinition m_def;
 
 		private readonly T m_fillVal;
 		private readonly Extent2D m_extent;
@@ -23,12 +19,12 @@ namespace CloudAE.Core
 
 		public ushort SizeX
 		{
-			get { return m_sizeX; }
+			get { return m_def.SizeX; }
 		}
 
 		public ushort SizeY
 		{
-			get { return m_sizeY; }
+			get { return m_def.SizeY; }
 		}
 
 		public int CellCount
@@ -46,50 +42,49 @@ namespace CloudAE.Core
 			get { return m_extent; }
 		}
 
-		private bool Buffered
-		{
-			get { return (Data.GetLength(0) > SizeY); }
-		}
-
 		#endregion
 
 		#region Creators
 
 		public static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent)
 		{
-			return new Grid<T>(sizeX, sizeY, extent, default(T), true);
+			return CreateBuffered(sizeX, sizeY, extent, default(T));
 		}
 
 		public static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent, T fillVal)
 		{
-			return new Grid<T>(sizeX, sizeY, extent, fillVal, true);
+			var def = GridDefinition.CreateBuffered(sizeX, sizeY);
+			return Create(def, extent, fillVal);
 		}
 
-		public static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal, bool bufferEdge)
+		public static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
 		{
 			var def = GridDefinition.Create(extent, minDimension, maxDimension);
-			return new Grid<T>(def.SizeX, def.SizeY, extent, fillVal, bufferEdge);
+			return Create(def, extent, fillVal);
+		}
+
+		public static Grid<T> CreateBuffered(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
+		{
+			var def = GridDefinition.CreateBuffered(extent, minDimension, maxDimension);
+			return Create(def, extent, fillVal);
+		}
+
+		private static Grid<T> Create(GridDefinition def, Extent2D extent, T fillVal)
+		{
+			return new Grid<T>(def, extent, fillVal);
 		}
 
 		#endregion
 
-		private Grid(ushort sizeX, ushort sizeY, Extent2D extent, T fillVal, bool bufferEdge)
+		private Grid(GridDefinition def, Extent2D extent, T fillVal)
 		{
 			bool fillValIsDefault = EqualityComparer<T>.Default.Equals(fillVal, default(T));
-
+			
+			m_def = def;
 			m_fillVal = fillVal;
-
-			m_sizeX = sizeX;
-			m_sizeY = sizeY;
-
-			m_bitsX = GetBits(m_sizeX);
-			m_bitsY = GetBits(m_sizeY);
-
 			m_extent = extent;
 
-			int edgeBufferSize = bufferEdge ? 1 : 0;
-
-            Data = new T[SizeY + edgeBufferSize, SizeX + edgeBufferSize];
+            Data = new T[m_def.UnderlyingSizeY, m_def.UnderlyingSizeX];
 
 			if (!fillValIsDefault)
 				Reset();
@@ -98,17 +93,12 @@ namespace CloudAE.Core
 		public void Reset()
 		{
 			T fillVal = FillVal;
-			int sizeY = Data.GetLength(0);
-			int sizeX = Data.GetLength(1);
+			int sizeY = m_def.UnderlyingSizeY;
+			int sizeX = m_def.UnderlyingSizeX;
 
 			for (int y = 0; y < sizeY; y++)
 				for (int x = 0; x < sizeX; x++)
 					Data[y, x] = fillVal;
-		}
-
-		public int GetIndex()
-		{
-			return 0;
 		}
 
 		public IEnumerable<T> GetCellsInScaledRange(int scaledX, int scaledY, IGrid scaledGrid)
@@ -127,12 +117,7 @@ namespace CloudAE.Core
 
 		public Grid<TNew> Copy<TNew>()
 		{
-			return new Grid<TNew>(SizeX, SizeY, Extent, default(TNew), Buffered);
-		}
-
-		private static int GetBits(ushort val)
-		{
-			return (int)Math.Ceiling(Math.Log(val, 2));
+			return new Grid<TNew>(m_def, Extent, default(TNew));
 		}
 	}
 }

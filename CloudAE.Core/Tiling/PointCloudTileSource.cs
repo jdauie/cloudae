@@ -304,7 +304,7 @@ namespace CloudAE.Core
 			Extent3D extent = template.Extent;
 
 			float fillVal = (float)extent.MinZ - 1;
-			var grid = Grid<float>.Create(extent, 2, maxDimension, fillVal, true);
+			var grid = Grid<float>.CreateBuffered(extent, 2, maxDimension, fillVal);
 			var quantizedGrid = grid.Copy<int>();
 
 			return new KeyValuePair<Grid<int>, Grid<float>>(quantizedGrid, grid);

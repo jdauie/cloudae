@@ -44,7 +44,7 @@ namespace CloudAE.Core
 		{
 			m_source = source;
 
-			m_grid = Grid<float>.Create(m_source.Extent, 1, maxDimension, fillVal, true);
+			m_grid = Grid<float>.CreateBuffered(m_source.Extent, 1, maxDimension, fillVal);
 			m_gridQuantized = m_grid.Copy<int>();
 
 			m_pixelsOverRangeX = (double)m_grid.SizeX / m_source.QuantizedExtent.RangeX;
