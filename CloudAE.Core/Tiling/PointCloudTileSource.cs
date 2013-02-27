@@ -304,7 +304,7 @@ namespace CloudAE.Core
 			Extent3D extent = template.Extent;
 
 			float fillVal = (float)extent.MinZ - 1;
-			var grid = new Grid<float>(extent, 2, maxDimension, fillVal, true);
+			var grid = Grid<float>.Create(extent, 2, maxDimension, fillVal, true);
 			var quantizedGrid = grid.Copy<int>();
 
 			return new KeyValuePair<Grid<int>, Grid<float>>(quantizedGrid, grid);
@@ -515,7 +515,7 @@ namespace CloudAE.Core
 
 		private void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
 		{
-			var gridSet = new GridQuantizedSet(this, maxPreviewDimension, -1.0f, true);
+			var gridSet = new GridQuantizedSet(this, maxPreviewDimension, -1.0f);
 
 			using (var process = progressManager.StartProcess("GeneratePreviewPixelGrid"))
 			{

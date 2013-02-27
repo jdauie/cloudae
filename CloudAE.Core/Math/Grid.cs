@@ -11,6 +11,9 @@ namespace CloudAE.Core
 		private readonly ushort m_sizeX;
 		private readonly ushort m_sizeY;
 
+		private readonly int m_bitsX;
+		private readonly int m_bitsY;
+
 		public readonly T[,] Data;
 
 		public ushort SizeX
@@ -32,41 +35,50 @@ namespace CloudAE.Core
 
 		public Extent2D Extent { get; private set; }
 
-		public Grid(ushort sizeX, ushort sizeY, Extent2D extent, bool bufferEdge)
+		public static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent)
 		{
+			return new Grid<T>(sizeX, sizeY, extent, default(T), true);
+		}
+
+		public static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent, T fillVal)
+		{
+			return new Grid<T>(sizeX, sizeY, extent, fillVal, true);
+		}
+
+		public static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal, bool bufferEdge)
+		{
+			ushort sizeX = maxDimension;
+			ushort sizeY = maxDimension;
+
+			double aspect = extent.Aspect;
+			if (aspect > 1)
+				sizeY = (ushort)Math.Max(sizeX / aspect, minDimension);
+			else
+				sizeX = (ushort)Math.Max(sizeX * aspect, minDimension);
+
+			return new Grid<T>(sizeX, sizeY, extent, fillVal, bufferEdge);
+		}
+
+		private Grid(ushort sizeX, ushort sizeY, Extent2D extent, T fillVal, bool bufferEdge)
+		{
+			bool fillValIsDefault = (!EqualityComparer<T>.Default.Equals(fillVal, default(T)));
+
+			FillVal = fillVal;
+
 			m_sizeX = sizeX;
 			m_sizeY = sizeY;
 
+			m_bitsX = GetBits(m_sizeX);
+			m_bitsY = GetBits(m_sizeY);
+
 			Extent = extent;
 
 			int edgeBufferSize = bufferEdge ? 1 : 0;
 
             Data = new T[SizeY + edgeBufferSize, SizeX + edgeBufferSize];
-		}
 
-		public Grid(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal, bool bufferEdge)
-		{
-			FillVal = fillVal;
-
-			m_sizeX = maxDimension;
-			m_sizeY = maxDimension;
-
-			Extent = extent;
-			double aspect = Extent.Aspect;
-			if (aspect > 1)
-				m_sizeY = (ushort)Math.Max(SizeX / aspect, minDimension);
-			else
-				m_sizeX = (ushort)Math.Max(SizeX * aspect, minDimension);
-
-			int edgeBufferSize = bufferEdge ? 1 : 0;
-
-            Data = new T[SizeY + edgeBufferSize, SizeX + edgeBufferSize];
-			Reset();
-		}
-
-		public Grid(Extent2D extent, ushort maxDimension, T fillVal, bool bufferEdge)
-			: this(extent, 0, maxDimension, fillVal, bufferEdge)
-		{
+			if (!fillValIsDefault)
+				Reset();
 		}
 
 		public void Reset()
@@ -97,7 +109,12 @@ namespace CloudAE.Core
 		public Grid<TNew> Copy<TNew>()
 		{
 			bool bufferEdge = (Data.GetLength(0) > SizeY);
-			return new Grid<TNew>(SizeX, SizeY, Extent, bufferEdge);
+			return new Grid<TNew>(SizeX, SizeY, Extent, default(TNew), bufferEdge);
+		}
+
+		private static int GetBits(ushort val)
+		{
+			return (int)Math.Ceiling(Math.Log(val, 2)) + 1;
 		}
 	}
 }

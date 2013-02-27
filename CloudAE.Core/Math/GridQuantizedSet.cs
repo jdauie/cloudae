@@ -40,11 +40,11 @@ namespace CloudAE.Core
 		//    get { return m_grid.SizeY; }
 		//}
 
-		public GridQuantizedSet(PointCloudTileSource source, ushort maxDimension, float fillVal, bool bufferEdge)
+		public GridQuantizedSet(PointCloudTileSource source, ushort maxDimension, float fillVal)
 		{
 			m_source = source;
 
-			m_grid = new Grid<float>(m_source.Extent, maxDimension, fillVal, true);
+			m_grid = Grid<float>.Create(m_source.Extent, 1, maxDimension, fillVal, true);
 			m_gridQuantized = m_grid.Copy<int>();
 
 			m_pixelsOverRangeX = (double)m_grid.SizeX / m_source.QuantizedExtent.RangeX;

@@ -374,7 +374,7 @@ namespace CloudAE.Core
 			if (tilesX == 0) tilesX = 1;
 			if (tilesY == 0) tilesY = 1;
 
-			return new Grid<int>(tilesX, tilesY, extent, true);
+			return Grid<int>.CreateBuffered(tilesX, tilesY, extent);
 		}
 
 		#endregion

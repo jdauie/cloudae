@@ -109,7 +109,7 @@ namespace CloudAE.Core
 				ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
 				ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
 
-				m_tileCountsForInitialization = new Grid<int>(tilesX, tilesY, extent, true);
+				m_tileCountsForInitialization = Grid<int>.CreateBuffered(tilesX, tilesY, extent);
 			}
 			else if (clear)
 			{
