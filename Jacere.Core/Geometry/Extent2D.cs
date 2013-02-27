@@ -5,10 +5,15 @@ using System.IO;
 
 namespace Jacere.Core.Geometry
 {
+	public interface IAspect
+	{
+		double Aspect { get; }
+	}
+
 	/// <summary>
 	/// Immutable extent class.
 	/// </summary>
-	public class Extent2D : ISerializeBinary
+	public class Extent2D : ISerializeBinary, IAspect
 	{
 		private const double ERROR_BOUND = 0.005;
 

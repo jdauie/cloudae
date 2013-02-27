@@ -468,13 +468,13 @@ namespace CloudAE.Core
 				{
 					if (grid.Data[x, y] != grid.FillVal)
 					{
-						Point3D cu = new Point3D(x * xMultiplier, y * yMultiplier, grid.Data[x, y]);
-						Point3D tp = new Point3D(x * xMultiplier, (y - 1) * yMultiplier, grid.Data[x, y - 1]);
-						Point3D lf = new Point3D((x - 1) * xMultiplier, y * yMultiplier, grid.Data[x - 1, y]);
-						Point3D tl = new Point3D((x - 1) * xMultiplier, (y - 1) * yMultiplier, grid.Data[x - 1, y - 1]);
+						var cu = new Point3D(x * xMultiplier, y * yMultiplier, grid.Data[x, y]);
+						var tp = new Point3D(x * xMultiplier, (y - 1) * yMultiplier, grid.Data[x, y - 1]);
+						var lf = new Point3D((x - 1) * xMultiplier, y * yMultiplier, grid.Data[x - 1, y]);
+						var tl = new Point3D((x - 1) * xMultiplier, (y - 1) * yMultiplier, grid.Data[x - 1, y - 1]);
 
-						Plane plane0 = new Plane(cu, tp, tl, true);
-						Plane plane1 = new Plane(cu, lf, tl, true);
+						var plane0 = new Plane(cu, tp, tl, true);
+						var plane1 = new Plane(cu, lf, tl, true);
 						//gridValues[x, y] = (float)(plane0.UnitNormal.Z);
 						gridValues[x, y] = (float)(Math.Max(plane0.UnitNormal.Z, plane1.UnitNormal.Z));
 					}

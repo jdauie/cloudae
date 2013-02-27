@@ -67,16 +67,8 @@ namespace CloudAE.Core
 
 		public static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal, bool bufferEdge)
 		{
-			ushort sizeX = maxDimension;
-			ushort sizeY = maxDimension;
-
-			double aspect = extent.Aspect;
-			if (aspect > 1)
-				sizeY = (ushort)Math.Max(sizeX / aspect, minDimension);
-			else
-				sizeX = (ushort)Math.Max(sizeX * aspect, minDimension);
-
-			return new Grid<T>(sizeX, sizeY, extent, fillVal, bufferEdge);
+			var def = GridDefinition.Create(extent, minDimension, maxDimension);
+			return new Grid<T>(def.SizeX, def.SizeY, extent, fillVal, bufferEdge);
 		}
 
 		#endregion
@@ -114,6 +106,11 @@ namespace CloudAE.Core
 					Data[y, x] = fillVal;
 		}
 
+		public int GetIndex()
+		{
+			return 0;
+		}
+
 		public IEnumerable<T> GetCellsInScaledRange(int scaledX, int scaledY, IGrid scaledGrid)
 		{
 			int startX = (int)Math.Floor(((double)scaledX / scaledGrid.SizeX) * SizeX);
@@ -135,7 +132,7 @@ namespace CloudAE.Core
 
 		private static int GetBits(ushort val)
 		{
-			return (int)Math.Ceiling(Math.Log(val, 2)) + 1;
+			return (int)Math.Ceiling(Math.Log(val, 2));
 		}
 	}
 }
