@@ -116,7 +116,7 @@ namespace CloudAE.Core
 			m_bitsY = GetBits(m_underlyingSizeY);
 		}
 
-		public int GetIndex(ushort x, ushort y)
+		public int GetIndex(ushort y, ushort x)
 		{
 			return ((y << m_bitsX) | x);
 		}

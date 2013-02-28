@@ -7,4 +7,9 @@ namespace CloudAE.Core
 		ushort SizeX { get; }
 		ushort SizeY { get; }
 	}
+
+	public interface IGridDefinition : IGrid
+	{
+		GridDefinition Def { get; }
+	}
 }

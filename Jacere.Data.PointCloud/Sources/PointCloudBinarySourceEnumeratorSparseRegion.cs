@@ -1,27 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Jacere.Data.PointCloud
 {
-	public class PointCloudBinarySourceEnumeratorRegion
-	{
-		public readonly int ChunkStart;
-		public readonly int ChunkCount;
-
-		public PointCloudBinarySourceEnumeratorRegion(int chunkStart, int chunkCount)
-		{
-			ChunkStart = chunkStart;
-			ChunkCount = chunkCount;
-		}
-
-		public override string ToString()
-		{
-			return string.Format("[{0}-{1}] ({2})", ChunkStart, ChunkStart + ChunkCount, ChunkCount);
-		}
-	}
-
 	public class PointCloudBinarySourceEnumeratorSparseRegion : IEnumerable<PointCloudBinarySourceEnumeratorRegion>
 	{
 		private readonly List<PointCloudBinarySourceEnumeratorRegion> m_regions;

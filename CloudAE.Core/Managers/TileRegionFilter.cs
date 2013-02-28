@@ -14,17 +14,23 @@ namespace CloudAE.Core
     /// </summary>
 	public class TileRegionFilter : IChunkProcess, IFinalizeProcess
 	{
-		private readonly int m_index;
-		private readonly int m_count;
+		private readonly int m_startIndex;
+		private readonly int m_endIndex;
         private readonly Grid<int> m_grid;
 
 		private readonly SQuantizedExtent3D m_quantizedExtent;
 
-		public TileRegionFilter(Grid<int> grid, SQuantizedExtent3D quantizedExtent, int tileIndex, int count)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TileRegionFilter"/> class.
+		/// </summary>
+		/// <param name="grid">The grid.</param>
+		/// <param name="quantizedExtent">The quantized extent.</param>
+		/// <param name="startTileIndex">Start index of the tile.</param>
+		/// <param name="endTileIndex">End index of the tile.</param>
+		public TileRegionFilter(Grid<int> grid, SQuantizedExtent3D quantizedExtent, GridRange tileRange)
 		{
-            // this index is just an incremental index, not a coord index.
-			m_index = tileIndex;
-			m_count = count;
+            m_startIndex = startTileIndex;
+			m_endIndex = endTileIndex;
 			m_grid = grid;
 
 			m_quantizedExtent = quantizedExtent;
@@ -38,8 +44,9 @@ namespace CloudAE.Core
             double tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
             double tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
 
-            int startTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index);
-            int endTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index + m_count);
+			//int startTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index);
+			//// on the last segment, I actually want to allow overflow to the buffer row.
+			//int endTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index + m_count);
 
 			byte* pb = chunk.PointDataPtr;
 			byte* pbDestination = pb;
@@ -50,9 +57,8 @@ namespace CloudAE.Core
                 var row = (ushort)(((*p).Y - minY) * tilesOverRangeY);
                 var col = (ushort)(((*p).X - minX) * tilesOverRangeX);
 
-				int index = PointCloudTileCoord.GetIndex(row, col);
-
-				if (index >= startTileIndex && index < endTileIndex)
+				int index = m_grid.Def.GetIndex(row, col);
+				if (index >= m_startIndex && index < m_endIndex)
 				{
                     // make copy faster?
 

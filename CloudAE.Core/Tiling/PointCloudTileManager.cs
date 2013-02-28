@@ -72,11 +72,14 @@ namespace CloudAE.Core
 			{
 				int segmentTileCount = analysis.GridIndex.GetSegmentTileRange(segment);
 				var sparseSegment = m_source.CreateSparseSegment(segment);
+
+#warning Is this comment still valid? or did I fix it already?
 				// this wrapper has a larger count than the buffer can hold
 				// FIX THIS
 				var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
 
-				var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, tileIndex, segmentTileCount);
+				var tileRange = new GridRange(tileCounts, tileIndex, segmentTileCount);
+				var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, tileRange);
 
 				// this call will fill the buffer with points, add the counts, and sort
 				QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
@@ -176,8 +179,6 @@ namespace CloudAE.Core
 		{
 			// I don't need to generate full tile counts, 
 			// I can just make an array of the counts I will include (it might be faster).
-
-			// If I count before tile filtering, I will get duplicate counts.
 
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedFilter"))
 			{

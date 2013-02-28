@@ -249,13 +249,13 @@ namespace CloudAE.Core
 			return ((row << 16) | col);
 		}
 
-        public static int GetIndex(IGrid grid, int incrementalIndex)
-        {
-            var row = incrementalIndex / grid.SizeX;
-            var col = incrementalIndex % grid.SizeX;
+		//public static int GetIndex(IGrid grid, int incrementalIndex)
+		//{
+		//    var row = incrementalIndex / grid.SizeX;
+		//    var col = incrementalIndex % grid.SizeX;
 
-            return ((row << 16) | col);
-        }
+		//    return ((row << 16) | col);
+		//}
 
 		public static PointCloudTileCoord Empty
 		{

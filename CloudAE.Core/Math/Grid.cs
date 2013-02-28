@@ -6,7 +6,7 @@ using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public abstract class GridBase : IGrid
+	public abstract class GridBase : IGridDefinition
 	{
 		private readonly GridDefinition m_def;
 
