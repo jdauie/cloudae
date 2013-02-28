@@ -14,23 +14,14 @@ namespace CloudAE.Core
     /// </summary>
 	public class TileRegionFilter : IChunkProcess, IFinalizeProcess
 	{
-		private readonly int m_startIndex;
-		private readonly int m_endIndex;
+		private readonly GridRange m_range;
         private readonly Grid<int> m_grid;
 
 		private readonly SQuantizedExtent3D m_quantizedExtent;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TileRegionFilter"/> class.
-		/// </summary>
-		/// <param name="grid">The grid.</param>
-		/// <param name="quantizedExtent">The quantized extent.</param>
-		/// <param name="startTileIndex">Start index of the tile.</param>
-		/// <param name="endTileIndex">End index of the tile.</param>
 		public TileRegionFilter(Grid<int> grid, SQuantizedExtent3D quantizedExtent, GridRange tileRange)
 		{
-            m_startIndex = startTileIndex;
-			m_endIndex = endTileIndex;
+			m_range = tileRange;
 			m_grid = grid;
 
 			m_quantizedExtent = quantizedExtent;
