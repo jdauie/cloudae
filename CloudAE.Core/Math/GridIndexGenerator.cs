@@ -40,7 +40,7 @@ namespace CloudAE.Core
 				int currentSize = 0;
 
 				var startTile = tileOrder[tileOrderIndex];
-				var startTileIndex = new GridCoord(m_actualGrid, startTile.Row, startTile.Col);
+				var startTileIndex = new GridCoord(m_actualGrid.Def, startTile.Row, startTile.Col);
 
 				while (tileOrderIndex < tileOrder.Length)
 				{
@@ -67,9 +67,9 @@ namespace CloudAE.Core
 						// undershoot again by counting the data read, not just the valid points
 						// I really only need to do this for testing -- it slows things down a bit.
 						// Once I am sure that filtering is working properly, this won't matter.
-#warning remove this
-						if (cellList.Count + cellList2.Count > chunksPerSegment)
-							break;
+#warning remove this once I'm sure
+						//if (cellList.Count + cellList2.Count > chunksPerSegment)
+						//    break;
 
 						foreach (var index in cellList2)
 							cellList.Add(index);
@@ -82,7 +82,7 @@ namespace CloudAE.Core
 
 
 				var endTile = tileOrder[tileOrderIndex - 1];
-				var endTileIndex = new GridCoord(m_actualGrid, endTile.Row, endTile.Col);
+				var endTileIndex = new GridCoord(m_actualGrid.Def, endTile.Row, endTile.Col);
 
 				// group by sequential regions
 				int[] sortedCellList = cellList.ToArray();

@@ -9,11 +9,30 @@ namespace CloudAE.Core
 		private readonly ushort m_row;
 		private readonly ushort m_col;
 
-		public GridCoord(IGridDefinition grid, ushort row, ushort col)
+		public int Index
 		{
-			m_def = grid.Def;
+			get { return m_def.GetIndex(m_row, m_col); }
+		}
+
+		public GridCoord(GridDefinition def, ushort row, ushort col)
+		{
+			m_def = def;
 			m_row = row;
 			m_col = col;
+		}
+
+		public static GridCoord operator +(GridCoord c1, int c2)
+		{
+			var row = c1.m_row;
+			var col = c1.m_col + 1;
+
+			if (col == c1.m_def.SizeX)
+			{
+				++row;
+				col = 0;
+			}
+
+			return new GridCoord(c1.m_def, row, (ushort)col);
 		}
 	}
 
@@ -21,6 +40,16 @@ namespace CloudAE.Core
 	{
 		private readonly GridCoord m_start;
 		private readonly GridCoord m_end;
+
+		public int StartPos
+		{
+			get { return m_start.Index; }
+		}
+
+		public int EndPos
+		{
+			get { return (m_end + 1).Index; }
+		}
 
 		public GridRange(GridCoord startIndex, GridCoord endIndex)
 		{

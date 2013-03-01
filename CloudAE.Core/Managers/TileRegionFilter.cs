@@ -39,6 +39,12 @@ namespace CloudAE.Core
 			//// on the last segment, I actually want to allow overflow to the buffer row.
 			//int endTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index + m_count);
 
+			// if the end of the range is the last tile in a row, then buffer it.
+			var startIndex = m_range.StartPos;
+			var endIndex = m_range.EndPos;
+
+			ushort rowCount = m_grid.Def.SizeY;
+
 			byte* pb = chunk.PointDataPtr;
 			byte* pbDestination = pb;
 			while (pb < chunk.PointDataEndPtr)
@@ -48,8 +54,13 @@ namespace CloudAE.Core
                 var row = (ushort)(((*p).Y - minY) * tilesOverRangeY);
                 var col = (ushort)(((*p).X - minX) * tilesOverRangeX);
 
+				// overflow on the end of rows is dealt with by the nature of the index,
+				// but overflow after the last row is problematic.
+				if (row == rowCount)
+					--row;
+
 				int index = m_grid.Def.GetIndex(row, col);
-				if (index >= startIndex && index <= endIndex)
+				if (index >= startIndex && index < endIndex)
 				{
                     // make copy faster?
 
@@ -79,26 +90,4 @@ namespace CloudAE.Core
             m_grid.CorrectCountOverflow();
         }
 	}
-
-	//public class SparseSegment
-	//{
-	//    private readonly IPointCloudBinarySource m_segment;
-	//    private readonly TileRegionFilter m_filter;
-
-	//    public IPointCloudBinarySource Source
-	//    {
-	//        get { return m_segment; }
-	//    }
-
-	//    public TileRegionFilter Filter
-	//    {
-	//        get { return m_filter; }
-	//    }
-
-	//    public SparseSegment(IPointCloudBinarySource segment, TileRegionFilter filter)
-	//    {
-	//        m_segment = segment;
-	//        m_filter = filter;
-	//    }
-	//}
 }
