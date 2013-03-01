@@ -128,6 +128,33 @@ namespace CloudAE.Core
 			return ((y << m_bitsX) | x);
 		}
 
+		public IEnumerable<GridCoord> GetTileOrdering()
+		{
+			for (ushort y = 0; y < m_sizeY; y++)
+				for (ushort x = 0; x < m_sizeX; x++)
+					yield return new PointCloudTileCoord(y, x);
+		}
+
+		public GridBufferPosition[,] CreatePositionGrid(PointBufferWrapper segmentBuffer)
+		{
+			// make sure it will fit!
+
+			// create tile position counters (always buffer)
+			var tilePositions = new GridBufferPosition[m_sizeY + 1, m_sizeX + 1];
+			{
+				foreach (PointCloudTile tile in this)
+					tilePositions[tile.Col, tile.Row] = new GridBufferPosition(segmentBuffer, tile);
+
+				// buffer the edges for overflow
+				for (int x = 0; x < m_sizeX; x++)
+					tilePositions[m_sizeY, x] = tilePositions[m_sizeY - 1, x];
+				for (int y = 0; y <= m_sizeY; y++)
+					tilePositions[y, m_sizeX] = tilePositions[y, m_sizeX - 1];
+			}
+
+			return tilePositions;
+		}
+
 		private static int GetBits(ushort val)
 		{
 			return (int)Math.Ceiling(Math.Log(val, 2));
