@@ -19,14 +19,13 @@ namespace CloudAE.Core
 
 	public class GridRange
 	{
-		private readonly GridDefinition m_def;
 		private readonly GridCoord m_start;
-		private readonly ushort m_row;
+		private readonly GridCoord m_end;
 
-		public GridRange(IGridDefinition grid, int incrementalStartIndex, int count)
+		public GridRange(GridCoord startIndex, GridCoord endIndex)
 		{
-			m_def = grid.Def;
-			//m_start = m_def.GetIndex(incrementalStartIndex);
+			m_start = startIndex;
+			m_end = endIndex;
 		}
 	}
 }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 
-using CloudAE.Core.Geometry;
 using Jacere.Core;
 using Jacere.Core.Geometry;
 using Jacere.Data.PointCloud;
@@ -67,10 +66,8 @@ namespace CloudAE.Core
 
 			var quantizedExtent = m_source.Quantization.Convert(analysis.Density.Extent);
 			
-			int tileIndex = 0;
 			foreach (var segment in analysis.GridIndex)
 			{
-				int segmentTileCount = analysis.GridIndex.GetSegmentTileRange(segment);
 				var sparseSegment = m_source.CreateSparseSegment(segment);
 
 #warning Is this comment still valid? or did I fix it already?
@@ -78,15 +75,12 @@ namespace CloudAE.Core
 				// FIX THIS
 				var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
 
-				var tileRange = new GridRange(tileCounts, tileIndex, segmentTileCount);
-				var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, tileRange);
+				var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, segment.GridRange);
 
 				// this call will fill the buffer with points, add the counts, and sort
 				QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
 
 				// next, write out the buffer
-
-				tileIndex += segmentTileCount;
 			}
 
 			// at this point, counts have been completed
@@ -228,7 +222,7 @@ namespace CloudAE.Core
 		{
 			Statistics stats = null;
 			SQuantization3D quantization = null;
-			GridIndexSegments gridIndexSegments = null;
+			List<PointCloudBinarySourceEnumeratorSparseGridRegion> gridIndexSegments = null;
 
 			var extent = source.Extent;
 			var inputQuantization = source.Quantization;

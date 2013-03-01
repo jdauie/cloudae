@@ -4,6 +4,28 @@ using System.Linq;
 
 namespace Jacere.Data.PointCloud
 {
+	public class Range
+	{
+		private readonly int m_index;
+		private readonly int m_count;
+
+		public int Index
+		{
+			get { return m_index; }
+		}
+
+		public int Count
+		{
+			get { return m_count; }
+		}
+
+		public Range(int index, int count)
+		{
+			m_index = index;
+			m_count = count;
+		}
+	}
+
 	public class PointCloudBinarySourceEnumeratorSparseRegion : IEnumerable<PointCloudBinarySourceEnumeratorRegion>
 	{
 		private readonly List<PointCloudBinarySourceEnumeratorRegion> m_regions;
@@ -15,13 +37,13 @@ namespace Jacere.Data.PointCloud
 			get { return m_pointsPerChunk; }
 		}
 
-		public PointCloudBinarySourceEnumeratorSparseRegion(IEnumerable<KeyValuePair<int, int>> regions, int maxPointCountPerChunk)
+		public PointCloudBinarySourceEnumeratorSparseRegion(IEnumerable<Range> regions, int maxPointCountPerChunk)
 		{
 			m_pointsPerChunk = maxPointCountPerChunk;
 			m_regions = new List<PointCloudBinarySourceEnumeratorRegion>();
 			foreach (var region in regions)
 			{
-				var r = new PointCloudBinarySourceEnumeratorRegion(region.Key, region.Value);
+				var r = new PointCloudBinarySourceEnumeratorRegion(region.Index, region.Count);
 				m_chunkCount += r.ChunkCount;
 				m_regions.Add(r);
 			}

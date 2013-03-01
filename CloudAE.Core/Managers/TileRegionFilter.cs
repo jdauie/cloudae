@@ -49,7 +49,7 @@ namespace CloudAE.Core
                 var col = (ushort)(((*p).X - minX) * tilesOverRangeX);
 
 				int index = m_grid.Def.GetIndex(row, col);
-				if (index >= m_startIndex && index < m_endIndex)
+				if (index >= startIndex && index <= endIndex)
 				{
                     // make copy faster?
 

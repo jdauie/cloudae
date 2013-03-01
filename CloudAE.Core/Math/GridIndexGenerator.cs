@@ -19,35 +19,37 @@ namespace CloudAE.Core
 		{
 		}
 
-		public GridIndexSegments GetGridIndex(PointCloudTileDensity density)
+		public List<PointCloudBinarySourceEnumeratorSparseGridRegion> GetGridIndex(PointCloudTileDensity density)
 		{
 			const int segmentSize = (int)ByteSizesSmall.MB_256;
 
 			m_actualGrid = density.CreateTileCountsForInitialization(false);
 
-			var regionSourcesBySegment = new List<SortedDictionary<int, int>>();
-			var tilesPerSegment = new List<int>();
+			var regionSourcesBySegment = new List<List<Range>>();
+			var tilesPerSegment = new List<GridRange>();
 			long pointDataBytes = m_source.PointSizeBytes * m_source.Count;
 			long pointDataRemainingBytes = pointDataBytes;
 
-			int tilesChecked = 0;
-
 			int chunksPerSegment = segmentSize / (m_maxPointCountPerChunk * m_source.PointSizeBytes);
 
+			var tileOrder = PointCloudTileSet.GetTileOrdering(m_actualGrid.SizeY, m_actualGrid.SizeX).ToArray();
+			int tileOrderIndex = 0;
 			while (pointDataRemainingBytes > 0)
 			{
 				var cellList = new HashSet<int>();
 				int currentSize = 0;
-				int currentTiles = 0;
-				// this repeated enumeration can be improved later
-				foreach (var tile in PointCloudTileSet.GetTileOrdering(m_actualGrid.SizeY, m_actualGrid.SizeX).Skip(tilesChecked))
+
+				var startTile = tileOrder[tileOrderIndex];
+				var startTileIndex = new GridCoord(m_actualGrid, startTile.Row, startTile.Col);
+
+				while (tileOrderIndex < tileOrder.Length)
 				{
+					var tile = tileOrder[tileOrderIndex];
+
 					// unfortunately, I cannot check the actual counts, because they have not been measured
 					// instead, I can count the estimated area, and undershoot
 
-					var correspondingEstimatedCounts = m_estimatedCounts.GetCellsInScaledRange(tile.Col, tile.Row, m_actualGrid).ToList();
-
-					var count = correspondingEstimatedCounts.Sum();
+					var count = m_estimatedCounts.GetCellsInScaledRange(tile.Col, tile.Row, m_actualGrid).Sum();
 					if (count > 0)
 					{
 						int tileSize = (count * m_source.PointSizeBytes);
@@ -65,6 +67,7 @@ namespace CloudAE.Core
 						// undershoot again by counting the data read, not just the valid points
 						// I really only need to do this for testing -- it slows things down a bit.
 						// Once I am sure that filtering is working properly, this won't matter.
+#warning remove this
 						if (cellList.Count + cellList2.Count > chunksPerSegment)
 							break;
 
@@ -72,41 +75,40 @@ namespace CloudAE.Core
 							cellList.Add(index);
 
 						currentSize += tileSize;
-						++currentTiles;
 					}
 
-					++tilesChecked;
+					++tileOrderIndex;
 				}
 
+
+				var endTile = tileOrder[tileOrderIndex - 1];
+				var endTileIndex = new GridCoord(m_actualGrid, endTile.Row, endTile.Col);
+
 				// group by sequential regions
-				int lastIndex = -2;
-				var regions = new SortedDictionary<int, int>();
 				int[] sortedCellList = cellList.ToArray();
 				Array.Sort(sortedCellList);
-				foreach (var index in sortedCellList)
+				var regions = new List<Range>();
+				int sequenceStartIndex = 0;
+				while (sequenceStartIndex < sortedCellList.Length)
 				{
-					if (regions.Count == 0 || index > lastIndex + regions[lastIndex])
-					{
-						lastIndex = index;
-						regions.Add(index, 1);
-					}
-					else
-					{
-						++regions[lastIndex];
-					}
+					// find incremental sequence
+					int i = sequenceStartIndex;
+					while (i < sortedCellList.Length && (i == 0 || sortedCellList[i] == sortedCellList[i - 1] + 1))
+						++i;
+					regions.Add(new Range(sortedCellList[sequenceStartIndex], i - sequenceStartIndex));
+					sequenceStartIndex = i;
 				}
 
 				regionSourcesBySegment.Add(regions);
-				tilesPerSegment.Add(currentTiles);
+				tilesPerSegment.Add(new GridRange(startTileIndex, endTileIndex));
 				pointDataRemainingBytes -= currentSize;
 			}
 
-			int chunkRangeSumForAllSegments = regionSourcesBySegment.Sum(r => r.Sum(kvp => kvp.Value));
+			int chunkRangeSumForAllSegments = regionSourcesBySegment.Sum(r => r.Sum(r2 => r2.Count));
 			Context.WriteLine("chunkRangeSumForAllSegments: {0}", chunkRangeSumForAllSegments);
 			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * (int)ByteSizesSmall.MB_1 / pointDataBytes);
 
-			var gridIndexSegments = new GridIndexSegments(regionSourcesBySegment, tilesPerSegment, m_maxPointCountPerChunk);
-			return gridIndexSegments;
+			return regionSourcesBySegment.Select((t, i) => new PointCloudBinarySourceEnumeratorSparseGridRegion(t, tilesPerSegment[i], m_maxPointCountPerChunk)).ToList();
 		}
 
 		public void Update(IPointCloudBinarySource source, Grid<GridIndexCell> estimatedIndex, Grid<int> estimatedCounts, int maxPointCountPerChunk)

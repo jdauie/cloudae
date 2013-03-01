@@ -52,43 +52,19 @@ namespace CloudAE.Core
 		}
 	}
 
-	public class GridIndexSegments : IEnumerable<PointCloudBinarySourceEnumeratorSparseRegion>
+	public class PointCloudBinarySourceEnumeratorSparseGridRegion : PointCloudBinarySourceEnumeratorSparseRegion
 	{
-		private readonly List<PointCloudBinarySourceEnumeratorSparseRegion> m_regionSourcesBySegment;
-		private readonly int[] m_tilesPerSegment;
+		private readonly GridRange m_range;
 
-		public int GetSegmentTileRange(PointCloudBinarySourceEnumeratorSparseRegion region)
+		public GridRange GridRange
 		{
-			int index = m_regionSourcesBySegment.IndexOf(region);
-			if (index == -1)
-				throw new Exception("Region does not belong");
-
-			return m_tilesPerSegment[index];
+			get { return m_range; }
 		}
 
-		public GridIndexSegments(IEnumerable<SortedDictionary<int, int>> regionSourcesBySegment, List<int> tilesPerSegment, int maxPointCountPerChunk)
+		public PointCloudBinarySourceEnumeratorSparseGridRegion(IEnumerable<Range> regions, GridRange range, int maxPointCountPerChunk)
+			: base(regions, maxPointCountPerChunk)
 		{
-			m_regionSourcesBySegment = new List<PointCloudBinarySourceEnumeratorSparseRegion>();
-			foreach (var segment in regionSourcesBySegment)
-				m_regionSourcesBySegment.Add(new PointCloudBinarySourceEnumeratorSparseRegion(segment, maxPointCountPerChunk));
-			m_tilesPerSegment = tilesPerSegment.ToArray();
-
-			if (m_regionSourcesBySegment.Count != m_tilesPerSegment.Length)
-				throw new Exception("GridIndex Tile/Segment mismatch");
+			m_range = range;
 		}
-
-		#region IEnumerable Members
-
-		public IEnumerator<PointCloudBinarySourceEnumeratorSparseRegion> GetEnumerator()
-		{
-			return m_regionSourcesBySegment.GetEnumerator();
-		}
-
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
-
-		#endregion
 	}
 }
