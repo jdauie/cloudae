@@ -89,5 +89,30 @@ namespace CloudAE.Core
 					if (data0[y, x] > 0)
 						data1[y, x] = data0[y, x] * scaleFactorZ + adjustedOffset;
 		}
+
+		public static GridBufferPosition[,] CreatePositionGrid(this Grid<int> target, PointBufferWrapper segmentBuffer, short entrySize)
+		{
+			// make sure it will fit!
+
+			// create tile position counters (always buffer)
+			var tilePositions = new GridBufferPosition[target.SizeY + 1, target.SizeX + 1];
+			{
+				int index = 0;
+				foreach (var tile in target.Def.GetTileOrdering())
+				{
+					int count = target.Data[tile.Row, tile.Col];
+					tilePositions[tile.Row, tile.Col] = new GridBufferPosition(segmentBuffer, index, count, entrySize);
+					index += count;
+				}
+
+				// buffer the edges for overflow
+				for (int x = 0; x < target.SizeX; x++)
+					tilePositions[target.SizeY, x] = tilePositions[target.SizeY - 1, x];
+				for (int y = 0; y <= target.SizeY; y++)
+					tilePositions[y, target.SizeX] = tilePositions[y, target.SizeX - 1];
+			}
+
+			return tilePositions;
+		}
 	}
 }

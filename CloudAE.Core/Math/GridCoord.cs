@@ -3,6 +3,33 @@ using System.Linq;
 
 namespace CloudAE.Core
 {
+	public struct SimpleGridCoord : ITileCoord
+	{
+		private readonly ushort m_row;
+		private readonly ushort m_col;
+
+		public ushort Row
+		{
+			get { return m_row; }
+		}
+
+		public ushort Col
+		{
+			get { return m_col; }
+		}
+
+		public SimpleGridCoord(ushort y, ushort x)
+		{
+			m_row = y;
+			m_col = x;
+		}
+
+		public override string ToString()
+		{
+			return string.Format("({0}, {1})", m_row, m_col);
+		}
+	}
+
 	public class GridCoord
 	{
 		private readonly GridDefinition m_def;

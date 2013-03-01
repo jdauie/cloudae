@@ -169,52 +169,58 @@ namespace CloudAE.Core
 
 		#region Quantized Methods
 
-		private static void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
-			// I don't need to generate full tile counts, 
-			// I can just make an array of the counts I will include (it might be faster).
+			var quantizedExtent = source.Quantization.Convert(source.Extent);
 
+			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
+			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
+
+			// generate counts and add points to buffer
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedFilter"))
 			{
 				var group = new ChunkProcessSet(tileFilter, segmentBuffer);
 				group.Process(source.GetBlockEnumerator(process));
 			}
 
-			// sort points in wrapper
+			int filteredPointCount = 0;
 
+			// sort points in buffer
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedSort"))
 			{
-			//    var tilePositions = tileSet.CreatePositionGrid(segmentBuffer);
+				var tilePositions = tileCounts.CreatePositionGrid(segmentBuffer, source.PointSizeBytes);
 
-			//    foreach (PointCloudTile tile in tileSet)
-			//    {
-			//        var currentPosition = tilePositions[tile.Col, tile.Row];
+				int minSortedPointCount = 0;
+				foreach (var tile in tileCounts.Def.GetTileOrdering())
+				{
+					var currentPosition = tilePositions[tile.Col, tile.Row];
 
-			//        while (currentPosition.DataPtr < currentPosition.DataEndPtr)
-			//        {
-			//            UQuantizedPoint3D* p = (UQuantizedPoint3D*)currentPosition.DataPtr;
+					while (currentPosition.DataPtr < currentPosition.DataEndPtr)
+					{
+						var p = (SQuantizedPoint3D*)currentPosition.DataPtr;
 
-			//            var targetPosition = tilePositions[
-			//                (int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
-			//                (int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
-			//            ];
+						var targetPosition = tilePositions[
+							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
+							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
+						];
 
-			//            if (targetPosition != currentPosition)
-			//            {
-			//                // the point tile is not the current traversal tile,
-			//                // so swap the points and resume on the swapped point
-			//                targetPosition.Swap(currentPosition.DataPtr);
-			//            }
-			//            else
-			//            {
-			//                // this point is in the correct tile, move on
-			//                currentPosition.Increment();
-			//            }
-			//        }
+						if (targetPosition.DataPtr != currentPosition.DataPtr)
+						{
+							// the point tile is not the current traversal tile,
+							// so swap the points and resume on the swapped point
+							targetPosition.Swap(currentPosition.DataPtr);
+						}
+						else
+						{
+							// this point is in the correct tile, move on
+							currentPosition.Increment();
+						}
+						++minSortedPointCount;
+					}
 
-			//        if (!process.Update(tile))
-			//            break;
-			//    }
+					if (!process.Update((float)minSortedPointCount / filteredPointCount))
+						break;
+				}
 			}
 		}
 
