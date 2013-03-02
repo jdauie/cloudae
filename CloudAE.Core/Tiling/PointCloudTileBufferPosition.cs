@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
@@ -44,7 +45,17 @@ namespace CloudAE.Core
 		public byte* DataPtr;
 		public readonly byte* DataEndPtr;
 
-		public GridBufferPosition(PointBufferWrapper buffer, int index, int count, short entrySize)
+		public int RemainingBytes
+		{
+			get { return (int)(DataEndPtr - DataPtr); }
+		}
+
+		public int RemainingPoints
+		{
+			get { return RemainingBytes / m_entrySize; }
+		}
+
+		public GridBufferPosition(IPointDataChunk buffer, int index, int count, short entrySize)
 		{
 			m_entrySize = entrySize;
 

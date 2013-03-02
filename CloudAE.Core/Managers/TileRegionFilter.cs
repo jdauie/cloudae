@@ -35,10 +35,6 @@ namespace CloudAE.Core
             double tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
             double tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
 
-			//int startTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index);
-			//// on the last segment, I actually want to allow overflow to the buffer row.
-			//int endTileIndex = PointCloudTileCoord.GetIndex(m_grid, m_index + m_count);
-
 			// if the end of the range is the last tile in a row, then buffer it.
 			var startIndex = m_range.StartPos;
 			var endIndex = m_range.EndPos;
@@ -89,5 +85,45 @@ namespace CloudAE.Core
         {
             m_grid.CorrectCountOverflow();
         }
+
+		public IEnumerable<SimpleGridCoord> GetCellOrdering()
+		{
+			return m_range.GetCellOrdering();
+		}
+
+		public GridBufferPosition[,] CreatePositionGrid(IPointDataChunk segmentBuffer, short entrySize)
+		{
+			// make sure it will fit!
+
+			// since this is only a segment, I have to buffer next to the points 
+			// one at a time, rather than at the outside edge.
+
+			// create tile position counters (always buffer)
+			var tilePositions = new GridBufferPosition[m_grid.SizeY + 1, m_grid.SizeX + 1];
+			{
+				int index = 0;
+				foreach (var tile in GetCellOrdering())
+				{
+					int count = m_grid.Data[tile.Row, tile.Col];
+					var pos = new GridBufferPosition(segmentBuffer, index, count, entrySize);
+					tilePositions[tile.Row, tile.Col] = pos;
+
+					// assign the overflow (this is naive/slow -- most will get overwritten).
+					tilePositions[tile.Row + 1, tile.Col] = pos;
+					tilePositions[tile.Row, tile.Col + 1] = pos;
+					tilePositions[tile.Row + 1, tile.Col + 1] = pos;
+
+					index += count;
+				}
+
+				//// buffer the edges for overflow
+				//for (int x = 0; x < m_grid.SizeX; x++)
+				//	tilePositions[m_grid.SizeY, x] = tilePositions[m_grid.SizeY - 1, x];
+				//for (int y = 0; y <= m_grid.SizeY; y++)
+				//	tilePositions[y, m_grid.SizeX] = tilePositions[y, m_grid.SizeX - 1];
+			}
+
+			return tilePositions;
+		}
 	}
 }

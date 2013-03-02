@@ -203,25 +203,25 @@ namespace CloudAE.Core
 				group.Process(source.GetBlockEnumerator(process));
 			}
 
-			int filteredPointCount = 0;
+			int filteredPointCount = tileFilter.GetCellOrdering().Sum(tile => tileCounts.Data[tile.Row, tile.Col]);
 
 			// sort points in buffer
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedSort"))
 			{
-				var tilePositions = tileCounts.CreatePositionGrid(segmentBuffer, source.PointSizeBytes);
+				var tilePositions = tileFilter.CreatePositionGrid(segmentBuffer, source.PointSizeBytes);
 
 				int minSortedPointCount = 0;
-				foreach (var tile in tileCounts.Def.GetTileOrdering())
+				foreach (var tile in tileFilter.GetCellOrdering())
 				{
-					var currentPosition = tilePositions[tile.Col, tile.Row];
+					var currentPosition = tilePositions[tile.Row, tile.Col];
 
 					while (currentPosition.DataPtr < currentPosition.DataEndPtr)
 					{
 						var p = (SQuantizedPoint3D*)currentPosition.DataPtr;
 
 						var targetPosition = tilePositions[
-							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX),
-							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY)
+							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY),
+							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX)
 						];
 
 						if (targetPosition.DataPtr != currentPosition.DataPtr)
@@ -235,10 +235,10 @@ namespace CloudAE.Core
 							// this point is in the correct tile, move on
 							currentPosition.Increment();
 						}
-						++minSortedPointCount;
 					}
 
-					if (!process.Update((float)minSortedPointCount / filteredPointCount))
+#warning progress is not working
+					if (!process.Update((float)(currentPosition.DataPtr - segmentBuffer.PointDataPtr) / (segmentBuffer.Length)))
 						break;
 				}
 			}

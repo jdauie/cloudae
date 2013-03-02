@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CloudAE.Core
@@ -35,6 +36,21 @@ namespace CloudAE.Core
 		private readonly GridDefinition m_def;
 		private readonly ushort m_row;
 		private readonly ushort m_col;
+
+		public GridDefinition Def
+		{
+			get { return m_def; }
+		}
+
+		public ushort Row
+		{
+			get { return m_row; }
+		}
+
+		public ushort Col
+		{
+			get { return m_col; }
+		}
 
 		public int Index
 		{
@@ -82,6 +98,18 @@ namespace CloudAE.Core
 		{
 			m_start = startIndex;
 			m_end = endIndex;
+		}
+
+		public IEnumerable<SimpleGridCoord> GetCellOrdering()
+		{
+			for (var y = m_start.Row; y <= m_end.Row; y++)
+			{
+				var x = (y == m_start.Row) ? m_start.Col : (ushort)0;
+				var endX = (y == m_end.Row) ? m_end.Col : m_end.Def.SizeX;
+
+				for (; x < endX; x++)
+					yield return new SimpleGridCoord(y, x);
+			}
 		}
 	}
 }

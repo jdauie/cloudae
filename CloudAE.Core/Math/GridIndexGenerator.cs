@@ -93,7 +93,8 @@ namespace CloudAE.Core
 				{
 					// find incremental sequence
 					int i = sequenceStartIndex;
-					while (i < sortedCellList.Length && (i == 0 || sortedCellList[i] == sortedCellList[i - 1] + 1))
+					++i;
+					while (i < sortedCellList.Length && (sortedCellList[i] == sortedCellList[i - 1] + 1))
 						++i;
 					regions.Add(new Range(sortedCellList[sequenceStartIndex], i - sequenceStartIndex));
 					sequenceStartIndex = i;
