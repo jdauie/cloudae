@@ -81,6 +81,26 @@ namespace CloudAE.Core
 				QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
 
 				// next, write out the buffer
+				//using (var process = progressManager.StartProcess("FinalizeTilesIndexed"))
+				//{
+				//    using (var outputStream = StreamManager.OpenWriteStream(file.FilePath, tileSource.FileSize, tileSource.PointDataOffset))
+				//    {
+				//        var stopwatch = new Stopwatch();
+				//        stopwatch.Start();
+				//        int segmentBufferIndex = 0;
+				//        foreach (var tile in tileSource.TileSet)
+				//        {
+				//            outputStream.Write(segmentBuffer.Data, segmentBufferIndex, tile.StorageSize);
+				//            segmentBufferIndex += tile.StorageSize;
+
+				//            if (!process.Update(tile))
+				//                break;
+				//        }
+				//        stopwatch.Stop();
+				//        double outputMBps = (double)outputStream.Position / (int)ByteSizesSmall.MB_1 * 1000 / stopwatch.ElapsedMilliseconds;
+				//        Context.WriteLine("Write @ {0:0} MBps", outputMBps);
+				//    }
+				//}
 			}
 
 			// at this point, counts have been completed
