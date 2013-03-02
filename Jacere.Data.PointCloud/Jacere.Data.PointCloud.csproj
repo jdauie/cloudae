@@ -33,6 +33,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Jacere.Interop.LASzip, Version=1.0.4805.35410, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\Jacere.Interop.LASzip.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -85,10 +89,6 @@
     <Compile Include="Sources\PointStream.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Jacere.Interop.LASzip\Jacere.Interop.LASzip.vcxproj">
-      <Project>{961E1A9D-C8AC-4C12-8DA9-4A7A3EE8EEAC}</Project>
-      <Name>CloudAE.Interop.LASzip</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Jacere.Core\Jacere.Core.csproj">
       <Project>{E1EB7D60-3632-4F12-AE13-B360D2B66C24}</Project>
       <Name>Jacere.Core</Name>
