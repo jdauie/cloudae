@@ -65,20 +65,22 @@ namespace CloudAE.Core
 			var tileCounts = analysis.Density.CreateTileCountsForInitialization(true);
 
 			var quantizedExtent = m_source.Quantization.Convert(analysis.Density.Extent);
+
+			// create LAS output file (1.4 format)
+			// (write header)
+			// (copy VLRs)
 			
 			foreach (var segment in analysis.GridIndex)
 			{
 				var sparseSegment = m_source.CreateSparseSegment(segment);
-
-#warning Is this comment still valid? or did I fix it already?
-				// this wrapper has a larger count than the buffer can hold
-				// FIX THIS
 				var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
 
 				var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, segment.GridRange);
 
 				// this call will fill the buffer with points, add the counts, and sort
 				QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
+
+				// append to LAS file
 
 				// next, write out the buffer
 				//using (var process = progressManager.StartProcess("FinalizeTilesIndexed"))
