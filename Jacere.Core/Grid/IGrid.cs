@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public interface IGrid
 	{

@@ -4,7 +4,7 @@ using System.Linq;
 
 using Jacere.Core.Geometry;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public abstract class GridBase : IGridDefinition
 	{
@@ -34,6 +34,33 @@ namespace CloudAE.Core
 			m_def = def;
 		}
 	}
+
+	public class CountGrid : Grid<int>
+	{
+		protected CountGrid(GridDefinition def, Extent2D extent, int fillVal)
+			: base(def, extent, fillVal)
+		{
+		}
+
+		public void CorrectCountOverflow()
+		{
+			// correct count overflows
+			for (int x = 0; x <= SizeX; x++)
+			{
+				Data[SizeY - 1, x] += Data[SizeY, x];
+				Data[SizeY, x] = 0;
+			}
+			for (int y = 0; y < SizeY; y++)
+			{
+				Data[y, SizeX - 1] += Data[y, SizeX];
+				Data[y, SizeX] = 0;
+			}
+		}
+	}
+
+	//public class BinaryGrid<T> : Grid<T>
+	//{
+	//}
 
 	public class Grid<T> : GridBase
 	{
@@ -68,13 +95,15 @@ namespace CloudAE.Core
 			return CreateBuffered(sizeX, sizeY, extent, default(T));
 		}
 
-		public static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent, T fillVal)
+		// not used externally
+		private static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent, T fillVal)
 		{
 			var def = GridDefinition.CreateBuffered(sizeX, sizeY);
 			return Create(def, extent, fillVal);
 		}
 
-		public static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
+		// not used
+		private static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
 		{
 			var def = GridDefinition.Create(extent, minDimension, maxDimension);
 			return Create(def, extent, fillVal);
@@ -93,7 +122,7 @@ namespace CloudAE.Core
 
 		#endregion
 
-		private Grid(GridDefinition def, Extent2D extent, T fillVal)
+		protected Grid(GridDefinition def, Extent2D extent, T fillVal)
 			: base(def)
 		{
 			bool fillValIsDefault = EqualityComparer<T>.Default.Equals(fillVal, default(T));

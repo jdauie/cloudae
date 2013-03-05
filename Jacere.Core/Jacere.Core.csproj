@@ -82,6 +82,12 @@
     <Compile Include="Geometry\UQuantization3D.cs" />
     <Compile Include="Geometry\UQuantizedExtent3D.cs" />
     <Compile Include="Geometry\UQuantizedPoint3D.cs" />
+    <Compile Include="Grid\Grid.cs" />
+    <Compile Include="Grid\GridCoord.cs" />
+    <Compile Include="Grid\GridDefinition.cs" />
+    <Compile Include="Grid\GridExtensions.cs" />
+    <Compile Include="Grid\IGrid.cs" />
+    <Compile Include="Grid\SparseGrid.cs" />
     <Compile Include="IO\FileStreamUnbufferedSequentialRead.cs" />
     <Compile Include="IO\FileStreamUnbufferedSequentialWrite.cs" />
     <Compile Include="IO\IFileContainer.cs" />

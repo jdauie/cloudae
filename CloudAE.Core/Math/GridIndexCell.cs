@@ -1,11 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Jacere.Core;
+using Jacere.Core.Geometry;
 using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
+	public class IndexGrid : Grid<GridIndexCell>
+	{
+		protected IndexGrid(GridDefinition def, Extent2D extent, GridIndexCell fillVal)
+			: base(def, extent, fillVal)
+		{
+		}
+	}
+
 	// in order for this to make sense, the chunk index needs to map back to the input
 	// it would be nice if I could get sector-aligned numbers, but that's too much for now
 	public class GridIndexCell

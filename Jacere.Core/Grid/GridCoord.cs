@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
-	public struct SimpleGridCoord : ITileCoord
+	public struct SimpleGridCoord// : ITileCoord
 	{
 		private readonly ushort m_row;
 		private readonly ushort m_col;

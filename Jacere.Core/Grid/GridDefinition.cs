@@ -4,7 +4,7 @@ using System.Linq;
 
 using Jacere.Core.Geometry;
 
-namespace CloudAE.Core
+namespace Jacere.Core
 {
 	public class GridDefinition : IGrid
 	{

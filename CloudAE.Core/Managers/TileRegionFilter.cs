@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using Jacere.Core;
 using Jacere.Core.Geometry;
 using Jacere.Data.PointCloud;
 
@@ -109,18 +110,19 @@ namespace CloudAE.Core
 					tilePositions[tile.Row, tile.Col] = pos;
 
 					// assign the overflow (this is naive/slow -- most will get overwritten).
-					tilePositions[tile.Row + 1, tile.Col] = pos;
-					tilePositions[tile.Row, tile.Col + 1] = pos;
-					tilePositions[tile.Row + 1, tile.Col + 1] = pos;
+					// THIS IS WRONG!
+					//tilePositions[tile.Row + 1, tile.Col] = pos;
+					//tilePositions[tile.Row, tile.Col + 1] = pos;
+					//tilePositions[tile.Row + 1, tile.Col + 1] = pos;
 
 					index += count;
 				}
 
-				//// buffer the edges for overflow
-				//for (int x = 0; x < m_grid.SizeX; x++)
-				//	tilePositions[m_grid.SizeY, x] = tilePositions[m_grid.SizeY - 1, x];
-				//for (int y = 0; y <= m_grid.SizeY; y++)
-				//	tilePositions[y, m_grid.SizeX] = tilePositions[y, m_grid.SizeX - 1];
+				// buffer the edges for overflow
+				for (int x = 0; x < m_grid.SizeX; x++)
+					tilePositions[m_grid.SizeY, x] = tilePositions[m_grid.SizeY - 1, x];
+				for (int y = 0; y <= m_grid.SizeY; y++)
+					tilePositions[y, m_grid.SizeX] = tilePositions[y, m_grid.SizeX - 1];
 			}
 
 			return tilePositions;
