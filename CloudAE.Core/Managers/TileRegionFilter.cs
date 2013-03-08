@@ -110,7 +110,7 @@ namespace CloudAE.Core
 					tilePositions[tile.Row, tile.Col] = pos;
 
 					// assign the overflow (this is naive/slow -- most will get overwritten).
-					// THIS IS WRONG!
+					// THIS IS WRONG!  I ONLY WANT TO CATCH OVERFLOW ALONG THE EDGE.
 					//tilePositions[tile.Row + 1, tile.Col] = pos;
 					//tilePositions[tile.Row, tile.Col + 1] = pos;
 					//tilePositions[tile.Row + 1, tile.Col + 1] = pos;

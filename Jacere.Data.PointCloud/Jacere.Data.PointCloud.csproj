@@ -86,7 +86,6 @@
     <Compile Include="Sources\PointCloudBinarySourceEnumeratorChunk.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumeratorSparseRegion.cs" />
     <Compile Include="Sources\PointCloudSource.cs" />
-    <Compile Include="Sources\PointStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Jacere.Core\Jacere.Core.csproj">

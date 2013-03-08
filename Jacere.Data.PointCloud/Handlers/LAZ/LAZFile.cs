@@ -36,7 +36,7 @@ namespace Jacere.Data.PointCloud
 			return new LAZStreamReader(FilePath, Header, m_lazEncodedVLR);
 		}
 
-		protected override PointCloudBinarySource CreateBinaryWrapper()
+		protected override IPointCloudBinarySource CreateBinaryWrapper()
 		{
 			var source = new LAZBinarySource(this, Count, Extent, Header.Quantization, PointDataOffset, PointSizeBytes);
 

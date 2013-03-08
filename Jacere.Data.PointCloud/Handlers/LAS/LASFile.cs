@@ -159,7 +159,7 @@ namespace Jacere.Data.PointCloud
 			}
 		}
 
-		protected virtual PointCloudBinarySource CreateBinaryWrapper()
+		protected virtual IPointCloudBinarySource CreateBinaryWrapper()
 		{
 			var source = new PointCloudBinarySource(this, Count, m_extent, m_header.Quantization, PointDataOffset, PointSizeBytes);
 
