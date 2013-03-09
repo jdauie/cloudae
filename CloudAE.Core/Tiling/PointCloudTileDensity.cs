@@ -47,15 +47,19 @@ namespace CloudAE.Core
 
 			ValidTileCount = nonZeroCounts.Length;
 
-			MinTileCount = nonZeroCounts[0];
-			MaxTileCount = nonZeroCounts[ValidTileCount - 1];
-			MedianTileCount = nonZeroCounts[ValidTileCount / 2];
-			MeanTileCount = PointCount / ValidTileCount;
+#warning This is just so I can create a fake/temporary one of these
+			if (nonZeroCounts.Length > 0)
+			{
+				MinTileCount = nonZeroCounts[0];
+				MaxTileCount = nonZeroCounts[ValidTileCount - 1];
+				MedianTileCount = nonZeroCounts[ValidTileCount / 2];
+				MeanTileCount = PointCount / ValidTileCount;
 
-			MinTileDensity = MinTileCount / tileArea;
-			MaxTileDensity = MaxTileCount / tileArea;
-			MedianTileDensity = MedianTileCount / tileArea;
-			MeanTileDensity = MeanTileCount / tileArea;
+				MinTileDensity = MinTileCount / tileArea;
+				MaxTileDensity = MaxTileCount / tileArea;
+				MedianTileDensity = MedianTileCount / tileArea;
+				MeanTileDensity = MeanTileCount / tileArea;
+			}
 		}
 
 		public PointCloudTileDensity(BinaryReader reader)

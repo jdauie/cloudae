@@ -105,9 +105,9 @@ namespace Jacere.Core
 			for (var y = m_start.Row; y <= m_end.Row; y++)
 			{
 				var x = (y == m_start.Row) ? m_start.Col : (ushort)0;
-				var endX = (y == m_end.Row) ? m_end.Col : m_end.Def.SizeX;
+				var endX = (y == m_end.Row) ? m_end.Col : m_end.Def.SizeX - 1;
 
-				for (; x < endX; x++)
+				for (; x <= endX; x++)
 					yield return new SimpleGridCoord(y, x);
 			}
 		}

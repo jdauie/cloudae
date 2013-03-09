@@ -69,49 +69,44 @@ namespace CloudAE.Core
 			// create LAS output file (1.4 format)
 			// (write header)
 			// (copy VLRs)
-			
-			foreach (var segment in analysis.GridIndex)
+
+			// create empty TileSet just to know the header size
+			var densityTemp = new PointCloudTileDensity(tileCounts, m_source.Extent);
+			var tileSetTemp = new PointCloudTileSet(densityTemp, tileCounts);
+			var tileSourceTemp = new PointCloudTileSource(tiledFile, tileSetTemp, analysis.Quantization, m_source.PointSizeBytes, analysis.Statistics);
+
+
+			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, tileSourceTemp.FileSize, tileSourceTemp.PointDataOffset))
 			{
-				var sparseSegment = m_source.CreateSparseSegment(segment);
-				var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
+				foreach (var segment in analysis.GridIndex)
+				{
+					var sparseSegment = m_source.CreateSparseSegment(segment);
+					var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
 
-				var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, segment.GridRange);
+					var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, segment.GridRange);
 
-				// this call will fill the buffer with points, add the counts, and sort
-				QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
+					// this call will fill the buffer with points, add the counts, and sort
+					int segmentFilteredPointCount = QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
 
-				// append to LAS file
+					// append to LAS file
 
-				// next, write out the buffer
-				//using (var process = progressManager.StartProcess("FinalizeTilesIndexed"))
-				//{
-				//    using (var outputStream = StreamManager.OpenWriteStream(file.FilePath, tileSource.FileSize, tileSource.PointDataOffset))
-				//    {
-				//        var stopwatch = new Stopwatch();
-				//        stopwatch.Start();
-				//        int segmentBufferIndex = 0;
-				//        foreach (var tile in tileSource.TileSet)
-				//        {
-				//            outputStream.Write(segmentBuffer.Data, segmentBufferIndex, tile.StorageSize);
-				//            segmentBufferIndex += tile.StorageSize;
-
-				//            if (!process.Update(tile))
-				//                break;
-				//        }
-				//        stopwatch.Stop();
-				//        double outputMBps = (double)outputStream.Position / (int)ByteSizesSmall.MB_1 * 1000 / stopwatch.ElapsedMilliseconds;
-				//        Context.WriteLine("Write @ {0:0} MBps", outputMBps);
-				//    }
-				//}
+					// next, write out the buffer
+					outputStream.Write(sparseSegmentWrapper.Data, 0, segmentFilteredPointCount * sparseSegmentWrapper.PointSizeBytes);
+				}
 			}
 
 			// at this point, counts have been completed
 			// I can now make a tileSet and a tileSource
-			// However, the tileSource constructor cannot stomp on the data that I have already written
+			// However, the tileSource constructor cannot stomp on the points that I have already written
 
 			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Extent);
 			var tileSet = new PointCloudTileSet(actualDensity, tileCounts);
 			var tileSource = new PointCloudTileSource(tiledFile, tileSet, analysis.Quantization, m_source.PointSizeBytes, analysis.Statistics);
+
+			if (!progressManager.IsCanceled())
+				tileSource.IsDirty = false;
+
+			tileSource.WriteHeader();
 
 			return tileSource;
 		}
@@ -191,7 +186,7 @@ namespace CloudAE.Core
 
 		#region Quantized Methods
 
-		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private static unsafe int QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
 			var quantizedExtent = source.Quantization.Convert(source.Extent);
 
@@ -244,12 +239,13 @@ namespace CloudAE.Core
 						break;
 				}
 			}
+
+			return filteredPointCount;
 		}
 
 		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			Statistics stats = null;
-			SQuantization3D quantization = null;
 			List<PointCloudBinarySourceEnumeratorSparseGridRegion> gridIndexSegments = null;
 
 			var extent = source.Extent;
@@ -274,7 +270,7 @@ namespace CloudAE.Core
 			if (gridIndexGenerator != null)
 				gridIndexSegments = gridIndexGenerator.GetGridIndex(density);
 
-			var result = new PointCloudAnalysisResult(density, stats, quantization, gridIndexSegments);
+			var result = new PointCloudAnalysisResult(density, stats, source.Quantization, gridIndexSegments);
 
 			return result;
 		}

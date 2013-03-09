@@ -159,9 +159,9 @@ namespace CloudAE.Core
 			m_tileSet.TileSource = this;
 
 			m_statisticsZ = zStats;
-			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization as SQuantization3D);
+			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization);
 #warning this should be stored in the tileset, rather than converted
-			QuantizedExtent = (SQuantizedExtent3D)Quantization.Convert(Extent);
+			QuantizedExtent = Quantization.Convert(Extent);
 
 			if (pointDataOffset == 0)
 			{
