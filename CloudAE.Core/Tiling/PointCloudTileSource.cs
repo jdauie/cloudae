@@ -564,10 +564,10 @@ namespace CloudAE.Core
 					for (int c = 0; c < grid.SizeX; c++)
 					{
 						// flip y-axis
-						var z = grid.Data[c, rr];
+						var z = grid.Data[rr, c];
 
 						if (z != grid.FillVal)
-							(*p) = cachedRamp.DestinationBins[z >> cachedRamp.SourceRightShift];
+							(*p) = cachedRamp.GetColor(z);
 						else
 							(*p) = transparent;
 

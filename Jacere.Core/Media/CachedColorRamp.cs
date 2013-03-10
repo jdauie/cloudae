@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Jacere.Core.Geometry;
-using System.Drawing;
 
 namespace Jacere.Core
 {
@@ -17,11 +14,11 @@ namespace Jacere.Core
 
 		private readonly ColorRamp m_ramp;
 
-		private readonly uint m_realMin;
-		private readonly uint m_realMax;
+		private readonly int m_realMin;
+		private readonly int m_realMax;
 
-		private readonly uint m_sourceMin;
-		private readonly uint m_sourceMax;
+		private readonly int m_sourceMin;
+		private readonly int m_sourceMax;
 		private readonly uint m_sourceRange;
 		private readonly int m_sourceRangeExtendedPow;
 		private readonly uint m_sourceRangeExtended;
@@ -30,24 +27,19 @@ namespace Jacere.Core
 		private readonly int m_binCountPow;
 		private readonly int m_binCount;
 
-		private readonly uint m_realMinShifted;
-		private readonly uint m_realMaxShifted;
+		private readonly int m_realMinShifted;
+		private readonly int m_realMaxShifted;
 
-		private readonly uint m_sourceMinShifted;
-		private readonly uint m_sourceMaxShifted;
+		private readonly int m_sourceMinShifted;
+		private readonly int m_sourceMaxShifted;
 
 		private readonly int m_sourceRightShift;
 
 		private readonly int[] m_bins;
 
-		public int[] DestinationBins
+		public int GetColor(int z)
 		{
-			get { return m_bins; }
-		}
-
-		public int SourceRightShift
-		{
-			get { return m_sourceRightShift; }
+			return m_bins[z >> m_sourceRightShift];
 		}
 
 		public CachedColorRamp(ColorRamp ramp, int min, int max, QuantizedStatistics stats, bool useStdDevStretch, int desiredDestinationBins)
@@ -58,15 +50,14 @@ namespace Jacere.Core
 			m_ramp = ramp;
 			m_binCountDesired = desiredDestinationBins;
 
-            throw new NotImplementedException();
-            //m_realMin = min;
-            //m_realMax = max;
+            m_realMin = min;
+            m_realMax = max;
 
 			if (useStdDevStretch)
 			{
 				uint stdDevMultiple = 2 * stats.StdDev;
-				m_sourceMin = (uint)Math.Max(m_realMin, (long)stats.m_mean - stdDevMultiple);
-				m_sourceMax = (uint)Math.Min(m_realMax, (long)stats.m_mean + stdDevMultiple);
+				m_sourceMin = (int)Math.Max(m_realMin, (long)stats.m_mean - stdDevMultiple);
+				m_sourceMax = (int)Math.Min(m_realMax, (long)stats.m_mean + stdDevMultiple);
 			}
 			else
 			{
@@ -74,11 +65,11 @@ namespace Jacere.Core
 				m_sourceMax = m_realMax;
 			}
 
-			m_sourceRange = m_sourceMax - m_sourceMin;
+			m_sourceRange = (uint)((long)m_sourceMax - m_sourceMin);
 
 			// stretch desired destination bins over adjusted range,
 			// and determine how many total bins are required at that scale
-			double totalBinsEstimate = (double)desiredDestinationBins;
+			double totalBinsEstimate = desiredDestinationBins;
 			if (SCALE_DESIRED_BINS_TO_SOURCE_RANGE)
 				totalBinsEstimate = totalBinsEstimate * (m_realMax + 1) / m_sourceRange;
 
@@ -107,14 +98,14 @@ namespace Jacere.Core
 
 			m_bins = new int[m_binCount + 1];
 
-			for (uint i = m_realMinShifted; i < m_sourceMinShifted; i++)
+			for (int i = m_realMinShifted; i < m_sourceMinShifted; i++)
 				m_bins[i] = ramp.GetColor(0.0).ToArgb();
-			for (uint i = m_sourceMaxShifted + 1; i <= m_realMaxShifted + 1; i++)
+			for (int i = m_sourceMaxShifted + 1; i <= m_realMaxShifted + 1; i++)
 				m_bins[i] = ramp.GetColor(1.0).ToArgb();
 
-			uint destinationRange = m_sourceMaxShifted - m_sourceMinShifted + 1;
+			uint destinationRange = (uint)((long)m_sourceMaxShifted - m_sourceMinShifted + 1);
 
-			for (uint i = m_sourceMinShifted; i <= m_sourceMaxShifted; i++)
+			for (int i = m_sourceMinShifted; i <= m_sourceMaxShifted; i++)
 			{
 				//double ratio = (i - m_sourceMinShifted + 0.5) / m_sourceRange;
 				double ratio = (double)(i - m_sourceMinShifted) / destinationRange;
