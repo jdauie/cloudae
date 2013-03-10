@@ -332,12 +332,13 @@ namespace CloudAE.Core
 			byte* pbEnd = inputBufferPtr + tile.StorageSize;
 			while (pb < pbEnd)
 			{
-				var p = (SQuantizedPoint3D*)(pb);
+				var p = (SQuantizedPoint3D*)pb;
 				pb += PointSizeBytes;
 
 				int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
 				int pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
 
+				// max val for now, apparently
 				if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
 					quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
 			}
@@ -522,11 +523,6 @@ namespace CloudAE.Core
 			using (var process = progressManager.StartProcess("GeneratePreviewPixelGrid"))
 			{
 				group.Process(GetTileEnumerator(process));
-				//foreach (PointCloudTileSourceEnumeratorChunk chunk in GetTileEnumerator(process))
-				//{
-				//	//TileOperationAction(chunk);
-				//	gridSet.Process(chunk);
-				//}
 			}
 
 			m_pixelGridSet = gridSet;
@@ -592,7 +588,7 @@ namespace CloudAE.Core
 				for (int c = 0; c < grid.SizeX; c++)
 				{
 					// flip y-axis
-					var z = grid.Data[c, grid.SizeY - r - 1];
+					var z = grid.Data[grid.SizeY - r - 1, c];
 
 					var color = Color.Transparent;
 

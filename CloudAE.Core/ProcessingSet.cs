@@ -69,22 +69,22 @@ namespace CloudAE.Core
 
 					using (var segmentBuffer = BufferManager.AcquireBuffer(m_id, maxSegmentBytes, true))
 					{
-						if (pointDataSize > maxSegmentBytes)
-						{
+						//if (pointDataSize > maxSegmentBytes)
+						//{
 							ProcessFileSegments2(segmentBuffer, progressManager);
-						}
-						else
-						{
-							var segmentWrapper = new PointBufferWrapper(segmentBuffer, m_binarySource);
-							var tileManager = new PointCloudTileManager(m_binarySource);
-							m_tileSource = tileManager.TilePointFile(m_tiledHandler, segmentWrapper, progressManager);
+						//}
+						//else
+						//{
+						//	var segmentWrapper = new PointBufferWrapper(segmentBuffer, m_binarySource);
+						//	var tileManager = new PointCloudTileManager(m_binarySource);
+						//	m_tileSource = tileManager.TilePointFile(m_tiledHandler, segmentWrapper, progressManager);
 
-							if (!process.IsCanceled())
-							{
-								m_tileSource.IsDirty = false;
-								m_tileSource.WriteHeader();
-							}
-						}
+						//	if (!process.IsCanceled())
+						//	{
+						//		m_tileSource.IsDirty = false;
+						//		m_tileSource.WriteHeader();
+						//	}
+						//}
 					}
 
 					GC.Collect();
