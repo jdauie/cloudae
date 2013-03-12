@@ -12,12 +12,8 @@ namespace CloudAE.Core
 	{
 		private readonly IPointCloudBinarySource m_source;
 		private readonly Grid<int> m_grid;
-		private readonly bool m_quantized;
 
-		private readonly Extent3D m_extent;
-
-		private readonly double m_tilesOverRangeX;
-		private readonly double m_tilesOverRangeY;
+		private readonly SQuantizedExtent3D m_extent;
 
 		private readonly GridIndexGenerator m_gridIndexGenerator;
 		private readonly Grid<GridIndexCell> m_gridIndex;
@@ -33,24 +29,10 @@ namespace CloudAE.Core
 		{
 			m_source = source;
 			m_grid = grid;
-			m_extent = m_source.Extent;
-			m_quantized = (m_source.Quantization != null);
+			m_extent = source.Quantization.Convert(m_source.Extent);
 
-			if (m_quantized)
-			{
-				var inputQuantization = source.Quantization;
-				var q = inputQuantization.Convert(m_extent);
-				m_extent = new Extent3D(q.MinX, q.MinY, q.MinZ, q.MaxX, q.MaxY, q.MaxZ);
-			}
-
-			m_tilesOverRangeX = m_grid.SizeX / m_extent.RangeX;
-			m_tilesOverRangeY = m_grid.SizeY / m_extent.RangeY;
-
-			if (gridIndexGenerator != null)
-			{
-				m_gridIndexGenerator = gridIndexGenerator;
-				m_gridIndex = grid.Copy<GridIndexCell>();
-			}
+			m_gridIndexGenerator = gridIndexGenerator;
+			m_gridIndex = grid.Copy<GridIndexCell>();
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
@@ -58,71 +40,47 @@ namespace CloudAE.Core
 			if (chunk.PointCount > m_maxPointCount)
 				m_maxPointCount = chunk.PointCount;
 
-			if (m_quantized)
+			double minX = m_extent.MinX;
+			double minY = m_extent.MinY;
+			double tilesOverRangeX = (double)m_grid.SizeX / m_extent.RangeX;
+			double tilesOverRangeY = (double)m_grid.SizeY / m_extent.RangeY;
+
+			// get the tile indices for this chunk
+			var tileIndices = new HashSet<PointCloudTileCoord>();
+			var lastIndex = PointCloudTileCoord.Empty;
+
+			var pb = chunk.PointDataPtr;
+			while (pb < chunk.PointDataEndPtr)
 			{
-				// get the tile indices for this chunk
-				var tileIndices = new HashSet<PointCloudTileCoord>();
-				var lastIndex = PointCloudTileCoord.Empty;
+				var p = (SQuantizedPoint3D*)pb;
 
-				byte* pb = chunk.PointDataPtr;
-				while (pb < chunk.PointDataEndPtr)
+				var tileIndex = new PointCloudTileCoord(
+					(ushort)(((*p).Y - minY) * tilesOverRangeY), 
+					(ushort)(((*p).X - minX) * tilesOverRangeX)
+				);
+
+				++m_grid.Data[tileIndex.Row, tileIndex.Col];
+
+				// indexing
+				if (tileIndex != lastIndex)
 				{
-					var p = (SQuantizedPoint3D*)pb;
-
-					//ushort tileX = (ushort)(((*p).X - m_extent.MinX) * m_tilesOverRangeX);
-					//ushort tileY = (ushort)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY);
-
-					var tileIndex = new PointCloudTileCoord(
-						(ushort)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY), 
-						(ushort)(((*p).X - m_extent.MinX) * m_tilesOverRangeX)
-					);
-
-					//if (tileX < 0) tileX = 0; else if (tileX > m_grid.SizeX) tileX = m_grid.SizeX;
-					//if (tileY < 0) tileY = 0; else if (tileY > m_grid.SizeY) tileY = m_grid.SizeY;
-
-					++m_grid.Data[tileIndex.Row, tileIndex.Col];
-
-					// indexing
-					if(m_gridIndex != null)
-					{
-						if (tileIndex != lastIndex)
-						{
-							tileIndices.Add(tileIndex);
-							lastIndex = tileIndex;
-						}
-					}
-
-					pb += chunk.PointSizeBytes;
+					tileIndices.Add(tileIndex);
+					lastIndex = tileIndex;
 				}
 
-				// update index cells
-				if (m_gridIndex != null)
-				{
-					foreach (var tileIndex in tileIndices)
-					{
-						var indexCell = m_gridIndex.Data[tileIndex.Row, tileIndex.Col];
-						if (indexCell == null)
-						{
-							indexCell = new GridIndexCell();
-							m_gridIndex.Data[tileIndex.Row, tileIndex.Col] = indexCell;
-						}
-						indexCell.Add(chunk.Index);
-					}
-				}
+				pb += chunk.PointSizeBytes;
 			}
-			else
-			{
-				byte* pb = chunk.PointDataPtr;
-				while (pb < chunk.PointDataEndPtr)
-				{
-					var p = (Point3D*)pb;
-					++m_grid.Data[
-						(int)(((*p).Y - m_extent.MinY) * m_tilesOverRangeY),
-						(int)(((*p).X - m_extent.MinX) * m_tilesOverRangeX)
-					];
 
-					pb += chunk.PointSizeBytes;
+			// update index cells
+			foreach (var tileIndex in tileIndices)
+			{
+				var indexCell = m_gridIndex.Data[tileIndex.Row, tileIndex.Col];
+				if (indexCell == null)
+				{
+					indexCell = new GridIndexCell();
+					m_gridIndex.Data[tileIndex.Row, tileIndex.Col] = indexCell;
 				}
+				indexCell.Add(chunk.Index);
 			}
 
 			return chunk;
@@ -132,11 +90,8 @@ namespace CloudAE.Core
 		{
 			m_grid.CorrectCountOverflow();
 
-			if (m_gridIndex != null)
-			{
-				m_gridIndex.CorrectCountOverflow();
-				m_gridIndexGenerator.Update(m_source, m_gridIndex, m_grid, m_maxPointCount);
-			}
+			m_gridIndex.CorrectCountOverflow();
+			m_gridIndexGenerator.Update(m_source, m_gridIndex, m_grid, m_maxPointCount);
 		}
 	}
 }
