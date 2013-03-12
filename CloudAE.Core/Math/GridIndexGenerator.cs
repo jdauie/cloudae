@@ -49,6 +49,9 @@ namespace CloudAE.Core
 					// unfortunately, I cannot check the actual counts, because they have not been measured
 					// instead, I can count the estimated area, and undershoot
 
+#warning THIS NEEDS TO CHECK ONLY THE NEW CELL COUNTS
+					// currentSize is counting points repeatedly!
+
 					var count = m_estimatedCounts.GetCellsInScaledRange(tile.Col, tile.Row, m_actualGrid).Sum();
 					if (count > 0)
 					{

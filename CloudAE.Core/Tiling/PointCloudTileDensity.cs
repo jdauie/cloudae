@@ -10,7 +10,7 @@ namespace CloudAE.Core
 {
 	public class PointCloudTileDensity : ISerializeBinary
 	{
-		public readonly int PointCount;
+		public readonly long PointCount;
 		public readonly int TileCount;
 		public readonly int ValidTileCount;
 
@@ -53,7 +53,7 @@ namespace CloudAE.Core
 				MinTileCount = nonZeroCounts[0];
 				MaxTileCount = nonZeroCounts[ValidTileCount - 1];
 				MedianTileCount = nonZeroCounts[ValidTileCount / 2];
-				MeanTileCount = PointCount / ValidTileCount;
+				MeanTileCount = (int)(PointCount / ValidTileCount);
 
 				MinTileDensity = MinTileCount / tileArea;
 				MaxTileDensity = MaxTileCount / tileArea;
@@ -64,7 +64,7 @@ namespace CloudAE.Core
 
 		public PointCloudTileDensity(BinaryReader reader)
 		{
-			PointCount        = reader.ReadInt32();
+			PointCount        = reader.ReadInt64();
 			TileCount         = reader.ReadInt32();
 			ValidTileCount    = reader.ReadInt32();
 
