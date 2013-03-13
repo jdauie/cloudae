@@ -56,6 +56,7 @@
     <Compile Include="Exceptions\IgnorableException.cs" />
     <Compile Include="Exceptions\OpenFailedException.cs" />
     <Compile Include="Extensions\ArrayExtensions.cs" />
+    <Compile Include="Extensions\HashSetExtensions.cs" />
     <Compile Include="Extensions\LongToSizeExtension.cs" />
     <Compile Include="Extensions\NumericExtensions.cs" />
     <Compile Include="Extensions\ReflectionExtensions.cs" />
