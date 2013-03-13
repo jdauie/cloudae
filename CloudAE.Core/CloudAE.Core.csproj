@@ -62,7 +62,6 @@
     <Compile Include="Managers\PointBufferWrapperChunk.cs" />
     <Compile Include="Managers\PointCloudTileCacheManager.cs" />
     <Compile Include="Math\GridExtensions.cs" />
-    <Compile Include="Math\GridIndexGenerator.cs" />
     <Compile Include="Math\GridIndexCell.cs" />
     <Compile Include="Math\GridQuantizedSet.cs" />
     <Compile Include="Math\GridCounter.cs" />
