@@ -20,16 +20,10 @@ namespace CloudAE.Core
 	public class GridIndexCell
 	{
 		private readonly HashSet<int> m_chunks;
-		private readonly int m_pointCount;
 
 		public IEnumerable<int> Chunks
 		{
 			get { return m_chunks; }
-		}
-
-		public int PointCount
-		{
-			get { return m_pointCount; }
 		}
 
 		public bool HasChunks
@@ -37,10 +31,9 @@ namespace CloudAE.Core
 			get { return m_chunks.Count > 0; }
 		}
 
-		public GridIndexCell(int pointCount)
+		public GridIndexCell()
 		{
 			m_chunks = new HashSet<int>();
-			m_pointCount = pointCount;
 		}
 
 		public GridIndexCell(GridIndexCell a, GridIndexCell b)

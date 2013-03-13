@@ -19,6 +19,11 @@ namespace Jacere.Core
 			get { return m_col; }
 		}
 
+		public int Index
+		{
+			get { return ((m_row << 16) | m_col); }
+		}
+
 		public SimpleGridCoord(ushort y, ushort x)
 		{
 			m_row = y;

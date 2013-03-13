@@ -89,7 +89,7 @@ namespace CloudAE.Core
 					var indexCell = gridIndex.Data[coord.Row, coord.Col];
 					if (indexCell == null)
 					{
-						indexCell = new GridIndexCell(m_grid.Data[coord.Row, coord.Col]);
+						indexCell = new GridIndexCell();
 						gridIndex.Data[coord.Row, coord.Col] = indexCell;
 					}
 					indexCell.Add(kvp.Key);

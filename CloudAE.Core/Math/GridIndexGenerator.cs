@@ -28,17 +28,21 @@ namespace CloudAE.Core
 			var regionSourcesBySegment = new List<List<Range>>();
 			var tilesPerSegment = new List<GridRange>();
 			long pointDataBytes = m_source.PointSizeBytes * m_source.Count;
-			
-			int chunksPerSegment = segmentSize / (m_maxPointCountPerChunk * m_source.PointSizeBytes);
+
+			int pointsPerSegment = segmentSize / m_source.PointSizeBytes;
+			//int chunksPerSegment = segmentSize / (m_maxPointCountPerChunk * m_source.PointSizeBytes);
 
 			var tileOrder = PointCloudTileSet.GetTileOrdering(m_actualGrid.SizeY, m_actualGrid.SizeX).ToArray();
 			int tileOrderIndex = 0;
 			while (tileOrderIndex < tileOrder.Length)
 			{
+				var segmentTilesFromEstimation = new HashSet<int>();
 				var segmentChunks = new HashSet<int>();
 
 				var startTile = tileOrder[tileOrderIndex];
 				var startTileIndex = new GridCoord(m_actualGrid.Def, startTile.Row, startTile.Col);
+
+				int segmentPointCount = 0;
 
 				while (tileOrderIndex < tileOrder.Length)
 				{
@@ -47,17 +51,35 @@ namespace CloudAE.Core
 					// unfortunately, I cannot check the actual counts, because they have not been measured
 					// instead, I can count the estimated area, and undershoot
 
-					// get unique chunks
-					var correspondingEstimatedIndex = m_estimatedIndex.GetCellsInScaledRange(tile.Col, tile.Row, m_actualGrid).ToList();
-					var uniqueChunks = correspondingEstimatedIndex.SelectMany(c => c.Chunks).ToHashSet(segmentChunks);
+					// get unique tiles/chunks
+					
+					var uniqueEstimatedCoords = m_estimatedIndex
+						.GetCellCoordsInScaledRange(tile.Col, tile.Row, m_actualGrid)
+						.Where(c => !segmentTilesFromEstimation.Contains(c.Index))
+						.ToList();
 
-					// this is safe, but it can create smaller segments than necessary
-					if (segmentChunks.Count + uniqueChunks.Count > chunksPerSegment)
+					var uniquePointCount = uniqueEstimatedCoords.Sum(c => m_estimatedCounts.Data[c.Row, c.Col]);
+
+					if (segmentPointCount + uniquePointCount > pointsPerSegment)
 						break;
 
-					// merge
+					var uniqueChunks = uniqueEstimatedCoords
+						.Select(c => m_estimatedIndex.Data[c.Row, c.Col])
+						.SelectMany(c => c.Chunks)
+						.ToHashSet(segmentChunks);
+
+					// this is safe, but it can create smaller segments than necessary
+					//if (segmentChunks.Count + uniqueChunks.Count > chunksPerSegment)
+					//	break;
+
+					// merge tiles/chunks
+					foreach(var coord in uniqueEstimatedCoords)
+						segmentTilesFromEstimation.Add(coord.Index);
+
 					foreach (var index in uniqueChunks)
 						segmentChunks.Add(index);
+
+					segmentPointCount += uniquePointCount;
 
 					++tileOrderIndex;
 				}
