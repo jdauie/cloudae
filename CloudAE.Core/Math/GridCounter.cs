@@ -16,8 +16,7 @@ namespace CloudAE.Core
 		private readonly SQuantizedExtent3D m_extent;
 
 		private readonly GridIndexGenerator m_gridIndexGenerator;
-		private readonly Dictionary<int, PointCloudTileCoord[]> m_chunkTiles;
-		private readonly Grid<GridIndexCell> m_gridIndex;
+		private readonly Dictionary<int, int[]> m_chunkTiles;
 
 		private int m_maxPointCount;
 
@@ -33,10 +32,7 @@ namespace CloudAE.Core
 			m_extent = source.Quantization.Convert(m_source.Extent);
 
 			m_gridIndexGenerator = gridIndexGenerator;
-			m_gridIndex = grid.Copy<GridIndexCell>();
-
-#warning reserve space?
-			//m_chunkTiles = new Dictionary<int, PointCloudTileCoord[]>();
+			m_chunkTiles = new Dictionary<int, int[]>();
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
@@ -64,7 +60,6 @@ namespace CloudAE.Core
 				++m_grid.Data[y, x];
 
 				// indexing
-				//int tileIndex = m_grid.Def.GetIndex(y, x);
 				int tileIndex = PointCloudTileCoord.GetIndex(y, x);
 				if (tileIndex != lastIndex)
 				{
@@ -75,23 +70,7 @@ namespace CloudAE.Core
 				pb += chunk.PointSizeBytes;
 			}
 
-
-
-			//m_chunkTiles.Add(0, tileIndices.ToArray());
-
-
-			// update index cells
-			foreach (var tileIndex in tileIndices)
-			{
-				var coord = new PointCloudTileCoord(tileIndex);
-				var indexCell = m_gridIndex.Data[coord.Row, coord.Col];
-				if (indexCell == null)
-				{
-					indexCell = new GridIndexCell();
-					m_gridIndex.Data[coord.Row, coord.Col] = indexCell;
-				}
-				indexCell.Add(chunk.Index);
-			}
+			m_chunkTiles.Add(chunk.Index, tileIndices.ToArray());
 
 			return chunk;
 		}
@@ -100,8 +79,26 @@ namespace CloudAE.Core
 		{
 			m_grid.CorrectCountOverflow();
 
-			m_gridIndex.CorrectCountOverflow();
-			m_gridIndexGenerator.Update(m_source, m_gridIndex, m_grid, m_maxPointCount);
+			// update index cells
+			var gridIndex = m_grid.Copy<GridIndexCell>();
+			foreach (var kvp in m_chunkTiles)
+			{
+				foreach (var tileIndex in kvp.Value)
+				{
+					var coord = new PointCloudTileCoord(tileIndex);
+					var indexCell = gridIndex.Data[coord.Row, coord.Col];
+					if (indexCell == null)
+					{
+						indexCell = new GridIndexCell(m_grid.Data[coord.Row, coord.Col]);
+						gridIndex.Data[coord.Row, coord.Col] = indexCell;
+					}
+					indexCell.Add(kvp.Key);
+				}
+			}
+			m_chunkTiles.Clear();
+
+			gridIndex.CorrectCountOverflow();
+			m_gridIndexGenerator.Update(m_source, gridIndex, m_grid, m_maxPointCount);
 		}
 	}
 }
