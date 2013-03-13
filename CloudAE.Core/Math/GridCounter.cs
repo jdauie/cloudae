@@ -16,6 +16,7 @@ namespace CloudAE.Core
 		private readonly SQuantizedExtent3D m_extent;
 
 		private readonly GridIndexGenerator m_gridIndexGenerator;
+		private readonly Dictionary<int, PointCloudTileCoord[]> m_chunkTiles;
 		private readonly Grid<GridIndexCell> m_gridIndex;
 
 		private int m_maxPointCount;
@@ -33,6 +34,9 @@ namespace CloudAE.Core
 
 			m_gridIndexGenerator = gridIndexGenerator;
 			m_gridIndex = grid.Copy<GridIndexCell>();
+
+#warning reserve space?
+			//m_chunkTiles = new Dictionary<int, PointCloudTileCoord[]>();
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
@@ -46,22 +50,22 @@ namespace CloudAE.Core
 			double tilesOverRangeY = (double)m_grid.SizeY / m_extent.RangeY;
 
 			// get the tile indices for this chunk
-			var tileIndices = new HashSet<PointCloudTileCoord>();
-			var lastIndex = PointCloudTileCoord.Empty;
+			var tileIndices = new HashSet<int>();
+			var lastIndex = -1;
 
 			var pb = chunk.PointDataPtr;
 			while (pb < chunk.PointDataEndPtr)
 			{
 				var p = (SQuantizedPoint3D*)pb;
 
-				var tileIndex = new PointCloudTileCoord(
-					(ushort)(((*p).Y - minY) * tilesOverRangeY), 
-					(ushort)(((*p).X - minX) * tilesOverRangeX)
-				);
+				var y = (ushort)(((*p).Y - minY) * tilesOverRangeY);
+				var x = (ushort)(((*p).X - minX) * tilesOverRangeX);
 
-				++m_grid.Data[tileIndex.Row, tileIndex.Col];
+				++m_grid.Data[y, x];
 
 				// indexing
+				//int tileIndex = m_grid.Def.GetIndex(y, x);
+				int tileIndex = PointCloudTileCoord.GetIndex(y, x);
 				if (tileIndex != lastIndex)
 				{
 					tileIndices.Add(tileIndex);
@@ -71,14 +75,20 @@ namespace CloudAE.Core
 				pb += chunk.PointSizeBytes;
 			}
 
+
+
+			//m_chunkTiles.Add(0, tileIndices.ToArray());
+
+
 			// update index cells
 			foreach (var tileIndex in tileIndices)
 			{
-				var indexCell = m_gridIndex.Data[tileIndex.Row, tileIndex.Col];
+				var coord = new PointCloudTileCoord(tileIndex);
+				var indexCell = m_gridIndex.Data[coord.Row, coord.Col];
 				if (indexCell == null)
 				{
 					indexCell = new GridIndexCell();
-					m_gridIndex.Data[tileIndex.Row, tileIndex.Col] = indexCell;
+					m_gridIndex.Data[coord.Row, coord.Col] = indexCell;
 				}
 				indexCell.Add(chunk.Index);
 			}

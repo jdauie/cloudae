@@ -147,6 +147,20 @@ namespace Jacere.Core
 					Data[y, x] = fillVal;
 		}
 
+		//public IEnumerable<SimpleGridCoord> GetCellCoordsInScaledRange(int scaledX, int scaledY, IGrid scaledGrid)
+		//{
+		//    var startX = (ushort)Math.Floor(((double)scaledX / scaledGrid.SizeX) * SizeX);
+		//    var startY = (ushort)Math.Floor(((double)scaledY / scaledGrid.SizeY) * SizeY);
+
+		//    var endX = (ushort)Math.Ceiling(((double)(scaledX + 1) / scaledGrid.SizeX) * SizeX);
+		//    var endY = (ushort)Math.Ceiling(((double)(scaledY + 1) / scaledGrid.SizeY) * SizeY);
+
+		//    for (var y = startY; y < endY; y++)
+		//        for (var x = startX; x < endX; x++)
+		//            if (!EqualityComparer<T>.Default.Equals(Data[y, x], default(T)))
+		//                yield return new SimpleGridCoord(y, x);
+		//}
+
 		public IEnumerable<T> GetCellsInScaledRange(int scaledX, int scaledY, IGrid scaledGrid)
 		{
 			int startX = (int)Math.Floor(((double)scaledX / scaledGrid.SizeX) * SizeX);

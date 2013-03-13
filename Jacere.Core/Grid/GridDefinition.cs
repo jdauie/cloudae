@@ -17,6 +17,11 @@ namespace Jacere.Core
 		private readonly int m_bitsX;
 		private readonly int m_bitsY;
 
+		public static int GetSimpleIndex(ushort y, ushort x)
+		{
+			return ((y << 16) | x);
+		}
+
 		#region Properties
 
 		public ushort SizeX

@@ -288,10 +288,10 @@ namespace CloudAE.Core
 			m_col = x;
 		}
 
-		public PointCloudTileCoord(uint index)
+		public PointCloudTileCoord(int index)
 		{
 			m_row = (ushort)(index >> 16);
-			m_col = (ushort)(index | ((1 << 16) - 1));
+			m_col = (ushort)(index & ((1 << 16) - 1));
 		}
 
 		public PointCloudTileCoord(BinaryReader reader)
