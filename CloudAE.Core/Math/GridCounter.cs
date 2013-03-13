@@ -15,30 +15,23 @@ namespace CloudAE.Core
 
 		private readonly SQuantizedExtent3D m_extent;
 
-		private readonly GridIndexGenerator m_gridIndexGenerator;
 		private readonly Dictionary<int, int[]> m_chunkTiles;
 
-		private int m_maxPointCount;
+		private int m_maxPointCountPerChunk;
 
 		public GridCounter(IPointCloudBinarySource source, Grid<int> grid)
-			: this(source, grid, null)
-		{
-		}
-
-		public GridCounter(IPointCloudBinarySource source, Grid<int> grid, GridIndexGenerator gridIndexGenerator)
 		{
 			m_source = source;
 			m_grid = grid;
 			m_extent = source.Quantization.Convert(m_source.Extent);
 
-			m_gridIndexGenerator = gridIndexGenerator;
 			m_chunkTiles = new Dictionary<int, int[]>();
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
-			if (chunk.PointCount > m_maxPointCount)
-				m_maxPointCount = chunk.PointCount;
+			if (chunk.PointCount > m_maxPointCountPerChunk)
+				m_maxPointCountPerChunk = chunk.PointCount;
 
 			double minX = m_extent.MinX;
 			double minY = m_extent.MinY;
@@ -78,27 +71,119 @@ namespace CloudAE.Core
 		public void FinalizeProcess()
 		{
 			m_grid.CorrectCountOverflow();
+		}
+
+		public List<PointCloudBinarySourceEnumeratorSparseGridRegion> GetGridIndex(PointCloudTileDensity density, int maxSegmentLength)
+		{
+			int maxSegmentPointCount = (maxSegmentLength / m_source.PointSizeBytes);
 
 			// update index cells
-			var gridIndex = m_grid.Copy<GridIndexCell>();
+			var indexGrid = m_grid.Copy<GridIndexCell>();
 			foreach (var kvp in m_chunkTiles)
 			{
 				foreach (var tileIndex in kvp.Value)
 				{
 					var coord = new PointCloudTileCoord(tileIndex);
-					var indexCell = gridIndex.Data[coord.Row, coord.Col];
+					var indexCell = indexGrid.Data[coord.Row, coord.Col];
 					if (indexCell == null)
 					{
 						indexCell = new GridIndexCell();
-						gridIndex.Data[coord.Row, coord.Col] = indexCell;
+						indexGrid.Data[coord.Row, coord.Col] = indexCell;
 					}
 					indexCell.Add(kvp.Key);
 				}
 			}
-			m_chunkTiles.Clear();
+			indexGrid.CorrectCountOverflow();
 
-			gridIndex.CorrectCountOverflow();
-			m_gridIndexGenerator.Update(m_source, gridIndex, m_grid, m_maxPointCount);
+			var actualGrid = density.CreateTileCountsForInitialization(false);
+
+			var regionSourcesBySegment = new List<List<Range>>();
+			var tilesPerSegment = new List<GridRange>();
+			long pointDataBytes = m_source.PointSizeBytes * m_source.Count;
+
+			var tileOrder = PointCloudTileSet.GetTileOrdering(actualGrid.SizeY, actualGrid.SizeX).ToArray();
+			int tileOrderIndex = 0;
+			while (tileOrderIndex < tileOrder.Length)
+			{
+				var segmentTilesFromEstimation = new HashSet<int>();
+				var segmentChunks = new HashSet<int>();
+
+				var startTile = tileOrder[tileOrderIndex];
+				var startTileIndex = new GridCoord(actualGrid.Def, startTile.Row, startTile.Col);
+
+				int segmentPointCount = 0;
+
+				while (tileOrderIndex < tileOrder.Length)
+				{
+					var tile = tileOrder[tileOrderIndex];
+
+					// unfortunately, I cannot check the actual counts, because they have not been measured
+					// instead, I can count the estimated area, and undershoot
+
+					// get unique tiles/chunks
+
+					var uniqueEstimatedCoords = indexGrid
+						.GetCellCoordsInScaledRange(tile.Col, tile.Row, actualGrid)
+						.Where(c => !segmentTilesFromEstimation.Contains(c.Index))
+						.ToList();
+
+					var uniquePointCount = uniqueEstimatedCoords.Sum(c => m_grid.Data[c.Row, c.Col]);
+
+					if (segmentPointCount + uniquePointCount > maxSegmentPointCount)
+						break;
+
+					var uniqueChunks = uniqueEstimatedCoords
+						.Select(c => indexGrid.Data[c.Row, c.Col])
+						.SelectMany(c => c.Chunks)
+						.ToHashSet(segmentChunks);
+
+					// this is safe, but it can create smaller segments than necessary
+					//if (segmentChunks.Count + uniqueChunks.Count > chunksPerSegment)
+					//	break;
+
+					// merge tiles/chunks
+					foreach (var coord in uniqueEstimatedCoords)
+						segmentTilesFromEstimation.Add(coord.Index);
+
+					foreach (var index in uniqueChunks)
+						segmentChunks.Add(index);
+
+					segmentPointCount += uniquePointCount;
+
+					++tileOrderIndex;
+				}
+
+				if (segmentChunks.Count > 0)
+				{
+					var endTile = tileOrder[tileOrderIndex - 1];
+					var endTileIndex = new GridCoord(actualGrid.Def, endTile.Row, endTile.Col);
+
+					// group by sequential regions
+					int[] sortedCellList = segmentChunks.ToArray();
+					Array.Sort(sortedCellList);
+					var regions = new List<Range>();
+					int sequenceStartIndex = 0;
+					while (sequenceStartIndex < sortedCellList.Length)
+					{
+						// find incremental sequence
+						int i = sequenceStartIndex;
+						++i;
+						while (i < sortedCellList.Length && (sortedCellList[i] == sortedCellList[i - 1] + 1))
+							++i;
+						regions.Add(new Range(sortedCellList[sequenceStartIndex], i - sequenceStartIndex));
+						sequenceStartIndex = i;
+					}
+
+					regionSourcesBySegment.Add(regions);
+					tilesPerSegment.Add(new GridRange(startTileIndex, endTileIndex));
+				}
+			}
+
+			int chunkRangeSumForAllSegments = regionSourcesBySegment.Sum(r => r.Sum(r2 => r2.Count));
+			Context.WriteLine("chunkRangeSumForAllSegments: {0}", chunkRangeSumForAllSegments);
+			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * (int)ByteSizesSmall.MB_1 / pointDataBytes);
+
+			return regionSourcesBySegment.Select((t, i) => new PointCloudBinarySourceEnumeratorSparseGridRegion(t, tilesPerSegment[i], m_maxPointCountPerChunk)).ToList();
 		}
 	}
 }

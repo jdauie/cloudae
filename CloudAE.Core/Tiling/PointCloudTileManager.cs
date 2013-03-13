@@ -28,18 +28,6 @@ namespace CloudAE.Core
 			m_source = source;
 		}
 
-		public PointCloudTileSource TilePointFile(LASFile tiledFile, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
-		{
-			var stopwatch = new Stopwatch();
-			stopwatch.Start();
-
-			// pass 1
-			var analysis = AnalyzePointFile(segmentBuffer, progressManager);
-			segmentBuffer = segmentBuffer.Initialize();
-
-			return TilePointFileSegment(tiledFile, analysis, segmentBuffer, progressManager);
-		}
-
 		public PointCloudTileSource TilePointFileSegment(LASFile tiledFile, PointCloudAnalysisResult analysis, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
 		{
 			var stopwatch = new Stopwatch();
@@ -61,7 +49,7 @@ namespace CloudAE.Core
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 
-			var analysis = AnalyzePointFile(null, progressManager);
+			var analysis = AnalyzePointFile(segmentBuffer.Length, progressManager);
 			var tileCounts = analysis.Density.CreateTileCountsForInitialization(true);
 
 			var quantizedExtent = m_source.Quantization.Convert(analysis.Density.Extent);
@@ -111,12 +99,12 @@ namespace CloudAE.Core
 			return tileSource;
 		}
 
-		public PointCloudAnalysisResult AnalyzePointFile(PointBufferWrapper segmentBuffer, ProgressManager progressManager)
+		public PointCloudAnalysisResult AnalyzePointFile(int maxSegmentLength, ProgressManager progressManager)
 		{
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 
-			var analysis = EstimateDensity(m_source, segmentBuffer, progressManager);
+			var analysis = EstimateDensity(m_source, maxSegmentLength, progressManager);
 			progressManager.Log(stopwatch, "Computed Density ({0})", analysis.Density);
 
 			return analysis;
@@ -128,10 +116,10 @@ namespace CloudAE.Core
 		/// Estimates the points per square unit.
 		/// </summary>
 		/// <returns></returns>
-		private PointCloudAnalysisResult EstimateDensity(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, ProgressManager progressManager)
+		private PointCloudAnalysisResult EstimateDensity(IPointCloudBinarySource source, int maxSegmentLength, ProgressManager progressManager)
 		{
             var tileCounts = CreateTileCountsForEstimation(source);
-            var density = QuantEstimateDensity(source, segmentBuffer, tileCounts, progressManager);
+			var density = QuantEstimateDensity(source, maxSegmentLength, tileCounts, progressManager);
 			return density;
 		}
 
@@ -243,7 +231,7 @@ namespace CloudAE.Core
 			return filteredPointCount;
 		}
 
-		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, Grid<int> tileCounts, ProgressManager progressManager)
+		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, int maxSegmentLength, Grid<int> tileCounts, ProgressManager progressManager)
 		{
 			Statistics stats = null;
 			List<PointCloudBinarySourceEnumeratorSparseGridRegion> gridIndexSegments = null;
@@ -252,23 +240,18 @@ namespace CloudAE.Core
 			var inputQuantization = source.Quantization;
 			var quantizedExtent = inputQuantization.Convert(extent);
 
-            var gridIndexGenerator = (segmentBuffer != null) ? null : new GridIndexGenerator();
+            var statsMapping = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
+			var gridCounter = new GridCounter(source, tileCounts);
 
 			using (var process = progressManager.StartProcess("QuantEstimateDensity"))
 			{
-				var statsMapping = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
-				var gridCounter = new GridCounter(source, tileCounts, gridIndexGenerator);
-				
-				var group = new ChunkProcessSet(gridCounter, statsMapping, segmentBuffer);
+				var group = new ChunkProcessSet(gridCounter, statsMapping);
 				group.Process(source.GetBlockEnumerator(process));
-
-				stats = statsMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
 			}
 
+			stats = statsMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
 			var density = new PointCloudTileDensity(tileCounts, extent);
-
-			if (gridIndexGenerator != null)
-				gridIndexSegments = gridIndexGenerator.GetGridIndex(density);
+			gridIndexSegments = gridCounter.GetGridIndex(density, maxSegmentLength);
 
 			var result = new PointCloudAnalysisResult(density, stats, source.Quantization, gridIndexSegments);
 
