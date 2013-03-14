@@ -117,7 +117,7 @@ namespace Jacere.Core
 				}
 				else
 				{
-					byte[] b = new byte[size];
+					var b = new byte[size];
 					buffer = new BufferInstance(b);
 					c_bufferMapping.Add(b, buffer);
 				}
@@ -150,7 +150,7 @@ namespace Jacere.Core
 
 				c_usedBuffers.Remove(buffer);
 
-				Stack<BufferInstance> bufferList = GetAvailableBuffers(buffer.Length, true);
+				var bufferList = GetAvailableBuffers(buffer.Length, true);
 				bufferList.Push(buffer);
 			}
 

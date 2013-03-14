@@ -25,7 +25,7 @@ namespace Jacere.Core
 
 		public void Log(string value, params object[] args)
 		{
-			string valueFormat = String.Format(value, args);
+			var valueFormat = String.Format(value, args);
 			m_logAction(valueFormat);
 		}
 
@@ -63,8 +63,7 @@ namespace Jacere.Core
 			else
 				m_currentProcess = new ProgressManagerProcess(this, null, name);
 
-			if (m_processAction != null)
-				m_processAction(m_currentProcess.Identity.Name);
+			UpdateStatus();
 
 			return m_currentProcess;
 		}
@@ -73,8 +72,7 @@ namespace Jacere.Core
 		{
 			m_currentProcess = process.Parent;
 
-			if (m_processAction != null && m_currentProcess != null)
-				m_processAction(m_currentProcess.Identity.Name);
+			UpdateStatus();
 		}
 
 		private void UpdateStatus()

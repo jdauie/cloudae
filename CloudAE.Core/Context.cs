@@ -209,7 +209,7 @@ namespace CloudAE.Core
 		private static void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
 		{
 			var inputHandler = e.Argument as FileHandlerBase;
-			ProgressManager progressManager = new BackgroundWorkerProgressManager(c_backgroundWorker, e, inputHandler, OnLog, OnProcessingProcessChanged);
+			var progressManager = new BackgroundWorkerProgressManager(c_backgroundWorker, e, inputHandler, OnLog, OnProcessingProcessChanged);
 			
 			var processingSet = new ProcessingSet(inputHandler);
 			var tileSource = processingSet.Process(progressManager);
