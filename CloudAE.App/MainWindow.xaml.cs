@@ -54,33 +54,34 @@ namespace CloudAE.App
 			Context.ProcessingStarted         += OnProcessingStarted;
 			Context.ProcessingCompleted       += OnProcessingCompleted;
 			Context.ProcessingProgressChanged += OnProcessingProgressChanged;
+			Context.ProcessingProcessChanged  += OnProcessingProcessChanged;
 
 			Context.LoadWindowState(this);
 
 			foreach (ITileSourceControl control in c_controls)
 			{
-				UserControl userControl = control as UserControl;
+				var userControl = control as UserControl;
 				if (!userControl.IsEnabled)
 					continue;
 
-				Grid grid = new Grid();
+				var grid = new Grid();
 				grid.Children.Add(userControl);
 
-				Image tabIcon = new Image();
+				var tabIcon = new Image();
 				tabIcon.Source = control.Icon;
 				tabIcon.VerticalAlignment = System.Windows.VerticalAlignment.Center;
 
-				TextBlock text = new TextBlock();
+				var text = new TextBlock();
 				text.Text = control.DisplayName;
 				text.Margin = new Thickness(4, 0, 0, 0);
 				text.VerticalAlignment = System.Windows.VerticalAlignment.Center;
 
-				StackPanel tabHeader = new StackPanel();
+				var tabHeader = new StackPanel();
 				tabHeader.Orientation = Orientation.Horizontal;
 				tabHeader.Children.Add(tabIcon);
 				tabHeader.Children.Add(text);
 
-				TabItem tabItem = new TabItem();
+				var tabItem = new TabItem();
 				tabItem.Header = tabHeader;
 				tabItem.Content = grid;
 				tabItem.Tag = control;
@@ -174,6 +175,11 @@ namespace CloudAE.App
 		private void OnProcessingProgressChanged(int progressPercentage)
 		{
 			progressBar.Value = progressPercentage;
+		}
+
+		private void OnProcessingProcessChanged(string processName)
+		{
+			Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() => statusBarText.Text = processName));
 		}
 
 		#endregion

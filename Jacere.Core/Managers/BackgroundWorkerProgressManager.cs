@@ -12,13 +12,13 @@ namespace Jacere.Core
 		private ManagedBackgroundWorker m_worker;
 		private DoWorkEventArgs m_args;
 
-		public BackgroundWorkerProgressManager(ManagedBackgroundWorker worker, DoWorkEventArgs args, Action<string> logAction)
-			: this(worker, args, null, logAction)
+		public BackgroundWorkerProgressManager(ManagedBackgroundWorker worker, DoWorkEventArgs args, Action<string> logAction, Action<string> processAction)
+			: this(worker, args, null, logAction, processAction)
 		{
 		}
 
-		public BackgroundWorkerProgressManager(ManagedBackgroundWorker worker, DoWorkEventArgs args, object userState, Action<string> logAction)
-			: base(userState, logAction)
+		public BackgroundWorkerProgressManager(ManagedBackgroundWorker worker, DoWorkEventArgs args, object userState, Action<string> logAction, Action<string> processAction)
+			: base(userState, logAction, processAction)
 		{
 			m_worker = worker;
 			m_args = args;

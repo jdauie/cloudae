@@ -9,8 +9,9 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
-			<RowDefinition Height="Auto" />
-		</Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="150" MinWidth="120" x:Name="GridColumnLeft" />
@@ -148,5 +149,10 @@
         </Grid>
 
         <ProgressBar Grid.Row="2" Grid.ColumnSpan="5" HorizontalAlignment="Stretch" Height="14" x:Name="progressBar" />
+        <StatusBar Grid.Row="3" Grid.ColumnSpan="5" HorizontalAlignment="Stretch" x:Name="statusBar">
+            <StatusBarItem>
+                <TextBlock x:Name="statusBarText">Ready</TextBlock>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>

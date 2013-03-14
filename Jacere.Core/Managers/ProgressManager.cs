@@ -6,6 +6,7 @@ namespace Jacere.Core
 	public abstract class ProgressManager
 	{
 		private readonly Action<string> m_logAction;
+		private readonly Action<string> m_processAction;
 		private readonly object m_userState;
 
 		private ProgressManagerProcess m_currentProcess;
@@ -15,10 +16,11 @@ namespace Jacere.Core
 			get { return m_userState; }
 		}
 
-		protected ProgressManager(object userState, Action<string> logAction)
+		protected ProgressManager(object userState, Action<string> logAction, Action<string> processAction)
 		{
 			m_userState = userState;
 			m_logAction = logAction;
+			m_processAction = processAction;
 		}
 
 		public void Log(string value, params object[] args)
@@ -61,12 +63,29 @@ namespace Jacere.Core
 			else
 				m_currentProcess = new ProgressManagerProcess(this, null, name);
 
+			if (m_processAction != null)
+				m_processAction(m_currentProcess.Identity.Name);
+
 			return m_currentProcess;
 		}
 
 		public void EndProcess(ProgressManagerProcess process)
 		{
 			m_currentProcess = process.Parent;
+
+			if (m_processAction != null && m_currentProcess != null)
+				m_processAction(m_currentProcess.Identity.Name);
+		}
+
+		private void UpdateStatus()
+		{
+			if (m_processAction != null)
+			{
+				string status = "Ready";
+				if (m_currentProcess != null)
+					status = m_currentProcess.Identity.Name;
+				m_processAction(status);
+			}
 		}
 	}
 }

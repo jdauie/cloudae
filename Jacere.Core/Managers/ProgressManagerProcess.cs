@@ -15,6 +15,11 @@ namespace Jacere.Core
 		private readonly ProgressManagerProcess m_parent;
 		private readonly List<ProgressManagerProcess> m_children;
 
+		public Identity Identity
+		{
+			get { return m_id; }
+		}
+
 		public ProgressManagerProcess Parent
 		{
 			get { return m_parent; }

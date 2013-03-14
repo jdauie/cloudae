@@ -305,7 +305,7 @@ namespace CloudAE.App
 				previewImageGrid.MouseMove -= OnViewportGridMouseMove;
 
 				Action<string> logAction = value => Context.WriteLine(value);
-				m_progressManager = new BackgroundWorkerProgressManager(m_backgroundWorker, e, logAction);
+				m_progressManager = new BackgroundWorkerProgressManager(m_backgroundWorker, e, logAction, null);
 
 				m_gridDimensionLowRes = (ushort)Math.Sqrt(VERTEX_COUNT_FAST / tileSource.TileSet.ValidTileCount);
 				//m_gridDimensionHighRes = (ushort)Math.Sqrt(VERTEX_COUNT_LARGE / tileSource.TileSet.ValidTileCount);

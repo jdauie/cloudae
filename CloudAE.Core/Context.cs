@@ -126,15 +126,17 @@ namespace CloudAE.Core
 		public delegate void ProcessingStartedHandler(FileHandlerBase inputHandler);
 		public delegate void ProcessingCompletedHandler(PointCloudTileSource tileSource);
 		public delegate void ProcessingProgressChangedHandler(int progressPercentage);
+		public delegate void ProcessingProcessChangedHandler(string process);
 
 		public static event LogHandler Log;
 		public static event ProcessingStartedHandler ProcessingStarted;
 		public static event ProcessingCompletedHandler ProcessingCompleted;
 		public static event ProcessingProgressChangedHandler ProcessingProgressChanged;
+		public static event ProcessingProcessChangedHandler ProcessingProcessChanged;
 
 		private static void OnLog(string value)
 		{
-			LogHandler handler = Log;
+			var handler = Log;
 			if (handler != null)
 				handler(value);
 		}
@@ -143,7 +145,7 @@ namespace CloudAE.Core
 		{
 			c_isProcessing = true;
 
-			ProcessingStartedHandler handler = ProcessingStarted;
+			var handler = ProcessingStarted;
 			if (handler != null)
 				handler(inputHandler);
 		}
@@ -152,16 +154,23 @@ namespace CloudAE.Core
 		{
 			c_isProcessing = false;
 
-			ProcessingCompletedHandler handler = ProcessingCompleted;
+			var handler = ProcessingCompleted;
 			if (handler != null)
 				handler(tileSource);
 		}
 
 		private static void OnProcessingProgressChanged(int progressPercentage)
 		{
-			ProcessingProgressChangedHandler handler = ProcessingProgressChanged;
+			var handler = ProcessingProgressChanged;
 			if (handler != null)
 				handler(progressPercentage);
+		}
+
+		private static void OnProcessingProcessChanged(string process)
+		{
+			var handler = ProcessingProcessChanged;
+			if (handler != null)
+				handler(process);
 		}
 
 		#endregion
@@ -200,7 +209,7 @@ namespace CloudAE.Core
 		private static void OnBackgroundDoWork(object sender, DoWorkEventArgs e)
 		{
 			var inputHandler = e.Argument as FileHandlerBase;
-			ProgressManager progressManager = new BackgroundWorkerProgressManager(c_backgroundWorker, e, inputHandler, OnLog);
+			ProgressManager progressManager = new BackgroundWorkerProgressManager(c_backgroundWorker, e, inputHandler, OnLog, OnProcessingProcessChanged);
 			
 			var processingSet = new ProcessingSet(inputHandler);
 			var tileSource = processingSet.Process(progressManager);
