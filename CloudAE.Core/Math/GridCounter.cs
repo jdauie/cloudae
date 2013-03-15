@@ -95,6 +95,38 @@ namespace CloudAE.Core
 			}
 			indexGrid.CorrectCountOverflow();
 
+			
+
+			//var indexCellChunkCount = indexGrid.Def.GetTileOrdering()
+			//    .Select(c => indexGrid.Data[c.Row, c.Col])
+			//    .Where(cell => cell != null)
+			//    .Sum(cell => cell.Chunks.Count);
+			//var packedIndexEntries = new int[indexCellChunkCount];
+
+			//var gridPointCountAndChunkCountEntries = new int[indexGrid.CellCount * 2];
+			//foreach (var coord in indexGrid.Def.GetTileOrdering())
+			//{
+			//    gridPointCountAndChunkCountEntries[0] = m_grid.Data[coord.Row, coord.Col];
+			//    gridPointCountAndChunkCountEntries[0] = 0;
+			//}
+
+			
+			//long arrayASize = countA * 4;
+
+			//// sparse
+			////var countB = m_grid.Def.GetTileOrdering()
+			////    .Select(c => m_grid.Data[c.Row, c.Col])
+			////    .Count(count => count != 0);
+
+			//// dense
+			//var countB = m_grid.CellCount * 2;
+			//long arrayBSize = countB * (4);
+
+			//Context.WriteLine("* indexSize: {0}", arrayASize.ToSize());
+			//Context.WriteLine("* gridSize: {0}", arrayBSize.ToSize());
+
+
+
 			var actualGrid = density.CreateTileCountsForInitialization(false);
 
 			var regionSourcesBySegment = new List<List<Range>>();

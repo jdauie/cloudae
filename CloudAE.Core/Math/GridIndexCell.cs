@@ -21,7 +21,7 @@ namespace CloudAE.Core
 	{
 		private readonly HashSet<int> m_chunks;
 
-		public IEnumerable<int> Chunks
+		public ICollection<int> Chunks
 		{
 			get { return m_chunks; }
 		}

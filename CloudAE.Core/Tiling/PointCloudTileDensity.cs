@@ -108,6 +108,8 @@ namespace CloudAE.Core
 				double tileArea = PointCloudTileManager.PROPERTY_DESIRED_TILE_COUNT.Value / MedianTileDensity;
 				double tileSide = Math.Sqrt(tileArea);
 
+				Context.WriteLine("TileSide: {0}", tileSide);
+
 #warning this results in non-square tiles
 
 				ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
