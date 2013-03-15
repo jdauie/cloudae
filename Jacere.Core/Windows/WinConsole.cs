@@ -40,8 +40,12 @@ namespace Jacere.Core.Windows
 			{
 				if (WinConsole.Initialized)
 				{
-					Point pos = WinConsole.WindowPosition;
-					NativeMethods.Coord coord = WinConsole.WindowSize;
+					var pos = WinConsole.WindowPosition;
+					var coord = WinConsole.WindowSize;
+
+					// check for minimized
+					if (pos.X == -32000 && pos.Y == -32000)
+						return;
 
 					writer.Write((int)pos.X);
 					writer.Write((int)pos.Y);
