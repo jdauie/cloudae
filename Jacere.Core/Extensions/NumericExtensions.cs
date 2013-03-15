@@ -24,5 +24,12 @@ namespace Jacere.Core
 			return maxIndex;
 		}
 
+		public static long SumLong(this IEnumerable<int> sequence)
+		{
+			long sum = 0;
+			foreach (var v in sequence)
+				sum += v;
+			return sum;
+		}
 	}
 }

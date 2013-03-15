@@ -41,7 +41,7 @@ namespace CloudAE.Core
 
 			int[] nonZeroCounts = counts.Where(c => c > 0).ToArray();
 			Array.Sort(nonZeroCounts);
-			PointCount = nonZeroCounts.Sum();
+			PointCount = nonZeroCounts.SumLong();
 
 			double tileArea = Extent.Area / TileCount;
 

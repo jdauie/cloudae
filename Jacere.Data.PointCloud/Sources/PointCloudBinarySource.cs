@@ -90,8 +90,8 @@ namespace Jacere.Data.PointCloud
 			var regionSegments = new List<IPointCloudBinarySource>();
 			foreach (var region in regions)
 			{
-				long pointIndex = regions.PointsPerChunk * region.ChunkStart;
-				long pointCount = regions.PointsPerChunk * region.ChunkCount;
+				long pointIndex = (long)regions.PointsPerChunk * region.ChunkStart;
+				long pointCount = (long)regions.PointsPerChunk * region.ChunkCount;
 
 				if (pointIndex + pointCount > Count)
 				{
