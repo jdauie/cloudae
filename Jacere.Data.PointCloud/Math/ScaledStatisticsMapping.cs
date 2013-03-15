@@ -6,7 +6,7 @@ using Jacere.Core.Geometry;
 
 namespace Jacere.Data.PointCloud
 {
-	public class ScaledStatisticsMapping : IChunkProcess
+	public class ScaledStatisticsMapping : IChunkProcess, IFinalizeProcess
 	{
 		private readonly int m_sourceMin;
 		private readonly uint m_sourceRange;
@@ -21,6 +21,8 @@ namespace Jacere.Data.PointCloud
 		private readonly int m_sourceRightShift;
 
 		private readonly long[] m_bins;
+
+		private long[] m_validBins;
 
 		public long[] DestinationBins
 		{
@@ -65,7 +67,7 @@ namespace Jacere.Data.PointCloud
 			m_bins = new long[m_binCount + 1];
 		}
 
-		private long[] Finalize()
+		public void FinalizeProcess()
 		{
 			// find the highest bin that would map to a value within the source range
 			// this will result in a *slight* shift of the mapping, but it is simpler
@@ -75,10 +77,8 @@ namespace Jacere.Data.PointCloud
 			m_bins[highestValidBin] += m_bins[highestValidBin + 1];
 			m_bins[highestValidBin + 1] = 0;
 
-			long[] validBins = new long[highestValidBin + 1];
-			Array.Copy(m_bins, validBins, validBins.Length);
-
-			return validBins;
+			m_validBins = new long[highestValidBin + 1];
+			Array.Copy(m_bins, m_validBins, m_validBins.Length);
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
@@ -86,7 +86,7 @@ namespace Jacere.Data.PointCloud
 			byte* pb = chunk.PointDataPtr;
 			while (pb < chunk.PointDataEndPtr)
 			{
-				SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
+				var p = (SQuantizedPoint3D*)pb;
 				++m_bins[((*p).Z >> SourceRightShift) - SourceMinShifted];
 				pb += chunk.PointSizeBytes;
 			}
@@ -96,8 +96,7 @@ namespace Jacere.Data.PointCloud
 
 		public Statistics ComputeStatistics(double destinationMin, double destinationRange)
 		{
-			long[] verticalValueCounts = Finalize();
-			return ComputeStatistics(verticalValueCounts, false, destinationMin, destinationRange);
+			return ComputeStatistics(m_validBins, false, destinationMin, destinationRange);
 		}
 
 		public static Statistics ComputeStatistics(long[] verticalValueCounts, bool overflow, double destinationMin, double destinationRange)
@@ -113,7 +112,7 @@ namespace Jacere.Data.PointCloud
 
 			long count = verticalValueCounts.Sum();
 
-			double[] verticalValueCenters = new double[verticalValueIntervals];
+			var verticalValueCenters = new double[verticalValueIntervals];
 			for (int i = 0; i < verticalValueCenters.Length; i++)
 				verticalValueCenters[i] = (i + 0.5) / verticalValueIntervals * destinationRange + destinationMin;
 
