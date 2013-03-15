@@ -15,7 +15,7 @@ namespace CloudAE.Core
 
 		private readonly SQuantizedExtent3D m_extent;
 
-		private readonly Dictionary<int, int[]> m_chunkTiles;
+		private readonly List<int[]> m_chunkTiles;
 
 		private int m_maxPointCountPerChunk;
 
@@ -25,7 +25,7 @@ namespace CloudAE.Core
 			m_grid = grid;
 			m_extent = source.Quantization.Convert(m_source.Extent);
 
-			m_chunkTiles = new Dictionary<int, int[]>();
+			m_chunkTiles = new List<int[]>();
 		}
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
@@ -63,7 +63,7 @@ namespace CloudAE.Core
 				pb += chunk.PointSizeBytes;
 			}
 
-			m_chunkTiles.Add(chunk.Index, tileIndices.ToArray());
+			m_chunkTiles.Add(tileIndices.ToArray());
 
 			return chunk;
 		}
@@ -79,9 +79,10 @@ namespace CloudAE.Core
 
 			// update index cells
 			var indexGrid = m_grid.Copy<GridIndexCell>();
-			foreach (var kvp in m_chunkTiles)
+
+			for (int i = 0; i < m_chunkTiles.Count; i++)
 			{
-				foreach (var tileIndex in kvp.Value)
+				foreach (var tileIndex in m_chunkTiles[i])
 				{
 					var coord = new PointCloudTileCoord(tileIndex);
 					var indexCell = indexGrid.Data[coord.Row, coord.Col];
@@ -90,7 +91,7 @@ namespace CloudAE.Core
 						indexCell = new GridIndexCell();
 						indexGrid.Data[coord.Row, coord.Col] = indexCell;
 					}
-					indexCell.Add(kvp.Key);
+					indexCell.Add(i);
 				}
 			}
 			indexGrid.CorrectCountOverflow();

@@ -335,12 +335,12 @@ namespace CloudAE.Core
 				var p = (SQuantizedPoint3D*)pb;
 				pb += PointSizeBytes;
 
-				int pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
-				int pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
+				var pixelX = (int)(((*p).X - quantizedExtent.MinX) / cellSizeX);
+				var pixelY = (int)(((*p).Y - quantizedExtent.MinY) / cellSizeY);
 
 				// max val for now, apparently
-				if ((*p).Z > quantizedGrid.Data[pixelX, pixelY])
-					quantizedGrid.Data[pixelX, pixelY] = (*p).Z;
+				if ((*p).Z > quantizedGrid.Data[pixelY, pixelX])
+					quantizedGrid.Data[pixelY, pixelX] = (*p).Z;
 			}
 
 			quantizedGrid.CorrectMaxOverflow();

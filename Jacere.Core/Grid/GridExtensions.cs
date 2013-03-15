@@ -15,8 +15,8 @@ namespace Jacere.Core
 		public static void Multiply(this Grid<float> target, float value, float offset)
 		{
 			float[,] data = target.Data;
-			int sizeX = data.GetLength(0);
-			int sizeY = data.GetLength(1);
+			int sizeX = target.SizeX;
+			int sizeY = target.SizeY;
 
 			for (int y = 0; y < sizeY; y++)
 				for (int x = 0; x < sizeX; x++)
