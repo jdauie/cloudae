@@ -63,14 +63,15 @@ namespace CloudAE.Core
 					var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, segment.GridRange);
 
 					// this call will fill the buffer with points, add the counts, and sort
-					var segmentTileCoords = QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
-					int segmentFilteredPointCount = segmentTileCoords.Sum(c => tileCounts.Data[c.Row, c.Col]);
+					QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
+					var segmentFilteredPointCount = tileRegionFilter.GetCellOrdering().Sum(t => tileCounts.Data[t.Row, t.Col]);
 
 					// write out the buffer
 					using (var process = progressManager.StartProcess("WriteIndexSegment"))
 					{
+						//outputStream.Write(sparseSegmentWrapper.Data, 0, segmentFilteredPointCount * sparseSegmentWrapper.PointSizeBytes);
 						int segmentBufferIndex = 0;
-						foreach (var coord in segmentTileCoords)
+						foreach (var coord in segment.GridRange.GetCellOrdering())
 						{
 							var tileSize = tileCounts.Data[coord.Row, coord.Col] * sparseSegmentWrapper.PointSizeBytes;
 
@@ -115,7 +116,7 @@ namespace CloudAE.Core
 			return analysis;
 		}
 
-		private static unsafe List<SimpleGridCoord> QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
 		{
 			var quantizedExtent = source.Quantization.Convert(source.Extent);
 
@@ -134,7 +135,6 @@ namespace CloudAE.Core
 			{
 				var tilePositions = tileFilter.CreatePositionGrid(segmentBuffer, source.PointSizeBytes);
 
-				int minSortedPointCount = 0;
 				foreach (var tile in tileFilter.GetCellOrdering())
 				{
 					var currentPosition = tilePositions[tile.Row, tile.Col];
@@ -165,8 +165,6 @@ namespace CloudAE.Core
 						break;
 				}
 			}
-
-			return tileFilter.GetCellOrdering().ToList();
 		}
 
 		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, int maxSegmentLength, Grid<int> tileCounts, ProgressManager progressManager)
@@ -207,6 +205,9 @@ namespace CloudAE.Core
 
 			int tileCountForUniformData = (int)(count / PROPERTY_DESIRED_TILE_COUNT.Value);
 			int tileCount = Math.Min(tileCountForUniformData, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
+
+			// for estimation, use a reduced tile size to minimize indexing overlap
+			tileCount *= 9;
 
 			double tileArea = extent.Area / tileCount;
 			double tileSide = Math.Sqrt(tileArea);
