@@ -56,12 +56,15 @@ namespace CloudAE.Core
 				{
 					outputStream.SetLength(tileSourceTemp.FileSize);
 					// (requires SE_MANAGE_VOLUME_NAME privilege, which is only given to admin by default)
-					NativeMethods.SetFileValidData(outputStream.SafeFileHandle.DangerousGetHandle(), tileSourceTemp.FileSize);
+					if (!NativeMethods.SetFileValidData(outputStream.SafeFileHandle.DangerousGetHandle(), tileSourceTemp.FileSize))
+					{
+						Context.WriteLine("SetFileValidData() failed. Resuming...");
+					}
 				}
 			}
 			catch
 			{
-				Context.WriteLine("Failed to SetFileValidData. Resuming...");
+				Context.WriteLine("Failed to pre-allocate. Resuming...");
 			}
 
 			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, tileSourceTemp.FileSize, tileSourceTemp.PointDataOffset))
