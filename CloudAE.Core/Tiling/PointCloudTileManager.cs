@@ -6,6 +6,7 @@ using System.Diagnostics;
 
 using Jacere.Core;
 using Jacere.Core.Geometry;
+using Jacere.Core.Windows;
 using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
@@ -49,6 +50,19 @@ namespace CloudAE.Core
 			var tileSetTemp = new PointCloudTileSet(densityTemp, tileCounts);
 			var tileSourceTemp = new PointCloudTileSource(tiledFile, tileSetTemp, analysis.Quantization, m_source.PointSizeBytes, analysis.Statistics);
 
+			try
+			{
+				using (var outputStream = new FileStream(tiledFile.FilePath, FileMode.OpenOrCreate))
+				{
+					outputStream.SetLength(tileSourceTemp.FileSize);
+					// (requires SE_MANAGE_VOLUME_NAME privilege, which is only given to admin by default)
+					NativeMethods.SetFileValidData(outputStream.SafeFileHandle.DangerousGetHandle(), tileSourceTemp.FileSize);
+				}
+			}
+			catch
+			{
+				Context.WriteLine("Failed to SetFileValidData. Resuming...");
+			}
 
 			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, tileSourceTemp.FileSize, tileSourceTemp.PointDataOffset))
 			{

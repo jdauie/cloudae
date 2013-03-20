@@ -30,6 +30,9 @@ namespace Jacere.Core.Windows
 		#region Windows
 
 		[DllImport(KERNEL32)]
+		public static extern bool SetFileValidData(IntPtr hFile, long validDataLength);
+
+		[DllImport(KERNEL32)]
 		internal static extern bool AllocConsole();
 
 		[DllImport(KERNEL32)]
