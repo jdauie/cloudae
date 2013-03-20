@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
-
+using System.Runtime.InteropServices;
 using Jacere.Core;
 using Jacere.Core.Geometry;
 using Jacere.Core.Windows;
 using Jacere.Data.PointCloud;
+using ProcessPrivileges;
 
 namespace CloudAE.Core
 {
@@ -50,24 +51,23 @@ namespace CloudAE.Core
 			var tileSetTemp = new PointCloudTileSet(densityTemp, tileCounts);
 			var tileSourceTemp = new PointCloudTileSource(tiledFile, tileSetTemp, analysis.Quantization, m_source.PointSizeBytes, analysis.Statistics);
 
-			try
+			long fileSize = tileSourceTemp.PointDataOffset + (m_source.PointSizeBytes * m_source.Count);
+
+			var currentProcess = Process.GetCurrentProcess();
+			using (new PrivilegeEnabler(currentProcess, Privilege.ManageVolume))
 			{
 				using (var outputStream = new FileStream(tiledFile.FilePath, FileMode.OpenOrCreate))
 				{
-					outputStream.SetLength(tileSourceTemp.FileSize);
+					outputStream.SetLength(fileSize);
 					// (requires SE_MANAGE_VOLUME_NAME privilege, which is only given to admin by default)
-					if (!NativeMethods.SetFileValidData(outputStream.SafeFileHandle.DangerousGetHandle(), tileSourceTemp.FileSize))
+					if (!NativeMethods.SetFileValidData(outputStream.SafeFileHandle.DangerousGetHandle(), fileSize))
 					{
-						Context.WriteLine("SetFileValidData() failed. Resuming...");
+						Context.WriteLine("SetFileValidData() failed. Win32 error: {0}", Marshal.GetLastWin32Error());
 					}
 				}
 			}
-			catch
-			{
-				Context.WriteLine("Failed to pre-allocate. Resuming...");
-			}
 
-			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, tileSourceTemp.FileSize, tileSourceTemp.PointDataOffset))
+			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tileSourceTemp.PointDataOffset))
 			{
 				int i = 0;
 				foreach (var segment in analysis.GridIndex)
@@ -99,6 +99,9 @@ namespace CloudAE.Core
 								break;
 						}
 					}
+
+					if (progressManager.IsCanceled())
+						break;
 
 					++i;
 				}

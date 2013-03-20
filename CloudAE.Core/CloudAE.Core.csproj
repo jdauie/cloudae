@@ -38,6 +38,10 @@
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="ProcessPrivileges, Version=1.5.7.0, Culture=neutral, PublicKeyToken=fa3ff549c00ac058, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\ProcessPrivileges.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -109,7 +113,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetPath)" "..\..\..\bin\"
+copy "$(SolutionDir)\lib\ProcessPrivileges.dll" "$(SolutionDir)\bin\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

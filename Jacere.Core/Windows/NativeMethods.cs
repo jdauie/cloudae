@@ -29,7 +29,7 @@ namespace Jacere.Core.Windows
 
 		#region Windows
 
-		[DllImport(KERNEL32)]
+		[DllImport(KERNEL32, SetLastError = true)]
 		public static extern bool SetFileValidData(IntPtr hFile, long validDataLength);
 
 		[DllImport(KERNEL32)]
