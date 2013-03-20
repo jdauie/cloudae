@@ -53,19 +53,7 @@ namespace CloudAE.Core
 
 			long fileSize = tileSourceTemp.PointDataOffset + (m_source.PointSizeBytes * m_source.Count);
 
-			var currentProcess = Process.GetCurrentProcess();
-			using (new PrivilegeEnabler(currentProcess, Privilege.ManageVolume))
-			{
-				using (var outputStream = new FileStream(tiledFile.FilePath, FileMode.OpenOrCreate))
-				{
-					outputStream.SetLength(fileSize);
-					// (requires SE_MANAGE_VOLUME_NAME privilege, which is only given to admin by default)
-					if (!NativeMethods.SetFileValidData(outputStream.SafeFileHandle.DangerousGetHandle(), fileSize))
-					{
-						Context.WriteLine("SetFileValidData() failed. Win32 error: {0}", Marshal.GetLastWin32Error());
-					}
-				}
-			}
+			AttemptFastAllocate(tiledFile.FilePath, fileSize);
 
 			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tileSourceTemp.PointDataOffset))
 			{
@@ -121,6 +109,23 @@ namespace CloudAE.Core
 			tileSource.WriteHeader();
 
 			return tileSource;
+		}
+
+		private static void AttemptFastAllocate(string path, long fileSize)
+		{
+			var currentProcess = Process.GetCurrentProcess();
+			using (new PrivilegeEnabler(currentProcess, Privilege.ManageVolume))
+			{
+				using (var outputStream = new FileStream(path, FileMode.OpenOrCreate))
+				{
+					outputStream.SetLength(fileSize);
+					// (requires SE_MANAGE_VOLUME_NAME privilege, which is only given to admin by default)
+					if (!NativeMethods.SetFileValidData(outputStream.SafeFileHandle.DangerousGetHandle(), fileSize))
+					{
+						Context.WriteLine("SetFileValidData() failed. Win32 error: {0}", Marshal.GetLastWin32Error());
+					}
+				}
+			}
 		}
 
 		public PointCloudAnalysisResult AnalyzePointFile(int maxSegmentLength, ProgressManager progressManager)
