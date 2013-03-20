@@ -108,8 +108,9 @@ namespace Jacere.Core
 			for (int i = m_sourceMinShifted; i <= m_sourceMaxShifted; i++)
 			{
 				//double ratio = (i - m_sourceMinShifted + 0.5) / m_sourceRange;
-				double ratio = (double)(i - m_sourceMinShifted) / destinationRange;
-				m_bins[i] = ramp.GetColor(ratio).ToArgb();
+				var iMinusMinShifted = i - m_sourceMinShifted;
+				double ratio = (double)iMinusMinShifted / destinationRange;
+				m_bins[iMinusMinShifted] = ramp.GetColor(ratio).ToArgb();
 			}
 		}
 	}
