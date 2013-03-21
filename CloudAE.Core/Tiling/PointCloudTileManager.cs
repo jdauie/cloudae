@@ -22,7 +22,7 @@ namespace CloudAE.Core
 		static PointCloudTileManager()
 		{
 			PROPERTY_DESIRED_TILE_COUNT = Context.RegisterOption(Context.OptionCategory.Tiling, "DesiredTilePoints", 40000);
-			PROPERTY_MAX_TILES_FOR_ESTIMATION = Context.RegisterOption(Context.OptionCategory.Tiling, "EstimationTilesMax", 10000);
+			PROPERTY_MAX_TILES_FOR_ESTIMATION = Context.RegisterOption(Context.OptionCategory.Tiling, "EstimationTilesMax", 10000000);
 		}
 
 		public PointCloudTileManager(IPointCloudBinarySource source)
@@ -229,10 +229,13 @@ namespace CloudAE.Core
 			Extent3D extent = source.Extent;
 
 			int tileCountForUniformData = (int)(count / PROPERTY_DESIRED_TILE_COUNT.Value);
-			int tileCount = Math.Min(tileCountForUniformData, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
+			//int tileCount = Math.Min(tileCountForUniformData, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
+			int tileCount = tileCountForUniformData;
 
 			// for estimation, use a reduced tile size to minimize indexing overlap
-			tileCount *= 9;
+			tileCount *= 16;
+
+			tileCount = Math.Min(tileCount, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
 
 			double tileArea = extent.Area / tileCount;
 			double tileSide = Math.Sqrt(tileArea);
