@@ -214,7 +214,7 @@ namespace CloudAE.Core
 
 			int chunkRangeSumForAllSegments = regionSourcesBySegment.Sum(r => r.Sum(r2 => r2.Count));
 			Context.WriteLine("chunkRangeSumForAllSegments: {0}", chunkRangeSumForAllSegments);
-			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * (int)ByteSizesSmall.MB_1 / pointDataBytes);
+			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * BufferManager.BUFFER_SIZE_BYTES / pointDataBytes);
 
 			return regionSourcesBySegment.Select((t, i) => new PointCloudBinarySourceEnumeratorSparseGridRegion(t, tilesPerSegment[i], m_maxPointCountPerChunk)).ToList();
 		}
