@@ -95,7 +95,7 @@ namespace Jacere.Core
 
 			// stretch
 			foreach (var i in Enumerable.Range(m_stretchMinShifted, m_stretchMaxShifted - m_stretchMinShifted + 1))
-				yield return new IntervalMapIndex(i - m_actualMinShifted, (float)(i - m_actualMinShifted) / (m_stretchMaxShifted - m_stretchMinShifted));
+				yield return new IntervalMapIndex(i - m_actualMinShifted, (float)(i - m_stretchMinShifted) / (m_stretchMaxShifted - m_stretchMinShifted));
 
 			// post
 			foreach (var i in Enumerable.Range(m_stretchMaxShifted + 1, m_actualMaxShifted - m_stretchMaxShifted))
