@@ -549,8 +549,14 @@ namespace CloudAE.Core
 
 				float qualityRatio = (float)quality / 100;
 				int rampSize = (int)(qualityRatio * 300);
-				
-				var cachedRamp = ramp.CreateCachedRamp(extent.MinZ, extent.MaxZ, statistics, useStdDevStretch, rampSize);
+
+				StretchBase stretch = null;
+				if(useStdDevStretch)
+					stretch = new StdDevStretch(extent.MinZ, extent.MaxZ, statistics, 2);
+				else
+					stretch = new MinMaxStretch(extent.MinZ, extent.MaxZ);
+
+				var cachedRamp = ramp.CreateCachedRamp(stretch, rampSize);
 
 				int transparent = Color.Transparent.ToArgb();
 

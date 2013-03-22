@@ -114,8 +114,10 @@
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\ColorMap.cs" />
     <Compile Include="Media\ColorRamp.cs" />
+    <Compile Include="Media\IntervalMap.cs" />
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />
+    <Compile Include="Media\Stretch.cs" />
     <Compile Include="Options\IPropertyContainer.cs" />
     <Compile Include="Options\IPropertyManager.cs" />
     <Compile Include="Options\IPropertyState.cs" />
