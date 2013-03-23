@@ -4,11 +4,16 @@ using System.Linq;
 
 namespace Jacere.Core
 {
+	public interface IQuantizedColorMap
+	{
+		int GetColor(int z);
+	}
+
 	/// <summary>
 	/// Pre-calculated color ramp using the 2^n mapping mechanism.
 	/// Stretched for a specified size and input range (including std dev stretch).
 	/// </summary>
-	public class CachedColorRamp
+	public class CachedColorMap : IQuantizedColorMap
 	{
 		private readonly ColorRamp m_ramp;
 		private readonly IntervalMap m_map;
@@ -20,7 +25,7 @@ namespace Jacere.Core
 			return m_bins[m_map.GetInterval(z)];
 		}
 
-		public CachedColorRamp(ColorRamp ramp, StretchBase stretch, int desiredDestinationBins)
+		public CachedColorMap(ColorRamp ramp, StretchBase stretch, int desiredDestinationBins)
 		{
 			if (stretch == null)
 				throw new ArgumentNullException("stretch");

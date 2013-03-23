@@ -528,15 +528,15 @@ namespace CloudAE.Core
 			m_pixelGridSet = gridSet;
 		}
 
-		private unsafe BitmapSource CreateBitmapSource(Grid<int> grid, SQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler, int quality)
+		private static unsafe BitmapSource CreateBitmapSource(Grid<int> grid, SQuantizedExtent3D extent, QuantizedStatistics statistics, bool useStdDevStretch, IColorHandler colorHandler, int quality)
 		{
 			var ramp = colorHandler as ColorRamp;
 			var map = colorHandler as ColorMapDistinct;
 
 			var bmp = new WriteableBitmap(grid.SizeX, grid.SizeY, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null);
 			bmp.Lock();
-			IntPtr pBackBuffer = bmp.BackBuffer;
-			int* p = (int*)pBackBuffer;
+			var pBackBuffer = bmp.BackBuffer;
+			var p = (int*)pBackBuffer;
 
 			if (map != null)
 			{
@@ -547,8 +547,8 @@ namespace CloudAE.Core
 				if (ramp == null)
 					ramp = ColorRamp.PredefinedColorRamps.Grayscale;
 
-				float qualityRatio = (float)quality / 100;
-				int rampSize = (int)(qualityRatio * 300);
+				var qualityRatio = (float)quality / 100;
+				var rampSize = (int)(qualityRatio * 300);
 
 				StretchBase stretch = null;
 				if(useStdDevStretch)
@@ -558,24 +558,7 @@ namespace CloudAE.Core
 
 				var cachedRamp = ramp.CreateCachedRamp(stretch, rampSize);
 
-				int transparent = Color.Transparent.ToArgb();
-
-				for (int r = 0; r < grid.SizeY; r++)
-				{
-					int rr = grid.SizeY - r - 1;
-					for (int c = 0; c < grid.SizeX; c++)
-					{
-						// flip y-axis
-						var z = grid.Data[rr, c];
-
-						if (z != grid.FillVal)
-							(*p) = cachedRamp.GetColor(z);
-						else
-							(*p) = transparent;
-
-						++p;
-					}
-				}
+				CreateColorBufferMap(grid, p, cachedRamp);
 			}
 
 			bmp.AddDirtyRect(new System.Windows.Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight));
@@ -587,22 +570,27 @@ namespace CloudAE.Core
 
 		#region Color Buffer Methods
 
-		private unsafe void CreateColorBufferMap(Grid<int> grid, int* p, ColorMapDistinct map)
+		private static unsafe void CreateColorBufferMap(Grid<int> grid, int* p, IQuantizedColorMap cachedMap)
 		{
-			for (int r = 0; r < grid.SizeY; r++)
+			var transparent = Color.Transparent.ToArgb();
+
+			fixed (int* gridPtr = grid.Data)
 			{
-				for (int c = 0; c < grid.SizeX; c++)
+				for (var r = 0; r < grid.SizeY; r++)
 				{
 					// flip y-axis
-					var z = grid.Data[grid.SizeY - r - 1, c];
+					int rr = grid.SizeY - r - 1;
+					int* g = gridPtr + rr * grid.Data.GetLength(1);
+					for (var c = 0; c < grid.SizeX; c++)
+					{
+						if (*g != grid.FillVal)
+							(*p) = cachedMap.GetColor(*g);
+						else
+							(*p) = transparent;
 
-					var color = Color.Transparent;
-
-					if (z != grid.FillVal)
-						color = map.GetColor(z);
-
-					(*p) = color.ToArgb();
-					++p;
+						++p;
+						++g;
+					}
 				}
 			}
 		}

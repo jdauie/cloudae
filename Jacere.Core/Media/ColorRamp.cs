@@ -134,9 +134,9 @@ namespace Jacere.Core
 				throw new NotImplementedException("The specified ColorRamp does not return a useful mapping.");
 		}
 
-		public CachedColorRamp CreateCachedRamp(StretchBase stretch, int desiredDestinationBins)
+		public CachedColorMap CreateCachedRamp(StretchBase stretch, int desiredDestinationBins)
 		{
-			var cachedRamp = new CachedColorRamp(this, stretch, desiredDestinationBins);
+			var cachedRamp = new CachedColorMap(this, stretch, desiredDestinationBins);
 			return cachedRamp;
 		}
 
@@ -167,9 +167,9 @@ namespace Jacere.Core
 				var minColor = m_map[mapScaleMin];
 				var maxColor = m_map[mapScaleMin + 1];
 
-				var r = (byte)GetValueBetween(minColor.R, maxColor.R, remainder);
-				var g = (byte)GetValueBetween(minColor.G, maxColor.G, remainder);
-				var b = (byte)GetValueBetween(minColor.B, maxColor.B, remainder);
+				var r = GetValueBetween(minColor.R, maxColor.R, remainder);
+				var g = GetValueBetween(minColor.G, maxColor.G, remainder);
+				var b = GetValueBetween(minColor.B, maxColor.B, remainder);
 
 				color = Color.FromArgb(r, g, b);
 			}

@@ -5,9 +5,9 @@ using System.Drawing;
 
 namespace Jacere.Core
 {
-	public class ColorMapDistinct : IColorHandler
+	public class ColorMapDistinct : IColorHandler, IQuantizedColorMap
 	{
-		private readonly Color[] m_colors;
+		private readonly int[] m_colors;
 
 		public string Name
 		{
@@ -18,10 +18,11 @@ namespace Jacere.Core
 		{
 			m_colors = Enum.GetNames(typeof(KnownColor))
 				.Where(item => !item.StartsWith("Control"))
-				.Select(Color.FromName).ToArray();
+				.Select(Color.FromName)
+				.Select(c => c.ToArgb()).ToArray();
 		}
 
-		public Color GetColor(int value)
+		public int GetColor(int value)
 		{
             throw new NotImplementedException();
 			return m_colors[value % m_colors.Length];
