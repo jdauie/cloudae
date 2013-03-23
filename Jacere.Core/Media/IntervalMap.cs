@@ -17,7 +17,7 @@ namespace Jacere.Core
 	}
 
 	/// <summary>
-	/// For signed quantized ranges
+	/// For signed quantized ranges.
 	/// </summary>
 	public class IntervalMap
 	{
@@ -30,7 +30,7 @@ namespace Jacere.Core
 		private readonly int m_binCount;
 		
 		private readonly int m_actualRangePow;
-		private readonly uint m_actualRange;
+		//private readonly uint m_actualRange;
 
 		private readonly int m_rightShift;
 
@@ -59,11 +59,11 @@ namespace Jacere.Core
 				m_binCountEstimated = (int)(m_binCountEstimated / m_stretch.StretchRatio);
 
 			m_actualRangePow = (int)Math.Ceiling(Math.Log(m_stretch.ActualRange, 2));
-			m_actualRange = (uint)Math.Pow(2, m_actualRangePow);
+			//m_actualRange = (uint)Math.Pow(2, m_actualRangePow);
 
-			// handle max range overflow (unlikely)
-			if (m_actualRangePow == 32)
-				m_actualRange = uint.MaxValue;
+			//// handle max range overflow (unlikely)
+			//if (m_actualRangePow == 32)
+			//	m_actualRange = uint.MaxValue;
 
 			m_binCountPow = (int)Math.Ceiling(Math.Log(m_binCountEstimated, 2));
 
@@ -89,17 +89,21 @@ namespace Jacere.Core
 
 		public IEnumerable<IntervalMapIndex> GetIntervals()
 		{
-			// pre
-			foreach (var i in Enumerable.Range(m_actualMinShifted, m_stretchMinShifted - m_actualMinShifted))
-				yield return new IntervalMapIndex(i - m_actualMinShifted, 0.0f);
+			const int start = 0;
+			var stretchStart = (m_stretchMinShifted - m_actualMinShifted);
+			var stretchEnd = (m_stretchMaxShifted - m_actualMinShifted);
+			var end = (m_actualMaxShifted - m_actualMinShifted);
 
-			// stretch
-			foreach (var i in Enumerable.Range(m_stretchMinShifted, m_stretchMaxShifted - m_stretchMinShifted + 1))
-				yield return new IntervalMapIndex(i - m_actualMinShifted, (float)(i - m_stretchMinShifted) / (m_stretchMaxShifted - m_stretchMinShifted));
+			var inverseStretchRange = 1.0f / (m_stretchMaxShifted - m_stretchMinShifted);
 
-			// post
-			foreach (var i in Enumerable.Range(m_stretchMaxShifted + 1, m_actualMaxShifted - m_stretchMaxShifted))
-				yield return new IntervalMapIndex(i - m_actualMinShifted, 1.0f);
+			for (var i = start; i < stretchStart; i++)
+				yield return new IntervalMapIndex(i, 0.0f);
+
+			for (var i = stretchStart; i <= stretchEnd; i++)
+				yield return new IntervalMapIndex(i, (i - stretchStart) * inverseStretchRange);
+
+			for (var i = stretchEnd + 1; i < end; i++)
+				yield return new IntervalMapIndex(i, 1.0f);
 		}
 	}
 }

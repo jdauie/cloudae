@@ -92,7 +92,7 @@ namespace Jacere.Core
 
 		#endregion
 
-		private Color[] m_map;
+		private readonly Color[] m_map;
 		private System.Windows.Media.Brush m_brush;
 
 		public abstract string Name
@@ -156,20 +156,20 @@ namespace Jacere.Core
 			if (scaledValue < 0 || scaledValue > 1)
 				throw new ArgumentException("scaledValue is outside valid range", "scaledValue");
 
-			double mapScale = scaledValue * (m_map.Length - 1);
-			int mapScaleMin = (int)mapScale;
-			double remainder = mapScale - mapScaleMin;
+			var mapScale = scaledValue * (m_map.Length - 1);
+			var mapScaleMin = (int)mapScale;
+			var remainder = mapScale - mapScaleMin;
 
-			Color color = m_map[mapScaleMin];
+			var color = m_map[mapScaleMin];
 
 			if (remainder > 0)
 			{
-				Color minColor = m_map[mapScaleMin];
-				Color maxColor = m_map[mapScaleMin + 1];
+				var minColor = m_map[mapScaleMin];
+				var maxColor = m_map[mapScaleMin + 1];
 
-				byte r = (byte)GetValueBetween(minColor.R, maxColor.R, remainder);
-				byte g = (byte)GetValueBetween(minColor.G, maxColor.G, remainder);
-				byte b = (byte)GetValueBetween(minColor.B, maxColor.B, remainder);
+				var r = (byte)GetValueBetween(minColor.R, maxColor.R, remainder);
+				var g = (byte)GetValueBetween(minColor.G, maxColor.G, remainder);
+				var b = (byte)GetValueBetween(minColor.B, maxColor.B, remainder);
 
 				color = Color.FromArgb(r, g, b);
 			}
@@ -177,14 +177,9 @@ namespace Jacere.Core
 			return color;
 		}
 
-		private int GetValueBetween(int start, int end, double ratio)
+		private static int GetValueBetween(int start, int end, double ratio)
 		{
-			if (start == end)
-				return start;
-			else if (start < end)
-				return (int)(start + (end - start) * ratio);
-			else
-				return (int)(end + (start - end) * (1 - ratio));
+			return start + (int)(ratio * (end - start));
 		}
 	}
 
@@ -197,7 +192,7 @@ namespace Jacere.Core
 		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
-			return new Color[]
+			return new[]
 			{
 				Color.FromArgb(0,   0,   0),
 				Color.FromArgb(255, 255, 255)
@@ -214,7 +209,7 @@ namespace Jacere.Core
 		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
-			return new Color[]
+			return new[]
 			{
 				Color.FromArgb(175, 240, 233),
 				Color.FromArgb(255, 255, 179),
@@ -237,7 +232,7 @@ namespace Jacere.Core
 		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
-			return new Color[]
+			return new[]
 			{
 				Color.FromArgb(118, 219, 211),
 				Color.FromArgb(255, 255, 199),
@@ -261,7 +256,7 @@ namespace Jacere.Core
 		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
-			return new Color[]
+			return new[]
 			{
 				Color.FromArgb(255, 255, 128),
 				Color.FromArgb(242, 167, 46),
@@ -279,7 +274,7 @@ namespace Jacere.Core
 		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
-			return new Color[]
+			return new[]
 			{
 				Color.FromArgb(255, 0,   0),
 				Color.FromArgb(255, 255, 0),
@@ -298,7 +293,7 @@ namespace Jacere.Core
 		/// <summary>Creates the map.</summary>
 		protected override Color[] CreateMap()
 		{
-			return new Color[]
+			return new[]
 			{
 				Color.FromArgb(115, 77,  42),
 				Color.FromArgb(156, 105, 48),
