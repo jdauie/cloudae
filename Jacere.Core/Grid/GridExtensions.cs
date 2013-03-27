@@ -86,7 +86,7 @@ namespace Jacere.Core
 			// it could lose some min values (not important for now)
 			for (int y = 0; y < target.SizeY; y++)
 				for (int x = 0; x < target.SizeX; x++)
-					if (data0[y, x] > 0)
+					if (data0[y, x] != target.FillVal)
 						data1[y, x] = data0[y, x] * scaleFactorZ + adjustedOffset;
 		}
 	}

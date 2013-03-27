@@ -517,7 +517,7 @@ namespace CloudAE.Core
 
 		private void GeneratePreviewPixelGrid(ushort maxPreviewDimension, ProgressManager progressManager)
 		{
-			var gridSet = new GridQuantizedSet(this, maxPreviewDimension, -1.0f);
+			var gridSet = new GridQuantizedSet(this, maxPreviewDimension);
 			var group = new ChunkProcessSet(gridSet);
 
 			using (var process = progressManager.StartProcess("GeneratePreviewPixelGrid"))

@@ -171,7 +171,12 @@ namespace Jacere.Core
 
 		public Grid<TNew> Copy<TNew>()
 		{
-			return new Grid<TNew>(Def, Extent, default(TNew));
+			return Copy(default(TNew));
+		}
+
+		public Grid<TNew> Copy<TNew>(TNew fillVal)
+		{
+			return new Grid<TNew>(Def, Extent, fillVal);
 		}
 	}
 }
