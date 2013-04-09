@@ -70,20 +70,20 @@ namespace CloudAE.Core
 					// this call will fill the buffer with points, add the counts, and sort
 					QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
 					var segmentFilteredPointCount = tileRegionFilter.GetCellOrdering().Sum(t => tileCounts.Data[t.Row, t.Col]);
+					var segmentFilteredBytes = segmentFilteredPointCount * sparseSegmentWrapper.PointSizeBytes;
 
 					// write out the buffer
 					using (var process = progressManager.StartProcess("WriteIndexSegment"))
 					{
 						//outputStream.Write(sparseSegmentWrapper.Data, 0, segmentFilteredPointCount * sparseSegmentWrapper.PointSizeBytes);
 						int segmentBufferIndex = 0;
-						foreach (var coord in segment.GridRange.GetCellOrdering())
+						foreach (var tileCount in segment.GridRange.GetCellOrdering().Select(c => tileCounts.Data[c.Row, c.Col]).Where(count => count > 0))
 						{
-							var tileSize = tileCounts.Data[coord.Row, coord.Col] * sparseSegmentWrapper.PointSizeBytes;
-
+							var tileSize = tileCount * sparseSegmentWrapper.PointSizeBytes;
 							outputStream.Write(sparseSegmentWrapper.Data, segmentBufferIndex, tileSize);
 							segmentBufferIndex += tileSize;
 
-							if (!process.Update((float)segmentBufferIndex / segmentFilteredPointCount))
+							if (!process.Update((float)segmentBufferIndex / segmentFilteredBytes))
 								break;
 						}
 					}
@@ -160,34 +160,39 @@ namespace CloudAE.Core
 			{
 				var tilePositions = tileFilter.CreatePositionGrid(segmentBuffer, source.PointSizeBytes);
 
+				int sortedCount = 0;
 				foreach (var tile in tileFilter.GetCellOrdering())
 				{
 					var currentPosition = tilePositions[tile.Row, tile.Col];
-
-					while (currentPosition.DataPtr < currentPosition.DataEndPtr)
+					if (currentPosition.IsIncomplete)
 					{
-						var p = (SQuantizedPoint3D*)currentPosition.DataPtr;
-
-						var targetPosition = tilePositions[
-							(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY),
-							(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX)
-						];
-
-						if (targetPosition.DataPtr != currentPosition.DataPtr)
+						while (currentPosition.IsIncomplete)
 						{
-							// the point tile is not the current traversal tile,
-							// so swap the points and resume on the swapped point
-							targetPosition.Swap(currentPosition.DataPtr);
+							var p = (SQuantizedPoint3D*)currentPosition.DataPtr;
+
+							var targetPosition = tilePositions[
+								(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY),
+								(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX)
+								];
+
+							if (targetPosition.DataPtr != currentPosition.DataPtr)
+							{
+								// the point tile is not the current traversal tile,
+								// so swap the points and resume on the swapped point
+								targetPosition.Swap(currentPosition.DataPtr);
+							}
+							else
+							{
+								// this point is in the correct tile, move on
+								currentPosition.Increment();
+							}
+
+							++sortedCount;
 						}
-						else
-						{
-							// this point is in the correct tile, move on
-							currentPosition.Increment();
-						}
+
+						if (!process.Update((float)sortedCount / segmentBuffer.PointCount))
+							break;
 					}
-
-					if (!process.Update((float)(currentPosition.DataPtr - segmentBuffer.PointDataPtr) / (segmentBuffer.Length)))
-						break;
 				}
 			}
 		}

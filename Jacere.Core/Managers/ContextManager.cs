@@ -40,11 +40,16 @@ namespace Jacere.Core
 
 		private const string SETTINGS_TYPE_WINDOWS = "Windows";
 
-		private static readonly Action<string, object[]> c_writeLineAction;
+		private static Action<string, object[]> c_writeLineAction;
 
 		static ContextManager()
 		{
-			c_writeLineAction = (s, args) => Trace.WriteLine(string.Format(s, args));
+			//c_writeLineAction = (s, args) => Trace.WriteLine(string.Format(s, args));
+		}
+
+		public static void SetWriteLine(Action<string, object[]> action)
+		{
+			c_writeLineAction = action;
 		}
 
 		public static void WriteLine()

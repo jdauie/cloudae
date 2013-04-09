@@ -50,7 +50,7 @@ namespace Jacere.Core
 		public void Dispose()
 		{
 			m_stopwatch.Stop();
-			m_progressManager.Update(100.0f);
+			m_progressManager.Update(1.0f);
 
 			BufferManager.ReleaseBuffers(m_id);
 

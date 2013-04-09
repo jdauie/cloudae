@@ -59,6 +59,8 @@ namespace CloudAE.Core
 		{
 			Config.ContextStarted = true;
 
+			ContextManager.SetWriteLine(WriteLine);
+
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 

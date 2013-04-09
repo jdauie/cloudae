@@ -45,12 +45,17 @@ namespace CloudAE.Core
 		public byte* DataPtr;
 		public readonly byte* DataEndPtr;
 
-		public int RemainingBytes
+		public bool IsIncomplete
+		{
+			get { return (DataEndPtr != DataPtr); }
+		}
+
+		private int RemainingBytes
 		{
 			get { return (int)(DataEndPtr - DataPtr); }
 		}
 
-		public int RemainingPoints
+		private int RemainingPoints
 		{
 			get { return RemainingBytes / m_entrySize; }
 		}
