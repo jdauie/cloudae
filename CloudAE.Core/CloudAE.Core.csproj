@@ -78,7 +78,7 @@
     <Compile Include="MotionControllers\FlyMotionController.cs" />
     <Compile Include="Sources\IPointDataTileChunk.cs" />
     <Compile Include="Tiling\PointCloudAnalysisResult.cs" />
-    <Compile Include="Tiling\PointCloudTileBufferPosition.cs" />
+    <Compile Include="Tiling\GridBufferPosition.cs" />
     <Compile Include="Tiling\PointCloudTileSourceUtilities.cs" />
     <Compile Include="Tiling\PointCloudTileTree.cs" />
     <Compile Include="SegmentationOriginal.cs" />

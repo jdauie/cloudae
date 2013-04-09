@@ -114,6 +114,7 @@
     <Compile Include="Media\CachedColorRamp.cs" />
     <Compile Include="Media\ColorMap.cs" />
     <Compile Include="Media\ColorRamp.cs" />
+    <Compile Include="Media\IQuantizedColorMap.cs" />
     <Compile Include="Media\IntervalMap.cs" />
     <Compile Include="Media\IColorHandler.cs" />
     <Compile Include="Media\PreviewImage.cs" />

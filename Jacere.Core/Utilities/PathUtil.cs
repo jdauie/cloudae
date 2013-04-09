@@ -34,18 +34,16 @@ namespace Jacere.Core.Util
 		/// originalPath cannot be converted, it is returned unchanged.</returns>
 		public static string GetUNCPath(string originalPath)
 		{
-			StringBuilder sb = new StringBuilder(512);
-			int size = sb.Capacity;
+			var sb = new StringBuilder(512);
+			var size = sb.Capacity;
 
-			string driveRoot = GetDriveRootFromPath(originalPath);
+			var driveRoot = GetDriveRootFromPath(originalPath);
 			if (!string.IsNullOrEmpty(driveRoot))
 			{
 				int error = NativeMethods.WNetGetConnection(driveRoot, sb, ref size);
 				if (error == 0)
 				{
-					DirectoryInfo dir = new DirectoryInfo(originalPath);
-
-					string path = Path.GetFullPath(originalPath).Substring(Path.GetPathRoot(originalPath).Length);
+					var path = Path.GetFullPath(originalPath).Substring(Path.GetPathRoot(originalPath).Length);
 					return Path.Combine(sb.ToString().TrimEnd(), path);
 				}
 			}
@@ -69,21 +67,21 @@ namespace Jacere.Core.Util
 
 		public static bool IsLocalPath(string path)
 		{
-			string fullPath = Path.GetFullPath(path);
-			string pathRoot = Path.GetPathRoot(fullPath);
+			var fullPath = Path.GetFullPath(path);
+			var pathRoot = Path.GetPathRoot(fullPath);
 
 			// check for mapped drive
 			pathRoot = PathUtil.GetUNCPath(pathRoot);
 			
 			// if the path is to a local drive, we are done
-			string driveRoot = PathUtil.GetDriveRootFromPath(pathRoot);
+			var driveRoot = PathUtil.GetDriveRootFromPath(pathRoot);
 			if (!string.IsNullOrEmpty(driveRoot))
 				return true;
 
 			// otherwise, check for loopback
 			if (pathRoot.Length > 2)
 			{
-				string[] pathParts = pathRoot.Split(new char[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+				var pathParts = pathRoot.Split(new [] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
 				if (pathParts.Length > 0)
 					return IsLocalHost(pathParts[0]);
 			}
@@ -96,7 +94,7 @@ namespace Jacere.Core.Util
 			IPAddress[] host;
 			try { host = Dns.GetHostAddresses(hostname); }
 			catch (Exception) { return false; }
-			IPAddress[] local = Dns.GetHostAddresses(Dns.GetHostName());
+			var local = Dns.GetHostAddresses(Dns.GetHostName());
 			return host.Any(hostAddress => IPAddress.IsLoopback(hostAddress) || local.Contains(hostAddress));
 		}
 	}

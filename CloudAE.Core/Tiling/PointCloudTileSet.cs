@@ -234,24 +234,6 @@ namespace CloudAE.Core
 			return tiles.OrderBy(t => t.PointOffset).ToArray();
 		}
 
-		public PointCloudTileBufferPosition[,] CreatePositionGrid(PointBufferWrapper segmentBuffer)
-		{
-			// create tile position counters
-			var tilePositions = new PointCloudTileBufferPosition[Cols + 1, Rows + 1];
-			{
-				foreach (PointCloudTile tile in this)
-					tilePositions[tile.Col, tile.Row] = new PointCloudTileBufferPosition(segmentBuffer, tile);
-
-				// buffer the edges for overflow
-				for (int x = 0; x < Cols; x++)
-					tilePositions[x, Rows] = tilePositions[x, Rows - 1];
-				for (int y = 0; y <= Rows; y++)
-					tilePositions[Cols, y] = tilePositions[Cols - 1, y];
-			}
-
-			return tilePositions;
-		}
-
 		public PointCloudTile GetTileByRatio(double xRatio, double yRatio)
 		{
 			int tileX = (int)(xRatio * Cols);

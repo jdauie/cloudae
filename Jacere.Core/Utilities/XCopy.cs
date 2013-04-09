@@ -40,7 +40,7 @@ namespace Jacere.Core.Util
 		{
 			try
 			{
-				CopyFileFlags copyFileFlags = CopyFileFlags.COPY_FILE_RESTARTABLE;
+				var copyFileFlags = CopyFileFlags.COPY_FILE_RESTARTABLE;
 				if (!overwrite)
 					copyFileFlags |= CopyFileFlags.COPY_FILE_FAIL_IF_EXISTS;
 

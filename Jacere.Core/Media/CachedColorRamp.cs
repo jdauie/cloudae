@@ -4,11 +4,6 @@ using System.Linq;
 
 namespace Jacere.Core
 {
-	public interface IQuantizedColorMap
-	{
-		int GetColor(int z);
-	}
-
 	/// <summary>
 	/// Pre-calculated color ramp using the 2^n mapping mechanism.
 	/// Stretched for a specified size and input range (including std dev stretch).

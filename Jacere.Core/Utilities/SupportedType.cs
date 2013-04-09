@@ -19,9 +19,9 @@ namespace Jacere.Core.Util
 
 		public static SupportedType GetType<T>()
 		{
-			Type type = typeof(T);
-			TypeCode typeCode = Type.GetTypeCode(type);
-			int size = GetSize(typeCode);
+			var type = typeof(T);
+			var typeCode = Type.GetTypeCode(type);
+			var size = GetSize(typeCode);
 
 			return new SupportedType(type, typeCode, size);
 		}
