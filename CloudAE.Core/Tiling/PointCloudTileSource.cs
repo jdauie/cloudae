@@ -558,14 +558,14 @@ namespace CloudAE.Core
 
 				var cachedRamp = ramp.CreateCachedRamp(stretch, rampSize);
 
-				var sw = Stopwatch.StartNew();
-				int count = 300;
-				for (int i = 0; i < count; i++)
+				//var sw = Stopwatch.StartNew();
+				//int count = 300;
+				//for (int i = 0; i < count; i++)
 				{
 					CreateColorBufferMap(grid, p, cachedRamp);
 				}
-				sw.Stop();
-				Context.WriteLine("fps: {0}", (double)1000 * count / sw.ElapsedMilliseconds);
+				//sw.Stop();
+				//Context.WriteLine("fps: {0}", (double)1000 * count / sw.ElapsedMilliseconds);
 			}
 
 			bmp.AddDirtyRect(new System.Windows.Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight));
