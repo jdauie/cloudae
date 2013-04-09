@@ -156,6 +156,9 @@ namespace Jacere.Core
 			if (scaledValue < 0 || scaledValue > 1)
 				throw new ArgumentException("scaledValue is outside valid range", "scaledValue");
 
+			//if (scaledValue < 0) scaledValue = 0;
+			//else if (scaledValue > 1) scaledValue = 1;
+
 			var mapScale = scaledValue * (m_map.Length - 1);
 			var mapScaleMin = (int)mapScale;
 			var remainder = mapScale - mapScaleMin;

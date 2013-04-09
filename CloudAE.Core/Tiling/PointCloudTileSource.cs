@@ -540,7 +540,7 @@ namespace CloudAE.Core
 
 			if (map != null)
 			{
-				CreateColorBufferMap(grid, p, map);
+				//CreateColorBufferMap(grid, p, map);
 			}
 			else
 			{
@@ -558,7 +558,14 @@ namespace CloudAE.Core
 
 				var cachedRamp = ramp.CreateCachedRamp(stretch, rampSize);
 
-				CreateColorBufferMap(grid, p, cachedRamp);
+				var sw = Stopwatch.StartNew();
+				int count = 300;
+				for (int i = 0; i < count; i++)
+				{
+					CreateColorBufferMap(grid, p, cachedRamp);
+				}
+				sw.Stop();
+				Context.WriteLine("fps: {0}", (double)1000 * count / sw.ElapsedMilliseconds);
 			}
 
 			bmp.AddDirtyRect(new System.Windows.Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight));
@@ -570,7 +577,14 @@ namespace CloudAE.Core
 
 		#region Color Buffer Methods
 
-		private static unsafe void CreateColorBufferMap(Grid<int> grid, int* p, IQuantizedColorMap cachedMap)
+		/// <summary>
+		/// I only support the cached map for now because the interface call is expensive.
+		/// Generics (with interface constraint) have the same problem.
+		/// </summary>
+		/// <param name="grid"></param>
+		/// <param name="p"></param>
+		/// <param name="cachedMap"></param>
+		private static unsafe void CreateColorBufferMap(Grid<int> grid, int* p, CachedColorMap cachedMap)
 		{
 			var transparent = Color.Transparent.ToArgb();
 
