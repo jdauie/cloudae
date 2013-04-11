@@ -21,8 +21,6 @@ namespace CloudAE.Core
 		private IPointCloudBinarySource m_binarySource;
 		private PointCloudTileSource m_tileSource;
 
-		private readonly bool m_isInputPathLocal;
-		//private readonly string m_tiledPath;
 		private readonly LASFile m_tiledHandler;
 
 		static ProcessingSet()
@@ -36,9 +34,8 @@ namespace CloudAE.Core
 			m_id = IdentityManager.AcquireIdentity(GetType().Name);
 
 			m_inputHandler = inputFile;
-			m_isInputPathLocal = PathUtil.IsLocalPath(m_inputHandler.FilePath);
-			string tiledPath = PointCloudTileSource.GetTileSourcePath(m_inputHandler.FilePath);
-			m_tiledHandler = new LASFile(tiledPath);
+			var tiledPath = PointCloudTileSource.GetTileSourcePath(m_inputHandler.FilePath);
+			m_tiledHandler = LASFile.Create(tiledPath, null);
 
 			Directory.CreateDirectory(Path.GetDirectoryName(m_tiledHandler.FilePath));
 		}
@@ -64,8 +61,6 @@ namespace CloudAE.Core
 						m_tileSource = tileManager.TilePointFileIndex(m_tiledHandler, segmentBuffer, progressManager);
 					}
 
-					GC.Collect();
-
 #warning this was for xyz, but I have not yet re-implemented that anyway
 					//if (m_binarySource.FilePath != m_inputHandler.FilePath)
 					//    File.Delete(m_binarySource.FilePath);
@@ -83,6 +78,8 @@ namespace CloudAE.Core
 						process.LogTime("=> Processing Completed");
 					}
 				}
+
+				GC.Collect();
 			}
 
 			TransferRate averageReadSpeed = PerformanceManager.GetReadSpeed();

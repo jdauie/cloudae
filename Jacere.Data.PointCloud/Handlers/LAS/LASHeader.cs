@@ -197,7 +197,7 @@ namespace Jacere.Data.PointCloud
 			c_minHeaderSize.Add(LASVersion.LAS_1_4, 375);
 		}
 
-		public LASHeader(LASHeader header)
+		public LASHeader(LASHeader header, LASVLR[] vlrs)
 		{
 			m_fileSourceID = header.m_fileSourceID;
 
@@ -211,38 +211,24 @@ namespace Jacere.Data.PointCloud
 			m_fileCreationYear = header.m_fileCreationYear;
 
 			m_headerSize = c_minHeaderSize[LASVersion.LAS_1_4];
-#warning header + vlrs
-			m_offsetToPointData = 0;
+			m_offsetToPointData = m_headerSize + (uint)vlrs.Sum(vlr => vlr.Length);
 
 			m_numberOfVariableLengthRecords = header.m_numberOfVariableLengthRecords;
 			m_pointDataRecordFormat = header.m_pointDataRecordFormat;
 			m_pointDataRecordLength = header.m_pointDataRecordLength;
-#warning clone these arrays
 			m_legacyNumberOfPointRecords = header.m_legacyNumberOfPointRecords;
-			m_legacyNumberOfPointsByReturn = header.m_legacyNumberOfPointsByReturn;
+			m_legacyNumberOfPointsByReturn = (uint[])header.m_legacyNumberOfPointsByReturn.Clone();
 
 			m_quantization = header.m_quantization;
 			m_extent = header.m_extent;
 
 			m_startOfWaveformDataPacketRecord = 0;
 
-#warning header + vlrs + points
-			m_startOfFirstExtendedVariableLengthRecord = 0;
+			m_startOfFirstExtendedVariableLengthRecord = m_offsetToPointData + (m_numberOfPointRecords * m_pointDataRecordLength);
 			m_numberOfExtendedVariableLengthRecords = header.m_numberOfExtendedVariableLengthRecords;
 			m_numberOfPointRecords = header.m_numberOfPointRecords;
-
-			m_numberOfPointsByReturn = new ulong[15];
 			
-#warning copy return info
-			//if (m_version.Version >= LASVersion.LAS_1_4)
-			//{
-			//}
-			//else
-			//{
-			//	m_numberOfPointsByReturn = new ulong[15];
-			//	for (int i = 0; i < m_legacyNumberOfPointsByReturn.Length; i++)
-			//		m_numberOfPointsByReturn[i] = m_legacyNumberOfPointsByReturn[i];
-			//}
+			m_numberOfPointsByReturn = (ulong[])header.m_numberOfPointsByReturn.Clone();
 		}
 
 		public LASHeader(BinaryReader reader)
@@ -361,7 +347,7 @@ namespace Jacere.Data.PointCloud
 			return ReadVLRs(stream, null);
 		}
 
-		public LASVLR[] ReadVLRs(Stream stream, Func<LASVLR, bool> acceptanceCondition)
+		private LASVLR[] ReadVLRs(Stream stream, Func<LASVLR, bool> acceptanceCondition)
 		{
 			var vlrs = new List<LASVLR>((int)m_numberOfVariableLengthRecords);
 

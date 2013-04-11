@@ -24,6 +24,8 @@ namespace Jacere.Data.PointCloud
 	/// </summary>
 	public class LASVLR : ISerializeBinary
 	{
+		private const ushort HeaderLength = 54;
+
 		private static readonly Dictionary<LASRecordIdentifier, bool> c_knownRecordMapping;
 
 		private readonly ushort m_reserved;
@@ -86,6 +88,11 @@ namespace Jacere.Data.PointCloud
 		public byte[] Data
 		{
 			get { return m_data; }
+		}
+
+		public uint Length
+		{
+			get { return (uint)(HeaderLength + m_recordLengthAfterHeader); }
 		}
 
 		public LASVLR(BinaryReader reader)

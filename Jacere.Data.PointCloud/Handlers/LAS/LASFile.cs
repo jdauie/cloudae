@@ -48,6 +48,11 @@ namespace Jacere.Data.PointCloud
 			get { yield return FilePath; }
 		}
 
+		public static LASFile Create(string path, IPointCloudBinarySource source)
+		{
+			return new LASFile(path);
+		}
+
 		public LASFile(string path)
 			: base(path)
 		{
