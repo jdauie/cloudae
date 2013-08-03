@@ -42,11 +42,29 @@ namespace CloudAE.Core
 			var tileIndices = new HashSet<int>();
 			var lastIndex = -1;
 
-			var pb = chunk.PointDataPtr;
-			while (pb < chunk.PointDataEndPtr)
-			{
-				var p = (SQuantizedPoint3D*)pb;
+			// JUST TESTING TO SEE IF I LIKE THIS WAY BETTER (slightly slower?)
+			//var iterator = new SQuantizedPoint3DIterator(chunk);
+			//while (iterator.IsValid)
+			//{
+			//    var p = iterator.Next();
+			//    var y = (ushort)(((*p).Y - minY) * tilesOverRangeY);
+			//    var x = (ushort)(((*p).X - minX) * tilesOverRangeX);
 
+			//    ++m_grid.Data[y, x];
+
+			//    // indexing
+			//    int tileIndex = PointCloudTileCoord.GetIndex(y, x);
+			//    if (tileIndex != lastIndex)
+			//    {
+			//        tileIndices.Add(tileIndex);
+			//        lastIndex = tileIndex;
+			//    }
+			//}
+
+			// JUST TESTING TO SEE IF I LIKE THIS WAY BETTER (slightly slower?)
+			foreach (var pp in chunk.GetSQuantizedPoint3DEnumerator())
+			{
+				var p = pp.GetPointer();
 				var y = (ushort)(((*p).Y - minY) * tilesOverRangeY);
 				var x = (ushort)(((*p).X - minX) * tilesOverRangeX);
 
@@ -59,9 +77,28 @@ namespace CloudAE.Core
 					tileIndices.Add(tileIndex);
 					lastIndex = tileIndex;
 				}
-
-				pb += chunk.PointSizeBytes;
 			}
+
+			//var pb = chunk.PointDataPtr;
+			//while (pb < chunk.PointDataEndPtr)
+			//{
+			//    var p = (SQuantizedPoint3D*)pb;
+
+			//    var y = (ushort)(((*p).Y - minY) * tilesOverRangeY);
+			//    var x = (ushort)(((*p).X - minX) * tilesOverRangeX);
+
+			//    ++m_grid.Data[y, x];
+
+			//    // indexing
+			//    int tileIndex = PointCloudTileCoord.GetIndex(y, x);
+			//    if (tileIndex != lastIndex)
+			//    {
+			//        tileIndices.Add(tileIndex);
+			//        lastIndex = tileIndex;
+			//    }
+
+			//    pb += chunk.PointSizeBytes;
+			//}
 
 			m_chunkTiles.Add(tileIndices.ToArray());
 
