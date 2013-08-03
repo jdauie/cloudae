@@ -81,22 +81,22 @@ namespace Jacere.Data.PointCloud.Handlers
 
 		public bool HasMin
 		{
-			get { return !IsUndocumented && (m_options & 1 << 1) != 0; }
+			get { return !IsUndocumented && (m_options & (1 << 1)) != 0; }
 		}
 
 		public bool HasMax
 		{
-			get { return !IsUndocumented && (m_options & 1 << 2) != 0; }
+			get { return !IsUndocumented && (m_options & (1 << 2)) != 0; }
 		}
 
 		public bool HasScale
 		{
-			get { return !IsUndocumented && (m_options & 1 << 3) != 0; }
+			get { return !IsUndocumented && (m_options & (1 << 3)) != 0; }
 		}
 
 		public bool HasOffset
 		{
-			get { return !IsUndocumented && (m_options & 1 << 4) != 0; }
+			get { return !IsUndocumented && (m_options & (1 << 4)) != 0; }
 		}
 
 		public LASPointExtraBytes(BinaryReader reader)
