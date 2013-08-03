@@ -435,6 +435,14 @@ namespace CloudAE.Core
 			{
 				BitmapSource source = GeneratePreviewImage(m_pixelGridSet.GridQuantized, ramp, useStdDevStretch, quality);
 				Preview = new PreviewImage(source, ramp, useStdDevStretch, quality);
+
+				//using (var fileStream = new FileStream(Path.Combine(Cache.APP_CACHE_DIR, "preview.jpg"), FileMode.Create))
+				//{
+				//	var encoder = new JpegBitmapEncoder();
+				//	encoder.Frames.Add(BitmapFrame.Create(source));
+				//	encoder.QualityLevel = 100;
+				//	encoder.Save(fileStream);
+				//}
 			}
 			return Preview.Image;
 		}
