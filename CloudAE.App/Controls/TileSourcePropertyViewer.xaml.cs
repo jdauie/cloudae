@@ -35,42 +35,57 @@ namespace CloudAE.App
 
 				if (m_source != null)
 				{
-					properties.Add(new ImmutablePropertyString("Info", "Name", m_source.Name));
-					properties.Add(new ImmutablePropertyString("Info", "Tiled", Path.GetFileName(m_source.FilePath)));
-					properties.Add(new ImmutablePropertyString("Info", "Points", string.Format("{0:0,0}", m_source.Count)));
-					properties.Add(new ImmutablePropertyString("Info", "Extent", m_source.Extent));
+					using (var group = new PropertyGroup(properties, "Info"))
+					{
+						group.Add("Name", m_source.Name);
+						group.Add("Tiled", Path.GetFileName(m_source.FilePath));
+						group.Add("Points", string.Format("{0:0,0}", m_source.Count));
+						group.Add("Extent", m_source.Extent);
+					}
 
-					properties.Add(new ImmutablePropertyString("Statistics", "Mean", string.Format("{0:f}", m_source.StatisticsZ.Mean)));
-					properties.Add(new ImmutablePropertyString("Statistics", "Mode", string.Format("{0:f}", m_source.StatisticsZ.ModeApproximate)));
-					properties.Add(new ImmutablePropertyString("Statistics", "StdDev", string.Format("{0:f}", m_source.StatisticsZ.StdDev)));
+					using (var group = new PropertyGroup(properties, "Statistics"))
+					{
+						group.Add("Mean", string.Format("{0:f}", m_source.StatisticsZ.Mean));
+						group.Add("Mode", string.Format("{0:f}", m_source.StatisticsZ.ModeApproximate));
+						group.Add("StdDev", string.Format("{0:f}", m_source.StatisticsZ.StdDev));
+					}
 
-					properties.Add(new ImmutablePropertyString("Storage", "PointDataOffset", string.Format("{0} bytes", m_source.PointDataOffset)));
-					properties.Add(new ImmutablePropertyString("Storage", "PointSize", string.Format("{0} bytes", m_source.PointSizeBytes)));
+					using (var group = new PropertyGroup(properties, "Storage"))
+					{
+						group.Add("PointDataOffset", string.Format("{0} bytes", m_source.PointDataOffset));
+						group.Add("PointSize", string.Format("{0} bytes", m_source.PointSizeBytes));
+					}
 
-					properties.Add(new ImmutablePropertyString("Quantization", "OffsetX", string.Format("{0}", m_source.Quantization.OffsetX)));
-					properties.Add(new ImmutablePropertyString("Quantization", "OffsetY", string.Format("{0}", m_source.Quantization.OffsetY)));
-					properties.Add(new ImmutablePropertyString("Quantization", "OffsetZ", string.Format("{0}", m_source.Quantization.OffsetZ)));
-					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorX", string.Format("{0}", m_source.Quantization.ScaleFactorX)));
-					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorY", string.Format("{0}", m_source.Quantization.ScaleFactorY)));
-					properties.Add(new ImmutablePropertyString("Quantization", "ScaleFactorZ", string.Format("{0}", m_source.Quantization.ScaleFactorZ)));
+					using (var group = new PropertyGroup(properties, "Quantization"))
+					{
+						group.Add("OffsetX", string.Format("{0}", m_source.Quantization.OffsetX));
+						group.Add("OffsetY", string.Format("{0}", m_source.Quantization.OffsetY));
+						group.Add("OffsetZ", string.Format("{0}", m_source.Quantization.OffsetZ));
+						group.Add("ScaleFactorX", string.Format("{0}", m_source.Quantization.ScaleFactorX));
+						group.Add("ScaleFactorY", string.Format("{0}", m_source.Quantization.ScaleFactorY));
+						group.Add("ScaleFactorZ", string.Format("{0}", m_source.Quantization.ScaleFactorZ));
+					}
 
-					properties.Add(new ImmutablePropertyString("Tiles", "Rows", m_source.TileSet.Rows));
-					properties.Add(new ImmutablePropertyString("Tiles", "Cols", m_source.TileSet.Cols));
-					properties.Add(new ImmutablePropertyString("Tiles", "Tiles", string.Format("{0:0,0} ({1:0,0})", m_source.TileSet.TileCount, m_source.TileSet.ValidTileCount)));
+					using (var group = new PropertyGroup(properties, "Tiles"))
+					{
+						group.Add("Rows", m_source.TileSet.Rows);
+						group.Add("Cols", m_source.TileSet.Cols);
+						group.Add("Tiles", string.Format("{0:0,0} ({1:0,0})", m_source.TileSet.TileCount, m_source.TileSet.ValidTileCount));
 
-					properties.Add(new ImmutablePropertyString("Tiles", "MinTileCount", string.Format("{0:0,0}", m_source.TileSet.Density.MinTileCount)));
-					properties.Add(new ImmutablePropertyString("Tiles", "MaxTileCount", string.Format("{0:0,0}", m_source.TileSet.Density.MaxTileCount)));
-					properties.Add(new ImmutablePropertyString("Tiles", "MedianTileCount", string.Format("{0:0,0}", m_source.TileSet.Density.MedianTileCount)));
-					properties.Add(new ImmutablePropertyString("Tiles", "MeanTileCount", string.Format("{0:0,0}", m_source.TileSet.Density.MeanTileCount)));
+						group.Add("MinTileCount", string.Format("{0:0,0}", m_source.TileSet.Density.MinTileCount));
+						group.Add("MaxTileCount", string.Format("{0:0,0}", m_source.TileSet.Density.MaxTileCount));
+						group.Add("MedianTileCount", string.Format("{0:0,0}", m_source.TileSet.Density.MedianTileCount));
+						group.Add("MeanTileCount", string.Format("{0:0,0}", m_source.TileSet.Density.MeanTileCount));
 
-					properties.Add(new ImmutablePropertyString("Tiles", "MinTileDensity", string.Format("{0:f}", m_source.TileSet.Density.MinTileDensity)));
-					properties.Add(new ImmutablePropertyString("Tiles", "MaxTileDensity", string.Format("{0:f}", m_source.TileSet.Density.MaxTileDensity)));
-					properties.Add(new ImmutablePropertyString("Tiles", "MedianTileDensity", string.Format("{0:f}", m_source.TileSet.Density.MedianTileDensity)));
-					properties.Add(new ImmutablePropertyString("Tiles", "MeanTileDensity", string.Format("{0:f}", m_source.TileSet.Density.MeanTileDensity)));
+						group.Add("MinTileDensity", string.Format("{0:f}", m_source.TileSet.Density.MinTileDensity));
+						group.Add("MaxTileDensity", string.Format("{0:f}", m_source.TileSet.Density.MaxTileDensity));
+						group.Add("MedianTileDensity", string.Format("{0:f}", m_source.TileSet.Density.MedianTileDensity));
+						group.Add("MeanTileDensity", string.Format("{0:f}", m_source.TileSet.Density.MeanTileDensity));
+					}
 				}
 
-				ICollectionView m_view = CollectionViewSource.GetDefaultView(properties);
-				m_view.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
+				var view = CollectionViewSource.GetDefaultView(properties);
+				view.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
 
 				PropertyGrid.ItemsSource = properties;
 			}
@@ -89,5 +104,30 @@ namespace CloudAE.App
 			Name = name;
 			Value = value != null ? value.ToString() : string.Empty;
 		}
+	}
+
+	public class PropertyGroup : IDisposable
+	{
+		private readonly List<ImmutablePropertyString> m_list;
+		private readonly string m_category;
+
+		public PropertyGroup(List<ImmutablePropertyString> list, string category)
+		{
+			m_list = list;
+			m_category = category;
+		}
+
+		public void Add(string name, object value)
+		{
+			m_list.Add(new ImmutablePropertyString(m_category, name, value.ToString()));
+		}
+
+		#region IDisposable Implementation
+
+		public void Dispose()
+		{
+		}
+
+		#endregion
 	}
 }
