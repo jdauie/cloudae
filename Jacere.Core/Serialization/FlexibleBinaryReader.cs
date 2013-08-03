@@ -6,6 +6,7 @@ using System.Text;
 
 namespace Jacere.Core
 {
+#warning rename to NonClosingBinaryReader? or something similar
 	public class FlexibleBinaryReader : BinaryReader
 	{
 		private readonly bool m_closeStreamWhenDisposed;

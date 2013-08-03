@@ -134,7 +134,7 @@ namespace Jacere.Data.PointCloud
 				{
 					if (minX == 0 && maxX == 0)
 					{
-						SQuantizedPoint3D* p = (SQuantizedPoint3D*)chunk.PointDataPtr;
+						var p = (SQuantizedPoint3D*)chunk.PointDataPtr;
 
 						minX = maxX = (*p).X;
 						minY = maxY = (*p).Y;
@@ -144,7 +144,7 @@ namespace Jacere.Data.PointCloud
 					byte* pb = chunk.PointDataPtr;
 					while (pb < chunk.PointDataEndPtr)
 					{
-						SQuantizedPoint3D* p = (SQuantizedPoint3D*)pb;
+						var p = (SQuantizedPoint3D*)pb;
 
 						if ((*p).X < minX) minX = (*p).X; else if ((*p).X > maxX) maxX = (*p).X;
 						if ((*p).Y < minY) minY = (*p).Y; else if ((*p).Y > maxY) maxY = (*p).Y;

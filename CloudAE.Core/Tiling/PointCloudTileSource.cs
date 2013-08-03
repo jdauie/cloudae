@@ -181,6 +181,8 @@ namespace CloudAE.Core
 
 		public static PointCloudTileSource Open(LASFile file)
 		{
+#warning actually read as LAS format
+
 			long pointDataOffset;
 			short pointSizeBytes;
 
@@ -214,6 +216,8 @@ namespace CloudAE.Core
 
 		public void Serialize(BinaryWriter writer)
 		{
+#warning actually write LAS format
+
 			// assumes this function will be atomic, which is true for cancellation, 
 			// but not for exceptions during the write operation
 			string identifier = IsDirty ? FILE_IDENTIFIER_DIRTY : FILE_IDENTIFIER;
@@ -230,6 +234,8 @@ namespace CloudAE.Core
 
 		public void WriteHeader()
 		{
+#warning actually write LAS header
+
 			Close();
 
 			using (var writer = new BinaryWriter(File.OpenWrite(FilePath)))
