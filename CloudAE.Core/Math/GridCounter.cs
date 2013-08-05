@@ -64,6 +64,7 @@ namespace CloudAE.Core
 			// JUST TESTING TO SEE IF I LIKE THIS WAY BETTER (slightly slower?)
 			foreach (var pp in chunk.GetSQuantizedPoint3DEnumerator())
 			{
+				//var p = (LASPointFormat1*)pp.GetPointer();
 				var p = pp.GetPointer();
 				var y = (ushort)(((*p).Y - minY) * tilesOverRangeY);
 				var x = (ushort)(((*p).X - minX) * tilesOverRangeX);

@@ -9,6 +9,23 @@ using Jacere.Data.PointCloud.Handlers;
 
 namespace Jacere.Data.PointCloud
 {
+	public enum LASPointFormat0_Classification : byte
+	{
+		NeverClassified = 0,
+		Unclassified,
+		Ground,
+		LowVegetation,
+		MediumVegetation,
+		HighVegetation,
+		Building,
+		LowPoint,
+		ModelKeyPoint,
+		Water,
+		// 10-11 reserved
+		OverlapPoints = 12
+		// 13-31 reserved
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
 	public struct LASPointFormat_XYZ
 	{
@@ -36,6 +53,21 @@ namespace Jacere.Data.PointCloud
 		public byte NumReturns { get { return (byte)((m_options >> 3) & ((1 << 3) - 1)); } }
 		public byte ScanDirection { get { return (byte)((m_options >> 6) & 1); } }
 		public byte EdgeOfFlightLine { get { return (byte)(m_options >> 7); } }
+
+		#endregion
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct LASPointFormat_Classification
+	{
+		private byte m_classification;
+
+		#region Properties
+
+		public byte Classification { get { return (byte)(m_classification & ((1 << 5) - 1)); } }
+		public bool Synthetic { get { return ((m_classification >> 5) & 1) == 1; } }
+		public bool KeyPoint { get { return ((m_classification >> 6) & 1) == 1; } }
+		public bool Withheld { get { return ((m_classification >> 7) & 1) == 1; } }
 
 		#endregion
 	}
@@ -89,7 +121,7 @@ namespace Jacere.Data.PointCloud
 		private LASPointFormat_XYZ m_xyz;
 		private ushort m_intensity;
 		private LASPointFormat_Options m_options;
-		private byte m_classifications;
+		private LASPointFormat_Classification m_classification;
 		private sbyte m_scanAngleRank;
 		private byte m_userData;
 		private ushort m_pointSourceID;
@@ -106,7 +138,7 @@ namespace Jacere.Data.PointCloud
 		public byte ScanDirection { get { return m_options.ScanDirection; } }
 		public byte EdgeOfFlightLine { get { return m_options.EdgeOfFlightLine; } }
 
-		public byte Classifications { get { return m_classifications; } }
+		public byte Classification { get { return m_classification.Classification; } }
 		public sbyte ScanAngleRank { get { return m_scanAngleRank; } }
 		public byte UserData { get { return m_userData; } }
 		public ushort PointSourceID { get { return m_pointSourceID; } }
@@ -129,186 +161,5 @@ namespace Jacere.Data.PointCloud
 		{
 			return String.Format("({0}, {1}, {2})", X, Y, Z);
 		}
-	}
-
-	/// <summary>
-	/// Format1 = [Format0][GPSTime]
-	/// </summary>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LASPointFormat1
-	{
-		private LASPointFormat0 m_base;
-		private double m_gpsTime;
-
-		#region Properties
-
-		public int X { get { return m_base.X; } }
-		public int Y { get { return m_base.Y; } }
-		public int Z { get { return m_base.Z; } }
-		public ushort Intensity { get { return m_base.Intensity; } }
-
-		public byte ReturnNumber { get { return m_base.ReturnNumber; } }
-		public byte NumReturns { get { return m_base.NumReturns; } }
-		public byte ScanDirection { get { return m_base.ScanDirection; } }
-		public byte EdgeOfFlightLine { get { return m_base.EdgeOfFlightLine; } }
-
-		public byte Classifications { get { return m_base.Classifications; } }
-		public sbyte ScanAngleRank { get { return m_base.ScanAngleRank; } }
-		public byte UserData { get { return m_base.UserData; } }
-		public ushort PointSourceID { get { return m_base.PointSourceID; } }
-
-		public double GPSTime { get { return m_gpsTime; } }
-
-		#endregion
-	}
-
-	/// <summary>
-	/// Format2 = [Format0][RGB]
-	/// </summary>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LASPointFormat2
-	{
-		private LASPointFormat0 m_base;
-		private LASPointFormat_RGB m_rgb;
-
-		#region Properties
-
-		public int X { get { return m_base.X; } }
-		public int Y { get { return m_base.Y; } }
-		public int Z { get { return m_base.Z; } }
-		public ushort Intensity { get { return m_base.Intensity; } }
-
-		public byte ReturnNumber { get { return m_base.ReturnNumber; } }
-		public byte NumReturns { get { return m_base.NumReturns; } }
-		public byte ScanDirection { get { return m_base.ScanDirection; } }
-		public byte EdgeOfFlightLine { get { return m_base.EdgeOfFlightLine; } }
-
-		public byte Classifications { get { return m_base.Classifications; } }
-		public sbyte ScanAngleRank { get { return m_base.ScanAngleRank; } }
-		public byte UserData { get { return m_base.UserData; } }
-		public ushort PointSourceID { get { return m_base.PointSourceID; } }
-
-		public ushort Red { get { return m_rgb.Red; } }
-		public ushort Green { get { return m_rgb.Green; } }
-		public ushort Blue { get { return m_rgb.Blue; } }
-
-		#endregion
-	}
-
-	/// <summary>
-	/// Format3 = [Format1][RGB].
-	/// </summary>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LASPointFormat3
-	{
-		private LASPointFormat1 m_base;
-		private LASPointFormat_RGB m_rgb;
-
-		#region Properties
-
-		public int X { get { return m_base.X; } }
-		public int Y { get { return m_base.Y; } }
-		public int Z { get { return m_base.Z; } }
-		public ushort Intensity { get { return m_base.Intensity; } }
-
-		public byte ReturnNumber { get { return m_base.ReturnNumber; } }
-		public byte NumReturns { get { return m_base.NumReturns; } }
-		public byte ScanDirection { get { return m_base.ScanDirection; } }
-		public byte EdgeOfFlightLine { get { return m_base.EdgeOfFlightLine; } }
-
-		public byte Classifications { get { return m_base.Classifications; } }
-		public sbyte ScanAngleRank { get { return m_base.ScanAngleRank; } }
-		public byte UserData { get { return m_base.UserData; } }
-		public ushort PointSourceID { get { return m_base.PointSourceID; } }
-
-		public double GPSTime { get { return m_base.GPSTime; } }
-
-		public ushort Red { get { return m_rgb.Red; } }
-		public ushort Green { get { return m_rgb.Green; } }
-		public ushort Blue { get { return m_rgb.Blue; } }
-
-		#endregion
-	}
-
-	/// <summary>
-	/// Format4 = [Format1][WavePackets].
-	/// </summary>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LASPointFormat4
-	{
-		private LASPointFormat1 m_base;
-		private LASPointFormat_WavePackets m_wave;
-
-		#region Properties
-
-		public int X { get { return m_base.X; } }
-		public int Y { get { return m_base.Y; } }
-		public int Z { get { return m_base.Z; } }
-		public ushort Intensity { get { return m_base.Intensity; } }
-
-		public byte ReturnNumber { get { return m_base.ReturnNumber; } }
-		public byte NumReturns { get { return m_base.NumReturns; } }
-		public byte ScanDirection { get { return m_base.ScanDirection; } }
-		public byte EdgeOfFlightLine { get { return m_base.EdgeOfFlightLine; } }
-
-		public byte Classifications { get { return m_base.Classifications; } }
-		public sbyte ScanAngleRank { get { return m_base.ScanAngleRank; } }
-		public byte UserData { get { return m_base.UserData; } }
-		public ushort PointSourceID { get { return m_base.PointSourceID; } }
-
-		public double GPSTime { get { return m_base.GPSTime; } }
-
-		public ushort WavePacketDescriptorIndex { get { return m_wave.WavePacketDescriptorIndex; } }
-		public ulong OffsetToWaveformData { get { return m_wave.OffsetToWaveformData; } }
-		public uint WaveformPacketSize { get { return m_wave.WaveformPacketSize; } }
-		public float ReturnPointWaveformLocation { get { return m_wave.ReturnPointWaveformLocation; } }
-		public float Xt { get { return m_wave.Xt; } }
-		public float Yt { get { return m_wave.Yt; } }
-		public float Zt { get { return m_wave.Zt; } }
-
-		#endregion
-	}
-
-	/// <summary>
-	/// Format5 = [Format3][WavePackets].
-	/// </summary>
-	[StructLayout(LayoutKind.Sequential)]
-	public struct LASPointFormat5
-	{
-		private LASPointFormat3 m_base;
-		private LASPointFormat_WavePackets m_wave;
-
-		#region Properties
-
-		public int X { get { return m_base.X; } }
-		public int Y { get { return m_base.Y; } }
-		public int Z { get { return m_base.Z; } }
-		public ushort Intensity { get { return m_base.Intensity; } }
-
-		public byte ReturnNumber { get { return m_base.ReturnNumber; } }
-		public byte NumReturns { get { return m_base.NumReturns; } }
-		public byte ScanDirection { get { return m_base.ScanDirection; } }
-		public byte EdgeOfFlightLine { get { return m_base.EdgeOfFlightLine; } }
-
-		public byte Classifications { get { return m_base.Classifications; } }
-		public sbyte ScanAngleRank { get { return m_base.ScanAngleRank; } }
-		public byte UserData { get { return m_base.UserData; } }
-		public ushort PointSourceID { get { return m_base.PointSourceID; } }
-
-		public double GPSTime { get { return m_base.GPSTime; } }
-
-		public ushort Red { get { return m_base.Red; } }
-		public ushort Green { get { return m_base.Green; } }
-		public ushort Blue { get { return m_base.Blue; } }
-
-		public ushort WavePacketDescriptorIndex { get { return m_wave.WavePacketDescriptorIndex; } }
-		public ulong OffsetToWaveformData { get { return m_wave.OffsetToWaveformData; } }
-		public uint WaveformPacketSize { get { return m_wave.WaveformPacketSize; } }
-		public float ReturnPointWaveformLocation { get { return m_wave.ReturnPointWaveformLocation; } }
-		public float Xt { get { return m_wave.Xt; } }
-		public float Yt { get { return m_wave.Yt; } }
-		public float Zt { get { return m_wave.Zt; } }
-
-		#endregion
 	}
 }

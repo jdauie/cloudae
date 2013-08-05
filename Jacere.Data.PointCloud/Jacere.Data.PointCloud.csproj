@@ -72,6 +72,8 @@
     <Compile Include="Managers\PointBufferWrapperChunk.cs" />
     <Compile Include="Math\ScaledStatisticsMapping.cs" />
     <Compile Include="Math\SimpleStatsMapping.cs" />
+    <Compile Include="Points\LASPointFormat6.cs" />
+    <Compile Include="Points\LASPointFormat1.cs" />
     <Compile Include="Points\LASPointFormat0.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sources\PointCloudBinarySourceEnumeratorRegion.cs" />
