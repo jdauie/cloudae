@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{961E1A9D-C8AC-4C12-8DA9-4A7A3EE8EEAC}</ProjectGuid>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>CloudAEInteropLASzip</RootNamespace>
     <ProjectName>Jacere.Interop.LASzip</ProjectName>
