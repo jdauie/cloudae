@@ -71,7 +71,7 @@ namespace CloudAE.Core.Geometry
 
 			return chunk;
 		}
-
+		/*
 		public Quantization3D CreateQuantization()
 		{
 			if (m_quantized)
@@ -79,7 +79,7 @@ namespace CloudAE.Core.Geometry
 			else
 				return Quantization3D.Create(m_source.Extent, m_values as double[][], m_index);
 		}
-
+		*/
 		private static unsafe int GetPrecisionTestingPointCount(IPointCloudBinarySource source)
 		{
 			int maxBytesForPrecisionTest = (int)PROPERTY_QUANTIZATION_MEMORY_LIMIT.Value;

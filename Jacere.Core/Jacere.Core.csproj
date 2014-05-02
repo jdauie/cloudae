@@ -64,6 +64,7 @@
     <Compile Include="Extensions\GeometryExtensions.cs" />
     <Compile Include="Extensions\SerializeArrayExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Geometry\Quantization.cs" />
     <Compile Include="Geometry\Extent2D.cs" />
     <Compile Include="Geometry\Extent3D.cs" />
     <Compile Include="Geometry\IPoint3D.cs" />
@@ -80,9 +81,6 @@
     <Compile Include="Geometry\SQuantization3D.cs" />
     <Compile Include="Geometry\SQuantizedExtent3D.cs" />
     <Compile Include="Geometry\SQuantizedPoint3D.cs" />
-    <Compile Include="Geometry\UQuantization3D.cs" />
-    <Compile Include="Geometry\UQuantizedExtent3D.cs" />
-    <Compile Include="Geometry\UQuantizedPoint3D.cs" />
     <Compile Include="Grid\Grid.cs" />
     <Compile Include="Grid\GridCoord.cs" />
     <Compile Include="Grid\GridDefinition.cs" />
@@ -126,6 +124,8 @@
     <Compile Include="Options\PropertyName.cs" />
     <Compile Include="Options\RegistryPropertyManager.cs" />
     <Compile Include="Options\RegistryPropertyState.cs" />
+    <Compile Include="Parameters\ParameterList.cs" />
+    <Compile Include="Parameters\Parameter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\FlexibleBinaryReader.cs" />
     <Compile Include="Serialization\ISerializeBinary.cs" />

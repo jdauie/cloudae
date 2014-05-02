@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 
 using Jacere.Core;
-using CloudAE.Interop.LAZ;
+using Jacere.Interop.LASzip;
 
 namespace Jacere.Data.PointCloud
 {

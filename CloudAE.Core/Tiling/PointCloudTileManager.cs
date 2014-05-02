@@ -45,6 +45,8 @@ namespace CloudAE.Core
 			// create LAS output file (1.4 format)
 			// (write header)
 			// (copy VLRs)
+			
+
 
 			// create empty TileSet just to know the header size
 			var densityTemp = new PointCloudTileDensity(tileCounts, m_source.Extent);

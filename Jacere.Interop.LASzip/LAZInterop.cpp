@@ -3,7 +3,7 @@
 #include "LAZInterop.h"
 #include "LAZBlockReader.h"
 
-using namespace CloudAE::Interop::LAZ;
+using namespace Jacere::Interop::LASzip;
 
 LAZInterop::LAZInterop(System::String^ path, unsigned long dataOffset, array<Byte>^ vlr) {
 

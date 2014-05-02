@@ -148,7 +148,13 @@ namespace Jacere.Data.PointCloud
 		public void Create()
 		{
 			var attributeSet = new LASPointAttributeSet();
-			attributeSet.Add(new LASPointAttribute<uint>());
+			attributeSet.Add(new LASPointAttribute<LASPointFormat_XYZ>());
+			attributeSet.Add(new LASPointAttribute<ushort>());
+			attributeSet.Add(new LASPointAttribute<LASPointFormat_Options>());
+			attributeSet.Add(new LASPointAttribute<LASPointFormat_Classification>());
+			attributeSet.Add(new LASPointAttribute<sbyte>());
+			attributeSet.Add(new LASPointAttribute<byte>());
+			attributeSet.Add(new LASPointAttribute<ushort>());
 		}
 
 		/// <summary>

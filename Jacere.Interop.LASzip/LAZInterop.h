@@ -5,7 +5,7 @@
 
 using namespace System;
 
-namespace CloudAE { namespace Interop { namespace LAZ {
+namespace Jacere { namespace Interop { namespace LASzip {
 
 public ref class LAZInterop
 {

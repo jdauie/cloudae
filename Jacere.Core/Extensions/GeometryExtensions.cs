@@ -19,18 +19,6 @@ namespace Jacere.Core
 			return new Extent3D(reader);
 		}
 
-        [Obsolete("Moving back to LAS compatibility", true)]
-        public static UQuantizedExtent3D ReadUQuantizedExtent3D(this BinaryReader reader)
-        {
-            return new UQuantizedExtent3D(reader);
-        }
-
-        [Obsolete("Moving back to LAS compatibility", true)]
-        public static UQuantizedPoint3D ReadUQuantizedPoint3D(this BinaryReader reader)
-        {
-            return new UQuantizedPoint3D(reader);
-        }
-
 		public static SQuantizedExtent3D ReadSQuantizedExtent3D(this BinaryReader reader)
 		{
 			return new SQuantizedExtent3D(reader);
@@ -40,12 +28,6 @@ namespace Jacere.Core
 		{
 			return new SQuantizedPoint3D(reader);
 		}
-
-        [Obsolete("Moving back to LAS compatibility", true)]
-        public static UQuantization3D ReadUQuantization3D(this BinaryReader reader)
-        {
-            return new UQuantization3D(reader);
-        }
 
 		public static SQuantization3D ReadSQuantization3D(this BinaryReader reader)
 		{

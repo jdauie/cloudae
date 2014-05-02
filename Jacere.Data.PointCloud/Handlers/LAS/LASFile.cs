@@ -50,6 +50,7 @@ namespace Jacere.Data.PointCloud
 
 		public static LASFile Create(string path, IPointCloudBinarySource source)
 		{
+			// todo: what is this source param?
 			return new LASFile(path);
 		}
 
@@ -166,6 +167,22 @@ namespace Jacere.Data.PointCloud
 
 		protected virtual IPointCloudBinarySource CreateBinaryWrapper()
 		{
+			// params I need?
+			// (skip global encoding)
+			// (skip file creation date)
+			// vlrs
+			// evlrs
+			// attributes that make up point format
+			// point count
+			// quantization
+			// extent
+			// points by return
+
+			// create parameters
+			Parameter<Extent3D>.Define("Extent", m_extent);
+			Parameter<SQuantization3D>.Define("Quantization", m_header.Quantization);
+			Parameter<ulong>.Define("PointCount", m_header.PointCount);
+
 			var source = new PointCloudBinarySource(this, Count, m_extent, m_header.Quantization, PointDataOffset, PointSizeBytes);
 
 			return source;

@@ -93,7 +93,7 @@ namespace Jacere.Core.Geometry
 
             return new SQuantization3D(qScaleFactorX, qScaleFactorY, qScaleFactorZ, qOffsetX, qOffsetY, qOffsetZ);
         }
-
+		/*
 		/// <summary>
 		/// This should only be called if it is not feasible to evaluate the 
 		/// input data to determine what the actual scale factor should be.
@@ -234,7 +234,7 @@ namespace Jacere.Core.Geometry
 
 			return new UQuantization3D(scaleFactors[0], scaleFactors[1], scaleFactors[2], offsetExtent.MinX, offsetExtent.MinY, offsetExtent.MinZ);
 		}
-
+		*/
 		private static int FindBase(int inverseScale)
 		{
 			// find factors

@@ -27,6 +27,11 @@ namespace Jacere.Data.PointCloud
 		private readonly byte[] m_data;
 		//private readonly Guid m_guid;
 
+		public LASProjectID()
+		{
+			m_data = new byte[16];
+		}
+
 		public LASProjectID(BinaryReader reader)
 		{
 			m_data = reader.ReadBytes(16);
@@ -104,6 +109,10 @@ namespace Jacere.Data.PointCloud
 		public readonly bool ReturnNumbersSynthetic;
 		public readonly bool WKT;
 
+		public LASGlobalEncoding()
+		{
+		}
+
 		public LASGlobalEncoding(BinaryReader reader)
 		{
 			m_globalEncoding = reader.ReadUInt16();
@@ -180,6 +189,11 @@ namespace Jacere.Data.PointCloud
 			get { return m_offsetToPointData; }
 		}
 
+		public byte PointDataRecordFormat
+		{
+			get { return m_pointDataRecordFormat; }
+		}
+
 		public ushort PointDataRecordLength
 		{
 			get { return m_pointDataRecordLength; }
@@ -195,6 +209,55 @@ namespace Jacere.Data.PointCloud
 			c_minHeaderSize.Add(LASVersion.LAS_1_2, 227);
 			c_minHeaderSize.Add(LASVersion.LAS_1_3, 235);
 			c_minHeaderSize.Add(LASVersion.LAS_1_4, 375);
+		}
+
+		public LASHeader(IPointCloudBinarySource source)
+		{
+			// params I need?
+			// (skip global encoding)
+			// (skip file creation date)
+			// vlrs
+			// evlrs
+			// attributes that make up point format
+			// point count
+			// quantization
+			// extent
+			// points by return
+
+
+			//new ParameterDefinition<ushort>("FileSourceID", 0);
+
+
+			//m_fileSourceID = 0;
+
+			//m_globalEncoding = new LASGlobalEncoding();
+			//m_projectID = new LASProjectID();
+			//m_version = LASVersionInfo.Create(LASVersion.LAS_1_4);
+
+			//m_systemIdentifier = header.m_systemIdentifier;
+			//m_generatingSoftware = header.m_generatingSoftware;
+			//m_fileCreationDayOfYear = header.m_fileCreationDayOfYear;
+			//m_fileCreationYear = header.m_fileCreationYear;
+
+			//m_headerSize = c_minHeaderSize[LASVersion.LAS_1_4];
+			//m_offsetToPointData = m_headerSize + (uint)vlrs.Sum(vlr => vlr.Length);
+
+			//m_numberOfVariableLengthRecords = (uint)vlrs.Length;
+			//m_pointDataRecordFormat = header.m_pointDataRecordFormat;
+			//m_pointDataRecordLength = header.m_pointDataRecordLength;
+			//m_legacyNumberOfPointRecords = header.m_legacyNumberOfPointRecords;
+			//m_legacyNumberOfPointsByReturn = (uint[])header.m_legacyNumberOfPointsByReturn.Clone();
+
+			//m_quantization = source.Quantization;
+			//m_extent = source.Extent;
+
+			//m_startOfWaveformDataPacketRecord = 0;
+
+			//m_startOfFirstExtendedVariableLengthRecord = m_offsetToPointData + (m_numberOfPointRecords * m_pointDataRecordLength);
+			//m_numberOfExtendedVariableLengthRecords = header.m_numberOfExtendedVariableLengthRecords;
+			//m_numberOfPointRecords = (ulong)source.Count;
+
+			//m_numberOfPointsByReturn = (ulong[])header.m_numberOfPointsByReturn.Clone();
 		}
 
 		public LASHeader(LASHeader header, LASVLR[] vlrs)
@@ -213,7 +276,7 @@ namespace Jacere.Data.PointCloud
 			m_headerSize = c_minHeaderSize[LASVersion.LAS_1_4];
 			m_offsetToPointData = m_headerSize + (uint)vlrs.Sum(vlr => vlr.Length);
 
-			m_numberOfVariableLengthRecords = header.m_numberOfVariableLengthRecords;
+			m_numberOfVariableLengthRecords = (uint)vlrs.Length;
 			m_pointDataRecordFormat = header.m_pointDataRecordFormat;
 			m_pointDataRecordLength = header.m_pointDataRecordLength;
 			m_legacyNumberOfPointRecords = header.m_legacyNumberOfPointRecords;
@@ -227,7 +290,7 @@ namespace Jacere.Data.PointCloud
 			m_startOfFirstExtendedVariableLengthRecord = m_offsetToPointData + (m_numberOfPointRecords * m_pointDataRecordLength);
 			m_numberOfExtendedVariableLengthRecords = header.m_numberOfExtendedVariableLengthRecords;
 			m_numberOfPointRecords = header.m_numberOfPointRecords;
-			
+
 			m_numberOfPointsByReturn = (ulong[])header.m_numberOfPointsByReturn.Clone();
 		}
 

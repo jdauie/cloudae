@@ -33,10 +33,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Jacere.Interop.LASzip, Version=1.0.4805.35410, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\bin\Jacere.Interop.LASzip.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -52,6 +48,7 @@
     <Compile Include="Handlers\HandlerCreatorBase.cs" />
     <Compile Include="Handlers\HandlerFactory.cs" />
     <Compile Include="Handlers\IHandlerCreator.cs" />
+    <Compile Include="Handlers\LAS\LASPointExtraBytes.cs" />
     <Compile Include="Handlers\LAS\LASComposite.cs" />
     <Compile Include="Handlers\LAS\LASCreator.cs" />
     <Compile Include="Handlers\LAS\LASEVLR.cs" />
@@ -93,6 +90,10 @@
     <ProjectReference Include="..\Jacere.Core\Jacere.Core.csproj">
       <Project>{E1EB7D60-3632-4F12-AE13-B360D2B66C24}</Project>
       <Name>Jacere.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Jacere.Interop.LASzip\Jacere.Interop.LASzip.vcxproj">
+      <Project>{961e1a9d-c8ac-4c12-8da9-4a7a3ee8eeac}</Project>
+      <Name>Jacere.Interop.LASzip</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
