@@ -24,6 +24,21 @@ function Viewport3D(container, settings) {
 	
 	this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 	
+	/*this.controls = new THREE.TrackballControls(this.camera);
+	
+	this.controls.rotateSpeed = 1.0;
+	this.controls.zoomSpeed = 1.2;
+	this.controls.panSpeed = 0.8;
+
+	this.controls.noZoom = false;
+	this.controls.noPan = false;
+
+	this.controls.staticMoving = true;
+	this.controls.dynamicDampingFactor = 0.3;
+
+	this.controls.keys = [65, 83, 68];*/
+	
+	
 	this.scene = new THREE.Scene();
 	
 	
@@ -45,7 +60,7 @@ function Viewport3D(container, settings) {
 		this.camera.aspect = (WIDTH / HEIGHT);
 		this.camera.updateProjectionMatrix();
 
-		this.controls.handleResize();
+		//this.controls.handleResize();
 	};
 	
 	this.add = function(object) {
@@ -77,6 +92,8 @@ Viewport3D.animate = function() {
 	if (Viewport3D.paused)
 		return;
 	
+	//console.log("animate()");
+
 	requestAnimationFrame(Viewport3D.animate);
 	for(var i = 0; i < Viewport3D.viewports.length; i++) {
 		var viewport = Viewport3D.viewports[i];
@@ -103,8 +120,10 @@ Viewport3D.onWindowResize = function() {
 Viewport3D.handleVisibilityChange = function() {
 	if (document["hidden"]) {
 		Viewport3D.paused = true;
+		console.log("paused");
 	} else {
 		Viewport3D.paused = false;
 		Viewport3D.animate();
+		console.log("resumed");
 	}
 };
