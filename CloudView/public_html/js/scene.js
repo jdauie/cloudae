@@ -10,6 +10,7 @@ var viewport = Viewport3D.create(container, {
 
 var worker;
 var header;
+var pointStep;
 
 function LASFile(arrayBuffer) {
 	var reader = new BinaryReader(arrayBuffer, 0, true);
@@ -33,6 +34,15 @@ function loadData() {
 				header = br.readObject("LASHeader");
 				console.log("header");
 				//console.log(String.format(" extent x: {0}"), header.extent.size().x);
+				
+				var maxPoints = 1000000;
+				var points = header.numberOfPointRecords;
+				pointStep = 1;
+				if (points > maxPoints) {
+					pointStep = Math.ceil(points / maxPoints);
+					points = maxPoints;
+					console.log(String.format("thinning {0} to {1} (step {2})", header.numberOfPointRecords, points, pointStep));
+				}
 			}
 			else if (e.data.chunk) {
 				e.data.header = header;
@@ -57,13 +67,7 @@ function handleData(data) {
 
 function createGeometry(data) {
 
-	var maxPoints = 10000;
-	var points = data.points;
-	var pointStep = 1;
-	if (points > maxPoints) {
-		pointStep = Math.ceil(points / maxPoints);
-		points = maxPoints;
-	}
+	var points = ~~(data.points / pointStep);
 
 	var geometry = new THREE.BufferGeometry();
 	geometry.dynamic = false;
@@ -85,7 +89,7 @@ function createGeometry(data) {
 	
 	var i = 0;
 	for (var j = 0; j < data.points; j += pointStep) {
-		i = j / pointStep;
+		++i;
 		data.reader.seek(j * data.pointSize);
 		var point = data.reader.readUnquantizedPoint3D(data.header.quantization);
 		
