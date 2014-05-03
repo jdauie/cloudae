@@ -65,7 +65,7 @@ function Viewport3D(container, settings) {
 	
 	this.add = function(object) {
 		this.scene.add(object);
-	}
+	};
 	
 	this.controls.addEventListener('change', Viewport3D.render);
 	
