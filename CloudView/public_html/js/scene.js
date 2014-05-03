@@ -9,6 +9,7 @@ var viewport = Viewport3D.create(container, {
 });
 
 var worker;
+var header;
 
 function LASFile(arrayBuffer) {
 	var reader = new BinaryReader(arrayBuffer, 0, true);
@@ -27,24 +28,42 @@ function loadData() {
 			if (e.data.progress) {
 				$('#ajax-progress').val(e.data.progress);
 			}
-			else {
+			else if (e.data.header) {
+				var br = new BinaryReader(e.data.header, 0, true);
+				header = br.readObject("LASHeader");
+				console.log("header");
+				//console.log(String.format(" extent x: {0}"), header.extent.size().x);
+			}
+			else if (e.data.chunk) {
+				e.data.header = header;
+				e.data.reader = new BinaryReader(e.data.chunk, 0, true);
 				handleData(e.data);
+				console.log(String.format("chunk {0}", e.data.index));
+			}
+			else {
+				console.log("else");
 			}
 		}, false);
 		worker.postMessage({file: file});
 	});
 }
 
-function handleData(arrayBuffer) {
-	var file = new LASFile(arrayBuffer);
+function handleData(data) {
+	//var file = new LASFile(arrayBuffer);
 	$(".ajax-content").hide();
-	var object = createGeometry(file);
+	var object = createGeometry(data);
 	viewport.add(object);
 }
 
-function createGeometry(file) {
+function createGeometry(data) {
 
-	var points = file.header.numberOfPointRecords;
+	var maxPoints = 10000;
+	var points = data.points;
+	var pointStep = 1;
+	if (points > maxPoints) {
+		pointStep = Math.ceil(points / maxPoints);
+		points = maxPoints;
+	}
 
 	var geometry = new THREE.BufferGeometry();
 	geometry.dynamic = false;
@@ -54,29 +73,21 @@ function createGeometry(file) {
 	geometry.addAttribute('position', Float32Array, points, 3);
 	geometry.addAttribute('color', Float32Array, points, 3);
 
-	populateGeometry(file, geometry);
-
-	geometry.computeBoundingSphere();
-	var mesh = new THREE.ParticleSystem(geometry, material);
-	
-	return mesh;
-}
-
-function populateGeometry(file, geometry) {
-	
 	var positions = geometry.attributes.position.array;
 	var colors = geometry.attributes.color.array;
 
 	var ramp = ColorRamp.presets.Elevation1;
 	
-	var es = file.header.extent.size();
-	var em = file.header.extent.min;
+	var es = data.header.extent.size();
+	var em = data.header.extent.min;
 	
 	var ec = (es.x > es.y) ? es.x : es.y;
 	
-	for (var i = 0; i < file.header.numberOfPointRecords; i++) {
-		file.reader.seek(i * file.header.pointDataRecordLength);
-		var point = file.reader.readUnquantizedPoint3D(file.header.quantization);
+	var i = 0;
+	for (var j = 0; j < data.points; j += pointStep) {
+		i = j / pointStep;
+		data.reader.seek(j * data.pointSize);
+		var point = data.reader.readUnquantizedPoint3D(data.header.quantization);
 		
 		var x = point.x;
 		var y = point.y;
@@ -96,6 +107,11 @@ function populateGeometry(file, geometry) {
 		colors[ i * 3 + 1 ] = c.g;
 		colors[ i * 3 + 2 ] = c.b;
 	}
+
+	geometry.computeBoundingSphere();
+	var mesh = new THREE.ParticleSystem(geometry, material);
+	
+	return mesh;
 }
 
 loadData();

@@ -6,6 +6,8 @@ var LASVersion = {
 	LAS_1_4: (1 << 8) | 4
 };
 
+var LAS_MAX_SUPPORTED_HEADER_SIZE = 375;
+
 function createZeroArray(length) {
     var a, i;
     a = new Array(length);

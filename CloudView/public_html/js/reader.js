@@ -18,7 +18,7 @@ BinaryReader.prototype.seek = function(position) {
 
 BinaryReader.prototype.readObject = function(name, namespace) {
 	if (!namespace)
-		namespace = window;
+		namespace = self;
 	//console.log("readObject: "+namespace+"."+name);
 	return new namespace[name](this);
 };
