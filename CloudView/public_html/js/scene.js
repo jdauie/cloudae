@@ -24,7 +24,7 @@ function loadData() {
 	fileInput.addEventListener('change', function(e) {
 		var file = fileInput.files[0];
 		
-		worker = new Worker('/cloudview/js/worker2.js');
+		worker = new Worker('js/worker2.js');
 		worker.addEventListener('message', function(e) {
 			if (e.data.progress) {
 				$('#ajax-progress').val(e.data.progress);
