@@ -32,6 +32,12 @@ function loadData() {
 					points = maxPoints;
 					console.log(String.format("thinning {0} to {1} (step {2})", header.numberOfPointRecords, points, pointStep));
 				}
+
+				var bounds = createExtentGeometry(header.extent);
+				viewport.add(bounds);
+				
+				var es = header.extent.size();
+				viewport.camera.position.z = Math.max(es.x, es.y) * 2;
 			}
 			else if (e.data.chunk) {
 				e.data.header = header;
@@ -45,11 +51,6 @@ function loadData() {
 }
 
 function handleData(data) {
-	$(".ajax-content").hide();
-	
-	//var object = createExtentGeometry(data.header.extent);
-	//viewport.add(object);
-	
 	var object = createGeometry(data);
 	viewport.add(object);
 }
@@ -71,10 +72,9 @@ function createGeometry(data) {
 
 	var ramp = ColorRamp.presets.Elevation1;
 	
-	var es = data.header.extent.size();
-	var em = data.header.extent.min;
-	
-	var ec = (es.x > es.y) ? es.x : es.y;
+	var size = data.header.extent.size();
+	var min = data.header.extent.min;
+	var mid = data.header.extent.size().divideScalar(2).add(min);
 	
 	var i = 0;
 	for (var j = 0; j < data.points; j += pointStep) {
@@ -86,11 +86,11 @@ function createGeometry(data) {
 		var y = point.y;
 		var z = point.z;
 		
-		var c = ramp.getColor((z - em.z) / es.z);
+		var c = ramp.getColor((z - min.z) / size.z);
 
-		x = ((x - em.x) / ec) * 1000 - 500;
-		y = ((y - em.y) / ec) * 1000 - 500;
-		z = ((z - em.z) / ec) * 1000 - 500;
+		x = (x - mid.x);
+		y = (y - mid.y);
+		z = (z - mid.z);
 
 		positions[ i * 3 + 0 ] = x;
 		positions[ i * 3 + 1 ] = y;
@@ -107,42 +107,17 @@ function createGeometry(data) {
 }
 
 function createExtentGeometry(extent) {
-	var segments = 10000;
-
-	var geometry = new THREE.BufferGeometry();
-	var material = new THREE.LineBasicMaterial({ vertexColors: true });
-
-	geometry.addAttribute( 'position', new Float32Array( segments * 3 ), 3 );
-	geometry.addAttribute( 'color', new Float32Array( segments * 3 ), 3 );
-
-	var positions = geometry.getAttribute( 'position' ).array;
-	var colors = geometry.getAttribute( 'color' ).array;
-
-	var r = 800;
-
-	for ( var i = 0; i < segments; i ++ ) {
-
-		var x = Math.random() * r - r / 2;
-		var y = Math.random() * r - r / 2;
-		var z = Math.random() * r - r / 2;
-
-		// positions
-
-		positions[ i * 3 ] = x;
-		positions[ i * 3 + 1 ] = y;
-		positions[ i * 3 + 2 ] = z;
-
-		// colors
-
-		colors[ i * 3 ] = ( x / r ) + 0.5;
-		colors[ i * 3 + 1 ] = ( y / r ) + 0.5;
-		colors[ i * 3 + 2 ] = ( z / r ) + 0.5;
-
-	}
-
-	geometry.computeBoundingSphere();
-
-	return new THREE.Line(geometry, material);
+	
+	var es = extent.size();
+	var cube = new THREE.BoxHelper();
+	cube.material.color.setRGB(1, 0, 0);
+	cube.scale.set(
+		(es.x / 2),
+		(es.y / 2),
+		(es.z / 2)
+	);
+	
+	return cube;
 }
 
 loadData();
