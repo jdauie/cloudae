@@ -52,7 +52,7 @@ function init() {
 
 	fileInput.addEventListener('change', function(e) {
 		if (!worker) {
-			worker = new Worker('js/worker2.js');
+			worker = new Worker('js/Worker-FileReader.js');
 			worker.addEventListener('message', function(e) {
 				if (e.data.header) {
 					header = e.data.header.readObject("LASHeader");

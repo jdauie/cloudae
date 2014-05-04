@@ -1,20 +1,13 @@
 importScripts(
 	"libs/three.js/three.min.js",
-	'reader.js',
-	'las.js'
+	'BinaryReader.js',
+	'LASHeader.js'
 );
 
 self.addEventListener('message', function(e) {
   var data = e.data;
   loadFile(data.file);
 }, false);
-
-function updateProgress(evt) {
-	if (evt.lengthComputable) {
-		var percentComplete = (evt.loaded / evt.total) * 100;
-		self.postMessage({progress: ~~percentComplete});
-	}
-}
 
 function loadFile(file) {
 	var reader = new FileReaderSync();
