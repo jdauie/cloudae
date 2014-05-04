@@ -57,7 +57,9 @@ BinaryReader.prototype.readUnquantizedPoint3D = function(quantization) {
 };
 
 function LASHeader(reader) {
-	this.signature             = reader.readAsciiString(4);
+	this.signature = reader.readAsciiString(4);
+	if (this.signature != "LASF")
+		throw "Invalid signature";
 	
     this.fileSourceID          = reader.readUint16();
 

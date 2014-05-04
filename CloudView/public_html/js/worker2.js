@@ -21,14 +21,16 @@ function loadFile(file) {
 	
 	var arraybuffer = reader.readAsArrayBuffer(file.slice(0, LAS_MAX_SUPPORTED_HEADER_SIZE));
 	var header = arraybuffer.readObject("LASHeader");
-	self.postMessage({
-		header: arraybuffer
-	}, [arraybuffer]);
 	
 	var chunkBytes = 2*1024*1024;
 	var chunkPoints = ~~(chunkBytes / header.pointDataRecordLength);
 	chunkBytes = chunkPoints * header.pointDataRecordLength;
 	var chunks = Math.ceil(header.numberOfPointRecords / chunkPoints);
+	
+	self.postMessage({
+		header: arraybuffer,
+		chunks: chunks
+	}, [arraybuffer]);
 	
 	for (var i = 0; i < chunks; i++) {
 		
@@ -46,8 +48,7 @@ function loadFile(file) {
 			chunk: arraybuffer,
 			index: i,
 			points: points,
-			pointSize: header.pointDataRecordLength,
-			progress: (100 * i / chunks)
+			pointSize: header.pointDataRecordLength
 		}, [arraybuffer]);
 	}
 }

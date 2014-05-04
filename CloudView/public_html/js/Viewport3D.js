@@ -16,13 +16,7 @@ function Viewport3D(container, settings) {
 	this.container.appendChild(this.stats.domElement);
 
 	this.camera = new THREE.PerspectiveCamera(settings.camera.fov, WIDTH / HEIGHT, settings.camera.near, settings.camera.far);
-	
-	
-	// compute this when I load initial extent
-	//this.camera.position.y = -1600;
-	//this.camera.position.z = 200;
-	this.camera.position.z = 800;
-	
+	//this.camera.position.z = 1000;
 	
 	this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 	
@@ -67,6 +61,12 @@ function Viewport3D(container, settings) {
 	
 	this.add = function(object) {
 		this.scene.add(object);
+	};
+	
+	this.clearScene = function() {
+		while (this.scene.children.length > 0) {
+			this.scene.remove(this.scene.children[this.scene.children.length - 1]);
+		}
 	};
 	
 	this.controls.addEventListener('change', Viewport3D.render);

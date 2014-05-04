@@ -9,53 +9,102 @@ var viewport = Viewport3D.create(container, {
 });
 
 var worker;
+var file;
 var header;
+var chunks;
 var pointStep;
+var startTime;
 
-function loadData() {
+function init() {
+	
+	var UIText = function () {
+		this['MaxPoints'] = 1000000;
+	};
+
+	var maxPoints = new UIText();
+
+	var gui = new dat.GUI();
+	var controller = gui.add(maxPoints, 'MaxPoints', {
+		'10m points': 10000000,
+		'5m points': 5000000,
+		'3m points': 3000000,
+		'2m points': 2000000,
+		'1m points': 1000000,
+		'500k points': 500000
+	});
+	controller.onChange(function(value) {
+
+		//scene.remove(mesh);
+
+		//mesh.geometry.dispose();
+
+		//GenerateGeometry2();
+
+	});
+
+	// use
+	//var text;
+	//var cubes = text['Cube Count'];
+	
+	
+	
 	var fileInput = $('#file-input')[0];
 
 	fileInput.addEventListener('change', function(e) {
-		var file = fileInput.files[0];
-		
-		worker = new Worker('js/worker2.js');
-		worker.addEventListener('message', function(e) {
-			if (e.data.header) {
-				header = e.data.header.readObject("LASHeader");
-				console.log("header");
-				
-				var maxPoints = 1000000;
-				var points = header.numberOfPointRecords;
-				pointStep = 1;
-				if (points > maxPoints) {
-					pointStep = Math.ceil(points / maxPoints);
-					points = maxPoints;
-					console.log(String.format("thinning {0} to {1} (step {2})", header.numberOfPointRecords, points, pointStep));
-				}
+		if (!worker) {
+			worker = new Worker('js/worker2.js');
+			worker.addEventListener('message', function(e) {
+				if (e.data.header) {
+					header = e.data.header.readObject("LASHeader");
+					chunks = e.data.chunks;
 
-				var bounds = createExtentGeometry(header.extent);
-				viewport.add(bounds);
-				
-				var es = header.extent.size();
-				viewport.camera.position.z = Math.max(es.x, es.y) * 2;
-			}
-			else if (e.data.chunk) {
-				e.data.header = header;
-				e.data.reader = new BinaryReader(e.data.chunk, 0, true);
-				handleData(e.data);
-				//console.log(String.format("chunk {0}", e.data.index));
-			}
-		}, false);
+					var maxPoints = 1000000;
+					var points = header.numberOfPointRecords;
+					pointStep = 1;
+					if (points > maxPoints) {
+						pointStep = Math.ceil(points / maxPoints);
+						points = maxPoints;
+						console.log(String.format("thinning {0} to {1} (step {2})", header.numberOfPointRecords.toLocaleString(), points.toLocaleString(), pointStep));
+					}
+
+					var bounds = createBounds(header.extent);
+					viewport.add(bounds);
+
+					var es = header.extent.size();
+					viewport.camera.position.z = Math.max(es.x, es.y) * 2;
+				}
+				else if (e.data.chunk) {
+					e.data.header = header;
+					e.data.reader = new BinaryReader(e.data.chunk, 0, true);
+					handleData(e.data);
+					//console.log(String.format("chunk {0}", e.data.index));
+					//var progress = (100 * (e.data.index + 1) / chunks);
+					
+					if (e.data.index + 1 == chunks) {
+						var timeSpan = Date.now() - startTime;
+						console.log(String.format("loaded in {0} ms", timeSpan.toLocaleString()));
+					}
+				}
+			}, false);
+		}
+		
+		if (header) {
+			viewport.clearScene();
+		}
+		
+		startTime = Date.now();
+		
+		file = e.target.files[0];
 		worker.postMessage({file: file});
 	});
 }
 
 function handleData(data) {
-	var object = createGeometry(data);
+	var object = createChunk(data);
 	viewport.add(object);
 }
 
-function createGeometry(data) {
+function createChunk(data) {
 
 	var points = ~~(data.points / pointStep);
 
@@ -106,7 +155,7 @@ function createGeometry(data) {
 	return new THREE.ParticleSystem(geometry, material);
 }
 
-function createExtentGeometry(extent) {
+function createBounds(extent) {
 	
 	var es = extent.size();
 	var cube = new THREE.BoxHelper();
@@ -120,4 +169,4 @@ function createExtentGeometry(extent) {
 	return cube;
 }
 
-loadData();
+init();
