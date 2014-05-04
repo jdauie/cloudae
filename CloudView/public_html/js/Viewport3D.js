@@ -19,7 +19,9 @@ function Viewport3D(container, settings) {
 	
 	
 	// compute this when I load initial extent
-	this.camera.position.z = 500;
+	//this.camera.position.y = -1600;
+	//this.camera.position.z = 200;
+	this.camera.position.z = 800;
 	
 	
 	this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);

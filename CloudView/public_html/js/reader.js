@@ -12,6 +12,11 @@ function arrayBufferToAsciiString(buf) {
 }
 */
 
+ArrayBuffer.prototype.readObject = function(name, namespace) {
+	var br = new BinaryReader(this, 0, true);
+	return br.readObject(name, namespace);
+};
+
 BinaryReader.prototype.seek = function(position) {
 	return this.position = position;
 };

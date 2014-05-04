@@ -2,7 +2,7 @@
 var container = document.getElementById('container');
 var viewport = Viewport3D.create(container, {
 	camera: {
-		fov:  75,
+		fov:  45,
 		near: 1,
 		far:  200000
 	}
@@ -12,12 +12,6 @@ var worker;
 var header;
 var pointStep;
 
-function LASFile(arrayBuffer) {
-	var reader = new BinaryReader(arrayBuffer, 0, true);
-	this.header = reader.readObject("LASHeader");
-	this.reader = new BinaryReader(arrayBuffer, this.header.offsetToPointData, true);
-}
-
 function loadData() {
 	var fileInput = $('#file-input')[0];
 
@@ -26,14 +20,9 @@ function loadData() {
 		
 		worker = new Worker('js/worker2.js');
 		worker.addEventListener('message', function(e) {
-			if (e.data.progress) {
-				$('#ajax-progress').val(e.data.progress);
-			}
-			else if (e.data.header) {
-				var br = new BinaryReader(e.data.header, 0, true);
-				header = br.readObject("LASHeader");
+			if (e.data.header) {
+				header = e.data.header.readObject("LASHeader");
 				console.log("header");
-				//console.log(String.format(" extent x: {0}"), header.extent.size().x);
 				
 				var maxPoints = 1000000;
 				var points = header.numberOfPointRecords;
@@ -48,10 +37,7 @@ function loadData() {
 				e.data.header = header;
 				e.data.reader = new BinaryReader(e.data.chunk, 0, true);
 				handleData(e.data);
-				console.log(String.format("chunk {0}", e.data.index));
-			}
-			else {
-				console.log("else");
+				//console.log(String.format("chunk {0}", e.data.index));
 			}
 		}, false);
 		worker.postMessage({file: file});
@@ -59,8 +45,11 @@ function loadData() {
 }
 
 function handleData(data) {
-	//var file = new LASFile(arrayBuffer);
 	$(".ajax-content").hide();
+	
+	//var object = createExtentGeometry(data.header.extent);
+	//viewport.add(object);
+	
 	var object = createGeometry(data);
 	viewport.add(object);
 }
@@ -113,9 +102,47 @@ function createGeometry(data) {
 	}
 
 	geometry.computeBoundingSphere();
-	var mesh = new THREE.ParticleSystem(geometry, material);
 	
-	return mesh;
+	return new THREE.ParticleSystem(geometry, material);
+}
+
+function createExtentGeometry(extent) {
+	var segments = 10000;
+
+	var geometry = new THREE.BufferGeometry();
+	var material = new THREE.LineBasicMaterial({ vertexColors: true });
+
+	geometry.addAttribute( 'position', new Float32Array( segments * 3 ), 3 );
+	geometry.addAttribute( 'color', new Float32Array( segments * 3 ), 3 );
+
+	var positions = geometry.getAttribute( 'position' ).array;
+	var colors = geometry.getAttribute( 'color' ).array;
+
+	var r = 800;
+
+	for ( var i = 0; i < segments; i ++ ) {
+
+		var x = Math.random() * r - r / 2;
+		var y = Math.random() * r - r / 2;
+		var z = Math.random() * r - r / 2;
+
+		// positions
+
+		positions[ i * 3 ] = x;
+		positions[ i * 3 + 1 ] = y;
+		positions[ i * 3 + 2 ] = z;
+
+		// colors
+
+		colors[ i * 3 ] = ( x / r ) + 0.5;
+		colors[ i * 3 + 1 ] = ( y / r ) + 0.5;
+		colors[ i * 3 + 2 ] = ( z / r ) + 0.5;
+
+	}
+
+	geometry.computeBoundingSphere();
+
+	return new THREE.Line(geometry, material);
 }
 
 loadData();

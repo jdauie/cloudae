@@ -9,14 +9,6 @@ self.addEventListener('message', function(e) {
   loadFile(data.file);
 }, false);
 
-function loadFile2(file) {
-	var reader = new FileReaderSync();
-	//reader.onprogress = updateProgress;
-	
-	var arraybuffer = reader.readAsArrayBuffer(file);
-	self.postMessage(arraybuffer, [arraybuffer]);
-}
-
 function updateProgress(evt) {
 	if (evt.lengthComputable) {
 		var percentComplete = (evt.loaded / evt.total) * 100;
@@ -27,11 +19,8 @@ function updateProgress(evt) {
 function loadFile(file) {
 	var reader = new FileReaderSync();
 	
-	// read header
 	var arraybuffer = reader.readAsArrayBuffer(file.slice(0, LAS_MAX_SUPPORTED_HEADER_SIZE));
-	var br = new BinaryReader(arraybuffer, 0, true);
-	
-	var header = br.readObject("LASHeader");
+	var header = arraybuffer.readObject("LASHeader");
 	self.postMessage({
 		header: arraybuffer
 	}, [arraybuffer]);
@@ -57,7 +46,8 @@ function loadFile(file) {
 			chunk: arraybuffer,
 			index: i,
 			points: points,
-			pointSize: header.pointDataRecordLength
+			pointSize: header.pointDataRecordLength,
+			progress: (100 * i / chunks)
 		}, [arraybuffer]);
 	}
 }
