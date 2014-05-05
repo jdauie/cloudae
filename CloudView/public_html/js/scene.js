@@ -14,10 +14,13 @@ var header;
 var chunks;
 var pointStep;
 var startTime;
+var resetCamera;
 
 var settings = {
 	maxPoints: 1000000,
-	colorRamp: 'Elevation1'
+	colorRamp: 'Elevation1',
+	pointSize: 1,
+	render: onUpdateSettings
 };
 
 function onUpdateSettings() {
@@ -28,15 +31,19 @@ function onUpdateSettings() {
 function init() {
 	
 	var gui = new dat.GUI();
-	gui.add(settings, 'maxPoints', {
-		'10m points': 10000000,
-		'5m points': 5000000,
-		'3m points': 3000000,
-		'2m points': 2000000,
-		'1m points': 1000000,
-		'500k points': 500000
-	}).onChange(onUpdateSettings);
-	gui.add(settings, 'colorRamp', Object.keys(ColorRamp.presets)).onChange(onUpdateSettings);
+	var f1 = gui.addFolder('Rendering');
+	f1.add(settings, 'maxPoints', {
+		'10m': 10000000,
+		'5m': 5000000,
+		'3m': 3000000,
+		'2m': 2000000,
+		'1m': 1000000,
+		'500k': 500000
+	});
+	f1.add(settings, 'colorRamp', Object.keys(ColorRamp.presets));
+	f1.add(settings, 'pointSize').min(1).max(20);
+	f1.add(settings, 'render');
+	f1.open();
 	
 	var fileInput = $('#file-input')[0];
 
@@ -60,8 +67,10 @@ function init() {
 					var bounds = createBounds(header.extent);
 					viewport.add(bounds);
 
-					var es = header.extent.size();
-					viewport.camera.position.z = Math.max(es.x, es.y) * 2;
+					if (resetCamera) {
+						var es = header.extent.size();
+						viewport.camera.position.z = Math.max(es.x, es.y) * 2;
+					}
 				}
 				else if (e.data.chunk) {
 					e.data.header = header;
@@ -84,6 +93,7 @@ function init() {
 		
 		startTime = Date.now();
 		
+		resetCamera = (file !== e.target.files[0]);
 		file = e.target.files[0];
 		worker.postMessage({file: file});
 	});
@@ -98,7 +108,8 @@ function createChunk(data) {
 
 	var points = ~~(data.points / pointStep);
 
-	var material = new THREE.ParticleSystemMaterial({vertexColors: true});
+	var material = new THREE.ParticleSystemMaterial({vertexColors: true, size: settings.pointSize});
+	//var material = shaderMaterial;
 	
 	var geometry = new THREE.BufferGeometry();
 
