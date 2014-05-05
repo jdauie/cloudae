@@ -100,7 +100,7 @@ function LASHeader(reader) {
 	{
 		this.numberOfPointRecords = this.legacyNumberOfPointRecords;
 		this.numberOfPointsByReturn = createZeroArray(15);
-		for (var i = 0; i < this.legacyNumberOfPointsByReturn.Length; i++)
+		for (var i = 0; i < this.legacyNumberOfPointsByReturn.length; i++)
 			this.numberOfPointsByReturn[i] = this.legacyNumberOfPointsByReturn[i];
 	}
 }

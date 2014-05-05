@@ -51,7 +51,7 @@ BinaryReader.prototype.readUint64 = function() {
 };
 
 BinaryReader.prototype.readUint64Array = function(size) {
-	var array = new Array(size);
+	var array = new Array();
 	for (var i = 0; i < size; i++) {
 		array.push(this.readUint64());
 	}
@@ -59,7 +59,7 @@ BinaryReader.prototype.readUint64Array = function(size) {
 };
 
 BinaryReader.prototype.readUint32Array = function(size) {
-	var array = new Array(size);
+	var array = new Array();
 	for (var i = 0; i < size; i++) {
 		array.push(this.readUint32());
 	}

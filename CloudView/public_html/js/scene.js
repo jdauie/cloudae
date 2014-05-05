@@ -7,6 +7,21 @@ var viewport = Viewport3D.create(container, {
 		far:  200000
 	}
 });
+$('#loader').hide();
+
+THREE.Vector3.prototype.toString = function() {
+	return String.format('[{0}]', this.toArray().map(function(n) {
+		return +n.toFixed(2);
+	}).join(', '));
+};
+
+function bytesToSize(bytes) {
+   var k = 1024;
+   var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+   if (bytes === 0) return '0 Bytes';
+   var i = parseInt(Math.floor(Math.log(bytes) / Math.log(k)),10);
+   return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
+}
 
 var worker;
 var file;
@@ -54,6 +69,20 @@ function init() {
 				if (e.data.header) {
 					header = e.data.header.readObject("LASHeader");
 					chunks = e.data.chunks;
+					
+					var displayOptionText = [
+						'file  : ' + file.name,
+						'size  : ' + bytesToSize(file.size),
+						'points: ' + header.numberOfPointRecords.toLocaleString(),
+						'vlrs  : ' + header.numberOfVariableLengthRecords,
+						'format: ' + header.pointDataRecordFormat,
+						'length: ' + header.pointDataRecordLength,
+						'offset: ' + header.quantization.offset,
+						'scale : ' + header.quantization.scale,
+						'extent: ' + header.extent.size()
+					].join('\n');
+					
+					$('#header-text').text(displayOptionText);
 
 					var maxPoints = settings.maxPoints;
 					var points = header.numberOfPointRecords;
