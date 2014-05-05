@@ -153,8 +153,7 @@ function createChunk2(data) {
 	var mid = data.header.extent.size().divideScalar(2).add(min);
 	
 	var i = 0;
-	for (var j = 0; j < data.points; j += pointStep) {
-		++i;
+	for (var j = 0; j < data.points; j += pointStep, ++i) {
 		data.reader.seek(j * data.pointSize);
 		var point = data.reader.readUnquantizedPoint3D(data.header.quantization);
 		
@@ -168,15 +167,15 @@ function createChunk2(data) {
 		y = (y - mid.y);
 		z = (z - mid.z);
 		
-		var k = i * 3;
+		var k = i * (3 + 3);
 
-		/*positions[k + 0] = x;
+		positions[k + 0] = x;
 		positions[k + 1] = y;
 		positions[k + 2] = z;
 
 		colors[k + 0] = c.r;
 		colors[k + 1] = c.g;
-		colors[k + 2] = c.b;*/
+		colors[k + 2] = c.b;
 	}
 
 	geometry.computeBoundingSphere();
@@ -206,8 +205,7 @@ function createChunk(data) {
 	var mid = data.header.extent.size().divideScalar(2).add(min);
 	
 	var i = 0;
-	for (var j = 0; j < data.points; j += pointStep) {
-		++i;
+	for (var j = 0; j < data.points; j += pointStep, ++i) {
 		data.reader.seek(j * data.pointSize);
 		var point = data.reader.readUnquantizedPoint3D(data.header.quantization);
 		
