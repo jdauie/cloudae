@@ -20,6 +20,9 @@ function loadFile(file) {
 	chunkBytes = chunkPoints * header.pointDataRecordLength;
 	var chunks = Math.ceil(header.numberOfPointRecords / chunkPoints);
 	
+	// debug
+	//chunks = 1;
+	
 	self.postMessage({
 		header: arraybuffer,
 		chunks: chunks

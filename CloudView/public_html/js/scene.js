@@ -104,85 +104,6 @@ function handleData(data) {
 	viewport.add(object);
 }
 
-// is interleaving any better?
-function createChunk2(data) {
-
-	var points = ~~(data.points / pointStep);
-	
-	
-	var material = new THREE.ParticleSystemMaterial({vertexColors: true});
-	
-	var geometry = new THREE.BufferGeometry();
-	geometry.dynamic = false;
-
-	geometry.numVertices = points;
-	geometry.attributes = {
-		position: {
-			itemSize: 3,
-			numItems: geometry.numVertices * 3,
-			offset: 0,
-			array: null
-		},
-		color: {
-			itemSize: 3,
-			numItems: geometry.numVertices * 3,
-			offset: 3 * Float32Array.BYTES_PER_ELEMENT,
-			array: null
-		}
-	};
-
-	geometry.vertexByteSize
-		= geometry.attributes.position.itemSize * Float32Array.BYTES_PER_ELEMENT
-		+ geometry.attributes.color.itemSize * Float32Array.BYTES_PER_ELEMENT;
-
-	geometry.array = new ArrayBuffer(geometry.numVertices * geometry.vertexByteSize);
-
-	geometry.attributes.position.array = new Float32Array(geometry.array, geometry.attributes.position.offset);
-	geometry.attributes.color.array = new Float32Array(geometry.array, geometry.attributes.color.offset);
-
-	var positions = geometry.attributes.position.array;
-	var colors = geometry.attributes.color.array;
-	/*
-	geometry.addAttribute('position', Float32Array, points, 3);
-	geometry.addAttribute('color', Float32Array, points, 3);*/
-
-	var ramp = ColorRamp.presets.Elevation1;
-	
-	var size = data.header.extent.size();
-	var min = data.header.extent.min;
-	var mid = data.header.extent.size().divideScalar(2).add(min);
-	
-	var i = 0;
-	for (var j = 0; j < data.points; j += pointStep, ++i) {
-		data.reader.seek(j * data.pointSize);
-		var point = data.reader.readUnquantizedPoint3D(data.header.quantization);
-		
-		var x = point.x;
-		var y = point.y;
-		var z = point.z;
-		
-		var c = ramp.getColor((z - min.z) / size.z);
-
-		x = (x - mid.x);
-		y = (y - mid.y);
-		z = (z - mid.z);
-		
-		var k = i * (3 + 3);
-
-		positions[k + 0] = x;
-		positions[k + 1] = y;
-		positions[k + 2] = z;
-
-		colors[k + 0] = c.r;
-		colors[k + 1] = c.g;
-		colors[k + 2] = c.b;
-	}
-
-	geometry.computeBoundingSphere();
-	
-	return new THREE.ParticleSystem(geometry, material);
-}
-
 function createChunk(data) {
 
 	var points = ~~(data.points / pointStep);
@@ -219,15 +140,15 @@ function createChunk(data) {
 		y = (y - mid.y);
 		z = (z - mid.z);
 		
-		var k = i * 3;
+		var k1 = i * geometry.attributes.position.itemSize;
+		positions[k1 + 0] = x;
+		positions[k1 + 1] = y;
+		positions[k1 + 2] = z;
 
-		positions[k + 0] = x;
-		positions[k + 1] = y;
-		positions[k + 2] = z;
-
-		colors[k + 0] = c.r;
-		colors[k + 1] = c.g;
-		colors[k + 2] = c.b;
+		var k2 = i * geometry.attributes.color.itemSize;
+		colors[k2 + 0] = c.r;
+		colors[k2 + 1] = c.g;
+		colors[k2 + 2] = c.b;
 	}
 
 	geometry.computeBoundingSphere();
