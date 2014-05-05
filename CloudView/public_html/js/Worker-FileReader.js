@@ -5,8 +5,8 @@ importScripts(
 );
 
 self.addEventListener('message', function(e) {
-  var data = e.data;
-  loadFile(data.file);
+	var data = e.data;
+	loadFile(data.file);
 }, false);
 
 function loadFile(file) {

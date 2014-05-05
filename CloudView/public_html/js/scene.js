@@ -15,38 +15,28 @@ var chunks;
 var pointStep;
 var startTime;
 
+var settings = {
+	maxPoints: 1000000,
+	colorRamp: 'Elevation1'
+};
+
+function onUpdateSettings() {
+	var fileInput = $('#file-input')[0];
+	fileInput.dispatchEvent(new Event('change'));
+}
+
 function init() {
 	
-	var UIText = function () {
-		this['MaxPoints'] = 1000000;
-	};
-
-	var maxPoints = new UIText();
-
 	var gui = new dat.GUI();
-	var controller = gui.add(maxPoints, 'MaxPoints', {
+	gui.add(settings, 'maxPoints', {
 		'10m points': 10000000,
 		'5m points': 5000000,
 		'3m points': 3000000,
 		'2m points': 2000000,
 		'1m points': 1000000,
 		'500k points': 500000
-	});
-	controller.onChange(function(value) {
-
-		//scene.remove(mesh);
-
-		//mesh.geometry.dispose();
-
-		//GenerateGeometry2();
-
-	});
-
-	// use
-	//var text;
-	//var cubes = text['Cube Count'];
-	
-	
+	}).onChange(onUpdateSettings);
+	gui.add(settings, 'colorRamp', Object.keys(ColorRamp.presets)).onChange(onUpdateSettings);
 	
 	var fileInput = $('#file-input')[0];
 
@@ -58,7 +48,7 @@ function init() {
 					header = e.data.header.readObject("LASHeader");
 					chunks = e.data.chunks;
 
-					var maxPoints = 1000000;
+					var maxPoints = settings.maxPoints;
 					var points = header.numberOfPointRecords;
 					pointStep = 1;
 					if (points > maxPoints) {
@@ -80,7 +70,7 @@ function init() {
 					//console.log(String.format("chunk {0}", e.data.index));
 					//var progress = (100 * (e.data.index + 1) / chunks);
 					
-					if (e.data.index + 1 == chunks) {
+					if (e.data.index + 1 === chunks) {
 						var timeSpan = Date.now() - startTime;
 						console.log(String.format("loaded in {0} ms", timeSpan.toLocaleString()));
 					}
@@ -109,9 +99,8 @@ function createChunk(data) {
 	var points = ~~(data.points / pointStep);
 
 	var material = new THREE.ParticleSystemMaterial({vertexColors: true});
-
+	
 	var geometry = new THREE.BufferGeometry();
-	geometry.dynamic = false;
 
 	geometry.addAttribute('position', Float32Array, points, 3);
 	geometry.addAttribute('color', Float32Array, points, 3);
@@ -119,7 +108,7 @@ function createChunk(data) {
 	var positions = geometry.attributes.position.array;
 	var colors = geometry.attributes.color.array;
 
-	var ramp = ColorRamp.presets.Elevation1;
+	var ramp = ColorRamp.presets[settings.colorRamp];
 	
 	var size = data.header.extent.size();
 	var min = data.header.extent.min;
