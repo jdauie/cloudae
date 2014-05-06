@@ -99,7 +99,6 @@ function init() {
 					
 					if (e.data.zstats && e.data.zstats.byteLength > 0) {
 						statsZ = e.data.zstats.readObject("Statistics");
-						
 					}
 					
 					var displayOptionText = [
@@ -156,6 +155,8 @@ function init() {
 		
 		if (header) {
 			viewport.clearScene();
+			header = null;
+			statsZ = null;
 		}
 		
 		startTime = Date.now();
@@ -195,6 +196,7 @@ function createChunk(data) {
 	var stretch;
 	if (statsZ) {
 		stretch = new StdDevStretch(min.z, data.header.extent.max.z, statsZ, 2);
+		mid.z = statsZ.modeApproximate;
 	}
 	else {
 		stretch = new MinMaxStretch(min.z, data.header.extent.max.z);
@@ -243,6 +245,14 @@ function createBounds(extent) {
 		(es.y / 2),
 		(es.z / 2)
 	);
+	
+	if (statsZ) {
+		var parent = new THREE.Object3D();
+		parent.add(cube);
+		var mid = extent.size().divideScalar(2).add(extent.min);
+		parent.position.z -= (statsZ.modeApproximate - mid.z);
+		cube = parent;
+	}
 	
 	return cube;
 }
