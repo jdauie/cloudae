@@ -21,7 +21,7 @@ namespace CloudAE.Core
 		private IPointCloudBinarySource m_binarySource;
 		private PointCloudTileSource m_tileSource;
 
-		private readonly LASFile m_tiledHandler;
+		private LASFile m_tiledHandler;
 
 		static ProcessingSet()
 		{
@@ -54,6 +54,7 @@ namespace CloudAE.Core
 				using (var process = progressManager.StartProcess("ProcessSet"))
 				{
 					m_binarySource = m_inputHandler.GenerateBinarySource(progressManager);
+					m_tiledHandler = LASFile.Create(m_tiledHandler.FilePath, m_binarySource);
 
 					using (var segmentBuffer = BufferManager.AcquireBuffer(m_id, (int)PROPERTY_SEGMENT_SIZE.Value, true))
 					{

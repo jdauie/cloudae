@@ -15,17 +15,16 @@ using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
-#warning TODO: remove dependence on BinarySource to simplify conversion to LAS 1.4
-	public class PointCloudTileSource : PointCloudBinarySource, ISerializeBinary, INotifyPropertyChanged
+	public class PointCloudTileSource : PointCloudBinarySource, INotifyPropertyChanged
 	{
-		public const string FILE_EXTENSION = "tpb";
-		
 		private const int MAX_PREVIEW_DIMENSION = 1000;
 
-		private const string FILE_IDENTIFIER = "TPBF";
+		/*private const string FILE_IDENTIFIER = "TPBF";
 		private const string FILE_IDENTIFIER_DIRTY = "TPBD";
 		private const int FILE_VERSION_MAJOR = 1;
-		private const int FILE_VERSION_MINOR = 10;
+		private const int FILE_VERSION_MINOR = 10;*/
+
+		private readonly LASFile m_file;
 
 		private readonly PointCloudTileSet m_tileSet;
 		private readonly Statistics m_statisticsZ;
@@ -39,7 +38,7 @@ namespace CloudAE.Core
 		private GridQuantizedSet m_pixelGridSet;
 		private PreviewImage m_preview;
 
-		private System.Windows.Media.Imaging.BitmapImage m_icon;
+		private BitmapImage m_icon;
 
 		#region INotifyPropertyChanged Members
 
@@ -61,7 +60,7 @@ namespace CloudAE.Core
 			get
 			{
 				if (m_icon == null)
-					m_icon = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/CloudAE.Core;component/Icons/bullet_green.png"));
+					m_icon = new BitmapImage(new Uri("pack://application:,,,/CloudAE.Core;component/Icons/bullet_green.png"));
 				return m_icon;
 			}
 		}
@@ -147,110 +146,56 @@ namespace CloudAE.Core
 
 		#endregion
 
-		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, SQuantization3D quantization, short pointSizeBytes, Statistics zStats)
-			: this(file, tileSet, quantization, 0, pointSizeBytes, zStats)
+		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, Statistics zStats)
+			: base(file, tileSet.PointCount, tileSet.Extent, file.Header.Quantization, file.Header.OffsetToPointData, (short)file.Header.PointDataRecordLength)
 		{
-		}
+			m_file = file;
 
-		public PointCloudTileSource(LASFile file, PointCloudTileSet tileSet, SQuantization3D quantization, long pointDataOffset, short pointSizeBytes, Statistics zStats)
-			: base(file, tileSet.PointCount, tileSet.Extent, quantization, pointDataOffset, pointSizeBytes)
-		{
 			m_tileSet = tileSet;
 			m_tileSet.TileSource = this;
 
 			m_statisticsZ = zStats;
 			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization);
+
 #warning this should be stored in the tileset, rather than converted
 			QuantizedExtent = Quantization.Convert(Extent);
 
-			if (pointDataOffset == 0)
-			{
-				IsDirty = true;
-				WriteHeader();
-			}
+			m_file.UpdateEVLR(new LASRecordIdentifier("Jacere", 0), TileSet);
+			m_file.UpdateEVLR(new LASRecordIdentifier("Jacere", 1), StatisticsZ);
 		}
 
 		public static string GetTileSourcePath(string path)
 		{
 			// mark with some low-order bytes of the file size
 			var fileInfo = new FileInfo(path);
-			string fileName = String.Format("{0}.{1}.{2}", fileInfo.Name, BitConverter.GetBytes(fileInfo.Length).ToBase64SafeString(0, 3), PointCloudTileSource.FILE_EXTENSION);
+			string fileName = String.Format("{0}.{1}.las", fileInfo.Name, BitConverter.GetBytes(fileInfo.Length).ToBase64SafeString(0, 3));
 			string tilePath = Path.Combine(Cache.APP_CACHE_DIR, fileName);
 			return tilePath;
 		}
 
 		public static PointCloudTileSource Open(LASFile file)
 		{
-#warning actually read as LAS format
-
-			long pointDataOffset;
-			short pointSizeBytes;
-
-			SQuantization3D quantization;
-			Statistics zStats;
-			PointCloudTileSet tileSet;
-
-			using (var reader = new BinaryReader(File.OpenRead(file.FilePath)))
-			{
-				if (Encoding.ASCII.GetString(reader.ReadBytes(FILE_IDENTIFIER.Length)) != FILE_IDENTIFIER)
-					throw new OpenFailedException(file, "File identifier does not match.");
-
-				int versionMajor = reader.ReadInt32();
-				int versionMinor = reader.ReadInt32();
-
-				if (versionMajor != FILE_VERSION_MAJOR || versionMinor != FILE_VERSION_MINOR)
-					throw new OpenFailedException(file, "File version does not match.");
-
-				pointDataOffset = reader.ReadInt64();
-				pointSizeBytes = reader.ReadInt16();
-
-				quantization = reader.ReadSQuantization3D();
-				zStats = reader.ReadStatistics();
-				tileSet = reader.ReadTileSet();
-			}
-
-			var source = new PointCloudTileSource(file, tileSet, quantization, pointDataOffset, pointSizeBytes, zStats);
+			var tileSet = file.EVLRs.First(r => r.RecordIdentifier.Equals(new LASRecordIdentifier("Jacere", 0))).Deserialize<PointCloudTileSet>();
+			var zStats = file.EVLRs.First(r => r.RecordIdentifier.Equals(new LASRecordIdentifier("Jacere", 1))).Deserialize<Statistics>();
+			
+			var source = new PointCloudTileSource(file, tileSet, zStats);
 
 			return source;
 		}
 
-		public void Serialize(BinaryWriter writer)
-		{
-#warning actually write LAS format
-
-			// assumes this function will be atomic, which is true for cancellation, 
-			// but not for exceptions during the write operation
-			string identifier = IsDirty ? FILE_IDENTIFIER_DIRTY : FILE_IDENTIFIER;
-
-			writer.Write(Encoding.ASCII.GetBytes(identifier));
-			writer.Write(FILE_VERSION_MAJOR);
-			writer.Write(FILE_VERSION_MINOR);
-			writer.Write(PointDataOffset);
-			writer.Write(PointSizeBytes);
-			writer.Write(Quantization);
-			writer.Write(StatisticsZ);
-			writer.Write(TileSet);
-		}
-
 		public void WriteHeader()
 		{
-#warning actually write LAS header
-
 			Close();
 
-			using (var writer = new BinaryWriter(File.OpenWrite(FilePath)))
+			// todo: mark as dirty somehow
+			using (var stream = File.OpenWrite(FilePath))
 			{
-				writer.Write(this);
-
-				if (PointDataOffset == 0)
+				using (var writer = new FlexibleBinaryWriter(stream))
 				{
-					PointDataOffset = (int)writer.BaseStream.Position;
-
-					// serialize again to write out the correct point offset
-					// (obviously I should do this a better way)
-					writer.Seek(0, SeekOrigin.Begin);
-					writer.Write(this);
+					writer.Write(m_file.Header);
 				}
+				m_file.Header.WriteVLRs(stream, m_file.VLRs);
+				m_file.Header.WriteEVLRs(stream, m_file.EVLRs);
 			}
 		}
 

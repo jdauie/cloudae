@@ -38,4 +38,36 @@ namespace Jacere.Core
 			base.Dispose(m_closeStreamWhenDisposed);
 		}
 	}
+
+	public class FlexibleBinaryWriter : BinaryWriter
+	{
+		private readonly bool m_closeStreamWhenDisposed;
+
+		public FlexibleBinaryWriter(Stream input)
+			: base(input)
+		{
+		}
+
+		public FlexibleBinaryWriter(Stream input, Encoding encoding)
+			: base(input, encoding)
+		{
+		}
+
+		public FlexibleBinaryWriter(Stream input, bool closeStreamWhenDisposed)
+			: base(input)
+		{
+			m_closeStreamWhenDisposed = closeStreamWhenDisposed;
+		}
+
+		public FlexibleBinaryWriter(Stream input, Encoding encoding, bool closeStreamWhenDisposed)
+			: base(input, encoding)
+		{
+			m_closeStreamWhenDisposed = closeStreamWhenDisposed;
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(m_closeStreamWhenDisposed);
+		}
+	}
 }

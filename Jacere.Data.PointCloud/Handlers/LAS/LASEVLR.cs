@@ -61,6 +61,16 @@ namespace Jacere.Data.PointCloud
 			}
 		}
 
+		public LASEVLR(LASRecordIdentifier record, ISerializeBinary data)
+		{
+			m_userID = record.UserID;
+			m_recordID = record.RecordID;
+			m_description = String.Empty;
+
+			m_data = SerializationHelper.Serialize(data);
+			m_recordLengthAfterHeader = (ulong)m_data.Length;
+		}
+
 		public LASEVLR(BinaryReader reader)
 		{
 			m_reserved = reader.ReadUInt16();
@@ -72,9 +82,8 @@ namespace Jacere.Data.PointCloud
 			// this data could be massive...such as the waveform data packets
 			// I should only read records that I want
 			// If I later decide that I want to read large records, they should be streamed
-			//m_data = reader.ReadBytes(m_recordLengthAfterHeader);
-
-			reader.BaseStream.Seek((long)m_recordLengthAfterHeader, SeekOrigin.Current);
+			//reader.BaseStream.Seek((long)m_recordLengthAfterHeader, SeekOrigin.Current);
+			m_data = reader.ReadBytes((int)m_recordLengthAfterHeader);
 		}
 
 		public void Serialize(BinaryWriter writer)
@@ -84,7 +93,12 @@ namespace Jacere.Data.PointCloud
 			writer.Write(m_recordID);
 			writer.Write(m_recordLengthAfterHeader);
 			writer.Write(m_description.ToAsciiBytes(32));
-			//writer.Write(m_data);
+			writer.Write(m_data);
+		}
+
+		public T Deserialize<T>()
+		{
+			return SerializationHelper.Deserialize<T>(m_data);
 		}
 
 		public override string ToString()

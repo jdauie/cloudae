@@ -18,6 +18,16 @@ namespace Jacere.Data.PointCloud
 		protected readonly LASVLR[] m_vlrs;
 		protected readonly LASEVLR[] m_evlrs;
 
+		public LASVLR[] VLRs
+		{
+			get { return m_vlrs; }
+		}
+
+		public LASEVLR[] EVLRs
+		{
+			get { return m_evlrs; }
+		}
+
 		public LASHeader Header
 		{
 			get { return m_header; }
@@ -50,8 +60,45 @@ namespace Jacere.Data.PointCloud
 
 		public static LASFile Create(string path, IPointCloudBinarySource source)
 		{
-			// todo: what is this source param?
+			var pcbs = source as PointCloudBinarySource;
+			if (pcbs != null)
+			{
+				var lasFile = pcbs.FileHandler as LASFile;
+				if (lasFile != null)
+				{
+					var evlrs = (new List<LASEVLR>(lasFile.m_evlrs)
+					{
+						new LASEVLR(new LASRecordIdentifier("Jacere", 0), null),
+						new LASEVLR(new LASRecordIdentifier("Jacere", 1), null)
+					}).ToArray();
+
+					var header = new LASHeader(new [] {lasFile.Header}, lasFile.m_vlrs, evlrs);
+					return new LASFile(path, header, lasFile.m_vlrs, evlrs);
+				}
+			}
+
+			// this will require more work
 			return new LASFile(path);
+		}
+
+		public LASFile(string path, LASHeader header, LASVLR[] vlrs, LASEVLR[] evlrs)
+			: base(path)
+		{
+			m_header = header;
+			m_vlrs = vlrs;
+			m_evlrs = evlrs;
+
+			using (var stream = File.Create(FilePath))
+			{
+				using (var writer = new FlexibleBinaryWriter(stream))
+				{
+					header.Serialize(writer);
+				}
+
+				//header.WriteVLRs(stream, vlrs);
+			}
+
+			m_extent = m_header.Extent;
 		}
 
 		public LASFile(string path)
@@ -75,6 +122,18 @@ namespace Jacere.Data.PointCloud
 					m_extent = m_header.Extent;
 				}
 				catch { }
+			}
+		}
+
+		public void UpdateEVLR(LASRecordIdentifier record, ISerializeBinary obj)
+		{
+			for (var i = 0; i < m_evlrs.Length; i++)
+			{
+				if (m_evlrs[i].RecordIdentifier.Equals(record))
+				{
+					m_evlrs[i] = new LASEVLR(record, obj);
+					break;
+				}
 			}
 		}
 
@@ -179,9 +238,9 @@ namespace Jacere.Data.PointCloud
 			// points by return
 
 			// create parameters
-			Parameter<Extent3D>.Define("Extent", m_extent);
-			Parameter<SQuantization3D>.Define("Quantization", m_header.Quantization);
-			Parameter<ulong>.Define("PointCount", m_header.PointCount);
+			//Parameter<Extent3D>.Define("Extent", m_extent);
+			//Parameter<SQuantization3D>.Define("Quantization", m_header.Quantization);
+			//Parameter<ulong>.Define("PointCount", m_header.PointCount);
 
 			var source = new PointCloudBinarySource(this, Count, m_extent, m_header.Quantization, PointDataOffset, PointSizeBytes);
 

@@ -260,8 +260,35 @@ namespace Jacere.Data.PointCloud
 			//m_numberOfPointsByReturn = (ulong[])header.m_numberOfPointsByReturn.Clone();
 		}
 
-		public LASHeader(LASHeader header, LASVLR[] vlrs)
+		/// <summary>
+		/// This will only work if point format, point length, offset, and scale are identical.
+		/// </summary>
+		public LASHeader(LASHeader[] headers, LASVLR[] vlrs, LASEVLR[] evlrs)
 		{
+			var header = headers[0];
+			var extent = headers.Select(h => h.m_extent).Union3D();
+
+			var points = (ulong)headers.Sum(h => (long)h.m_numberOfPointRecords);
+			var pointsByReturn = new ulong[15];
+			for (var i = 0; i < pointsByReturn.Length; i++)
+			{
+				pointsByReturn[i] = (ulong)headers.Sum(h => (long)h.m_numberOfPointsByReturn[i]);
+			}
+
+			uint legacyPoints = 0;
+			uint[] legacyPointsByReturn;
+
+			if (points > uint.MaxValue)
+			{
+				legacyPoints = 0;
+				legacyPointsByReturn = new uint[5];
+			}
+			else
+			{
+				legacyPoints = (uint)points;
+				legacyPointsByReturn = pointsByReturn.Take(5).Select(c => (uint)c).ToArray();
+			}
+
 			m_fileSourceID = header.m_fileSourceID;
 
 			m_globalEncoding = header.m_globalEncoding;
@@ -279,19 +306,28 @@ namespace Jacere.Data.PointCloud
 			m_numberOfVariableLengthRecords = (uint)vlrs.Length;
 			m_pointDataRecordFormat = header.m_pointDataRecordFormat;
 			m_pointDataRecordLength = header.m_pointDataRecordLength;
-			m_legacyNumberOfPointRecords = header.m_legacyNumberOfPointRecords;
-			m_legacyNumberOfPointsByReturn = (uint[])header.m_legacyNumberOfPointsByReturn.Clone();
+
+			if (points > uint.MaxValue)
+			{
+				m_legacyNumberOfPointRecords = 0;
+				m_legacyNumberOfPointsByReturn = new uint[5];
+			}
+			else
+			{
+				m_legacyNumberOfPointRecords = legacyPoints;
+				m_legacyNumberOfPointsByReturn = legacyPointsByReturn;
+			}
 
 			m_quantization = header.m_quantization;
-			m_extent = header.m_extent;
+			m_extent = extent;
 
 			m_startOfWaveformDataPacketRecord = 0;
 
-			m_startOfFirstExtendedVariableLengthRecord = m_offsetToPointData + (m_numberOfPointRecords * m_pointDataRecordLength);
-			m_numberOfExtendedVariableLengthRecords = header.m_numberOfExtendedVariableLengthRecords;
-			m_numberOfPointRecords = header.m_numberOfPointRecords;
+			m_startOfFirstExtendedVariableLengthRecord = m_offsetToPointData + (points * m_pointDataRecordLength);
+			m_numberOfExtendedVariableLengthRecords = (uint)evlrs.Length;
+			m_numberOfPointRecords = points;
 
-			m_numberOfPointsByReturn = (ulong[])header.m_numberOfPointsByReturn.Clone();
+			m_numberOfPointsByReturn = pointsByReturn;
 		}
 
 		public LASHeader(BinaryReader reader)
@@ -447,19 +483,13 @@ namespace Jacere.Data.PointCloud
 			// my stream doesn't seek for now
 			stream.Seek(m_headerSize, SeekOrigin.Begin);
 
-			// make a non-closing writer?
-			using (var writer = new BinaryWriter(stream))
+			using (var writer = new FlexibleBinaryWriter(stream))
 			{
 				foreach (var vlr in vlrs)
 				{
 					writer.Write(vlr);
 				}
 			}
-		}
-
-		public void WriteEVLRs(Stream stream, LASEVLR[] vlrs)
-		{
-			
 		}
 
 		public LASEVLR[] ReadEVLRs(Stream stream)
@@ -482,6 +512,19 @@ namespace Jacere.Data.PointCloud
 			}
 
 			return vlrs.ToArray();
+		}
+
+		public void WriteEVLRs(Stream stream, LASEVLR[] vlrs)
+		{
+			stream.Seek((long)m_startOfFirstExtendedVariableLengthRecord, SeekOrigin.Begin);
+
+			using (var writer = new FlexibleBinaryWriter(stream))
+			{
+				foreach (var vlr in vlrs)
+				{
+					writer.Write(vlr);
+				}
+			}
 		}
 	}
 }

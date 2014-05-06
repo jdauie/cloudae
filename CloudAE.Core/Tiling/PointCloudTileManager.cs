@@ -42,22 +42,11 @@ namespace CloudAE.Core
 
 			var quantizedExtent = m_source.Quantization.Convert(analysis.Density.Extent);
 
-			// create LAS output file (1.4 format)
-			// (write header)
-			// (copy VLRs)
-			
-
-
-			// create empty TileSet just to know the header size
-			var densityTemp = new PointCloudTileDensity(tileCounts, m_source.Extent);
-			var tileSetTemp = new PointCloudTileSet(densityTemp, tileCounts);
-			var tileSourceTemp = new PointCloudTileSource(tiledFile, tileSetTemp, analysis.Quantization, m_source.PointSizeBytes, analysis.Statistics);
-
-			long fileSize = tileSourceTemp.PointDataOffset + (m_source.PointSizeBytes * m_source.Count);
+			long fileSize = tiledFile.PointDataOffset + (m_source.PointSizeBytes * m_source.Count);
 
 			AttemptFastAllocate(tiledFile.FilePath, fileSize);
 
-			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tileSourceTemp.PointDataOffset))
+			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tiledFile.PointDataOffset))
 			{
 				int i = 0;
 				foreach (var segment in analysis.GridIndex)
@@ -97,13 +86,9 @@ namespace CloudAE.Core
 				}
 			}
 
-			// at this point, counts have been completed
-			// I can now make a tileSet and a tileSource
-			// However, the tileSource constructor cannot stomp on the points that I have already written
-
 			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Extent);
 			var tileSet = new PointCloudTileSet(actualDensity, tileCounts);
-			var tileSource = new PointCloudTileSource(tiledFile, tileSet, analysis.Quantization, m_source.PointSizeBytes, analysis.Statistics);
+			var tileSource = new PointCloudTileSource(tiledFile, tileSet, analysis.Statistics);
 
 			if (!progressManager.IsCanceled())
 				tileSource.IsDirty = false;
