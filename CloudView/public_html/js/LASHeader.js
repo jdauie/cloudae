@@ -58,7 +58,7 @@ BinaryReader.prototype.readUnquantizedPoint3D = function(quantization) {
 
 function LASHeader(reader) {
 	this.signature = reader.readAsciiString(4);
-	if (this.signature != "LASF")
+	if (this.signature !== "LASF")
 		throw "Invalid signature";
 	
     this.fileSourceID          = reader.readUint16();
@@ -103,4 +103,15 @@ function LASHeader(reader) {
 		for (var i = 0; i < this.legacyNumberOfPointsByReturn.length; i++)
 			this.numberOfPointsByReturn[i] = this.legacyNumberOfPointsByReturn[i];
 	}
+}
+
+function LASEVLR(reader) {
+	reader.readUint16(); // reserved
+	this.userID = reader.readAsciiString(16);
+	this.recordID = reader.readUint16();
+	this.recordLengthAfterHeader = reader.readUint64();
+	this.description = reader.readAsciiString(32);
+
+	//reader.BaseStream.Seek((long)m_recordLengthAfterHeader, SeekOrigin.Current);
+	//this.data = reader.ReadBytes(this.recordLengthAfterHeader);
 }

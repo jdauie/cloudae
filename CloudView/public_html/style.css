@@ -11,10 +11,16 @@ body {
 	left: 0;
 	z-index: 100;
 }
-#header {
+#header,
+#status {
 	position: fixed;
 	bottom: 30px;
-	left: 20px;
 	z-index: 90;
 	color: #fff;
+}
+#header {
+	left: 20px;
+}
+#status {
+	right: 20px;
 }

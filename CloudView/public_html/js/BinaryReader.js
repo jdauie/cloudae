@@ -17,6 +17,10 @@ ArrayBuffer.prototype.readObject = function(name, namespace) {
 	return br.readObject(name, namespace);
 };
 
+BinaryReader.prototype.skip = function(count) {
+	return this.position += count;
+};
+
 BinaryReader.prototype.seek = function(position) {
 	return this.position = position;
 };
@@ -69,7 +73,7 @@ BinaryReader.prototype.readUint32Array = function(size) {
 BinaryReader.prototype.readAsciiString = function(size) {
 	var offset = this.offset + this.position;
 	this.position += size;
-	return String.fromCharCode.apply(null, new Uint8Array(this.buffer, offset, offset + size));
+	return String.fromCharCode.apply(null, new Uint8Array(this.buffer, offset, size)).replace(/\0/g, '');
 };
 
 

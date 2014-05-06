@@ -6,16 +6,32 @@ importScripts(
 
 self.addEventListener('message', function(e) {
 	var data = e.data;
-	loadFile(data.file);
+	loadFile(data.file, data.chunkSize);
 }, false);
 
-function loadFile(file) {
+function loadFile(file, chunkBytes) {
 	var reader = new FileReaderSync();
 	
-	var arraybuffer = reader.readAsArrayBuffer(file.slice(0, LAS_MAX_SUPPORTED_HEADER_SIZE));
-	var header = arraybuffer.readObject("LASHeader");
+	var buffer = reader.readAsArrayBuffer(file.slice(0, LAS_MAX_SUPPORTED_HEADER_SIZE));
+	var header = buffer.readObject("LASHeader");
 	
-	var chunkBytes = 2*1024*1024;
+	// read evlrs to find known records
+	var evlrPosition = header.startOfFirstExtendedVariableLengthRecord;
+	var evlrSizeBeforeData = 60;
+	var bufferStats = new ArrayBuffer(0);
+	for (var i = 0; i < header.numberOfExtendedVariableLengthRecords; i++) {
+		var buffer2 = reader.readAsArrayBuffer(file.slice(evlrPosition, evlrPosition + evlrSizeBeforeData));
+		var evlr = buffer2.readObject("LASEVLR");
+		var evlrPositionNext = evlrPosition + evlrSizeBeforeData + evlr.recordLengthAfterHeader;
+		if (evlr.userID === "Jacere") {
+			buffer2 = reader.readAsArrayBuffer(file.slice(evlrPosition + evlrSizeBeforeData, evlrPositionNext));
+			if (evlr.recordID === 1) {
+				bufferStats = buffer2;
+			}
+		}
+		evlrPosition = evlrPositionNext;
+	}
+	
 	var chunkPoints = ~~(chunkBytes / header.pointDataRecordLength);
 	chunkBytes = chunkPoints * header.pointDataRecordLength;
 	var chunks = Math.ceil(header.numberOfPointRecords / chunkPoints);
@@ -24,9 +40,10 @@ function loadFile(file) {
 	//chunks = 1;
 	
 	self.postMessage({
-		header: arraybuffer,
-		chunks: chunks
-	}, [arraybuffer]);
+		header: buffer,
+		chunks: chunks,
+		zstats: bufferStats
+	}, [buffer, bufferStats]);
 	
 	for (var i = 0; i < chunks; i++) {
 		
@@ -39,13 +56,13 @@ function loadFile(file) {
 		}
 		
 		var slice = file.slice(start, end);
-		arraybuffer = reader.readAsArrayBuffer(slice);
+		buffer = reader.readAsArrayBuffer(slice);
 		self.postMessage({
-			chunk: arraybuffer,
+			chunk: buffer,
 			index: i,
 			points: points,
 			pointSize: header.pointDataRecordLength
-		}, [arraybuffer]);
+		}, [buffer]);
 	}
 }
 

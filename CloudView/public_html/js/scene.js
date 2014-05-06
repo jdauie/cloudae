@@ -25,17 +25,26 @@ function bytesToSize(bytes) {
 
 var worker;
 var file;
+var statsZ;
 var header;
 var chunks;
 var pointStep;
 var startTime;
 var resetCamera;
 
-var settings = {
+var loaderSettings = {
+	chunkSize: 8*1024*1024
+};
+
+var renderSettings = {
 	maxPoints: 1000000,
 	colorRamp: 'Elevation1',
 	pointSize: 1,
-	render: onUpdateSettings
+	showBounds: true
+};
+
+var actionMethods = {
+	update: onUpdateSettings
 };
 
 function onUpdateSettings() {
@@ -46,8 +55,22 @@ function onUpdateSettings() {
 function init() {
 	
 	var gui = new dat.GUI();
+	var f2 = gui.addFolder('Loading');
+	f2.add(loaderSettings, 'chunkSize', {
+		'128 MB': 128*1024*1024,
+		'64 MB': 64*1024*1024,
+		'32 MB': 32*1024*1024,
+		'16 MB': 16*1024*1024,
+		'8 MB': 8*1024*1024,
+		'4 MB': 4*1024*1024,
+		'2 MB': 2*1024*1024,
+		'1 MB': 1*1024*1024,
+		'512 KB': 512*1024,
+		'256 KB': 256*1024
+	});
+	f2.open();
 	var f1 = gui.addFolder('Rendering');
-	f1.add(settings, 'maxPoints', {
+	f1.add(renderSettings, 'maxPoints', {
 		'10m': 10000000,
 		'5m': 5000000,
 		'3m': 3000000,
@@ -55,10 +78,13 @@ function init() {
 		'1m': 1000000,
 		'500k': 500000
 	});
-	f1.add(settings, 'colorRamp', Object.keys(ColorRamp.presets));
-	f1.add(settings, 'pointSize').min(1).max(20);
-	f1.add(settings, 'render');
+	f1.add(renderSettings, 'colorRamp', Object.keys(ColorRamp.presets));
+	f1.add(renderSettings, 'pointSize').min(1).max(20);
+	f1.add(renderSettings, 'showBounds');
 	f1.open();
+	var f3 = gui.addFolder('Actions');
+	f3.add(actionMethods, 'update');
+	f3.open();
 	
 	var fileInput = $('#file-input')[0];
 
@@ -69,6 +95,11 @@ function init() {
 				if (e.data.header) {
 					header = e.data.header.readObject("LASHeader");
 					chunks = e.data.chunks;
+					
+					if (e.data.zstats && e.data.zstats.byteLength > 0) {
+						statsZ = e.data.zstats.readObject("Statistics");
+						
+					}
 					
 					var displayOptionText = [
 						'file  : ' + file.name,
@@ -84,7 +115,7 @@ function init() {
 					
 					$('#header-text').text(displayOptionText);
 
-					var maxPoints = settings.maxPoints;
+					var maxPoints = renderSettings.maxPoints;
 					var points = header.numberOfPointRecords;
 					pointStep = 1;
 					if (points > maxPoints) {
@@ -93,9 +124,11 @@ function init() {
 						console.log(String.format("thinning {0} to {1} (step {2})", header.numberOfPointRecords.toLocaleString(), points.toLocaleString(), pointStep));
 					}
 
-					var bounds = createBounds(header.extent);
-					viewport.add(bounds);
-
+					if (renderSettings.showBounds) {
+						var bounds = createBounds(header.extent);
+						viewport.add(bounds);
+					}
+					
 					if (resetCamera) {
 						var es = header.extent.size();
 						viewport.camera.position.z = Math.max(es.x, es.y) * 2;
@@ -106,11 +139,15 @@ function init() {
 					e.data.reader = new BinaryReader(e.data.chunk, 0, true);
 					handleData(e.data);
 					//console.log(String.format("chunk {0}", e.data.index));
-					//var progress = (100 * (e.data.index + 1) / chunks);
+					
+					var progress = (100 * (e.data.index + 1) / chunks);
+					$('#status-text').text(String.format('{0}%', ~~progress));
 					
 					if (e.data.index + 1 === chunks) {
 						var timeSpan = Date.now() - startTime;
-						console.log(String.format("loaded in {0} ms", timeSpan.toLocaleString()));
+						//console.log(String.format("loaded in {0} ms", timeSpan.toLocaleString()));
+						var bps = (header.numberOfPointRecords * header.pointDataRecordLength) / timeSpan * 1000;
+						$('#status-text').text(String.format('({0} chunks in {1} ms @ {2}ps) 100%', chunks, timeSpan.toLocaleString(), bytesToSize(bps)));
 					}
 				}
 			}, false);
@@ -124,7 +161,7 @@ function init() {
 		
 		resetCamera = (file !== e.target.files[0]);
 		file = e.target.files[0];
-		worker.postMessage({file: file});
+		worker.postMessage({file: file, chunkSize: loaderSettings.chunkSize});
 	});
 }
 
@@ -137,7 +174,7 @@ function createChunk(data) {
 
 	var points = ~~(data.points / pointStep);
 
-	var material = new THREE.ParticleSystemMaterial({vertexColors: true, size: settings.pointSize});
+	var material = new THREE.ParticleSystemMaterial({vertexColors: true, size: renderSettings.pointSize});
 	//var material = shaderMaterial;
 	
 	var geometry = new THREE.BufferGeometry();
@@ -148,7 +185,7 @@ function createChunk(data) {
 	var positions = geometry.attributes.position.array;
 	var colors = geometry.attributes.color.array;
 
-	var ramp = ColorRamp.presets[settings.colorRamp];
+	var ramp = ColorRamp.presets[renderSettings.colorRamp];
 	
 	var size = data.header.extent.size();
 	var min = data.header.extent.min;
