@@ -27,15 +27,10 @@ namespace Jacere.Core
 			for (int i = 0; i < array.Length; i++) writer.Write(array[i]);
 		}
 
-		public static ISerializeBinary ReadObject(this BinaryReader reader, Type type)
+		public static T ReadObject<T>(this BinaryReader reader) where T : class, ISerializeBinary
 		{
-			var constructor = type.GetConstructor(new Type[] { typeof(BinaryReader) });
-
-			ISerializeBinary obj = null;
-
-			obj = constructor.Invoke(new object[] { reader }) as ISerializeBinary;
-
-			return obj;
+			var constructor = typeof(T).GetConstructor(new [] { typeof(BinaryReader) });
+			return constructor.Invoke(new object[] { reader }) as T;
 		}
 
 		public static Statistics ReadStatistics(this BinaryReader reader)

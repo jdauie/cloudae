@@ -96,7 +96,7 @@ namespace Jacere.Data.PointCloud
 		public static LASVersionInfo Create(LASVersion version)
 		{
 			var versionInfo = new LASVersionInfo(version);
-			return (LASVersionInfo)SerializationHelper.Clone(versionInfo);
+			return SerializationHelper.Clone<LASVersionInfo>(versionInfo);
 		}
 	}
 
@@ -458,7 +458,7 @@ namespace Jacere.Data.PointCloud
 				{
 					for (int i = 0; i < m_numberOfVariableLengthRecords; i++)
 					{
-						var vlr = reader.ReadObject(typeof(LASVLR)) as LASVLR;
+						var vlr = reader.ReadObject<LASVLR>();
 						if (acceptanceCondition != null)
 						{
 							if (acceptanceCondition(vlr))
@@ -504,7 +504,7 @@ namespace Jacere.Data.PointCloud
 				{
 					for (int i = 0; i < m_numberOfExtendedVariableLengthRecords; i++)
 					{
-						var vlr = reader.ReadObject(typeof(LASEVLR)) as LASEVLR;
+						var vlr = reader.ReadObject<LASEVLR>();
 						if (vlr != null && vlr.IsInteresting)
 							vlrs.Add(vlr);
 					}

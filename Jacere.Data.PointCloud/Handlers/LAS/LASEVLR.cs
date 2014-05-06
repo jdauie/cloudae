@@ -96,7 +96,7 @@ namespace Jacere.Data.PointCloud
 			writer.Write(m_data);
 		}
 
-		public T Deserialize<T>()
+		public T Deserialize<T>() where T : class, ISerializeBinary
 		{
 			return SerializationHelper.Deserialize<T>(m_data);
 		}

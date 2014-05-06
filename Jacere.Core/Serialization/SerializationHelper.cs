@@ -25,21 +25,21 @@ namespace Jacere.Core
 			}
 		}
 
-		public static T Deserialize<T>(byte[] buffer)
+		public static T Deserialize<T>(byte[] buffer) where T : class, ISerializeBinary
 		{
 			using (var ms = new MemoryStream(buffer))
 			{
 				ms.Position = 0;
 				using (var reader = new BinaryReader(ms))
 				{
-					return (T)reader.ReadObject(typeof(T));
+					return reader.ReadObject<T>();
 				}
 			}
 		}
 
-		public static ISerializeBinary Clone(ISerializeBinary obj)
+		public static T Clone<T>(T obj) where T : class, ISerializeBinary
 		{
-			ISerializeBinary clone = null;
+			T clone;
 
 			// todo: don't use AcquireBuffer here!
 			using (var buffer = BufferManager.AcquireBuffer())
@@ -57,7 +57,7 @@ namespace Jacere.Core
 					ms.Position = 0;
 					using (var reader = new BinaryReader(ms))
 					{
-						clone = reader.ReadObject(obj.GetType());
+						clone = reader.ReadObject<T>();
 					}
 				}
 			}
