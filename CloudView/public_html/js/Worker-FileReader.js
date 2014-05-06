@@ -1,5 +1,6 @@
 importScripts(
 	"libs/three.js/three.min.js",
+	'util.js',
 	'BinaryReader.js',
 	'LASHeader.js'
 );
@@ -32,7 +33,7 @@ function loadFile(file, chunkBytes) {
 		evlrPosition = evlrPositionNext;
 	}
 	
-	var chunkPoints = ~~(chunkBytes / header.pointDataRecordLength);
+	var chunkPoints = ~~Math.floor(chunkBytes / header.pointDataRecordLength);
 	chunkBytes = chunkPoints * header.pointDataRecordLength;
 	var chunks = Math.ceil(header.numberOfPointRecords / chunkPoints);
 	
@@ -45,13 +46,15 @@ function loadFile(file, chunkBytes) {
 		zstats: bufferStats
 	}, [buffer, bufferStats]);
 	
+	var endOfPointData = header.offsetToPointData + (header.numberOfPointRecords * header.pointDataRecordLength);
+	
 	for (var i = 0; i < chunks; i++) {
 		
 		var start = header.offsetToPointData + (i * chunkBytes);
 		var end = start + chunkBytes;
 		var points = chunkPoints;
-		if (end > file.size) {
-			end = file.size;
+		if (end > endOfPointData) {
+			end = endOfPointData;
 			points = ((end - start) / header.pointDataRecordLength);
 		}
 		

@@ -71,6 +71,7 @@ function init() {
 	f2.open();
 	var f1 = gui.addFolder('Rendering');
 	f1.add(renderSettings, 'maxPoints', {
+		'20m': 20000000,
 		'10m': 10000000,
 		'5m': 5000000,
 		'3m': 3000000,
@@ -191,6 +192,15 @@ function createChunk(data) {
 	var min = data.header.extent.min;
 	var mid = data.header.extent.size().divideScalar(2).add(min);
 	
+	var stretch;
+	if (statsZ) {
+		stretch = new StdDevStretch(min.z, data.header.extent.max.z, statsZ, 2);
+	}
+	else {
+		stretch = new MinMaxStretch(min.z, data.header.extent.max.z);
+	}
+	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
+	
 	var i = 0;
 	for (var j = 0; j < data.points; j += pointStep, ++i) {
 		data.reader.seek(j * data.pointSize);
@@ -200,7 +210,8 @@ function createChunk(data) {
 		var y = point.y;
 		var z = point.z;
 		
-		var c = ramp.getColor((z - min.z) / size.z);
+		//var c = ramp.getColor((z - min.z) / size.z);
+		var c = cachedRamp.getColor(z);
 
 		x = (x - mid.x);
 		y = (y - mid.y);

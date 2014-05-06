@@ -8,15 +8,6 @@ var LASVersion = {
 
 var LAS_MAX_SUPPORTED_HEADER_SIZE = 375;
 
-function createZeroArray(length) {
-    var a, i;
-    a = new Array(length);
-    for (i = 0; i < length; ++i) {
-        a[i] = 0;
-    }
-    return a;
-}
-
 function LASProjectID(reader) {
     this.data = reader.readArrayBuffer(16);
 }
