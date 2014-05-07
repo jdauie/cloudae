@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8" />
-	<title>test1</title>
+	<title>CloudView LAS Viewer</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
@@ -11,6 +11,7 @@
 	<div id="loader">
 		<div>Loading...</div>
 	</div>
+	<div id="info"><pre id="info-text">Preprocessing with <a href="data/CloudAE.zip">CloudAE</a> gives access to custom EVLRs<br>(the z stats record is used for sd stretch)</pre></div>
 	<div id="header"><pre id="header-text"></pre></div>
 	<div id="status"><pre id="status-text"></pre></div>
 
@@ -18,7 +19,6 @@
 	<script src="js/libs/three.js/three.min.js"></script>
 	<script src="js/libs/stats.min.js"></script>
     <script src="js/libs/dat.gui.min.js"></script>
-
 
 	<script src="js/libs/three.js/controls/OrbitControls.js"></script>
 	<script src="js/libs/three.js/controls/TrackballControls.js"></script>
@@ -34,6 +34,6 @@
 	<script src="js/LASHeader.js"></script>
 	<script src="js/Viewport3D.js"></script>
 	<script src="js/shaders.js"></script>
-	<script src="js/scene.js"></script>
+	<script src="js/Scene.js"></script>
 </body>
 </html>

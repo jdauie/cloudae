@@ -15,6 +15,13 @@ pre {
 	margin:0;
 	padding:0;
 }
+#info {
+	position: absolute;
+	top: 10px;
+	width: 100%;
+	text-align: center;
+	color: #fff;
+}
 #header,
 #status {
 	position: fixed;
@@ -30,4 +37,12 @@ pre {
 }
 #status {
 	right: 6px;
+	//text-align:right;
+}
+a {
+	text-decoration:none;
+	color:#69f;
+}
+a:hover {
+	color:#06f;
 }

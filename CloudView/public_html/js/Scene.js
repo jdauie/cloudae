@@ -5,6 +5,7 @@ var settings = {
 	},
 	render: {
 		maxPoints: 1000000,
+		useStats: true,
 		colorRamp: 'Elevation1',
 		invertRamp: false,
 		pointSize: 1,
@@ -88,45 +89,21 @@ function initDatGui() {
 	var gui = new dat.GUI();
 	
 	var f2 = gui.addFolder('Loading');
-	{
-		f2.add(settings.loader, 'chunkSize', {
-			'128 MB': 128*1024*1024,
-			'64 MB': 64*1024*1024,
-			'32 MB': 32*1024*1024,
-			'16 MB': 16*1024*1024,
-			'8 MB': 8*1024*1024,
-			'4 MB': 4*1024*1024,
-			'2 MB': 2*1024*1024,
-			'1 MB': 1*1024*1024,
-			'512 KB': 512*1024,
-			'256 KB': 256*1024
-		});
-		f2.open();
-	}
+	f2.add(settings.loader, 'chunkSize', createNamedSizes(256*1024, 10));
+	f2.open();
 	
 	var f1 = gui.addFolder('Rendering');
-	{
-		f1.add(settings.render, 'maxPoints', {
-			'20m': 20000000,
-			'10m': 10000000,
-			'5m': 5000000,
-			'3m': 3000000,
-			'2m': 2000000,
-			'1m': 1000000,
-			'500k': 500000
-		});
-		f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets));
-		f1.add(settings.render, 'invertRamp');
-		f1.add(settings.render, 'pointSize').min(1).max(20);
-		f1.add(settings.render, 'showBounds');
-		f1.open();
-	}
+	f1.add(settings.render, 'maxPoints', createNamedMultiples(1000000, [0.5,1,2,3,5,10,20]));
+	f1.add(settings.render, 'useStats');
+	f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets));
+	f1.add(settings.render, 'invertRamp');
+	f1.add(settings.render, 'pointSize').min(1).max(20);
+	f1.add(settings.render, 'showBounds');
+	f1.open();
 	
 	var f3 = gui.addFolder('Actions');
-	{
-		f3.add(actions, 'update');
-		f3.open();
-	}
+	f3.add(actions, 'update');
+	f3.open();
 }
 
 function init() {
@@ -178,7 +155,6 @@ function clearInfo(reset) {
 }
 
 function onHeaderMessage(data) {
-	
 	var header = data.header.readObject("LASHeader");
 	var stats = null;
 	if (data.zstats && data.zstats.byteLength > 0) {
@@ -218,7 +194,14 @@ function updateProgress(data) {
 function updateComplete() {
 	var timeSpan = Date.now() - current.startTime;
 	var bps = (current.header.numberOfPointRecords * current.header.pointDataRecordLength) / timeSpan * 1000;
-	$('#status-text').text(String.format('({0} chunks in {1} ms @ {2}ps) 100%', current.chunks, timeSpan.toLocaleString(), bytesToSize(bps)));
+	//$('#status-text').text(String.format('({0} chunks in {1} ms @ {2}ps) 100%', current.chunks, timeSpan.toLocaleString(), bytesToSize(bps)));
+	$('#status-text').text([
+		'points : ' + (~~(current.header.numberOfPointRecords / current.step)).toLocaleString(),
+		'chunks : ' + current.chunks,
+		'stats  : ' + (current.stats !== null),
+		'time   : ' + timeSpan.toLocaleString() + " ms",
+		'rate   : ' + bytesToSize(bps) + 'ps'
+	].join('\n'));
 }
 
 function updateFileInfo() {
@@ -266,7 +249,7 @@ function createChunk(reader) {
 	var mid = current.header.extent.size().divideScalar(2).add(min);
 	
 	var stretch;
-	if (current.stats) {
+	if (current.settings.render.useStats && current.stats) {
 		stretch = new StdDevStretch(min.z, current.header.extent.max.z, current.stats, 2);
 		mid.z = current.stats.modeApproximate;
 	}
@@ -314,7 +297,7 @@ function createBounds(extent) {
 		(es.z / 2)
 	);
 	
-	if (current.stats) {
+	if (current.settings.render.useStats && current.stats) {
 		var parent = new THREE.Object3D();
 		parent.add(cube);
 		var mid = extent.size().divideScalar(2).add(extent.min);

@@ -38,13 +38,39 @@ function bytesToSize1(bytes) {
 	return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
 }
 
+function numberToCompactValue(n) {
+	return numberToRep(n, 1000, 0, false, ['', 'k', 'm', 'b', 't']);
+}
+
+function bytesToSizeInt(bytes) {
+	return numberToRep(bytes, 1024, 0, true, ['B', 'KB', 'MB', 'GB', 'TB']);
+}
+
 function bytesToSize(bytes) {
-	return numberToRep(bytes, 1024, ['B', 'KB', 'MB', 'GB', 'TB']);
+	return numberToRep(bytes, 1024, 3, true, ['B', 'KB', 'MB', 'GB', 'TB']);
 }
 
-function numberToRep(n, k, sizes) {
+function numberToRep(n, k, p, s, sizes) {
 	if (n === 0) return '0 ' + sizes[0];
-	var i = ~~Math.floor(Math.log(n) / Math.log(k));
-	return (n / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
+	var i = ~~(Math.log(n) / Math.log(k));
+	var r = (n / Math.pow(k, i));
+	return ((p === 0) ? r : r.toPrecision(p)) + (s ? ' ' : '') + sizes[i];
 }
 
+function createNamedSizes(startingSize, count) {
+	var obj = {};
+	for (var i = count - 1; i >= 0; i--) {
+		var size = (startingSize << i);
+		obj[bytesToSizeInt(size)] = size;
+	}
+	return obj;
+}
+
+function createNamedMultiples(multiplier, values) {
+	var obj = {};
+	for (var i = values.length - 1; i >= 0; i--) {
+		var value = (values[i] * multiplier);
+		obj[numberToCompactValue(value)] = value;
+	}
+	return obj;
+}
