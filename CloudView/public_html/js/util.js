@@ -1,3 +1,10 @@
+
+THREE.Vector3.prototype.toString = function() {
+	return String.format('[{0}]', this.toArray().map(function(n) {
+		return +n.toFixed(2);
+	}).join(', '));
+};
+
 if (!String.format) {
 	String.format = function(format) {
 		var args = Array.prototype.slice.call(arguments, 1);

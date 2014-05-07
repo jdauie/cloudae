@@ -1,15 +1,32 @@
 
 var settings = {
+	elements: {
+		loader:    $('#loader'),
+		container: $('#container'),
+		input:     $('#file-input'),
+		about:     $('#info-text'),
+		header:    $('#header-text'),
+		status:    $('#status-text')
+	},
+	worker: {
+		path: 'js/Worker-FileReader.js'
+	},
 	loader: {
-		chunkSize: 8*1024*1024
+		chunkSize: 8*1024*1024,
+		maxPoints: 1000000
 	},
 	render: {
-		maxPoints: 1000000,
 		useStats: true,
 		colorRamp: 'Elevation1',
 		invertRamp: false,
 		pointSize: 1,
 		showBounds: true
+	},
+	display: {
+		stats: true,
+		about: true,
+		header: true,
+		status: true
 	},
 	camera: {
 		fov: 45,
@@ -19,98 +36,50 @@ var settings = {
 };
 
 var actions = {
-	update: onUpdateSettings
+	update: function() {
+		if (current) {
+			startFile(current.file);
+		}
+	}
 };
 
 var worker = null;
 var current = null;
 
-var container = document.getElementById('container');
-var viewport = Viewport3D.create(container, {
+var viewport = Viewport3D.create(settings.elements.container[0], {
 	camera: settings.camera
 });
-$('#loader').hide();
+settings.elements.loader.hide();
 
-THREE.Vector3.prototype.toString = function() {
-	return String.format('[{0}]', this.toArray().map(function(n) {
-		return +n.toFixed(2);
-	}).join(', '));
-};
-
-function LASInfo(file) {
-	this.file = file;
-	this.startTime = Date.now();
+function init() {
 	
-	this.settings = {
-		loader: clone(settings.loader),
-		render: clone(settings.render)
-	};
-	
-	this.setHeader = function(header, chunks, stats) {
-		this.header = header;
-		this.chunks = chunks;
-		this.stats = stats;
-		this.step = Math.ceil(header.numberOfPointRecords / Math.min(this.settings.render.maxPoints, header.numberOfPointRecords));
-	};
-	
-	this.getPointReader = function(buffer) {
-		return new PointReader(buffer);
-	};
-}
-
-function PointReader(buffer) {
-	this.reader = new BinaryReader(buffer);
-	this.points = (buffer.byteLength / current.header.pointDataRecordLength);
-	this.filteredPoints = ~~Math.ceil(this.points / current.step);
-	
-	this.currentPointIndex = 0;
-
-	this.readPoint = function() {
-		if (this.currentPointIndex >= this.points) {
-			return null;
-		}
-		
-		this.reader.seek(this.currentPointIndex * current.header.pointDataRecordLength);
-		var point = this.reader.readUnquantizedPoint3D(current.header.quantization);
-		
-		this.currentPointIndex += current.step;
-		
-		return point;
-	};
-}
-
-function onUpdateSettings() {
-	if (current) {
-		startFile(current.file);
-	}
-}
-
-function initDatGui() {
 	var gui = new dat.GUI();
 	
 	var f2 = gui.addFolder('Loading');
 	f2.add(settings.loader, 'chunkSize', createNamedSizes(256*1024, 10));
+	f2.add(settings.loader, 'maxPoints', createNamedMultiples(1000000, [0.5,1,2,3,5,10,20]));
 	f2.open();
 	
 	var f1 = gui.addFolder('Rendering');
-	f1.add(settings.render, 'maxPoints', createNamedMultiples(1000000, [0.5,1,2,3,5,10,20]));
-	f1.add(settings.render, 'useStats');
 	f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets));
 	f1.add(settings.render, 'invertRamp');
-	f1.add(settings.render, 'pointSize').min(1).max(20);
+	f1.add(settings.render, 'useStats');
 	f1.add(settings.render, 'showBounds');
+	f1.add(settings.render, 'pointSize').min(1).max(20);
 	f1.open();
+	
+	var f4 = gui.addFolder('Display');
+	f4.add(settings.display, 'stats').onChange(function() {$(viewport.stats.domElement).toggle();});
+	f4.add(settings.display, 'about').onChange(function() {settings.elements.about.toggle();});
+	f4.add(settings.display, 'header').onChange(function() {settings.elements.header.toggle();});
+	f4.add(settings.display, 'status').onChange(function() {settings.elements.status.toggle();});
+	//f2.open();
 	
 	var f3 = gui.addFolder('Actions');
 	f3.add(actions, 'update');
 	f3.open();
-}
 
-function init() {
-	
-	initDatGui();
-
-	$('#file-input')[0].addEventListener('change', function(e) {
+	settings.elements.input[0].addEventListener('change', function(e) {
 		if (e.target.files.length > 0) {
 			startFile(e.target.files[0]);
 		}
@@ -120,7 +89,7 @@ function init() {
 function startFile(file) {
 	
 	if (!worker) {
-		worker = new Worker('js/Worker-FileReader.js');
+		worker = new Worker(settings.worker.path);
 		worker.addEventListener('message', function(e) {
 			if (e.data.header) {
 				onHeaderMessage(e.data);
@@ -146,8 +115,8 @@ function clearInfo(reset) {
 	if (current) {
 		current = null;
 		viewport.clearScene();
-		$('#header-text').text('');
-		$('#status-text').text('');
+		settings.elements.header.text('');
+		settings.elements.status.text('');
 	}
 	if (reset) {
 		viewport.camera.position.z = 0;
@@ -176,7 +145,7 @@ function onHeaderMessage(data) {
 }
 
 function onChunkMessage(data) {
-	var reader = new PointReader(data.chunk);
+	var reader = current.getPointReader(data.chunk);
 	var object = createChunk(reader);
 	viewport.add(object);
 
@@ -188,14 +157,13 @@ function onChunkMessage(data) {
 
 function updateProgress(data) {
 	var progress = (100 * (data.index + 1) / current.chunks);
-	$('#status-text').text(String.format('{0}%', ~~progress));
+	settings.elements.status.text(String.format('{0}%', ~~progress));
 }
 
 function updateComplete() {
 	var timeSpan = Date.now() - current.startTime;
 	var bps = (current.header.numberOfPointRecords * current.header.pointDataRecordLength) / timeSpan * 1000;
-	//$('#status-text').text(String.format('({0} chunks in {1} ms @ {2}ps) 100%', current.chunks, timeSpan.toLocaleString(), bytesToSize(bps)));
-	$('#status-text').text([
+	settings.elements.status.text([
 		'points : ' + (~~(current.header.numberOfPointRecords / current.step)).toLocaleString(),
 		'chunks : ' + current.chunks,
 		'stats  : ' + (current.stats !== null),
@@ -207,7 +175,7 @@ function updateComplete() {
 function updateFileInfo() {
 	var file = current.file;
 	var header = current.header;
-	$('#header-text').text([
+	settings.elements.header.text([
 		'file   : ' + file.name,
 		'system : ' + header.systemIdentifier,
 		'gensw  : ' + header.generatingSoftware,
@@ -222,6 +190,28 @@ function updateFileInfo() {
 		'scale  : ' + header.quantization.scale,
 		'extent : ' + header.extent.size()
 	].join('\n'));
+}
+
+function createBounds(extent) {
+	
+	var es = extent.size();
+	var cube = new THREE.BoxHelper();
+	cube.material.color.setRGB(1, 0, 0);
+	cube.scale.set(
+		(es.x / 2),
+		(es.y / 2),
+		(es.z / 2)
+	);
+	
+	if (current.settings.render.useStats && current.stats) {
+		var parent = new THREE.Object3D();
+		parent.add(cube);
+		var mid = extent.size().divideScalar(2).add(extent.min);
+		parent.position.z -= (current.stats.modeApproximate - mid.z);
+		cube = parent;
+	}
+	
+	return cube;
 }
 
 function createChunk(reader) {
@@ -284,28 +274,6 @@ function createChunk(reader) {
 	geometry.computeBoundingSphere();
 	
 	return new THREE.ParticleSystem(geometry, material);
-}
-
-function createBounds(extent) {
-	
-	var es = extent.size();
-	var cube = new THREE.BoxHelper();
-	cube.material.color.setRGB(1, 0, 0);
-	cube.scale.set(
-		(es.x / 2),
-		(es.y / 2),
-		(es.z / 2)
-	);
-	
-	if (current.settings.render.useStats && current.stats) {
-		var parent = new THREE.Object3D();
-		parent.add(cube);
-		var mid = extent.size().divideScalar(2).add(extent.min);
-		parent.position.z -= (current.stats.modeApproximate - mid.z);
-		cube = parent;
-	}
-	
-	return cube;
 }
 
 init();
