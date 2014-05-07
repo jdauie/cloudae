@@ -16,6 +16,10 @@ function LASVersionInfo(reader) {
     this.versionMajor = reader.readUint8();
     this.versionMinor = reader.readUint8();
 	this.version = (this.versionMajor << 8) | this.versionMinor;
+	
+	this.toString = function() {
+		return String.format('{0}.{1}', this.versionMajor, this.versionMinor);
+	};
 }
 
 function LASGlobalEncoding(reader) {

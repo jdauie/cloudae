@@ -39,6 +39,7 @@ var loaderSettings = {
 var renderSettings = {
 	maxPoints: 1000000,
 	colorRamp: 'Elevation1',
+	invertRamp: false,
 	pointSize: 1,
 	showBounds: true
 };
@@ -80,6 +81,7 @@ function init() {
 		'500k': 500000
 	});
 	f1.add(renderSettings, 'colorRamp', Object.keys(ColorRamp.presets));
+	f1.add(renderSettings, 'invertRamp');
 	f1.add(renderSettings, 'pointSize').min(1).max(20);
 	f1.add(renderSettings, 'showBounds');
 	f1.open();
@@ -90,6 +92,7 @@ function init() {
 	var fileInput = $('#file-input')[0];
 
 	fileInput.addEventListener('change', function(e) {
+		
 		if (!worker) {
 			worker = new Worker('js/Worker-FileReader.js');
 			worker.addEventListener('message', function(e) {
@@ -102,15 +105,19 @@ function init() {
 					}
 					
 					var displayOptionText = [
-						'file  : ' + file.name,
-						'size  : ' + bytesToSize(file.size),
-						'points: ' + header.numberOfPointRecords.toLocaleString(),
-						'vlrs  : ' + header.numberOfVariableLengthRecords,
-						'format: ' + header.pointDataRecordFormat,
-						'length: ' + header.pointDataRecordLength,
-						'offset: ' + header.quantization.offset,
-						'scale : ' + header.quantization.scale,
-						'extent: ' + header.extent.size()
+						'file   : ' + file.name,
+						'system : ' + header.systemIdentifier,
+						'gensw  : ' + header.generatingSoftware,
+						'size   : ' + bytesToSize(file.size),
+						'points : ' + header.numberOfPointRecords.toLocaleString(),
+						'lasv   : ' + header.version,
+						'vlrs   : ' + header.numberOfVariableLengthRecords,
+						'evlrs  : ' + header.numberOfExtendedVariableLengthRecords,
+						'format : ' + header.pointDataRecordFormat,
+						'length : ' + header.pointDataRecordLength,
+						'offset : ' + header.quantization.offset,
+						'scale  : ' + header.quantization.scale,
+						'extent : ' + header.extent.size()
 					].join('\n');
 					
 					$('#header-text').text(displayOptionText);
@@ -121,7 +128,7 @@ function init() {
 					if (points > maxPoints) {
 						pointStep = Math.ceil(points / maxPoints);
 						points = maxPoints;
-						console.log(String.format("thinning {0} to {1} (step {2})", header.numberOfPointRecords.toLocaleString(), points.toLocaleString(), pointStep));
+						//console.log(String.format("thinning {0} to {1} (step {2})", header.numberOfPointRecords.toLocaleString(), points.toLocaleString(), pointStep));
 					}
 
 					if (renderSettings.showBounds) {
@@ -157,6 +164,8 @@ function init() {
 			viewport.clearScene();
 			header = null;
 			statsZ = null;
+			$('#header-text').text('');
+			$('#status-text').text('');
 		}
 		
 		startTime = Date.now();
@@ -188,6 +197,9 @@ function createChunk(data) {
 	var colors = geometry.attributes.color.array;
 
 	var ramp = ColorRamp.presets[renderSettings.colorRamp];
+	if (renderSettings.invertRamp) {
+		ramp = ramp.reverse();
+	}
 	
 	var size = data.header.extent.size();
 	var min = data.header.extent.min;
