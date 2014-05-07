@@ -134,7 +134,7 @@ function onHeaderMessage(data) {
 	updateFileInfo();
 
 	if (current.settings.render.showBounds) {
-		var bounds = createBounds(header.extent);
+		var bounds = createBounds();
 		viewport.add(bounds);
 	}
 
@@ -192,9 +192,23 @@ function updateFileInfo() {
 	].join('\n'));
 }
 
-function createBounds(extent) {
+function centerObject(obj, centered) {
+	var extent = current.header.extent;
+	var mid = extent.size().divideScalar(2).add(extent.min);
 	
-	var es = extent.size();
+	if (centered !== true) {
+		obj.position.x -= mid.x;
+		obj.position.y -= mid.y;
+		obj.position.z -= mid.z;
+	}
+
+	if (current.settings.render.useStats && current.stats) {
+		obj.position.z += (mid.z - current.stats.modeApproximate);
+	}
+}
+
+function createBounds() {
+	var es = current.header.extent.size();
 	var cube = new THREE.BoxHelper();
 	cube.material.color.setRGB(1, 0, 0);
 	cube.scale.set(
@@ -202,14 +216,7 @@ function createBounds(extent) {
 		(es.y / 2),
 		(es.z / 2)
 	);
-	
-	if (current.settings.render.useStats && current.stats) {
-		var parent = new THREE.Object3D();
-		parent.add(cube);
-		var mid = extent.size().divideScalar(2).add(extent.min);
-		parent.position.z -= (current.stats.modeApproximate - mid.z);
-		cube = parent;
-	}
+	centerObject(cube, true);
 	
 	return cube;
 }
@@ -241,7 +248,6 @@ function createChunk(reader) {
 	var stretch;
 	if (current.settings.render.useStats && current.stats) {
 		stretch = new StdDevStretch(min.z, current.header.extent.max.z, current.stats, 2);
-		mid.z = current.stats.modeApproximate;
 	}
 	else {
 		stretch = new MinMaxStretch(min.z, current.header.extent.max.z);
@@ -255,10 +261,6 @@ function createChunk(reader) {
 		var z = point.z;
 		
 		var c = cachedRamp.getColor(z);
-
-		x = (x - mid.x);
-		y = (y - mid.y);
-		z = (z - mid.z);
 		
 		var k1 = i * geometry.attributes.position.itemSize;
 		positions[k1 + 0] = x;
@@ -273,7 +275,9 @@ function createChunk(reader) {
 
 	geometry.computeBoundingSphere();
 	
-	return new THREE.ParticleSystem(geometry, material);
+	var obj = new THREE.ParticleSystem(geometry, material);
+	centerObject(obj);
+	return obj;
 }
 
 init();
