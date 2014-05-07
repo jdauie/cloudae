@@ -1,19 +1,15 @@
-function BinaryReader(arrayBuffer, offset, littleEndian) {
-	this.littleEndian = littleEndian;
+function BinaryReader(arrayBuffer, offset) {
+	if (typeof offset === 'undefined') offset = 0;
+	
+	this.littleEndian = true;
 	this.buffer = arrayBuffer;
 	this.view = new DataView(arrayBuffer, offset);
 	this.offset = offset;
 	this.position = 0;
 }
 
-/*
-function arrayBufferToAsciiString(buf) {
-	return String.fromCharCode.apply(null, new Uint8Array(buf));
-}
-*/
-
 ArrayBuffer.prototype.readObject = function(name, namespace) {
-	var br = new BinaryReader(this, 0, true);
+	var br = new BinaryReader(this);
 	return br.readObject(name, namespace);
 };
 

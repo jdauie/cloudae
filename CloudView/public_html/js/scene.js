@@ -1,11 +1,32 @@
 
+var settings = {
+	loader: {
+		chunkSize: 8*1024*1024
+	},
+	render: {
+		maxPoints: 1000000,
+		colorRamp: 'Elevation1',
+		invertRamp: false,
+		pointSize: 1,
+		showBounds: true
+	},
+	camera: {
+		fov: 45,
+		near: 1,
+		far: 200000
+	}
+};
+
+var actions = {
+	update: onUpdateSettings
+};
+
+var worker = null;
+var current = null;
+
 var container = document.getElementById('container');
 var viewport = Viewport3D.create(container, {
-	camera: {
-		fov:  45,
-		near: 1,
-		far:  200000
-	}
+	camera: settings.camera
 });
 $('#loader').hide();
 
@@ -15,177 +36,216 @@ THREE.Vector3.prototype.toString = function() {
 	}).join(', '));
 };
 
-function bytesToSize(bytes) {
-   var k = 1024;
-   var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-   if (bytes === 0) return '0 Bytes';
-   var i = parseInt(Math.floor(Math.log(bytes) / Math.log(k)),10);
-   return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
+function LASInfo(file) {
+	this.file = file;
+	this.startTime = Date.now();
+	
+	this.settings = {
+		loader: clone(settings.loader),
+		render: clone(settings.render)
+	};
+	
+	this.setHeader = function(header, chunks, stats) {
+		this.header = header;
+		this.chunks = chunks;
+		this.stats = stats;
+		this.step = Math.ceil(header.numberOfPointRecords / Math.min(this.settings.render.maxPoints, header.numberOfPointRecords));
+	};
+	
+	this.getPointReader = function(buffer) {
+		return new PointReader(buffer);
+	};
 }
 
-var worker;
-var file;
-var statsZ;
-var header;
-var chunks;
-var pointStep;
-var startTime;
-var resetCamera;
+function PointReader(buffer) {
+	this.reader = new BinaryReader(buffer);
+	this.points = (buffer.byteLength / current.header.pointDataRecordLength);
+	this.filteredPoints = ~~Math.ceil(this.points / current.step);
+	
+	this.currentPointIndex = 0;
 
-var loaderSettings = {
-	chunkSize: 8*1024*1024
-};
-
-var renderSettings = {
-	maxPoints: 1000000,
-	colorRamp: 'Elevation1',
-	invertRamp: false,
-	pointSize: 1,
-	showBounds: true
-};
-
-var actionMethods = {
-	update: onUpdateSettings
-};
+	this.readPoint = function() {
+		if (this.currentPointIndex >= this.points) {
+			return null;
+		}
+		
+		this.reader.seek(this.currentPointIndex * current.header.pointDataRecordLength);
+		var point = this.reader.readUnquantizedPoint3D(current.header.quantization);
+		
+		this.currentPointIndex += current.step;
+		
+		return point;
+	};
+}
 
 function onUpdateSettings() {
-	var fileInput = $('#file-input')[0];
-	fileInput.dispatchEvent(new Event('change'));
+	if (current) {
+		startFile(current.file);
+	}
+}
+
+function initDatGui() {
+	var gui = new dat.GUI();
+	
+	var f2 = gui.addFolder('Loading');
+	{
+		f2.add(settings.loader, 'chunkSize', {
+			'128 MB': 128*1024*1024,
+			'64 MB': 64*1024*1024,
+			'32 MB': 32*1024*1024,
+			'16 MB': 16*1024*1024,
+			'8 MB': 8*1024*1024,
+			'4 MB': 4*1024*1024,
+			'2 MB': 2*1024*1024,
+			'1 MB': 1*1024*1024,
+			'512 KB': 512*1024,
+			'256 KB': 256*1024
+		});
+		f2.open();
+	}
+	
+	var f1 = gui.addFolder('Rendering');
+	{
+		f1.add(settings.render, 'maxPoints', {
+			'20m': 20000000,
+			'10m': 10000000,
+			'5m': 5000000,
+			'3m': 3000000,
+			'2m': 2000000,
+			'1m': 1000000,
+			'500k': 500000
+		});
+		f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets));
+		f1.add(settings.render, 'invertRamp');
+		f1.add(settings.render, 'pointSize').min(1).max(20);
+		f1.add(settings.render, 'showBounds');
+		f1.open();
+	}
+	
+	var f3 = gui.addFolder('Actions');
+	{
+		f3.add(actions, 'update');
+		f3.open();
+	}
 }
 
 function init() {
 	
-	var gui = new dat.GUI();
-	var f2 = gui.addFolder('Loading');
-	f2.add(loaderSettings, 'chunkSize', {
-		'128 MB': 128*1024*1024,
-		'64 MB': 64*1024*1024,
-		'32 MB': 32*1024*1024,
-		'16 MB': 16*1024*1024,
-		'8 MB': 8*1024*1024,
-		'4 MB': 4*1024*1024,
-		'2 MB': 2*1024*1024,
-		'1 MB': 1*1024*1024,
-		'512 KB': 512*1024,
-		'256 KB': 256*1024
+	initDatGui();
+
+	$('#file-input')[0].addEventListener('change', function(e) {
+		if (e.target.files.length > 0) {
+			startFile(e.target.files[0]);
+		}
 	});
-	f2.open();
-	var f1 = gui.addFolder('Rendering');
-	f1.add(renderSettings, 'maxPoints', {
-		'20m': 20000000,
-		'10m': 10000000,
-		'5m': 5000000,
-		'3m': 3000000,
-		'2m': 2000000,
-		'1m': 1000000,
-		'500k': 500000
-	});
-	f1.add(renderSettings, 'colorRamp', Object.keys(ColorRamp.presets));
-	f1.add(renderSettings, 'invertRamp');
-	f1.add(renderSettings, 'pointSize').min(1).max(20);
-	f1.add(renderSettings, 'showBounds');
-	f1.open();
-	var f3 = gui.addFolder('Actions');
-	f3.add(actionMethods, 'update');
-	f3.open();
+}
+
+function startFile(file) {
 	
-	var fileInput = $('#file-input')[0];
+	if (!worker) {
+		worker = new Worker('js/Worker-FileReader.js');
+		worker.addEventListener('message', function(e) {
+			if (e.data.header) {
+				onHeaderMessage(e.data);
+			}
+			else if (e.data.chunk) {
+				onChunkMessage(e.data);
+			}
+		}, false);
+	}
+	
+	var reset = (current === null || current.file !== file);
+	clearInfo(reset);
 
-	fileInput.addEventListener('change', function(e) {
-		
-		if (!worker) {
-			worker = new Worker('js/Worker-FileReader.js');
-			worker.addEventListener('message', function(e) {
-				if (e.data.header) {
-					header = e.data.header.readObject("LASHeader");
-					chunks = e.data.chunks;
-					
-					if (e.data.zstats && e.data.zstats.byteLength > 0) {
-						statsZ = e.data.zstats.readObject("Statistics");
-					}
-					
-					var displayOptionText = [
-						'file   : ' + file.name,
-						'system : ' + header.systemIdentifier,
-						'gensw  : ' + header.generatingSoftware,
-						'size   : ' + bytesToSize(file.size),
-						'points : ' + header.numberOfPointRecords.toLocaleString(),
-						'lasv   : ' + header.version,
-						'vlrs   : ' + header.numberOfVariableLengthRecords,
-						'evlrs  : ' + header.numberOfExtendedVariableLengthRecords,
-						'format : ' + header.pointDataRecordFormat,
-						'length : ' + header.pointDataRecordLength,
-						'offset : ' + header.quantization.offset,
-						'scale  : ' + header.quantization.scale,
-						'extent : ' + header.extent.size()
-					].join('\n');
-					
-					$('#header-text').text(displayOptionText);
+	current = new LASInfo(file);
 
-					var maxPoints = renderSettings.maxPoints;
-					var points = header.numberOfPointRecords;
-					pointStep = 1;
-					if (points > maxPoints) {
-						pointStep = Math.ceil(points / maxPoints);
-						points = maxPoints;
-						//console.log(String.format("thinning {0} to {1} (step {2})", header.numberOfPointRecords.toLocaleString(), points.toLocaleString(), pointStep));
-					}
-
-					if (renderSettings.showBounds) {
-						var bounds = createBounds(header.extent);
-						viewport.add(bounds);
-					}
-					
-					if (resetCamera) {
-						var es = header.extent.size();
-						viewport.camera.position.z = Math.max(es.x, es.y) * 2;
-					}
-				}
-				else if (e.data.chunk) {
-					e.data.header = header;
-					e.data.reader = new BinaryReader(e.data.chunk, 0, true);
-					handleData(e.data);
-					//console.log(String.format("chunk {0}", e.data.index));
-					
-					var progress = (100 * (e.data.index + 1) / chunks);
-					$('#status-text').text(String.format('{0}%', ~~progress));
-					
-					if (e.data.index + 1 === chunks) {
-						var timeSpan = Date.now() - startTime;
-						//console.log(String.format("loaded in {0} ms", timeSpan.toLocaleString()));
-						var bps = (header.numberOfPointRecords * header.pointDataRecordLength) / timeSpan * 1000;
-						$('#status-text').text(String.format('({0} chunks in {1} ms @ {2}ps) 100%', chunks, timeSpan.toLocaleString(), bytesToSize(bps)));
-					}
-				}
-			}, false);
-		}
-		
-		if (header) {
-			viewport.clearScene();
-			header = null;
-			statsZ = null;
-			$('#header-text').text('');
-			$('#status-text').text('');
-		}
-		
-		startTime = Date.now();
-		
-		resetCamera = (file !== e.target.files[0]);
-		file = e.target.files[0];
-		worker.postMessage({file: file, chunkSize: loaderSettings.chunkSize});
+	worker.postMessage({
+		file: file,
+		chunkSize: current.settings.loader.chunkSize
 	});
 }
 
-function handleData(data) {
-	var object = createChunk(data);
-	viewport.add(object);
+function clearInfo(reset) {
+	if (current) {
+		current = null;
+		viewport.clearScene();
+		$('#header-text').text('');
+		$('#status-text').text('');
+	}
+	if (reset) {
+		viewport.camera.position.z = 0;
+	}
 }
 
-function createChunk(data) {
+function onHeaderMessage(data) {
+	
+	var header = data.header.readObject("LASHeader");
+	var stats = null;
+	if (data.zstats && data.zstats.byteLength > 0) {
+		stats = data.zstats.readObject("Statistics");
+	}
+	current.setHeader(header, data.chunks, stats);
 
-	var points = ~~(data.points / pointStep);
+	updateFileInfo();
 
-	var material = new THREE.ParticleSystemMaterial({vertexColors: true, size: renderSettings.pointSize});
+	if (current.settings.render.showBounds) {
+		var bounds = createBounds(header.extent);
+		viewport.add(bounds);
+	}
+
+	if (viewport.camera.position.z === 0) {
+		var es = header.extent.size();
+		viewport.camera.position.z = Math.max(es.x, es.y) * 2;
+	}
+}
+
+function onChunkMessage(data) {
+	var reader = new PointReader(data.chunk);
+	var object = createChunk(reader);
+	viewport.add(object);
+
+	updateProgress(data);
+	if (data.index + 1 === current.chunks) {
+		updateComplete();
+	}
+}
+
+function updateProgress(data) {
+	var progress = (100 * (data.index + 1) / current.chunks);
+	$('#status-text').text(String.format('{0}%', ~~progress));
+}
+
+function updateComplete() {
+	var timeSpan = Date.now() - current.startTime;
+	var bps = (current.header.numberOfPointRecords * current.header.pointDataRecordLength) / timeSpan * 1000;
+	$('#status-text').text(String.format('({0} chunks in {1} ms @ {2}ps) 100%', current.chunks, timeSpan.toLocaleString(), bytesToSize(bps)));
+}
+
+function updateFileInfo() {
+	var file = current.file;
+	var header = current.header;
+	$('#header-text').text([
+		'file   : ' + file.name,
+		'system : ' + header.systemIdentifier,
+		'gensw  : ' + header.generatingSoftware,
+		'size   : ' + bytesToSize(file.size),
+		'points : ' + header.numberOfPointRecords.toLocaleString(),
+		'lasv   : ' + header.version,
+		'vlrs   : ' + header.numberOfVariableLengthRecords,
+		'evlrs  : ' + header.numberOfExtendedVariableLengthRecords,
+		'format : ' + header.pointDataRecordFormat,
+		'length : ' + header.pointDataRecordLength,
+		'offset : ' + header.quantization.offset,
+		'scale  : ' + header.quantization.scale,
+		'extent : ' + header.extent.size()
+	].join('\n'));
+}
+
+function createChunk(reader) {
+
+	var points = reader.filteredPoints;
+	
+	var material = new THREE.ParticleSystemMaterial({vertexColors: true, size: current.settings.render.pointSize});
 	//var material = shaderMaterial;
 	
 	var geometry = new THREE.BufferGeometry();
@@ -196,35 +256,31 @@ function createChunk(data) {
 	var positions = geometry.attributes.position.array;
 	var colors = geometry.attributes.color.array;
 
-	var ramp = ColorRamp.presets[renderSettings.colorRamp];
-	if (renderSettings.invertRamp) {
+	var ramp = ColorRamp.presets[current.settings.render.colorRamp];
+	if (current.settings.render.invertRamp) {
 		ramp = ramp.reverse();
 	}
 	
-	var size = data.header.extent.size();
-	var min = data.header.extent.min;
-	var mid = data.header.extent.size().divideScalar(2).add(min);
+	var size = current.header.extent.size();
+	var min = current.header.extent.min;
+	var mid = current.header.extent.size().divideScalar(2).add(min);
 	
 	var stretch;
-	if (statsZ) {
-		stretch = new StdDevStretch(min.z, data.header.extent.max.z, statsZ, 2);
-		mid.z = statsZ.modeApproximate;
+	if (current.stats) {
+		stretch = new StdDevStretch(min.z, current.header.extent.max.z, current.stats, 2);
+		mid.z = current.stats.modeApproximate;
 	}
 	else {
-		stretch = new MinMaxStretch(min.z, data.header.extent.max.z);
+		stretch = new MinMaxStretch(min.z, current.header.extent.max.z);
 	}
 	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
 	
-	var i = 0;
-	for (var j = 0; j < data.points; j += pointStep, ++i) {
-		data.reader.seek(j * data.pointSize);
-		var point = data.reader.readUnquantizedPoint3D(data.header.quantization);
-		
+	for (var i = 0; i < points; i++) {
+		var point = reader.readPoint();
 		var x = point.x;
 		var y = point.y;
 		var z = point.z;
 		
-		//var c = ramp.getColor((z - min.z) / size.z);
 		var c = cachedRamp.getColor(z);
 
 		x = (x - mid.x);
@@ -258,11 +314,11 @@ function createBounds(extent) {
 		(es.z / 2)
 	);
 	
-	if (statsZ) {
+	if (current.stats) {
 		var parent = new THREE.Object3D();
 		parent.add(cube);
 		var mid = extent.size().divideScalar(2).add(extent.min);
-		parent.position.z -= (statsZ.modeApproximate - mid.z);
+		parent.position.z -= (current.stats.modeApproximate - mid.z);
 		cube = parent;
 	}
 	

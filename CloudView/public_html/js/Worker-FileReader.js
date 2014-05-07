@@ -52,19 +52,15 @@ function loadFile(file, chunkBytes) {
 		
 		var start = header.offsetToPointData + (i * chunkBytes);
 		var end = start + chunkBytes;
-		var points = chunkPoints;
 		if (end > endOfPointData) {
 			end = endOfPointData;
-			points = ((end - start) / header.pointDataRecordLength);
 		}
 		
 		var slice = file.slice(start, end);
 		buffer = reader.readAsArrayBuffer(slice);
 		self.postMessage({
 			chunk: buffer,
-			index: i,
-			points: points,
-			pointSize: header.pointDataRecordLength
+			index: i
 		}, [buffer]);
 	}
 }
