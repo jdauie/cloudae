@@ -241,17 +241,13 @@ function createChunk(reader) {
 		ramp = ramp.reverse();
 	}
 	
-	var size = current.header.extent.size();
 	var min = current.header.extent.min;
-	var mid = current.header.extent.size().divideScalar(2).add(min);
+	var max = current.header.extent.max;
 	
-	var stretch;
-	if (current.settings.render.useStats && current.stats) {
-		stretch = new StdDevStretch(min.z, current.header.extent.max.z, current.stats, 2);
-	}
-	else {
-		stretch = new MinMaxStretch(min.z, current.header.extent.max.z);
-	}
+	var stretch = (current.settings.render.useStats && current.stats)
+		? new StdDevStretch(min.z, max.z, current.stats, 2)
+		: new MinMaxStretch(min.z, max.z);
+	
 	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
 	
 	for (var i = 0; i < points; i++) {
