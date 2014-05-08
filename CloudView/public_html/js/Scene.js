@@ -250,23 +250,20 @@ function createChunk(reader) {
 	
 	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
 	
-	for (var i = 0; i < points; i++) {
+	var kpi = geometry.attributes.position.itemSize;
+	var kci = geometry.attributes.color.itemSize;
+	var kp = 0, kc = 0;
+	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
 		var point = reader.readPoint();
-		var x = point.x;
-		var y = point.y;
-		var z = point.z;
+		var c = cachedRamp.getColor(point.z);
 		
-		var c = cachedRamp.getColor(z);
-		
-		var k1 = i * geometry.attributes.position.itemSize;
-		positions[k1 + 0] = x;
-		positions[k1 + 1] = y;
-		positions[k1 + 2] = z;
+		positions[kp + 0] = point.x;
+		positions[kp + 1] = point.y;
+		positions[kp + 2] = point.z;
 
-		var k2 = i * geometry.attributes.color.itemSize;
-		colors[k2 + 0] = c.r;
-		colors[k2 + 1] = c.g;
-		colors[k2 + 2] = c.b;
+		colors[kc + 0] = c.r;
+		colors[kc + 1] = c.g;
+		colors[kc + 2] = c.b;
 	}
 
 	geometry.computeBoundingSphere();
