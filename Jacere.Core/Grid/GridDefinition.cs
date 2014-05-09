@@ -61,49 +61,7 @@ namespace Jacere.Core
 
 		#endregion
 
-		#region Creators
-
-		private static GridDefinition Create(ushort sizeX, ushort sizeY)
-		{
-			return new GridDefinition(sizeX, sizeY, false);
-		}
-
-		public static GridDefinition CreateBuffered(ushort sizeX, ushort sizeY)
-		{
-			return new GridDefinition(sizeX, sizeY, true);
-		}
-
-		public static GridDefinition Create(IAspect extent, ushort minDimension, ushort maxDimension)
-		{
-			ushort sizeX = maxDimension;
-			ushort sizeY = maxDimension;
-
-			double aspect = extent.Aspect;
-			if (aspect > 1)
-				sizeY = (ushort)Math.Max(sizeX / aspect, minDimension);
-			else
-				sizeX = (ushort)Math.Max(sizeX * aspect, minDimension);
-
-			return Create(sizeX, sizeY);
-		}
-
-		public static GridDefinition CreateBuffered(IAspect extent, ushort minDimension, ushort maxDimension)
-		{
-			ushort sizeX = maxDimension;
-			ushort sizeY = maxDimension;
-
-			double aspect = extent.Aspect;
-			if (aspect > 1)
-				sizeY = (ushort)Math.Max(sizeX / aspect, minDimension);
-			else
-				sizeX = (ushort)Math.Max(sizeX * aspect, minDimension);
-
-			return CreateBuffered(sizeX, sizeY);
-		}
-
-		#endregion
-
-		private GridDefinition(ushort sizeX, ushort sizeY, bool bufferEdge)
+		public GridDefinition(ushort sizeX, ushort sizeY, bool bufferEdge)
 		{
 			m_sizeX = sizeX;
 			m_sizeY = sizeY;

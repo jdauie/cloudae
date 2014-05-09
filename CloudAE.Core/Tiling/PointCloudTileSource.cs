@@ -263,12 +263,10 @@ namespace CloudAE.Core
 			return null;
 		}
 
-		public KeyValuePair<Grid<int>, Grid<float>> GenerateGrid(PointCloudTile template, ushort maxDimension)
+		public KeyValuePair<Grid<int>, Grid<float>> GenerateGrid(ushort dimension)
 		{
-			Extent3D extent = template.Extent;
-
-			float fillVal = (float)extent.MinZ - 1;
-			var grid = Grid<float>.CreateBuffered(extent, 2, maxDimension, fillVal);
+			var fillVal = (float)Extent.MinZ - 1;
+			var grid = Grid<float>.Create(dimension, dimension, true, fillVal);
 			var quantizedGrid = grid.Copy<int>();
 
 			return new KeyValuePair<Grid<int>, Grid<float>>(quantizedGrid, grid);
@@ -433,31 +431,31 @@ namespace CloudAE.Core
 
 		private static void ComputeGridSlopeSurfaceComponent(Grid<float> grid, float[,] gridValues)
 		{
-			float xMultiplier = (float)(grid.Extent.RangeX / grid.SizeX);
-			float yMultiplier = (float)(grid.Extent.RangeY / grid.SizeY);
+			//float xMultiplier = (float)(grid.Extent.RangeX / grid.SizeX);
+			//float yMultiplier = (float)(grid.Extent.RangeY / grid.SizeY);
 
-			for (int x = 1; x < grid.SizeX; x++)
-			{
-				for (int y = 1; y < grid.SizeY; y++)
-				{
-					if (grid.Data[x, y] != grid.FillVal)
-					{
-						var cu = new Point3D(x * xMultiplier, y * yMultiplier, grid.Data[x, y]);
-						var tp = new Point3D(x * xMultiplier, (y - 1) * yMultiplier, grid.Data[x, y - 1]);
-						var lf = new Point3D((x - 1) * xMultiplier, y * yMultiplier, grid.Data[x - 1, y]);
-						var tl = new Point3D((x - 1) * xMultiplier, (y - 1) * yMultiplier, grid.Data[x - 1, y - 1]);
+			//for (int x = 1; x < grid.SizeX; x++)
+			//{
+			//	for (int y = 1; y < grid.SizeY; y++)
+			//	{
+			//		if (grid.Data[x, y] != grid.FillVal)
+			//		{
+			//			var cu = new Point3D(x * xMultiplier, y * yMultiplier, grid.Data[x, y]);
+			//			var tp = new Point3D(x * xMultiplier, (y - 1) * yMultiplier, grid.Data[x, y - 1]);
+			//			var lf = new Point3D((x - 1) * xMultiplier, y * yMultiplier, grid.Data[x - 1, y]);
+			//			var tl = new Point3D((x - 1) * xMultiplier, (y - 1) * yMultiplier, grid.Data[x - 1, y - 1]);
 
-						var plane0 = new Plane(cu, tp, tl, true);
-						var plane1 = new Plane(cu, lf, tl, true);
-						//gridValues[x, y] = (float)(plane0.UnitNormal.Z);
-						gridValues[x, y] = (float)(Math.Max(plane0.UnitNormal.Z, plane1.UnitNormal.Z));
-					}
-					else
-					{
-						gridValues[x, y] = 1;
-					}
-				}
-			}
+			//			var plane0 = new Plane(cu, tp, tl, true);
+			//			var plane1 = new Plane(cu, lf, tl, true);
+			//			//gridValues[x, y] = (float)(plane0.UnitNormal.Z);
+			//			gridValues[x, y] = (float)(Math.Max(plane0.UnitNormal.Z, plane1.UnitNormal.Z));
+			//		}
+			//		else
+			//		{
+			//			gridValues[x, y] = 1;
+			//		}
+			//	}
+			//}
 		}
 
 		private BitmapSource CreateSegmentationBitmap(Grid<float> grid)

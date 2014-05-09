@@ -31,23 +31,14 @@ namespace CloudAE.Core
 			get { return m_gridQuantized; }
 		}
 
-		//public ushort SizeX
-		//{
-		//    get { return m_grid.SizeX; }
-		//}
-
-		//public ushort SizeY
-		//{
-		//    get { return m_grid.SizeY; }
-		//}
-
 		public GridQuantizedSet(PointCloudTileSource source, ushort maxDimension)
 		{
 			m_source = source;
 
-			m_grid = Grid<float>.CreateBuffered(m_source.Extent, 1, maxDimension, (float)m_source.Extent.MinZ - 1.0f);
+			m_grid = m_source.Extent.CreateGridFromDimension(maxDimension, true, (float)m_source.Extent.MinZ - 1.0f);
 			m_gridQuantized = m_grid.Copy(m_source.QuantizedExtent.MinZ);
 
+#warning this is a non-square computation
 			m_pixelsOverRangeX = (double)m_grid.SizeX / m_source.QuantizedExtent.RangeX;
 			m_pixelsOverRangeY = (double)m_grid.SizeY / m_source.QuantizedExtent.RangeY;
 

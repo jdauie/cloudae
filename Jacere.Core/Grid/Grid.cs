@@ -35,37 +35,32 @@ namespace Jacere.Core
 		}
 	}
 
-	public class CountGrid : Grid<int>
-	{
-		protected CountGrid(GridDefinition def, Extent2D extent, int fillVal)
-			: base(def, extent, fillVal)
-		{
-		}
-
-		public void CorrectCountOverflow()
-		{
-			// correct count overflows
-			for (int x = 0; x <= SizeX; x++)
-			{
-				Data[SizeY - 1, x] += Data[SizeY, x];
-				Data[SizeY, x] = 0;
-			}
-			for (int y = 0; y < SizeY; y++)
-			{
-				Data[y, SizeX - 1] += Data[y, SizeX];
-				Data[y, SizeX] = 0;
-			}
-		}
-	}
-
-	//public class BinaryGrid<T> : Grid<T>
+	//public class CountGrid : Grid<int>
 	//{
+	//	protected CountGrid(GridDefinition def, int fillVal)
+	//		: base(def, fillVal)
+	//	{
+	//	}
+
+	//	public void CorrectCountOverflow()
+	//	{
+	//		// correct count overflows
+	//		for (int x = 0; x <= SizeX; x++)
+	//		{
+	//			Data[SizeY - 1, x] += Data[SizeY, x];
+	//			Data[SizeY, x] = 0;
+	//		}
+	//		for (int y = 0; y < SizeY; y++)
+	//		{
+	//			Data[y, SizeX - 1] += Data[y, SizeX];
+	//			Data[y, SizeX] = 0;
+	//		}
+	//	}
 	//}
 
 	public class Grid<T> : GridBase
 	{
 		private readonly T m_fillVal;
-		private readonly Extent2D m_extent;
 
 		public readonly T[,] Data;
 
@@ -81,54 +76,24 @@ namespace Jacere.Core
 			get { return m_fillVal; }
 		}
 
-		public Extent2D Extent
-		{
-			get { return m_extent; }
-		}
-
 		#endregion
 
 		#region Creators
 
-		public static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent)
+		public static Grid<T> Create(ushort sizeX, ushort sizeY, bool buffered = false, T fillVal = default(T))
 		{
-			return CreateBuffered(sizeX, sizeY, extent, default(T));
-		}
-
-		// not used externally
-		private static Grid<T> CreateBuffered(ushort sizeX, ushort sizeY, Extent2D extent, T fillVal)
-		{
-			var def = GridDefinition.CreateBuffered(sizeX, sizeY);
-			return Create(def, extent, fillVal);
-		}
-
-		// not used
-		//private static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
-		//{
-		//	var def = GridDefinition.Create(extent, minDimension, maxDimension);
-		//	return Create(def, extent, fillVal);
-		//}
-
-		public static Grid<T> CreateBuffered(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
-		{
-			var def = GridDefinition.CreateBuffered(extent, minDimension, maxDimension);
-			return Create(def, extent, fillVal);
-		}
-
-		private static Grid<T> Create(GridDefinition def, Extent2D extent, T fillVal)
-		{
-			return new Grid<T>(def, extent, fillVal);
+			var def = new GridDefinition(sizeX, sizeY, buffered);
+			return new Grid<T>(def, fillVal);
 		}
 
 		#endregion
 
-		protected Grid(GridDefinition def, Extent2D extent, T fillVal)
+		protected Grid(GridDefinition def, T fillVal)
 			: base(def)
 		{
 			bool fillValIsDefault = EqualityComparer<T>.Default.Equals(fillVal, default(T));
 
 			m_fillVal = fillVal;
-			m_extent = extent;
 
 			Data = new T[Def.UnderlyingSizeY,Def.UnderlyingSizeX];
 
@@ -176,7 +141,7 @@ namespace Jacere.Core
 
 		public Grid<TNew> Copy<TNew>(TNew fillVal)
 		{
-			return new Grid<TNew>(Def, Extent, fillVal);
+			return new Grid<TNew>(Def, fillVal);
 		}
 	}
 }

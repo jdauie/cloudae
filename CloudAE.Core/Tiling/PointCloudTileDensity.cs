@@ -29,37 +29,31 @@ namespace CloudAE.Core
 		private Grid<int> m_tileCountsForInitialization;
 
 		public PointCloudTileDensity(Grid<int> tileCounts, Extent3D extent)
-			: this(tileCounts.CellCount, tileCounts.Data.Cast<int>(), extent)
 		{
-		}
+			var counts = tileCounts.Data.Cast<int>();
 
-		public PointCloudTileDensity(int tileCount, IEnumerable<int> counts, Extent3D extent)
-		{
 			Extent = extent;
 
-			TileCount = tileCount;
+			TileCount = tileCounts.CellCount;
 
-			int[] nonZeroCounts = counts.Where(c => c > 0).ToArray();
+			var nonZeroCounts = counts.Where(c => c > 0).ToArray();
 			Array.Sort(nonZeroCounts);
 			PointCount = nonZeroCounts.SumLong();
 
-			double tileArea = Extent.Area / TileCount;
+#warning update this when tiles are square
+			var tileArea = Extent.Area / TileCount;
 
 			ValidTileCount = nonZeroCounts.Length;
 
-#warning This is just so I can create a fake/temporary one of these
-			if (nonZeroCounts.Length > 0)
-			{
-				MinTileCount = nonZeroCounts[0];
-				MaxTileCount = nonZeroCounts[ValidTileCount - 1];
-				MedianTileCount = nonZeroCounts[ValidTileCount / 2];
-				MeanTileCount = (int)(PointCount / ValidTileCount);
+			MinTileCount = nonZeroCounts[0];
+			MaxTileCount = nonZeroCounts[ValidTileCount - 1];
+			MedianTileCount = nonZeroCounts[ValidTileCount / 2];
+			MeanTileCount = (int)(PointCount / ValidTileCount);
 
-				MinTileDensity = MinTileCount / tileArea;
-				MaxTileDensity = MaxTileCount / tileArea;
-				MedianTileDensity = MedianTileCount / tileArea;
-				MeanTileDensity = MeanTileCount / tileArea;
-			}
+			MinTileDensity = MinTileCount / tileArea;
+			MaxTileDensity = MaxTileCount / tileArea;
+			MedianTileDensity = MedianTileCount / tileArea;
+			MeanTileDensity = MeanTileCount / tileArea;
 		}
 
 		public PointCloudTileDensity(BinaryReader reader)
@@ -100,22 +94,19 @@ namespace CloudAE.Core
 		{
 			if (m_tileCountsForInitialization == null)
 			{
-				Extent3D extent = Extent;
+				var extent = Extent;
 
 				// median works better usually, but max is safer for substantially varying density
 				// (like terrestrial, although that requires a more thorough redesign)
 				//double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MaxTileDensity;
-				double tileArea = PointCloudTileManager.PROPERTY_DESIRED_TILE_COUNT.Value / MedianTileDensity;
-				double tileSide = Math.Sqrt(tileArea);
+				var tileArea = PointCloudTileManager.PROPERTY_DESIRED_TILE_COUNT.Value / MedianTileDensity;
+				var tileSize = Math.Sqrt(tileArea);
 
-				Context.WriteLine("TileSide: {0}", tileSide);
+				Context.WriteLine("TileSide: {0}", tileSize);
 
 #warning this results in non-square tiles
 
-				ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
-				ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
-
-				m_tileCountsForInitialization = Grid<int>.CreateBuffered(tilesX, tilesY, extent);
+				m_tileCountsForInitialization = extent.CreateGridFromCellSize<int>(tileSize, true);
 			}
 			else if (clear)
 			{

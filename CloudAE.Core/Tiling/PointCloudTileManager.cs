@@ -259,28 +259,22 @@ namespace CloudAE.Core
 
 		private static Grid<int> CreateTileCountsForEstimation(IPointCloudBinarySource source)
 		{
-			long count = source.Count;
-			Extent3D extent = source.Extent;
+			var count = source.Count;
+			var extent = source.Extent;
 
-			int tileCountForUniformData = (int)(count / PROPERTY_DESIRED_TILE_COUNT.Value);
+			var tileCountForUniformData = (int)(count / PROPERTY_DESIRED_TILE_COUNT.Value);
 			//int tileCount = Math.Min(tileCountForUniformData, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
-			int tileCount = tileCountForUniformData;
+			var tileCount = tileCountForUniformData;
 
 			// for estimation, use a reduced tile size to minimize indexing overlap
 			tileCount *= 16;
 
 			tileCount = Math.Min(tileCount, PROPERTY_MAX_TILES_FOR_ESTIMATION.Value);
 
-			double tileArea = extent.Area / tileCount;
-			double tileSide = Math.Sqrt(tileArea);
+			var tileArea = extent.Area / tileCount;
+			var tileSize = Math.Sqrt(tileArea);
 
-			ushort tilesX = (ushort)Math.Ceiling(extent.RangeX / tileSide);
-			ushort tilesY = (ushort)Math.Ceiling(extent.RangeY / tileSide);
-
-			if (tilesX == 0) tilesX = 1;
-			if (tilesY == 0) tilesY = 1;
-
-			return Grid<int>.CreateBuffered(tilesX, tilesY, extent);
+			return extent.CreateGridFromCellSize<int>(tileSize, true);
 		}
 
 		#endregion

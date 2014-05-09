@@ -9,8 +9,8 @@ namespace CloudAE.Core
 {
 	public class IndexGrid : Grid<GridIndexCell>
 	{
-		protected IndexGrid(GridDefinition def, Extent2D extent, GridIndexCell fillVal)
-			: base(def, extent, fillVal)
+		protected IndexGrid(GridDefinition def, GridIndexCell fillVal)
+			: base(def, fillVal)
 		{
 		}
 	}

@@ -319,11 +319,11 @@ namespace CloudAE.App
 				m_overallCenteredExtent = new Rect3D(extent.MinX - extent.MidpointX, extent.MinY - extent.MidpointY, extent.MinZ - centerOfMass.Z, extent.RangeX, extent.RangeY, extent.RangeZ);
 				
 				// load tiles
-				KeyValuePair<Grid<int>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(tileSource.TileSet.First(), m_gridDimensionLowRes);
+				KeyValuePair<Grid<int>, Grid<float>> gridsLowRes = tileSource.GenerateGrid(m_gridDimensionLowRes);
 				m_gridLowRes = gridsLowRes.Value;
 				m_quantizedGridLowRes = gridsLowRes.Key;
 
-				KeyValuePair<Grid<int>, Grid<float>> gridsHighRes = tileSource.GenerateGrid(tileSource.TileSet.First(), m_gridDimensionHighRes);
+				KeyValuePair<Grid<int>, Grid<float>> gridsHighRes = tileSource.GenerateGrid(m_gridDimensionHighRes);
 				m_gridHighRes = gridsHighRes.Value;
 				m_quantizedGridHighRes = gridsHighRes.Key;
 

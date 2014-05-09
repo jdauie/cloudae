@@ -39,13 +39,12 @@ namespace Jacere.Core.Geometry
 			double minX = 0, minY = 0;
 			double maxX = 0, maxY = 0;
 
-			bool initialized = false;
+			var initialized = false;
 
-			for (int i = 0; i < points.Length; i++)
+			foreach (var point in points)
 			{
-				IPoint2D point = points[i];
-				double x = point.X;
-				double y = point.Y;
+				var x = point.X;
+				var y = point.Y;
 
 				if (!initialized)
 				{
@@ -131,6 +130,28 @@ namespace Jacere.Core.Geometry
 			// FUTURE: Implement comparison operator for float/double equals... the below may work
 			//         in practice but in general it is unsafe due to mantisa/exponent ratios.
 			return ((MinX - eb) <= x) && (x <= (MaxX + eb)) && ((MinY - eb) <= y) && (y <= (MaxY + eb));
+		}
+
+		public Grid<T> CreateGridFromDimension<T>(ushort maxDimension, bool buffered = false, T fillVal = default(T))
+		{
+			var sizeX = maxDimension;
+			var sizeY = maxDimension;
+
+			var aspect = Aspect;
+			if (aspect > 1)
+				sizeY = (ushort)Math.Ceiling(sizeY / aspect);
+			else
+				sizeX = (ushort)Math.Ceiling(sizeX * aspect);
+
+			return Grid<T>.Create(sizeX, sizeY, buffered, fillVal);
+		}
+
+		public Grid<T> CreateGridFromCellSize<T>(double cellSize, bool buffered = false, T fillVal = default(T))
+		{
+			var sizeX = (ushort)Math.Ceiling(RangeX / cellSize);
+			var sizeY = (ushort)Math.Ceiling(RangeY / cellSize);
+
+			return Grid<T>.Create(sizeX, sizeY, buffered, fillVal);
 		}
 
 		/// <summary>
