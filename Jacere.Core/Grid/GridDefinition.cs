@@ -63,7 +63,7 @@ namespace Jacere.Core
 
 		#region Creators
 
-		public static GridDefinition Create(ushort sizeX, ushort sizeY)
+		private static GridDefinition Create(ushort sizeX, ushort sizeY)
 		{
 			return new GridDefinition(sizeX, sizeY, false);
 		}

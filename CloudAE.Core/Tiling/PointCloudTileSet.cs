@@ -32,7 +32,7 @@ namespace CloudAE.Core
 			set { m_tileSource = value; }
 		}
 
-		private static Dictionary<int, int> CreateTileGrid(ushort rows, ushort cols, int validTileCount)
+		private static Dictionary<int, int> CreateTileIndex(int validTileCount)
 		{
 			var tileMap = new Dictionary<int, int>(validTileCount);
 			return tileMap;
@@ -51,7 +51,7 @@ namespace CloudAE.Core
 			TileCount = density.TileCount;
 			ValidTileCount = density.ValidTileCount;
 
-			m_tileIndex = CreateTileGrid(Rows, Cols, ValidTileCount);
+			m_tileIndex = CreateTileIndex(ValidTileCount);
 			m_tiles = new PointCloudTile[density.ValidTileCount];
 
 			// create valid tiles (in order)
@@ -98,22 +98,8 @@ namespace CloudAE.Core
 			PointCount = Density.PointCount;
 			ValidTileCount = Density.ValidTileCount;
 
-			m_tileIndex = CreateTileGrid(Rows, Cols, ValidTileCount);
+			m_tileIndex = CreateTileIndex(ValidTileCount);
 			m_tiles = new PointCloudTile[ValidTileCount];
-
-			//// fill in valid tiles (sparse)
-			//long pointOffset = 0;
-			//for (int i = 0; i < ValidTileCount; i++)
-			//{
-			//	ushort y = reader.ReadUInt16();
-			//	ushort x = reader.ReadUInt16();
-			//	int count = reader.ReadInt32();
-
-			//	m_tiles[i] = new PointCloudTile(this, x, y, i, pointOffset, count);
-			//	m_tileIndex.Add(PointCloudTileCoord.GetIndex(y, x), i);
-
-			//	pointOffset += count;
-			//}
 
 			// fill in valid tiles (dense)
 			long pointOffset = 0;
@@ -150,14 +136,6 @@ namespace CloudAE.Core
 				writer.Write(pointCount);
 				writer.Write(lowResCount);
 			}
-
-			// sparse
-			//foreach (var tile in this)
-			//{
-			//	writer.Write(tile.Row);
-			//	writer.Write(tile.Col);
-			//	writer.Write(tile.PointCount);
-			//}
 		}
 
         #endregion

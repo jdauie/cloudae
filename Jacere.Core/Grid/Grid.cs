@@ -103,11 +103,11 @@ namespace Jacere.Core
 		}
 
 		// not used
-		private static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
-		{
-			var def = GridDefinition.Create(extent, minDimension, maxDimension);
-			return Create(def, extent, fillVal);
-		}
+		//private static Grid<T> Create(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
+		//{
+		//	var def = GridDefinition.Create(extent, minDimension, maxDimension);
+		//	return Create(def, extent, fillVal);
+		//}
 
 		public static Grid<T> CreateBuffered(Extent2D extent, ushort minDimension, ushort maxDimension, T fillVal)
 		{
