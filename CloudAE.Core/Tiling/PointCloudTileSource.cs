@@ -26,9 +26,12 @@ namespace CloudAE.Core
 
 		private readonly LASFile m_file;
 
+		private readonly Identity m_id;
+
 		private readonly PointCloudTileSet m_tileSet;
 		private readonly Statistics m_statisticsZ;
 		private readonly QuantizedStatistics m_statisticsQuantizedZ;
+		private readonly BufferInstance m_lowResBuffer;
 		
 		private SQuantizedExtent3D m_quantizedExtent;
 
@@ -151,11 +154,15 @@ namespace CloudAE.Core
 		{
 			m_file = file;
 
+			m_id = IdentityManager.AcquireIdentity(GetType().Name);
+
 			m_tileSet = tileSet;
 			m_tileSet.TileSource = this;
 
 			m_statisticsZ = zStats;
 			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization);
+
+			m_lowResBuffer = BufferManager.AcquireBuffer(m_id, tileSet.LowResCount * PointSizeBytes);
 
 #warning this should be stored in the tileset, rather than converted
 			QuantizedExtent = Quantization.Convert(Extent);
@@ -214,6 +221,12 @@ namespace CloudAE.Core
 				m_inputStream.Dispose();
 				m_inputStream = null;
 			}
+		}
+
+		public int ReadLowResTile(byte[] buffer, int position)
+		{
+			// todo: get lowres points
+			return 0;
 		}
 
 		public void LoadTile(PointCloudTile tile, byte[] inputBuffer)

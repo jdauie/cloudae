@@ -9,7 +9,6 @@ namespace CloudAE.Core
 {
 	public unsafe class PointBufferWrapper : IPointDataChunk, IEnumerable<IPointDataChunk>, IChunkProcess
 	{
-		private readonly IPointCloudBinarySource m_source;
 		private readonly BufferInstance m_buffer;
 		private readonly byte* m_pointDataPtr;
 		private readonly byte* m_pointDataEndPtr;
@@ -71,7 +70,7 @@ namespace CloudAE.Core
 			if (pointCount > m_pointCount)
 				throw new Exception("Too many points");
 
-			return new PointBufferWrapper(m_buffer, m_source, pointCount);
+			return new PointBufferWrapper(m_buffer, m_pointSizeBytes, pointCount);
 		}
 
 		#endregion
@@ -86,10 +85,22 @@ namespace CloudAE.Core
 		public PointBufferWrapper(BufferInstance buffer, IPointCloudBinarySource source, int pointCount)
 		{
 			m_buffer = buffer;
-			m_source = source;
 
 			m_pointCount = pointCount;
-			m_pointSizeBytes = m_source.PointSizeBytes;
+			m_pointSizeBytes = source.PointSizeBytes;
+			m_length = m_pointCount * m_pointSizeBytes;
+			m_pointDataPtr = m_buffer.DataPtr;
+			m_pointDataEndPtr = m_pointDataPtr + m_length;
+
+			m_bufferIndex = 0;
+		}
+
+		public PointBufferWrapper(BufferInstance buffer, short pointSizeBytes, int pointCount)
+		{
+			m_buffer = buffer;
+
+			m_pointCount = pointCount;
+			m_pointSizeBytes = pointSizeBytes;
 			m_length = m_pointCount * m_pointSizeBytes;
 			m_pointDataPtr = m_buffer.DataPtr;
 			m_pointDataEndPtr = m_pointDataPtr + m_length;
@@ -103,7 +114,7 @@ namespace CloudAE.Core
 		}
 
 		private PointBufferWrapper(PointBufferWrapper wrapper, bool initialized)
-			: this(wrapper.m_buffer, wrapper.m_source)
+			: this(wrapper.m_buffer, wrapper.m_pointSizeBytes, wrapper.m_pointCount)
 		{
 			m_initialized = initialized;
 		}

@@ -13,6 +13,7 @@ namespace CloudAE.Core
 		public readonly ushort Col;
 		public readonly long PointOffset;
 		public readonly int PointCount;
+		public readonly int LowResCount;
 
 		public readonly int ValidIndex;
 
@@ -56,7 +57,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public PointCloudTile(PointCloudTileSet tileSet, ushort col, ushort row, int validIndex, long offset, int count)
+		public PointCloudTile(PointCloudTileSet tileSet, ushort col, ushort row, int validIndex, long offset, int count, int lowResCount)
 		{
 			if (count == 0)
 				throw new ArgumentException("count");
@@ -66,6 +67,7 @@ namespace CloudAE.Core
 			Row = row;
 			Col = col;
 			PointCount = count;
+			LowResCount = lowResCount;
 
 			PointOffset = offset;
 			ValidIndex = validIndex;
@@ -78,18 +80,21 @@ namespace CloudAE.Core
 
 		public int ReadTile(IStreamReader inputStream, byte[] inputBuffer, int index)
 		{
-			if (StorageSize > inputBuffer.Length)
-				throw new ArgumentException("Tile data is larger than available buffer", "inputBuffer");
-
-			if (StorageSize == 0)
+			if (PointCount == 0)
 				return 0;
 
+			if (index + StorageSize > inputBuffer.Length)
+				throw new ArgumentException("Tile data is larger than available buffer", "inputBuffer");
+
 			// seek if necessary (hopefully this is minimized)
-			long position = TileSet.TileSource.PointDataOffset + (PointOffset * TileSet.TileSource.PointSizeBytes);
+			var position = TileSet.TileSource.PointDataOffset + (PointOffset * TileSet.TileSource.PointSizeBytes);
 			if (inputStream.Position != position)
 				inputStream.Seek(position);
-
-			int bytesRead = inputStream.Read(inputBuffer, index, StorageSize);
+			
+			// read available points from main tile area and get low-res points from source
+			var localStorageSize = (PointCount - LowResCount) * TileSet.TileSource.PointSizeBytes;
+			var bytesRead = inputStream.Read(inputBuffer, index, localStorageSize);
+			bytesRead += TileSet.TileSource.ReadLowResTile(inputBuffer, index + bytesRead);
 
 			return bytesRead;
 		}

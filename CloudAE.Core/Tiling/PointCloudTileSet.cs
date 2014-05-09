@@ -19,6 +19,7 @@ namespace CloudAE.Core
 		public readonly Extent3D Extent;
 		public readonly PointCloudTileDensity Density;
 		public readonly long PointCount;
+		public readonly int LowResCount;
 		public readonly int TileCount;
 		public readonly ushort Rows;
 		public readonly ushort Cols;
@@ -37,7 +38,7 @@ namespace CloudAE.Core
 			return tileMap;
 		}
 
-		public PointCloudTileSet(PointCloudTileDensity density, Grid<int> tileCounts)
+		public PointCloudTileSet(PointCloudTileDensity density, Grid<int> tileCounts, Grid<int> lowResCounts)
 		{
 			Extent = density.Extent;
 			Density = density;
@@ -46,6 +47,7 @@ namespace CloudAE.Core
 			Rows = tileCounts.SizeY;
 
 			PointCount = density.PointCount;
+			LowResCount = 0;
 			TileCount = density.TileCount;
 			ValidTileCount = density.ValidTileCount;
 
@@ -57,68 +59,17 @@ namespace CloudAE.Core
 			int validTileIndex = 0;
 			foreach (var tile in GetTileOrdering(Rows, Cols))
 			{
-				int count = tileCounts.Data[tile.Row, tile.Col];
-				if (count > 0)
+				int pointCount = tileCounts.Data[tile.Row, tile.Col];
+				if (pointCount > 0)
 				{
-					m_tiles[validTileIndex] = new PointCloudTile(this, tile.Col, tile.Row, validTileIndex, offset, count);
+					var lowResCount = lowResCounts.Data[tile.Row, tile.Col];
+					LowResCount += lowResCount;
+					m_tiles[validTileIndex] = new PointCloudTile(this, tile.Col, tile.Row, validTileIndex, offset, pointCount, lowResCount);
 					m_tileIndex.Add(tile.Index, validTileIndex);
 					++validTileIndex;
-					offset += count;
+					offset += (pointCount - lowResCount);
 				}
 			}
-		}
-
-		public PointCloudTileSet(PointCloudTileSet[] tileSets)
-		{
-			if (tileSets.Length < 2)
-				throw new ArgumentException("There must be at least two tile sets to merge.", "tileSets");
-
-			var templateSet = tileSets[0];
-
-			for (int i = 1; i < tileSets.Length; i++)
-			{
-				if (!(
-					tileSets[i].Rows == templateSet.Rows &&
-					tileSets[i].Cols == templateSet.Cols
-					))
-				{
-					throw new ArgumentException("Tile sets cannot be merged.", "tileSets");
-				}
-			}
-
-			Extent = templateSet.Extent;
-			Density = templateSet.Density;
-
-			Cols = templateSet.Cols;
-			Rows = templateSet.Rows;
-
-			TileCount = templateSet.TileCount;
-			PointCount = tileSets.Sum(t => t.PointCount);
-
-			// allocate more space than necessary
-			m_tileIndex = CreateTileGrid(Rows, Cols, TileCount);
-			var tempTiles = new List<PointCloudTile>(TileCount);
-
-			long offset = 0;
-			int validTileIndex = 0;
-			foreach (var tile in GetTileOrdering(Rows, Cols))
-			{
-				int count = tileSets.Select(s => s.GetTile(tile)).Where(t => t != null).Sum(t => t.PointCount);
-				if (count > 0)
-				{
-					tempTiles.Add(new PointCloudTile(this, tile.Col, tile.Row, validTileIndex, offset, count));
-					m_tileIndex.Add(tile.Index, validTileIndex);
-					++validTileIndex;
-					offset += count;
-				}
-			}
-
-			ValidTileCount = validTileIndex;
-			m_tiles = new PointCloudTile[ValidTileCount];
-			for (int i = 0; i < validTileIndex; i++)
-				m_tiles[i] = tempTiles[i];
-
-			Density = new PointCloudTileDensity(TileCount, this.Select(t => t.PointCount), Extent);
 		}
 
 		public static IEnumerable<PointCloudTileCoord> GetTileOrdering(IGrid grid)
@@ -166,16 +117,17 @@ namespace CloudAE.Core
 
 			// fill in valid tiles (dense)
 			long pointOffset = 0;
-			int i = 0;
+			var i = 0;
 			foreach(var tile in GetTileOrdering(Rows, Cols))
 			{
-				int count = reader.ReadInt32();
-				if (count > 0)
+				var pointCount = reader.ReadInt32();
+				var lowResCount = reader.ReadInt32();
+				if (pointCount > 0)
 				{
-					m_tiles[i] = new PointCloudTile(this, tile.Col, tile.Row, i, pointOffset, count);
+					m_tiles[i] = new PointCloudTile(this, tile.Col, tile.Row, i, pointOffset, pointCount, lowResCount);
 					m_tileIndex.Add(tile.Index, i);
 
-					pointOffset += count;
+					pointOffset += (pointCount - lowResCount);
 					++i;
 				}
 			}
@@ -193,8 +145,10 @@ namespace CloudAE.Core
 			{
 				var tile = GetTile(tileCoord);
 				var pointCount = (tile != null) ? tile.PointCount : 0;
-				
+				var lowResCount = (tile != null) ? tile.LowResCount : 0;
+
 				writer.Write(pointCount);
+				writer.Write(lowResCount);
 			}
 
 			// sparse

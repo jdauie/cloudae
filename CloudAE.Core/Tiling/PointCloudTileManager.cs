@@ -17,6 +17,7 @@ namespace CloudAE.Core
 		public static readonly IPropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
 		private static readonly IPropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;
 
+		private readonly Identity m_id;
 		private readonly IPointCloudBinarySource m_source;
         
 		static PointCloudTileManager()
@@ -27,6 +28,7 @@ namespace CloudAE.Core
 
 		public PointCloudTileManager(IPointCloudBinarySource source)
 		{
+			m_id = IdentityManager.AcquireIdentity(GetType().Name);
 			m_source = source;
 		}
 
@@ -46,6 +48,10 @@ namespace CloudAE.Core
 
 			AttemptFastAllocate(tiledFile.FilePath, fileSize);
 
+			var lowResPointCountMax = 1000000;
+			var lowResBuffer = BufferManager.AcquireBuffer(m_id, lowResPointCountMax * m_source.PointSizeBytes);
+			var lowResWrapper = new PointBufferWrapper(lowResBuffer, m_source.PointSizeBytes, lowResPointCountMax);
+
 			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tiledFile.PointDataOffset))
 			{
 				int i = 0;
@@ -59,7 +65,7 @@ namespace CloudAE.Core
 					var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, segment.GridRange);
 
 					// this call will fill the buffer with points, add the counts, and sort
-					QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, analysis.Quantization, progressManager);
+					QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, lowResWrapper, progressManager);
 					var segmentFilteredPointCount = tileRegionFilter.GetCellOrdering().Sum(t => tileCounts.Data[t.Row, t.Col]);
 					var segmentFilteredBytes = segmentFilteredPointCount * sparseSegmentWrapper.PointSizeBytes;
 
@@ -86,8 +92,11 @@ namespace CloudAE.Core
 				}
 			}
 
+			// todo: get lowres counts
+			var lowResCounts = tileCounts.Copy<int>();
+
 			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Extent);
-			var tileSet = new PointCloudTileSet(actualDensity, tileCounts);
+			var tileSet = new PointCloudTileSet(actualDensity, tileCounts, lowResCounts);
 			var tileSource = new PointCloudTileSource(tiledFile, tileSet, analysis.Statistics);
 
 			if (!progressManager.IsCanceled())
@@ -128,7 +137,7 @@ namespace CloudAE.Core
 			return analysis;
 		}
 
-		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, Quantization3D outputQuantization, ProgressManager progressManager)
+		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, PointBufferWrapper lowResBuffer, ProgressManager progressManager)
 		{
 			var quantizedExtent = source.Quantization.Convert(source.Extent);
 
@@ -147,7 +156,7 @@ namespace CloudAE.Core
 			{
 				var tilePositions = tileFilter.CreatePositionGrid(segmentBuffer, source.PointSizeBytes);
 
-				int sortedCount = 0;
+				var sortedCount = 0;
 				foreach (var tile in tileFilter.GetCellOrdering())
 				{
 					var currentPosition = tilePositions[tile.Row, tile.Col];
@@ -181,6 +190,39 @@ namespace CloudAE.Core
 							break;
 					}
 				}
+			}
+
+			// determine representative low-res points for each tile and swap them to a new buffer
+			using (var process = progressManager.StartProcess("QuantTilePointsIndexedExtractLowRes"))
+			{
+				// todo: tiles need to be square
+
+				var index = 0;
+				foreach (var tile in tileFilter.GetCellOrdering())
+				{
+					int count = tileCounts.Data[tile.Row, tile.Col];
+					byte *dataPtr = segmentBuffer.PointDataPtr + (index * source.PointSizeBytes);
+					byte* dataEndPtr = dataPtr + (count * source.PointSizeBytes);
+
+					//m_pixelsOverRangeX = (double)m_grid.SizeX / m_source.QuantizedExtent.RangeX;
+
+					byte* pb = dataPtr;
+					while (pb < dataEndPtr)
+					{
+						var p = (SQuantizedPoint3D*)pb;
+
+						//int pixelX = (int)(((*p).X - m_minX) * m_pixelsOverRangeX);
+						//int pixelY = (int)(((*p).Y - m_minY) * m_pixelsOverRangeY);
+
+						//if ((*p).Z > m_gridQuantized.Data[pixelY, pixelX])
+						//	m_gridQuantized.Data[pixelY, pixelX] = (*p).Z;
+
+						pb += source.PointSizeBytes;
+					}
+				}
+
+				//var group = new ChunkProcessSet(tileFilter, segmentBuffer);
+				//group.Process(source.GetBlockEnumerator(process));
 			}
 		}
 
