@@ -12,6 +12,52 @@
 	<div id="info"><pre id="info-text">Preprocessing with <a href="data/CloudAE.zip">CloudAE</a> gives access to custom EVLRs<br>(the z stats record is used for sd stretch)</pre></div>
 	<div id="header"><pre id="header-text"></pre></div>
 	<div id="status"><pre id="status-text"></pre></div>
+	
+	<script type="x-shader/x-vertex" id="vertexshader2">
+		precision mediump float;
+		precision lowp sampler2D;
+
+		uniform sampler2D texture;
+		uniform float zmin;
+		uniform float zmax;
+		varying vec3 vColor;
+		
+		void main() {
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			gl_PointSize = 1.0;
+			vColor = texture2D(texture, vec2((position.z - zmin) / (zmax - zmin), 0)).xyz;
+		}
+	</script>
+
+	<script type="x-shader/x-vertex" id="vertexshader">
+		precision mediump float;
+		
+		attribute float color;
+		varying vec3 vColor;
+		
+		vec3 unpackColor(float f) {
+			vec3 color;
+			color.b = floor(f / 256.0 / 256.0);
+			color.g = floor((f - color.b * 256.0 * 256.0) / 256.0);
+			color.r = floor(f - color.b * 256.0 * 256.0 - color.g * 256.0);
+			// normalize
+			return color / 256.0;
+		}
+
+		void main() {
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			gl_PointSize = 1.0;
+			vColor = unpackColor(color);
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentshader">
+		varying vec3 vColor;
+		
+		void main() {
+			gl_FragColor = vec4(vColor, 1.0);
+		}
+	</script>
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 	<script src="js/libs/three.js/three.min.js"></script>

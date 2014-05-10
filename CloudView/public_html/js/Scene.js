@@ -17,6 +17,7 @@ var settings = {
 	},
 	render: {
 		useStats: true,
+		colorMode: 'float(3)',
 		colorRamp: 'Elevation1',
 		invertRamp: false,
 		pointSize: 1,
@@ -40,6 +41,11 @@ var actions = {
 		if (current) {
 			startFile(current.file);
 		}
+	},
+	createChunk: {
+		'float(3)': createChunkOld,
+		'float(1)': createChunkPackedColor,
+		'texture': createChunkTexture
 	}
 };
 
@@ -61,6 +67,7 @@ function init() {
 	f2.open();
 	
 	var f1 = gui.addFolder('Rendering');
+	f1.add(settings.render, 'colorMode', Object.keys(actions.createChunk));
 	f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets));
 	f1.add(settings.render, 'invertRamp');
 	f1.add(settings.render, 'useStats');
@@ -146,7 +153,7 @@ function onHeaderMessage(data) {
 
 function onChunkMessage(data) {
 	var reader = current.getPointReader(data.chunk);
-	var object = createChunk(reader);
+	var object = actions.createChunk[current.settings.render.colorMode](reader);
 	viewport.add(object);
 
 	updateProgress(data);
@@ -221,20 +228,93 @@ function createBounds() {
 	return cube;
 }
 
-function createChunk(reader) {
+function packColor(c) {
+	return (c.r*256.0) + (c.g*256.0*256.0) + (c.b*256.0*256.0*256.0);
+}
 
+function createGradient(ramp) {
+	var size = 512;
+
+	canvas = document.createElement('canvas');
+	canvas.width = size;
+	canvas.height = 1;
+
+	var context = canvas.getContext('2d');
+
+	context.rect(0, 0, size, 1);
+	var gradient = context.createLinearGradient(0, 0, size, 0);
+	
+	var stops = ramp.colors.length;
+	for (var i = 0; i < stops; ++i) {
+		var ratio = i / (stops - 1);
+		gradient.addColorStop(ratio, ramp.getColor(ratio).getHexString());
+	}
+	
+	context.fillStyle = gradient;
+	context.fill();
+
+	return canvas;
+}
+
+function createChunkTexture(reader) {
+
+	var ramp = ColorRamp.presets[current.settings.render.colorRamp];
+	if (current.settings.render.invertRamp) {
+		ramp = ramp.reverse();
+	}
+	
+	var min = current.header.extent.min;
+	var max = current.header.extent.max;
+	
+	var stretch = (current.settings.render.useStats && current.stats)
+		? new StdDevStretch(min.z, max.z, current.stats, 2)
+		: new MinMaxStretch(min.z, max.z);
+	
+	// the stretch info needs to be sent to the shader
+	//var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
+	
+	var texture = new THREE.Texture(createGradient(ramp));
+	texture.needsUpdate = true;
+	
+	
+	uniforms = {
+		zmin:     { type: "f", value: current.header.extent.min.z },
+		zmax:     { type: "f", value: current.header.extent.max.z },
+		texture:  { type: "t", value: texture }
+	};
+
+	var material = new THREE.ShaderMaterial( {
+		uniforms: 		uniforms,
+		vertexShader:   document.getElementById('vertexshader2').textContent,
+		fragmentShader: document.getElementById('fragmentshader').textContent
+	});
+	
 	var points = reader.filteredPoints;
 	
-	var material = new THREE.ParticleSystemMaterial({vertexColors: true, size: current.settings.render.pointSize});
-	//var material = shaderMaterial;
-	
 	var geometry = new THREE.BufferGeometry();
-
 	geometry.addAttribute('position', Float32Array, points, 3);
-	geometry.addAttribute('color', Float32Array, points, 3);
 
 	var positions = geometry.attributes.position.array;
-	var colors = geometry.attributes.color.array;
+
+	var kpi = geometry.attributes.position.itemSize;
+	var kp = 0, kc = 0;
+	
+	for (var i = 0; i < points; ++i, kp += kpi) {
+		var point = reader.readPoint();
+		
+		positions[kp + 0] = point.x;
+		positions[kp + 1] = point.y;
+		positions[kp + 2] = point.z;
+	}
+
+	geometry.computeBoundingSphere();
+	
+	var obj = new THREE.ParticleSystem(geometry, material);
+	centerObject(obj);
+	return obj;
+}
+
+function createChunkPackedColor(reader) {
 
 	var ramp = ColorRamp.presets[current.settings.render.colorRamp];
 	if (current.settings.render.invertRamp) {
@@ -250,6 +330,77 @@ function createChunk(reader) {
 	
 	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
 	
+	var attributes = {
+		color: {type: 'i', value: null}
+	};
+
+	var material = new THREE.ShaderMaterial({
+		attributes:     attributes,
+		vertexShader:   document.getElementById('vertexshader').textContent,
+		fragmentShader: document.getElementById('fragmentshader').textContent
+	});
+	
+	var points = reader.filteredPoints;
+	
+	var geometry = new THREE.BufferGeometry();
+	geometry.addAttribute('position', Float32Array, points, 3);
+	geometry.addAttribute('color', Float32Array, points, 1);
+
+	var positions = geometry.attributes.position.array;
+	var colors = geometry.attributes.color.array;
+
+	var kpi = geometry.attributes.position.itemSize;
+	var kci = geometry.attributes.color.itemSize;
+	var kp = 0, kc = 0;
+	
+	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
+		var point = reader.readPoint();
+		var c = cachedRamp.getColor(point.z);
+		
+		positions[kp + 0] = point.x;
+		positions[kp + 1] = point.y;
+		positions[kp + 2] = point.z;
+
+		colors[kc] = 
+			(~~(255 * c.r) << 0) | 
+			(~~(255 * c.g) << 8) | 
+			(~~(255 * c.b) << 16);
+	}
+
+	geometry.computeBoundingSphere();
+	
+	var obj = new THREE.ParticleSystem(geometry, material);
+	centerObject(obj);
+	return obj;
+}
+
+function createChunkOld(reader) {
+
+	var ramp = ColorRamp.presets[current.settings.render.colorRamp];
+	if (current.settings.render.invertRamp) {
+		ramp = ramp.reverse();
+	}
+	
+	var min = current.header.extent.min;
+	var max = current.header.extent.max;
+	
+	var stretch = (current.settings.render.useStats && current.stats)
+		? new StdDevStretch(min.z, max.z, current.stats, 2)
+		: new MinMaxStretch(min.z, max.z);
+	
+	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
+	
+	var material = new THREE.ParticleSystemMaterial({vertexColors: true, size: current.settings.render.pointSize});
+	
+	var points = reader.filteredPoints;
+	
+	var geometry = new THREE.BufferGeometry();
+	geometry.addAttribute('position', Float32Array, points, 3);
+	geometry.addAttribute('color', Float32Array, points, 3);
+
+	var positions = geometry.attributes.position.array;
+	var colors = geometry.attributes.color.array;
+
 	var kpi = geometry.attributes.position.itemSize;
 	var kci = geometry.attributes.color.itemSize;
 	var kp = 0, kc = 0;

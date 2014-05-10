@@ -84,7 +84,7 @@ Viewport3D.create = function(container, settings) {
 	var viewport = new Viewport3D(container, settings);
 	Viewport3D.viewports.push(viewport);
 	
-	// make sure only one animation loop runs
+	// todo: make sure only one animation loop runs
 	
 	Viewport3D.animate();
 	return viewport;
@@ -93,8 +93,6 @@ Viewport3D.create = function(container, settings) {
 Viewport3D.animate = function() {
 	if (Viewport3D.paused)
 		return;
-	
-	//console.log("animate()");
 
 	requestAnimationFrame(Viewport3D.animate);
 	for(var i = 0; i < Viewport3D.viewports.length; i++) {
