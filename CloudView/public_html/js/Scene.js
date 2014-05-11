@@ -45,6 +45,7 @@ var actions = {
 	createChunk: {
 		'float(3)': createChunkOld,
 		'float(3)s': createChunkOldShader,
+		'float(3)sn': createChunkOldShader,
 		'float(1)': createChunkPackedColor,
 		'texture': createChunkTexture
 	}
@@ -53,8 +54,22 @@ var actions = {
 var worker = null;
 var current = null;
 
+var geometry = {
+	reset: function() {
+		this.bounds = null;
+		this.chunks = [];
+	},
+	toggleBounds: function() {
+		if (settings.render.showBounds)
+			viewport.add(this.bounds);
+		else
+			viewport.remove(this.bounds);
+	}
+};
+
 var viewport = Viewport3D.create(settings.elements.container[0], {
-	camera: settings.camera
+	camera: settings.camera,
+	render: settings.render2
 });
 settings.elements.loader.hide();
 
@@ -72,7 +87,7 @@ function init() {
 	f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets));
 	f1.add(settings.render, 'invertRamp');
 	f1.add(settings.render, 'useStats');
-	f1.add(settings.render, 'showBounds');
+	f1.add(settings.render, 'showBounds').onChange(function() {geometry.toggleBounds();});
 	f1.add(settings.render, 'pointSize').min(1).max(20);
 	f1.open();
 	
@@ -112,6 +127,7 @@ function startFile(file) {
 	clearInfo(reset);
 
 	current = new LASInfo(file);
+	geometry.reset();
 
 	worker.postMessage({
 		file: file,
@@ -141,10 +157,12 @@ function onHeaderMessage(data) {
 
 	updateFileInfo();
 
+	var bounds = createBounds();
 	if (current.settings.render.showBounds) {
-		var bounds = createBounds();
 		viewport.add(bounds);
 	}
+	
+	geometry.bounds = bounds;
 
 	if (viewport.camera.position.z === 0) {
 		var es = header.extent.size();
@@ -156,6 +174,8 @@ function onChunkMessage(data) {
 	var reader = current.getPointReader(data.chunk);
 	var object = actions.createChunk[current.settings.render.colorMode](reader);
 	viewport.add(object);
+	
+	geometry.chunks.push(object);
 
 	updateProgress(data);
 	if (data.index + 1 === current.chunks) {
@@ -366,6 +386,53 @@ function createChunkPackedColor(reader) {
 			(~~(255 * c.r) << 0) | 
 			(~~(255 * c.g) << 8) | 
 			(~~(255 * c.b) << 16);
+	}
+
+	geometry.computeBoundingSphere();
+	
+	var obj = new THREE.ParticleSystem(geometry, material);
+	centerObject(obj);
+	return obj;
+}
+
+function createChunkOldShaderNobuf(reader) {
+
+	var ramp = ColorRamp.presets[current.settings.render.colorRamp];
+	if (current.settings.render.invertRamp) {
+		ramp = ramp.reverse();
+	}
+	
+	var min = current.header.extent.min;
+	var max = current.header.extent.max;
+	
+	var stretch = (current.settings.render.useStats && current.stats)
+		? new StdDevStretch(min.z, max.z, current.stats, 2)
+		: new MinMaxStretch(min.z, max.z);
+	
+	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
+	
+	var attributes = {
+		color: {type: 'c', value: []}
+	};
+
+	var material = new THREE.ShaderMaterial({
+		attributes:     attributes,
+		vertexShader:   document.getElementById('vertexshader3').textContent,
+		fragmentShader: document.getElementById('fragmentshader').textContent
+	});
+	
+	var points = reader.filteredPoints;
+	
+	var geometry = new THREE.Geometry();
+
+	var colors = geometry.attributes.color.array;
+
+	for (var i = 0; i < points; ++i) {
+		var point = reader.readPoint();
+		var c = cachedRamp.getColor(point.z);
+		
+		geometry.vertices.push(new THREE.Vertex(point));
+		colors.push(c);
 	}
 
 	geometry.computeBoundingSphere();

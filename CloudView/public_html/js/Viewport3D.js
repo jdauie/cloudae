@@ -64,13 +64,19 @@ function Viewport3D(container, settings) {
 		this.scene.add(object);
 	};
 	
+	this.remove = function(object) {
+		this.scene.remove(object);
+	};
+	
 	this.clearScene = function() {
 		while (this.scene.children.length > 0) {
 			this.scene.remove(this.scene.children[this.scene.children.length - 1]);
 		}
 	};
 	
-	this.controls.addEventListener('change', Viewport3D.render);
+	// double rendering
+	// this should only happen if I am *NOT* doing automatic requestAnimationFrame()
+	//this.controls.addEventListener('change', Viewport3D.render);
 	
 	window.addEventListener('resize', Viewport3D.onWindowResize, false);
 };
@@ -103,12 +109,13 @@ Viewport3D.animate = function() {
 	}
 };
 
+/* double rendering
 Viewport3D.render = function() {
 	for(var i = 0; i < Viewport3D.viewports.length; i++) {
 		var viewport = Viewport3D.viewports[i];
 		viewport.render();
 	}
-};
+};*/
 
 Viewport3D.onWindowResize = function() {
 	for(var i = 0; i < Viewport3D.viewports.length; i++) {
