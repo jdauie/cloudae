@@ -8,6 +8,7 @@ function Viewport3D(container, settings) {
 
 	this.renderer = new THREE.WebGLRenderer();
 	this.renderer.setSize(WIDTH, HEIGHT);
+	//this.renderer.setFaceCulling(0);
 	this.container.appendChild(this.renderer.domElement);
 
 	this.stats = new Stats();

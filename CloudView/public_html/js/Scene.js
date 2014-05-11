@@ -44,6 +44,7 @@ var actions = {
 	},
 	createChunk: {
 		'float(3)': createChunkOld,
+		'float(3)s': createChunkOldShader,
 		'float(1)': createChunkPackedColor,
 		'texture': createChunkTexture
 	}
@@ -374,6 +375,64 @@ function createChunkPackedColor(reader) {
 	return obj;
 }
 
+function createChunkOldShader(reader) {
+
+	var ramp = ColorRamp.presets[current.settings.render.colorRamp];
+	if (current.settings.render.invertRamp) {
+		ramp = ramp.reverse();
+	}
+	
+	var min = current.header.extent.min;
+	var max = current.header.extent.max;
+	
+	var stretch = (current.settings.render.useStats && current.stats)
+		? new StdDevStretch(min.z, max.z, current.stats, 2)
+		: new MinMaxStretch(min.z, max.z);
+	
+	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
+	
+	var attributes = {
+		color: {type: 'c', value: null}
+	};
+
+	var material = new THREE.ShaderMaterial({
+		attributes:     attributes,
+		vertexShader:   document.getElementById('vertexshader3').textContent,
+		fragmentShader: document.getElementById('fragmentshader').textContent
+	});
+	
+	var points = reader.filteredPoints;
+	
+	var geometry = new THREE.BufferGeometry();
+	geometry.addAttribute('position', Float32Array, points, 3);
+	geometry.addAttribute('color', Float32Array, points, 3);
+
+	var positions = geometry.attributes.position.array;
+	var colors = geometry.attributes.color.array;
+
+	var kpi = geometry.attributes.position.itemSize;
+	var kci = geometry.attributes.color.itemSize;
+	var kp = 0, kc = 0;
+	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
+		var point = reader.readPoint();
+		var c = cachedRamp.getColor(point.z);
+		
+		positions[kp + 0] = point.x;
+		positions[kp + 1] = point.y;
+		positions[kp + 2] = point.z;
+
+		colors[kc + 0] = c.r;
+		colors[kc + 1] = c.g;
+		colors[kc + 2] = c.b;
+	}
+
+	geometry.computeBoundingSphere();
+	
+	var obj = new THREE.ParticleSystem(geometry, material);
+	centerObject(obj);
+	return obj;
+}
+
 function createChunkOld(reader) {
 
 	var ramp = ColorRamp.presets[current.settings.render.colorRamp];
@@ -390,7 +449,10 @@ function createChunkOld(reader) {
 	
 	var cachedRamp = new CachedColorRamp(ramp, stretch, 1000);
 	
-	var material = new THREE.ParticleSystemMaterial({vertexColors: true, size: current.settings.render.pointSize});
+	var material = new THREE.ParticleSystemMaterial({
+		vertexColors: true,
+		size: current.settings.render.pointSize
+	});
 	
 	var points = reader.filteredPoints;
 	

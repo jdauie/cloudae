@@ -13,6 +13,17 @@
 	<div id="header"><pre id="header-text"></pre></div>
 	<div id="status"><pre id="status-text"></pre></div>
 	
+	<script type="x-shader/x-vertex" id="vertexshader3">
+	attribute vec3 color;
+	varying vec3 vColor;
+
+	void main() {
+		gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		gl_PointSize = 1.0;
+		vColor = color;
+	}
+	</script>
+	
 	<script type="x-shader/x-vertex" id="vertexshader2">
 		precision mediump float;
 		precision lowp sampler2D;
