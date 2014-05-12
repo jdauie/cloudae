@@ -58,7 +58,7 @@ namespace CloudAE.Core
 				var i = 0;
 				foreach (var segment in analysis.GridIndex)
 				{
-					progressManager.Log("~ Processing Index Segment {0}/{1}", i++, analysis.GridIndex.Count);
+					progressManager.Log("~ Processing Index Segment {0}/{1}", ++i, analysis.GridIndex.Count);
 
 					var sparseSegment = m_source.CreateSparseSegment(segment);
 					var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
@@ -93,7 +93,7 @@ namespace CloudAE.Core
 			// todo: get lowres counts
 			var lowResCounts = tileCounts.Copy<int>();
 
-			var actualDensity = new PointCloudTileDensity(tileCounts);
+			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Extent);
 			var tileSet = new PointCloudTileSet(m_source, actualDensity, tileCounts, lowResCounts);
 			var tileSource = new PointCloudTileSource(tiledFile, tileSet, analysis.Statistics);
 
@@ -239,7 +239,7 @@ namespace CloudAE.Core
 			}
 
 			stats = statsMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
-			var density = new PointCloudTileDensity(tileCounts);
+			var density = new PointCloudTileDensity(tileCounts, extent);
 			gridIndexSegments = gridCounter.GetGridIndex(density, maxSegmentLength);
 
 			var result = new PointCloudAnalysisResult(density, stats, source.Quantization, gridIndexSegments);

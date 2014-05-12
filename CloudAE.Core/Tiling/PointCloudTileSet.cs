@@ -26,7 +26,7 @@ namespace CloudAE.Core
 		public readonly int TileCount;
 		public readonly ushort Rows;
 		public readonly ushort Cols;
-		public readonly double TileSize;
+		//public readonly double TileSize;
 		public readonly int TileSizeX;
 		public readonly int TileSizeY;
 
@@ -55,7 +55,7 @@ namespace CloudAE.Core
 			Rows = tileCounts.SizeY;
 			TileSizeX = tileCounts.CellSizeX;
 			TileSizeY = tileCounts.CellSizeY;
-			TileSize = tileCounts.CellSize;
+			//TileSize = tileCounts.CellSize;
 
 			PointCount = density.PointCount;
 			LowResCount = 0;
@@ -101,6 +101,8 @@ namespace CloudAE.Core
 		{
 			Rows = reader.ReadUInt16();
 			Cols = reader.ReadUInt16();
+			TileSizeY = reader.ReadInt32();
+			TileSizeX = reader.ReadInt32();
 
 			TileCount = Rows * Cols;
 
@@ -136,6 +138,8 @@ namespace CloudAE.Core
 		{
 			writer.Write(Rows);
 			writer.Write(Cols);
+			writer.Write(TileSizeY);
+			writer.Write(TileSizeX);
 			writer.Write(Extent);
 			writer.Write(Quantization);
 			writer.Write(Density);
