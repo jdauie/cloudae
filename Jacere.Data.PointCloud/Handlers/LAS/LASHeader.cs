@@ -443,11 +443,6 @@ namespace Jacere.Data.PointCloud
 
 		public LASVLR[] ReadVLRs(Stream stream)
 		{
-			return ReadVLRs(stream, null);
-		}
-
-		private LASVLR[] ReadVLRs(Stream stream, Func<LASVLR, bool> acceptanceCondition)
-		{
 			var vlrs = new List<LASVLR>((int)m_numberOfVariableLengthRecords);
 
 			if (m_numberOfVariableLengthRecords > 0)
@@ -459,16 +454,8 @@ namespace Jacere.Data.PointCloud
 					for (int i = 0; i < m_numberOfVariableLengthRecords; i++)
 					{
 						var vlr = reader.ReadObject<LASVLR>();
-						if (acceptanceCondition != null)
-						{
-							if (acceptanceCondition(vlr))
-								vlrs.Add(vlr);
-						}
-						else
-						{
-							if (vlr.IsInteresting)
-								vlrs.Add(vlr);
-						}
+						//if (vlr.IsInteresting)
+							vlrs.Add(vlr);
 					}
 				}
 			}
@@ -505,7 +492,7 @@ namespace Jacere.Data.PointCloud
 					for (int i = 0; i < m_numberOfExtendedVariableLengthRecords; i++)
 					{
 						var vlr = reader.ReadObject<LASEVLR>();
-						if (vlr != null && vlr.IsInteresting)
+						if (vlr != null)// && vlr.IsInteresting)
 							vlrs.Add(vlr);
 					}
 				}

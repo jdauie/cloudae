@@ -40,14 +40,14 @@ namespace CloudAE.Core
 			stopwatch.Start();
 
 			var analysis = AnalyzePointFile(segmentBuffer.Length, progressManager);
-			var tileCounts = analysis.Density.CreateTileCountsForInitialization(true);
-
 			var quantizedExtent = m_source.Quantization.Convert(analysis.Density.Extent);
+			var tileCounts = analysis.Density.GetTileCountsForInitialization();
 
-			long fileSize = tiledFile.PointDataOffset + (m_source.PointSizeBytes * m_source.Count);
+			var fileSize = tiledFile.PointDataOffset + (m_source.PointSizeBytes * m_source.Count);
 
 			AttemptFastAllocate(tiledFile.FilePath, fileSize);
 
+#warning make property
 			var lowResPointCountMax = 1000000;
 			var lowResBuffer = BufferManager.AcquireBuffer(m_id, lowResPointCountMax * m_source.PointSizeBytes);
 			var lowResWrapper = new PointBufferWrapper(lowResBuffer, m_source.PointSizeBytes, lowResPointCountMax);
@@ -141,6 +141,7 @@ namespace CloudAE.Core
 		{
 			var quantizedExtent = source.Quantization.Convert(source.Extent);
 
+#warning non-square
 			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
 			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 

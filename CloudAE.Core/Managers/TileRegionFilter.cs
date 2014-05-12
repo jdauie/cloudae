@@ -33,8 +33,8 @@ namespace CloudAE.Core
             double minY = m_quantizedExtent.MinY;
             double minX = m_quantizedExtent.MinX;
 
-            double tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
-            double tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
+            var tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
+            var tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
 
 			// if the end of the range is the last tile in a row, then buffer it.
 			var startIndex = m_range.StartPos;
@@ -42,8 +42,8 @@ namespace CloudAE.Core
 
 			ushort rowCount = m_grid.Def.SizeY;
 
-			byte* pb = chunk.PointDataPtr;
-			byte* pbDestination = pb;
+			var pb = chunk.PointDataPtr;
+			var pbDestination = pb;
 			while (pb < chunk.PointDataEndPtr)
 			{
 				var p = (SQuantizedPoint3D*)pb;

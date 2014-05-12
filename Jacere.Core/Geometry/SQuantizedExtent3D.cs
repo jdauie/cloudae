@@ -107,6 +107,19 @@ namespace Jacere.Core.Geometry
 			return new Extent3D(Min.GetPoint3D(), Max.GetPoint3D());
 		}
 
+		public SQuantizedExtentGrid<T> CreateGridFromCellSize<T>(double cellSize, SQuantization3D quantization, bool buffered = false, T fillVal = default(T))
+		{
+			var cellSizeX = (int)(cellSize / quantization.ScaleFactorX);
+			var cellSizeY = (int)(cellSize / quantization.ScaleFactorY);
+
+			var sizeX = (ushort)Math.Ceiling((double)RangeX / cellSizeX);
+			var sizeY = (ushort)Math.Ceiling((double)RangeY / cellSizeY);
+
+			var def = new GridDefinition(sizeX, sizeY, buffered);
+
+			return new SQuantizedExtentGrid<T>(def, cellSizeX, cellSizeY, fillVal);
+		}
+
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
 		/// </summary>

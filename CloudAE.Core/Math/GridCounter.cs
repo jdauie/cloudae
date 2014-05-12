@@ -134,14 +134,13 @@ namespace CloudAE.Core
 			}
 			indexGrid.CorrectCountOverflow();
 
-
-			var actualGrid = density.CreateTileCountsForInitialization(false);
+			var actualGridDef = density.CreateTileCountsForInitialization(m_extent, m_source.Quantization);
 
 			var regionSourcesBySegment = new List<List<Range>>();
 			var tilesPerSegment = new List<GridRange>();
 			var pointDataBytes = m_source.PointSizeBytes * m_source.Count;
 
-			var tileOrder = PointCloudTileSet.GetTileOrdering(actualGrid.SizeY, actualGrid.SizeX).ToArray();
+			var tileOrder = PointCloudTileSet.GetTileOrdering(actualGridDef.SizeY, actualGridDef.SizeX).ToArray();
 			var tileOrderIndex = 0;
 			while (tileOrderIndex < tileOrder.Length)
 			{
@@ -149,7 +148,7 @@ namespace CloudAE.Core
 				var segmentChunks = new HashSet<int>();
 
 				var startTile = tileOrder[tileOrderIndex];
-				var startTileIndex = new GridCoord(actualGrid.Def, startTile.Row, startTile.Col);
+				var startTileIndex = new GridCoord(actualGridDef, startTile.Row, startTile.Col);
 
 				int segmentPointCount = 0;
 
@@ -163,7 +162,7 @@ namespace CloudAE.Core
 					// get unique tiles/chunks
 
 					var uniqueEstimatedCoords = indexGrid
-						.GetCellCoordsInScaledRange(tile.Col, tile.Row, actualGrid)
+						.GetCellCoordsInScaledRange(tile.Col, tile.Row, actualGridDef)
 						.Where(c => !segmentTilesFromEstimation.Contains(c.Index))
 						.ToList();
 
@@ -196,7 +195,7 @@ namespace CloudAE.Core
 				if (segmentChunks.Count > 0)
 				{
 					var endTile = tileOrder[tileOrderIndex - 1];
-					var endTileIndex = new GridCoord(actualGrid.Def, endTile.Row, endTile.Col);
+					var endTileIndex = new GridCoord(actualGridDef, endTile.Row, endTile.Col);
 
 					// group by sequential regions
 					int[] sortedCellList = segmentChunks.ToArray();

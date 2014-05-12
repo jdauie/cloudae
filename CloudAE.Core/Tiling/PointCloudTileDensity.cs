@@ -26,7 +26,7 @@ namespace CloudAE.Core
 
 		public readonly Extent3D Extent;
 
-		private Grid<int> m_tileCountsForInitialization;
+		private SQuantizedExtentGrid<int> m_tileCountsForInitialization;
 
 		public PointCloudTileDensity(Grid<int> tileCounts, Extent3D extent)
 		{
@@ -90,12 +90,18 @@ namespace CloudAE.Core
 			writer.Write(MeanTileDensity);
 		}
 
-		public Grid<int> CreateTileCountsForInitialization(bool clear)
+		public SQuantizedExtentGrid<int> GetTileCountsForInitialization()
+		{
+			// todo: do I need this?
+			//m_tileCountsForInitialization.Reset();
+
+			return m_tileCountsForInitialization;
+		}
+
+		public GridDefinition CreateTileCountsForInitialization(SQuantizedExtent3D extent, SQuantization3D quantization)
 		{
 			if (m_tileCountsForInitialization == null)
 			{
-				var extent = Extent;
-
 				// median works better usually, but max is safer for substantially varying density
 				// (like terrestrial, although that requires a more thorough redesign)
 				//double tileArea = PROPERTY_DESIRED_TILE_COUNT.Value / density.MaxTileDensity;
@@ -104,16 +110,9 @@ namespace CloudAE.Core
 
 				Context.WriteLine("TileSide: {0}", tileSize);
 
-#warning this results in non-square tiles
-
-				m_tileCountsForInitialization = extent.CreateGridFromCellSize<int>(tileSize, true);
+				m_tileCountsForInitialization = extent.CreateGridFromCellSize<int>(tileSize, quantization, true);
 			}
-			else if (clear)
-			{
-				m_tileCountsForInitialization.Reset();
-			}
-
-			return m_tileCountsForInitialization;
+			return m_tileCountsForInitialization.Def;
 		}
 
 		public override string ToString()
