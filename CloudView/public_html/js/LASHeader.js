@@ -78,21 +78,23 @@ function LASHeader(reader) {
 
 	this.quantization = reader.readObject("SQuantization3D");
 	this.extent       = reader.readBox3FromLAS();
-
-	if (this.version.version >= LASVersion.LAS_1_3)
-	{
+	
+	if (this.version.version >= LASVersion.LAS_1_3) {
 		this.startOfWaveformDataPacketRecord = reader.readUint64();
 	}
+	else {
+		this.startOfWaveformDataPacketRecord = 0;
+	}
 
-	if (this.version.version >= LASVersion.LAS_1_4)
-	{
+	if (this.version.version >= LASVersion.LAS_1_4) {
 		this.startOfFirstExtendedVariableLengthRecord = reader.readUint64();
 		this.numberOfExtendedVariableLengthRecords    = reader.readUint32();
 		this.numberOfPointRecords                     = reader.readUint64();
 		this.numberOfPointsByReturn                   = reader.readUint64Array(15);
 	}
-	else
-	{
+	else {
+		this.startOfFirstExtendedVariableLengthRecord = 0;
+		this.numberOfExtendedVariableLengthRecords = 0;
 		this.numberOfPointRecords = this.legacyNumberOfPointRecords;
 		this.numberOfPointsByReturn = createZeroArray(15);
 		for (var i = 0; i < this.legacyNumberOfPointsByReturn.length; i++)

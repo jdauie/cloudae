@@ -379,4 +379,36 @@ function createChunkOld(reader) {
 	return new THREE.ParticleSystem(geometry, current.material);
 }
 
+function updateChunkOld(obj) {
+
+	var geometry = obj.geometry;
+	
+	var points = (geometry.attributes.position.array.length / 3);
+
+	var positions = geometry.attributes.position.array;
+	var colors = geometry.attributes.color.array;
+
+	var kpi = geometry.attributes.position.itemSize;
+	var kci = geometry.attributes.color.itemSize;
+	var kp = 0, kc = 0;
+	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
+		var z = positions[kp + 2];
+		var c = current.colorMap.getColor(z);
+		
+		if (kci === 1) {
+			colors[kc] = 
+				(~~(255 * c.r) << 0) | 
+				(~~(255 * c.g) << 8) | 
+				(~~(255 * c.b) << 16);
+		}
+		else {
+			colors[kc + 0] = c.r;
+			colors[kc + 1] = c.g;
+			colors[kc + 2] = c.b;
+		}
+	}
+
+	geometry.attributes.color.needsUpdate = true;
+}
+
 init();

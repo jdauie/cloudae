@@ -36,15 +36,28 @@ function LASInfo(file) {
 		this.updateColorMap();
 		this.updateTexture();
 		this.updateMaterial();
+		
+		// update attributes if necessary
+		this.forceColorUpdate();
+	};
+	
+	this.forceColorUpdate = function() {
+		if (!this.material || this.geometry.chunks.length === 0 || !this.geometry.chunks[0].geometry.attributes.color)
+			return;
+		
+		for (var i = 0; i < this.geometry.chunks.length; i++) {
+			var obj = this.geometry.chunks[i];
+			updateChunkOld(obj);
+		}
 	};
 	
 	this.updateMaterial = function() {
 		if (this.material) {
 			if (!this.material.vertexColors) {
-				this.material.uniforms.size.value = current.settings.render.pointSize;
+				this.material.uniforms.size.value = this.settings.render.pointSize;
 			}
 			else {
-				this.material.size = current.settings.render.pointSize;
+				this.material.size = this.settings.render.pointSize;
 			}
 			this.material.needsUpdate = true;
 		}
