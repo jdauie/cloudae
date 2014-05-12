@@ -106,7 +106,7 @@ function LASInfo(file) {
 		var stops = map.ramp.colors.length;
 		for (var i = 0; i < stops; ++i) {
 			var ratio = i / (stops - 1);
-			gradient.addColorStop(ratio, map.ramp.getColor(ratio).getHexString());
+			gradient.addColorStop(ratio, '#' + map.ramp.getColor(ratio).getHexString());
 		}
 
 		context.fillStyle = gradient;
