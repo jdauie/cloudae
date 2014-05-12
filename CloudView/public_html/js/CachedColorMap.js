@@ -1,8 +1,9 @@
 
-function CachedColorRamp(ramp, stretch, desiredDestinationBins)
+function CachedColorMap(ramp, stretch, desiredDestinationBins)
 {
 	this.ramp = ramp;
 	this.map = new IntervalMap(stretch, desiredDestinationBins, false);
+	this.length = this.map.binCount;
 
 	// allow overflow
 	this.bins = createZeroArray(this.map.binCount + 1);

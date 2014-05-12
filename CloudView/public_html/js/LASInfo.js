@@ -2,10 +2,16 @@
 function LASInfo(file) {
 	this.file = file;
 	this.startTime = Date.now();
+	this.texture = null;
 	
 	this.settings = {
 		loader: clone(settings.loader),
 		render: clone(settings.render)
+	};
+
+	this.geometry = {
+		bounds: null,
+		chunks: []
 	};
 	
 	this.setHeader = function(header, chunks, stats) {
@@ -13,10 +19,74 @@ function LASInfo(file) {
 		this.chunks = chunks;
 		this.stats = stats;
 		this.step = Math.ceil(header.numberOfPointRecords / Math.min(this.settings.loader.maxPoints, header.numberOfPointRecords));
+		
+		this.update();
 	};
 	
 	this.getPointReader = function(buffer) {
 		return new PointReader(this, buffer);
+	};
+	
+	this.updateRenderSettings = function() {
+		this.settings.render = clone(settings.render);
+		this.update();
+	};
+	
+	this.update = function() {
+		this.updateColorMap();
+		this.updateTexture();
+	};
+	
+	this.updateColorMap = function() {
+		var ramp = ColorRamp.presets[this.settings.render.colorRamp];
+		if (this.settings.render.invertRamp) {
+			ramp = ramp.reverse();
+		}
+
+		var min = this.header.extent.min;
+		var max = this.header.extent.max;
+
+		var stretch = (this.settings.render.useStats && this.stats)
+			? new StdDevStretch(min.z, max.z, this.stats, 2)
+			: new MinMaxStretch(min.z, max.z);
+
+		this.colorMap = new CachedColorMap(ramp, stretch, this.settings.render.colorValues);
+	};
+	
+	this.updateTexture = function() {
+		if (!this.texture) {
+			this.texture = new THREE.Texture(this.createGradient(this.colorMap));
+		}
+		else {
+			this.createGradient(this.colorMap, this.texture.image);
+		}
+		this.texture.needsUpdate = true;
+	};
+
+	this.createGradient = function(map, canvas) {
+		var size = map.length;
+
+		if (!canvas) {
+			canvas = document.createElement('canvas');
+			canvas.width = size;
+			canvas.height = 1;
+		}
+
+		var context = canvas.getContext('2d');
+
+		context.rect(0, 0, size, 1);
+		var gradient = context.createLinearGradient(0, 0, size, 0);
+
+		var stops = map.ramp.colors.length;
+		for (var i = 0; i < stops; ++i) {
+			var ratio = i / (stops - 1);
+			gradient.addColorStop(ratio, map.ramp.getColor(ratio).getHexString());
+		}
+
+		context.fillStyle = gradient;
+		context.fill();
+
+		return canvas;
 	};
 }
 
