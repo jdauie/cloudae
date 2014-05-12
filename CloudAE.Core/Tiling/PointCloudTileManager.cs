@@ -93,7 +93,7 @@ namespace CloudAE.Core
 			// todo: get lowres counts
 			var lowResCounts = tileCounts.Copy<int>();
 
-			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Extent);
+			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Quantization);
 			var tileSet = new PointCloudTileSet(m_source, actualDensity, tileCounts, lowResCounts);
 			var tileSource = new PointCloudTileSource(tiledFile, tileSet, analysis.Statistics);
 
@@ -239,7 +239,7 @@ namespace CloudAE.Core
 			}
 
 			stats = statsMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
-			var density = new PointCloudTileDensity(tileCounts, extent);
+			var density = new PointCloudTileDensity(tileCounts, source.Quantization);
 			gridIndexSegments = gridCounter.GetGridIndex(density, maxSegmentLength);
 
 			var result = new PointCloudAnalysisResult(density, stats, source.Quantization, gridIndexSegments);

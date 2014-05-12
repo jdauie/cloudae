@@ -27,7 +27,7 @@ namespace CloudAE.Core
 
 		private SQuantizedExtentGrid<int> m_tileCountsForInitialization;
 
-		public PointCloudTileDensity(SQuantizedExtentGrid<int> tileCounts, Extent3D extent)
+		public PointCloudTileDensity(SQuantizedExtentGrid<int> tileCounts, SQuantization3D quantization)
 		{
 			var counts = tileCounts.Data.Cast<int>();
 
@@ -38,7 +38,8 @@ namespace CloudAE.Core
 			PointCount = nonZeroCounts.SumLong();
 
 			//var tileArea = tileCounts.CellSize * tileCounts.CellSize;
-			var tileArea = extent.Area / TileCount;
+			//var tileArea = extent.Area / TileCount;
+			var tileArea = (tileCounts.CellSizeX * quantization.ScaleFactorX) * (tileCounts.CellSizeY * quantization.ScaleFactorY);
 
 			ValidTileCount = nonZeroCounts.Length;
 
