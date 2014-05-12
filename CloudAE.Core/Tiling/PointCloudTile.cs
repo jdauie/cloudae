@@ -39,8 +39,7 @@ namespace CloudAE.Core
 		{
 			get
 			{
-#warning store quantized extent in tileset so that TileSource isn't necessary
-				return TileSet.ComputeTileExtent(this, TileSet.TileSource.QuantizedExtent);
+				return TileSet.ComputeQuantizedTileExtent(this);
 			}
 		}
 

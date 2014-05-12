@@ -281,7 +281,7 @@ namespace Jacere.Core.Geometry
 			if (extent.GetType() != SupportedExtentType)
 				throw new ArgumentException("Quantization type mismatch", "extent");
 
-			Extent3D e = extent.GetExtent3D();
+			var e = extent.GetExtent3D();
 			return new Extent3D(
 				e.GetMinPoint3D() * ScaleFactor + Offset,
 				e.GetMaxPoint3D() * ScaleFactor + Offset

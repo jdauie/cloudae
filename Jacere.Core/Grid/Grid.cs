@@ -60,13 +60,18 @@ namespace Jacere.Core
 
 	public class SQuantizedExtentGrid<T> : Grid<T>
 	{
-		//private readonly SQuantizedExtent3D m_extent;
+		private readonly double m_cellSize;
 		private readonly int m_cellSizeX;
 		private readonly int m_cellSizeY;
 		private readonly double m_inverseCellSizeX;
 		private readonly double m_inverseCellSizeY;
 
 		#region Properties
+
+		public double CellSize
+		{
+			get { return m_cellSize; }
+		}
 
 		public int CellSizeX
 		{
@@ -90,9 +95,10 @@ namespace Jacere.Core
 
 		#endregion
 
-		public SQuantizedExtentGrid(GridDefinition def, int cellSizeX, int cellSizeY, T fillVal)
+		public SQuantizedExtentGrid(GridDefinition def, double cellSize, int cellSizeX, int cellSizeY, T fillVal)
 			: base(def, fillVal)
 		{
+			m_cellSize = cellSize;
 			m_cellSizeX = cellSizeX;
 			m_cellSizeY = cellSizeY;
 			m_inverseCellSizeX = 1.0 / m_cellSizeX;

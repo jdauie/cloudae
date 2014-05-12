@@ -5,6 +5,7 @@ using System.IO;
 
 using Jacere.Core;
 using Jacere.Core.Geometry;
+using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
@@ -24,15 +25,11 @@ namespace CloudAE.Core
 		public readonly double MedianTileDensity;
 		public readonly double MeanTileDensity;
 
-		public readonly Extent3D Extent;
-
 		private SQuantizedExtentGrid<int> m_tileCountsForInitialization;
 
-		public PointCloudTileDensity(Grid<int> tileCounts, Extent3D extent)
+		public PointCloudTileDensity(SQuantizedExtentGrid<int> tileCounts)
 		{
 			var counts = tileCounts.Data.Cast<int>();
-
-			Extent = extent;
 
 			TileCount = tileCounts.CellCount;
 
@@ -40,8 +37,7 @@ namespace CloudAE.Core
 			Array.Sort(nonZeroCounts);
 			PointCount = nonZeroCounts.SumLong();
 
-#warning update this when tiles are square
-			var tileArea = Extent.Area / TileCount;
+			var tileArea = tileCounts.CellSize * tileCounts.CellSize;
 
 			ValidTileCount = nonZeroCounts.Length;
 
@@ -95,7 +91,7 @@ namespace CloudAE.Core
 			return m_tileCountsForInitialization;
 		}
 
-		public GridDefinition CreateTileCountsForInitialization(SQuantizedExtent3D extent, SQuantization3D quantization)
+		public GridDefinition CreateTileCountsForInitialization(IPointCloudBinarySource source)
 		{
 			if (m_tileCountsForInitialization == null)
 			{
@@ -107,7 +103,7 @@ namespace CloudAE.Core
 
 				Context.WriteLine("TileSide: {0}", tileSize);
 
-				m_tileCountsForInitialization = extent.CreateGridFromCellSize<int>(tileSize, quantization, true);
+				m_tileCountsForInitialization = source.QuantizedExtent.CreateGridFromCellSize<int>(tileSize, source.Quantization, true);
 			}
 			return m_tileCountsForInitialization.Def;
 		}

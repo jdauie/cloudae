@@ -6,6 +6,7 @@ using System.IO;
 
 using Jacere.Core;
 using Jacere.Core.Geometry;
+using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
@@ -17,12 +18,17 @@ namespace CloudAE.Core
 		private readonly Dictionary<int, int> m_tileIndex;
 
 		public readonly Extent3D Extent;
+		public readonly SQuantization3D Quantization;
+		public readonly SQuantizedExtent3D QuantizedExtent;
 		public readonly PointCloudTileDensity Density;
 		public readonly long PointCount;
 		public readonly int LowResCount;
 		public readonly int TileCount;
 		public readonly ushort Rows;
 		public readonly ushort Cols;
+		public readonly double TileSize;
+		public readonly int TileSizeX;
+		public readonly int TileSizeY;
 
 		public readonly int ValidTileCount;
 
@@ -38,13 +44,18 @@ namespace CloudAE.Core
 			return tileMap;
 		}
 
-		public PointCloudTileSet(PointCloudTileDensity density, Grid<int> tileCounts, Grid<int> lowResCounts)
+		public PointCloudTileSet(IPointCloudBinarySource source, PointCloudTileDensity density, SQuantizedExtentGrid<int> tileCounts, Grid<int> lowResCounts)
 		{
-			Extent = density.Extent;
+			Extent = source.Extent;
+			Quantization = source.Quantization;
+			QuantizedExtent = source.QuantizedExtent;
 			Density = density;
 
 			Cols = tileCounts.SizeX;
 			Rows = tileCounts.SizeY;
+			TileSizeX = tileCounts.CellSizeX;
+			TileSizeY = tileCounts.CellSizeY;
+			TileSize = tileCounts.CellSize;
 
 			PointCount = density.PointCount;
 			LowResCount = 0;
@@ -94,6 +105,8 @@ namespace CloudAE.Core
 			TileCount = Rows * Cols;
 
 			Extent = reader.ReadExtent3D();
+			Quantization = reader.ReadSQuantization3D();
+			QuantizedExtent = Quantization.Convert(Extent);
 			Density = reader.ReadTileDensity();
 			PointCount = Density.PointCount;
 			ValidTileCount = Density.ValidTileCount;
@@ -124,6 +137,7 @@ namespace CloudAE.Core
 			writer.Write(Rows);
 			writer.Write(Cols);
 			writer.Write(Extent);
+			writer.Write(Quantization);
 			writer.Write(Density);
 
 			// dense
@@ -157,7 +171,7 @@ namespace CloudAE.Core
 
 		private PointCloudTile GetTileInternal(int row, int col)
 		{
-			int index = -1;
+			var index = -1;
 			return (m_tileIndex.TryGetValue(PointCloudTileCoord.GetIndex(row, col), out index) ? m_tiles[index] : null);
 		}
 
@@ -168,10 +182,10 @@ namespace CloudAE.Core
 
 		public PointCloudTile GetTileByRatio(double xRatio, double yRatio)
 		{
-			int tileX = (int)(xRatio * Cols);
+			var tileX = (int)(xRatio * Cols);
 			if (tileX >= Cols) tileX = Cols - 1;
 
-			int tileY = (int)(yRatio * Rows);
+			var tileY = (int)(yRatio * Rows);
 			if (tileY >= Rows) tileY = Rows - 1;
 
 			return GetTile(tileY, tileX);
@@ -179,34 +193,22 @@ namespace CloudAE.Core
 
 		public Extent3D ComputeTileExtent(PointCloudTile tile)
 		{
-			double rangeX = Extent.RangeX / Cols;
-			double rangeY = Extent.RangeY / Rows;
-
-			double minX = rangeX * tile.Col + Extent.MinX;
-			double minY = rangeY * tile.Row + Extent.MinY;
-			double minZ = Extent.MinZ;
-			double maxX = Math.Min(minX + rangeX, Extent.MaxX);
-			double maxY = Math.Min(minY + rangeY, Extent.MaxY);
-			double maxZ = Extent.MaxZ;
-
-			return new Extent3D(minX, minY, minZ, maxX, maxY, maxZ);
+			var quantizedTileExtent = ComputeQuantizedTileExtent(tile);
+			return Quantization.Convert(quantizedTileExtent);
 		}
 
-		public SQuantizedExtent3D ComputeTileExtent(PointCloudTile tile, SQuantizedExtent3D extent)
+		public SQuantizedExtent3D ComputeQuantizedTileExtent(PointCloudTile tile)
 		{
-			double rangeX = (double)extent.RangeX / Cols;
-			double rangeY = (double)extent.RangeY / Rows;
-
 			var min = new SQuantizedPoint3D(
-				(int)(rangeX * tile.Col + extent.MinX),
-				(int)(rangeY * tile.Row + extent.MinY),
-				extent.MinZ
+				(TileSizeX * tile.Col + QuantizedExtent.MinX),
+				(TileSizeY * tile.Row + QuantizedExtent.MinY),
+				QuantizedExtent.MinZ
 			);
 
 			var max = new SQuantizedPoint3D(
-				(int)(Math.Min(min.X + rangeX, extent.MaxX)),
-				(int)(Math.Min(min.Y + rangeY, extent.MaxY)),
-				extent.MaxZ
+				(Math.Min(min.X + TileSizeX, QuantizedExtent.MaxX)),
+				(Math.Min(min.Y + TileSizeY, QuantizedExtent.MaxY)),
+				QuantizedExtent.MaxZ
 			);
 
 			return new SQuantizedExtent3D(min, max);

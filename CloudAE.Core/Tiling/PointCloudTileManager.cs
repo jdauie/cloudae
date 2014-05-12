@@ -16,6 +16,7 @@ namespace CloudAE.Core
 	{
 		public static readonly IPropertyState<int> PROPERTY_DESIRED_TILE_COUNT;
 		private static readonly IPropertyState<int> PROPERTY_MAX_TILES_FOR_ESTIMATION;
+		private static readonly IPropertyState<int> PROPERTY_MAX_LOWRES_POINTS;
 
 		private readonly Identity m_id;
 		private readonly IPointCloudBinarySource m_source;
@@ -24,6 +25,7 @@ namespace CloudAE.Core
 		{
 			PROPERTY_DESIRED_TILE_COUNT = Context.RegisterOption(Context.OptionCategory.Tiling, "DesiredTilePoints", 40000);
 			PROPERTY_MAX_TILES_FOR_ESTIMATION = Context.RegisterOption(Context.OptionCategory.Tiling, "EstimationTilesMax", 10000000);
+			PROPERTY_MAX_LOWRES_POINTS = Context.RegisterOption(Context.OptionCategory.Tiling, "LowResPointsMax", 1000000);
 		}
 
 		public PointCloudTileManager(IPointCloudBinarySource source)
@@ -40,24 +42,23 @@ namespace CloudAE.Core
 			stopwatch.Start();
 
 			var analysis = AnalyzePointFile(segmentBuffer.Length, progressManager);
-			var quantizedExtent = m_source.Quantization.Convert(analysis.Density.Extent);
+			var quantizedExtent = m_source.QuantizedExtent;
 			var tileCounts = analysis.Density.GetTileCountsForInitialization();
 
 			var fileSize = tiledFile.PointDataOffset + (m_source.PointSizeBytes * m_source.Count);
 
 			AttemptFastAllocate(tiledFile.FilePath, fileSize);
 
-#warning make property
-			var lowResPointCountMax = 1000000;
+			var lowResPointCountMax = PROPERTY_MAX_LOWRES_POINTS.Value;
 			var lowResBuffer = BufferManager.AcquireBuffer(m_id, lowResPointCountMax * m_source.PointSizeBytes);
 			var lowResWrapper = new PointBufferWrapper(lowResBuffer, m_source.PointSizeBytes, lowResPointCountMax);
 
 			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tiledFile.PointDataOffset))
 			{
-				int i = 0;
+				var i = 0;
 				foreach (var segment in analysis.GridIndex)
 				{
-					progressManager.Log("~ Processing Index Segment {0}/{1}", i + 1, analysis.GridIndex.Count);
+					progressManager.Log("~ Processing Index Segment {0}/{1}", i++, analysis.GridIndex.Count);
 
 					var sparseSegment = m_source.CreateSparseSegment(segment);
 					var sparseSegmentWrapper = new PointBufferWrapper(segmentBuffer, sparseSegment);
@@ -72,8 +73,7 @@ namespace CloudAE.Core
 					// write out the buffer
 					using (var process = progressManager.StartProcess("WriteIndexSegment"))
 					{
-						//outputStream.Write(sparseSegmentWrapper.Data, 0, segmentFilteredPointCount * sparseSegmentWrapper.PointSizeBytes);
-						int segmentBufferIndex = 0;
+						var segmentBufferIndex = 0;
 						foreach (var tileCount in segment.GridRange.GetCellOrdering().Select(c => tileCounts.Data[c.Row, c.Col]).Where(count => count > 0))
 						{
 							var tileSize = tileCount * sparseSegmentWrapper.PointSizeBytes;
@@ -87,16 +87,14 @@ namespace CloudAE.Core
 
 					if (progressManager.IsCanceled())
 						break;
-
-					++i;
 				}
 			}
 
 			// todo: get lowres counts
 			var lowResCounts = tileCounts.Copy<int>();
 
-			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Extent);
-			var tileSet = new PointCloudTileSet(actualDensity, tileCounts, lowResCounts);
+			var actualDensity = new PointCloudTileDensity(tileCounts);
+			var tileSet = new PointCloudTileSet(m_source, actualDensity, tileCounts, lowResCounts);
 			var tileSource = new PointCloudTileSource(tiledFile, tileSet, analysis.Statistics);
 
 			if (!progressManager.IsCanceled())
@@ -139,7 +137,7 @@ namespace CloudAE.Core
 
 		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, SQuantizedExtentGrid<int> tileCounts, PointBufferWrapper lowResBuffer, ProgressManager progressManager)
 		{
-			var quantizedExtent = source.Quantization.Convert(source.Extent);
+			var quantizedExtent = source.QuantizedExtent;
 
 			// generate counts and add points to buffer
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedFilter"))
@@ -229,8 +227,7 @@ namespace CloudAE.Core
 			List<PointCloudBinarySourceEnumeratorSparseGridRegion> gridIndexSegments = null;
 
 			var extent = source.Extent;
-			var inputQuantization = source.Quantization;
-			var quantizedExtent = inputQuantization.Convert(extent);
+			var quantizedExtent = source.QuantizedExtent;
 
             var statsMapping = new ScaledStatisticsMapping(quantizedExtent.MinZ, quantizedExtent.RangeZ, 1024);
 			var gridCounter = new GridCounter(source, tileCounts);
@@ -242,7 +239,7 @@ namespace CloudAE.Core
 			}
 
 			stats = statsMapping.ComputeStatistics(extent.MinZ, extent.RangeZ);
-			var density = new PointCloudTileDensity(tileCounts, extent);
+			var density = new PointCloudTileDensity(tileCounts);
 			gridIndexSegments = gridCounter.GetGridIndex(density, maxSegmentLength);
 
 			var result = new PointCloudAnalysisResult(density, stats, source.Quantization, gridIndexSegments);

@@ -13,7 +13,7 @@ namespace CloudAE.Core
 		private readonly IPointCloudBinarySource m_source;
 		private readonly SQuantizedExtentGrid<int> m_grid;
 
-		private readonly SQuantizedExtent3D m_extent;
+		private readonly SQuantizedExtent3D m_quantizedExtent;
 
 		private readonly List<int[]> m_chunkTiles;
 
@@ -23,7 +23,7 @@ namespace CloudAE.Core
 		{
 			m_source = source;
 			m_grid = grid;
-			m_extent = source.Quantization.Convert(m_source.Extent);
+			m_quantizedExtent = source.QuantizedExtent;
 
 			m_chunkTiles = new List<int[]>();
 		}
@@ -61,8 +61,8 @@ namespace CloudAE.Core
 			{
 				//var p = (LASPointFormat1*)pp.GetPointer();
 				var p = pp.GetPointer();
-				var y = (((*p).Y - m_extent.MinY) / m_grid.CellSizeY);
-				var x = (((*p).X - m_extent.MinX) / m_grid.CellSizeX);
+				var y = (((*p).Y - m_quantizedExtent.MinY) / m_grid.CellSizeY);
+				var x = (((*p).X - m_quantizedExtent.MinX) / m_grid.CellSizeX);
 
 				++m_grid.Data[y, x];
 
@@ -129,7 +129,7 @@ namespace CloudAE.Core
 			}
 			indexGrid.CorrectCountOverflow();
 
-			var actualGridDef = density.CreateTileCountsForInitialization(m_extent, m_source.Quantization);
+			var actualGridDef = density.CreateTileCountsForInitialization(m_source);
 
 			var regionSourcesBySegment = new List<List<Range>>();
 			var tilesPerSegment = new List<GridRange>();

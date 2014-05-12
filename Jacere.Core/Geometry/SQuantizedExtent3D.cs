@@ -117,7 +117,7 @@ namespace Jacere.Core.Geometry
 
 			var def = new GridDefinition(sizeX, sizeY, buffered);
 
-			return new SQuantizedExtentGrid<T>(def, cellSizeX, cellSizeY, fillVal);
+			return new SQuantizedExtentGrid<T>(def, cellSize, cellSizeX, cellSizeY, fillVal);
 		}
 
 		/// <summary>
