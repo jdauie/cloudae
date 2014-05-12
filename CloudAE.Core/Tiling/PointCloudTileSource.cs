@@ -32,8 +32,6 @@ namespace CloudAE.Core
 		private readonly Statistics m_statisticsZ;
 		private readonly QuantizedStatistics m_statisticsQuantizedZ;
 		private readonly BufferInstance m_lowResBuffer;
-		
-		private SQuantizedExtent3D m_quantizedExtent;
 
 		private IStreamReader m_inputStream;
 		private bool m_isDirty;
@@ -101,16 +99,6 @@ namespace CloudAE.Core
 			}
 		}
 
-		public SQuantizedExtent3D QuantizedExtent
-		{
-			get { return m_quantizedExtent; }
-			set
-			{
-				m_quantizedExtent = value;
-				Extent = Quantization.Convert(m_quantizedExtent);
-			}
-		}
-
 		public Point3D CenterOfMass
 		{
 			get
@@ -163,9 +151,6 @@ namespace CloudAE.Core
 			m_statisticsQuantizedZ = zStats.ConvertToQuantized(Quantization);
 
 			m_lowResBuffer = BufferManager.AcquireBuffer(m_id, tileSet.LowResCount * PointSizeBytes);
-
-#warning this should be stored in the tileset, rather than converted
-			QuantizedExtent = Quantization.Convert(Extent);
 
 			m_file.UpdateEVLR(new LASRecordIdentifier("Jacere", 0), TileSet);
 			m_file.UpdateEVLR(new LASRecordIdentifier("Jacere", 1), StatisticsZ);

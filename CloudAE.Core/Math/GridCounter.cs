@@ -11,7 +11,7 @@ namespace CloudAE.Core
 	public class GridCounter : IChunkProcess, IFinalizeProcess
 	{
 		private readonly IPointCloudBinarySource m_source;
-		private readonly Grid<int> m_grid;
+		private readonly SQuantizedExtentGrid<int> m_grid;
 
 		private readonly SQuantizedExtent3D m_extent;
 
@@ -19,7 +19,7 @@ namespace CloudAE.Core
 
 		private int m_maxPointCountPerChunk;
 
-		public GridCounter(IPointCloudBinarySource source, Grid<int> grid)
+		public GridCounter(IPointCloudBinarySource source, SQuantizedExtentGrid<int> grid)
 		{
 			m_source = source;
 			m_grid = grid;
@@ -32,11 +32,6 @@ namespace CloudAE.Core
 		{
 			if (chunk.PointCount > m_maxPointCountPerChunk)
 				m_maxPointCountPerChunk = chunk.PointCount;
-
-			double minX = m_extent.MinX;
-			double minY = m_extent.MinY;
-			double tilesOverRangeX = (double)m_grid.SizeX / m_extent.RangeX;
-			double tilesOverRangeY = (double)m_grid.SizeY / m_extent.RangeY;
 
 			// get the tile indices for this chunk
 			var tileIndices = new HashSet<int>();
@@ -66,8 +61,8 @@ namespace CloudAE.Core
 			{
 				//var p = (LASPointFormat1*)pp.GetPointer();
 				var p = pp.GetPointer();
-				var y = (ushort)(((*p).Y - minY) * tilesOverRangeY);
-				var x = (ushort)(((*p).X - minX) * tilesOverRangeX);
+				var y = (((*p).Y - m_extent.MinY) / m_grid.CellSizeY);
+				var x = (((*p).X - m_extent.MinX) / m_grid.CellSizeX);
 
 				++m_grid.Data[y, x];
 

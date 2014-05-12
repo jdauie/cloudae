@@ -137,13 +137,9 @@ namespace CloudAE.Core
 			return analysis;
 		}
 
-		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, Grid<int> tileCounts, PointBufferWrapper lowResBuffer, ProgressManager progressManager)
+		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, SQuantizedExtentGrid<int> tileCounts, PointBufferWrapper lowResBuffer, ProgressManager progressManager)
 		{
 			var quantizedExtent = source.Quantization.Convert(source.Extent);
-
-#warning non-square
-			double tilesOverRangeX = (double)tileCounts.SizeX / quantizedExtent.RangeX;
-			double tilesOverRangeY = (double)tileCounts.SizeY / quantizedExtent.RangeY;
 
 			// generate counts and add points to buffer
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedFilter"))
@@ -168,8 +164,8 @@ namespace CloudAE.Core
 							var p = (SQuantizedPoint3D*)currentPosition.DataPtr;
 
 							var targetPosition = tilePositions[
-								(int)(((double)(*p).Y - quantizedExtent.MinY) * tilesOverRangeY),
-								(int)(((double)(*p).X - quantizedExtent.MinX) * tilesOverRangeX)
+								(((*p).Y - quantizedExtent.MinY) / tileCounts.CellSizeY),
+								(((*p).X - quantizedExtent.MinX) / tileCounts.CellSizeX)
 								];
 
 							if (targetPosition.DataPtr != currentPosition.DataPtr)
@@ -227,7 +223,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, int maxSegmentLength, Grid<int> tileCounts, ProgressManager progressManager)
+		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, int maxSegmentLength, SQuantizedExtentGrid<int> tileCounts, ProgressManager progressManager)
 		{
 			Statistics stats = null;
 			List<PointCloudBinarySourceEnumeratorSparseGridRegion> gridIndexSegments = null;
@@ -258,7 +254,7 @@ namespace CloudAE.Core
 
 		#region Helpers
 
-		private static Grid<int> CreateTileCountsForEstimation(IPointCloudBinarySource source)
+		private static SQuantizedExtentGrid<int> CreateTileCountsForEstimation(IPointCloudBinarySource source)
 		{
 			var count = source.Count;
 			var extent = source.Extent;
@@ -275,7 +271,7 @@ namespace CloudAE.Core
 			var tileArea = extent.Area / tileCount;
 			var tileSize = Math.Sqrt(tileArea);
 
-			return extent.CreateGridFromCellSize<int>(tileSize, true);
+			return source.QuantizedExtent.CreateGridFromCellSize<int>(tileSize, source.Quantization, true);
 		}
 
 		#endregion

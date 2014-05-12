@@ -16,6 +16,7 @@ namespace Jacere.Data.PointCloud
 
 		private long m_pointDataOffset;
 		private Extent3D m_extent;
+		private SQuantizedExtent3D m_quantizedExtent;
 
 		#region Properties
 
@@ -37,13 +38,16 @@ namespace Jacere.Data.PointCloud
 		public long PointDataOffset
 		{
 			get { return m_pointDataOffset; }
-			protected set { m_pointDataOffset = value; }
 		}
 
 		public Extent3D Extent
 		{
 			get { return m_extent; }
-			protected set { m_extent = value; }
+		}
+
+		public SQuantizedExtent3D QuantizedExtent
+		{
+			get { return m_quantizedExtent; }
 		}
 
 		public IEnumerable<string> SourcePaths
@@ -57,10 +61,11 @@ namespace Jacere.Data.PointCloud
 			: base(file)
 		{
 			m_count = count;
-			Extent = extent;
+			m_extent = extent;
 			m_quantization = quantization;
-			PointDataOffset = dataOffset;
+			m_pointDataOffset = dataOffset;
 			m_pointSizeBytes = pointSizeBytes;
+			m_quantizedExtent = quantization.Convert(m_extent);
 		}
 
 		public virtual IStreamReader GetStreamReader()

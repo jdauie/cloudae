@@ -18,6 +18,7 @@ namespace Jacere.Data.PointCloud
 		private readonly short m_pointSizeBytes;
 
 		private Extent3D m_extent;
+		private SQuantizedExtent3D m_quantizedExtent;
 
 		#region Properties
 
@@ -44,7 +45,11 @@ namespace Jacere.Data.PointCloud
 		public Extent3D Extent
 		{
 			get { return m_extent; }
-			protected set { m_extent = value; }
+		}
+
+		public SQuantizedExtent3D QuantizedExtent
+		{
+			get { return m_quantizedExtent; }
 		}
 
 		public IEnumerable<string> SourcePaths
@@ -62,9 +67,10 @@ namespace Jacere.Data.PointCloud
 			// verify that they are compatible
 
 			m_count = m_sources.Sum(s => s.Count);
-			Extent = extent;
+			m_extent = extent;
 			m_quantization = m_sources[0].Quantization;
 			m_pointSizeBytes = m_sources[0].PointSizeBytes;
+			m_quantizedExtent = m_quantization.Convert(m_extent);
 		}
 
 		public IStreamReader GetStreamReader()

@@ -79,7 +79,8 @@ namespace Jacere.Core
 			m_bitsY = GetBits(m_underlyingSizeY);
 		}
 
-		public int GetIndex(ushort y, ushort x)
+		//public int GetIndex(ushort y, ushort x)
+		public int GetIndex(int y, int x)
 		{
 			return ((y << m_bitsX) | x);
 		}

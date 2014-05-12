@@ -63,24 +63,30 @@ namespace Jacere.Core
 		//private readonly SQuantizedExtent3D m_extent;
 		private readonly int m_cellSizeX;
 		private readonly int m_cellSizeY;
-		//private readonly double m_inverseCellSize;
+		private readonly double m_inverseCellSizeX;
+		private readonly double m_inverseCellSizeY;
 
 		#region Properties
 
-		//public double InverseCellSize
-		//{
-		//	get { return m_inverseCellSize; }
-		//}
+		public int CellSizeX
+		{
+			get { return m_cellSizeX; }
+		}
 
-		#endregion
+		public int CellSizeY
+		{
+			get { return m_cellSizeY; }
+		}
 
-		#region Creators
+		public double InverseCellSizeX
+		{
+			get { return m_inverseCellSizeX; }
+		}
 
-		//public static SQuantizedExtentGrid<T> Create(int cellSizeX, int cellSizeY, T fillVal = default(T))
-		//{
-		//	var def = new GridDefinition(sizeX, sizeY, buffered);
-		//	return new SQuantizedExtentGrid<T>(def, fillVal);
-		//}
+		public double InverseCellSizeY
+		{
+			get { return m_inverseCellSizeY; }
+		}
 
 		#endregion
 
@@ -89,7 +95,8 @@ namespace Jacere.Core
 		{
 			m_cellSizeX = cellSizeX;
 			m_cellSizeY = cellSizeY;
-			//m_inverseCellSize = 1 / m_cellSize;
+			m_inverseCellSizeX = 1.0 / m_cellSizeX;
+			m_inverseCellSizeY = 1.0 / m_cellSizeY;
 		}
 	}
 

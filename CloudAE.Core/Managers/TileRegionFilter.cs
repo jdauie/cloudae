@@ -16,11 +16,11 @@ namespace CloudAE.Core
 	public class TileRegionFilter : IChunkProcess, IFinalizeProcess
 	{
 		private readonly GridRange m_range;
-        private readonly Grid<int> m_grid;
+        private readonly SQuantizedExtentGrid<int> m_grid;
 
 		private readonly SQuantizedExtent3D m_quantizedExtent;
 
-		public TileRegionFilter(Grid<int> grid, SQuantizedExtent3D quantizedExtent, GridRange tileRange)
+		public TileRegionFilter(SQuantizedExtentGrid<int> grid, SQuantizedExtent3D quantizedExtent, GridRange tileRange)
 		{
 			m_range = tileRange;
 			m_grid = grid;
@@ -30,13 +30,7 @@ namespace CloudAE.Core
 
 		public unsafe IPointDataChunk Process(IPointDataChunk chunk)
 		{
-            double minY = m_quantizedExtent.MinY;
-            double minX = m_quantizedExtent.MinX;
-
-            var tilesOverRangeX = (double)m_grid.SizeX / m_quantizedExtent.RangeX;
-            var tilesOverRangeY = (double)m_grid.SizeY / m_quantizedExtent.RangeY;
-
-			// if the end of the range is the last tile in a row, then buffer it.
+            // if the end of the range is the last tile in a row, then buffer it.
 			var startIndex = m_range.StartPos;
 			var endIndex = m_range.EndPos;
 
@@ -48,8 +42,8 @@ namespace CloudAE.Core
 			{
 				var p = (SQuantizedPoint3D*)pb;
 
-                var row = (ushort)(((*p).Y - minY) * tilesOverRangeY);
-                var col = (ushort)(((*p).X - minX) * tilesOverRangeX);
+				var row = (((*p).Y - m_quantizedExtent.MinY) / m_grid.CellSizeY);
+				var col = (((*p).X - m_quantizedExtent.MinX) / m_grid.CellSizeX);
 
 				// overflow on the end of rows is dealt with by the nature of the index,
 				// but overflow after the last row is problematic.
@@ -78,7 +72,7 @@ namespace CloudAE.Core
 				pb += chunk.PointSizeBytes;
 			}
 
-			int pointsRemaining = (int)((pbDestination - chunk.PointDataPtr) / chunk.PointSizeBytes);
+			var pointsRemaining = (int)((pbDestination - chunk.PointDataPtr) / chunk.PointSizeBytes);
 			return chunk.CreateSegment(pointsRemaining);
 		}
 

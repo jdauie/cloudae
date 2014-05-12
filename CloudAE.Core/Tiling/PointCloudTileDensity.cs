@@ -92,9 +92,6 @@ namespace CloudAE.Core
 
 		public SQuantizedExtentGrid<int> GetTileCountsForInitialization()
 		{
-			// todo: do I need this?
-			//m_tileCountsForInitialization.Reset();
-
 			return m_tileCountsForInitialization;
 		}
 
