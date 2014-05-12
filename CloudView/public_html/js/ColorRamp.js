@@ -82,7 +82,7 @@ ColorRamp.presets = {
 		0x5B3FB0,
 		0x592787,
 		0x510D61
-	]),
+	])/*,
 	AerialPerspective: new ColorRamp("Aerial Perspective", [
 		0xFFFFFF,
 		0x4F4F4F
@@ -117,5 +117,5 @@ ColorRamp.presets = {
 		0x2171b5,
 		0x08519c,
 		0x08306b
-	])
+	])*/
 };

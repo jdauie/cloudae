@@ -35,6 +35,19 @@ function LASInfo(file) {
 	this.update = function() {
 		this.updateColorMap();
 		this.updateTexture();
+		this.updateMaterial();
+	};
+	
+	this.updateMaterial = function() {
+		if (this.material) {
+			if (!this.material.vertexColors) {
+				this.material.uniforms.size.value = current.settings.render.pointSize;
+			}
+			else {
+				this.material.size = current.settings.render.pointSize;
+			}
+			this.material.needsUpdate = true;
+		}
 	};
 	
 	this.updateColorMap = function() {

@@ -122,7 +122,7 @@ Viewport3D.onWindowResize = function() {
 		var viewport = Viewport3D.viewports[i];
 		viewport.onWindowResize();
 	}
-	Viewport3D.render();
+	//Viewport3D.render();
 };
 
 Viewport3D.handleVisibilityChange = function() {
