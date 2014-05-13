@@ -12,4 +12,10 @@ namespace Jacere.Core
 	{
 		GridDefinition Def { get; }
 	}
+
+	public interface IQuantizedExtentGrid
+	{
+		int CellSizeX { get; }
+		int CellSizeY { get; }
+	}
 }

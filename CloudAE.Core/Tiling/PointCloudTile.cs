@@ -5,18 +5,27 @@ using Jacere.Core.Geometry;
 
 namespace CloudAE.Core
 {
-	public class PointCloudTile : IProgress
+	public class PointCloudTile : IProgress, IGridCoord
 	{
 		public readonly PointCloudTileSet TileSet;
 
-		public readonly ushort Row;
-		public readonly ushort Col;
+		public readonly ushort m_row;
+		public readonly ushort m_col;
 		public readonly long PointOffset;
 		public readonly int PointCount;
 		public readonly int LowResCount;
 
 		public readonly int ValidIndex;
 
+		public ushort Row
+		{
+			get { return m_row; }
+		}
+
+		public ushort Col
+		{
+			get { return m_col; }
+		}
 
 		public int StorageSize
 		{
@@ -63,8 +72,8 @@ namespace CloudAE.Core
 
 			TileSet = tileSet;
 
-			Row = row;
-			Col = col;
+			m_row = row;
+			m_col = col;
 			PointCount = count;
 			LowResCount = lowResCount;
 

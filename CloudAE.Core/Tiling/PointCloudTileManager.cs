@@ -53,6 +53,13 @@ namespace CloudAE.Core
 			var lowResBuffer = BufferManager.AcquireBuffer(m_id, lowResPointCountMax * m_source.PointSizeBytes);
 			var lowResWrapper = new PointBufferWrapper(lowResBuffer, m_source.PointSizeBytes, lowResPointCountMax);
 
+			var validTiles = analysis.GridIndex.Sum(r => r.GridRange.ValidCells);
+			var lowResPointsPerTile = lowResPointCountMax / validTiles;
+			var lowResTileSize = (ushort)Math.Sqrt(lowResPointsPerTile);
+			var lowResTileSizePow = (ushort)Math.Pow(2, (int)Math.Log(lowResTileSize, 2));
+
+			var lowResGrid = Grid<int>.Create(lowResTileSizePow, lowResTileSizePow, true, -1);
+
 			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tiledFile.PointDataOffset))
 			{
 				var i = 0;
@@ -66,7 +73,7 @@ namespace CloudAE.Core
 					var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, segment.GridRange);
 
 					// this call will fill the buffer with points, add the counts, and sort
-					QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, lowResWrapper, progressManager);
+					QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, lowResWrapper, lowResGrid, progressManager);
 					var segmentFilteredPointCount = tileRegionFilter.GetCellOrdering().Sum(t => tileCounts.Data[t.Row, t.Col]);
 					var segmentFilteredBytes = segmentFilteredPointCount * sparseSegmentWrapper.PointSizeBytes;
 
@@ -135,7 +142,7 @@ namespace CloudAE.Core
 			return analysis;
 		}
 
-		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, SQuantizedExtentGrid<int> tileCounts, PointBufferWrapper lowResBuffer, ProgressManager progressManager)
+		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, SQuantizedExtentGrid<int> tileCounts, PointBufferWrapper lowResBuffer, Grid<int> lowResGrid, ProgressManager progressManager)
 		{
 			var quantizedExtent = source.QuantizedExtent;
 
@@ -164,7 +171,7 @@ namespace CloudAE.Core
 							var targetPosition = tilePositions[
 								(((*p).Y - quantizedExtent.MinY) / tileCounts.CellSizeY),
 								(((*p).X - quantizedExtent.MinX) / tileCounts.CellSizeX)
-								];
+							];
 
 							if (targetPosition.DataPtr != currentPosition.DataPtr)
 							{
@@ -190,30 +197,47 @@ namespace CloudAE.Core
 			// determine representative low-res points for each tile and swap them to a new buffer
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedExtractLowRes"))
 			{
-				// todo: tiles need to be square
-
 				var index = 0;
 				foreach (var tile in tileFilter.GetCellOrdering())
 				{
-					int count = tileCounts.Data[tile.Row, tile.Col];
-					byte *dataPtr = segmentBuffer.PointDataPtr + (index * source.PointSizeBytes);
-					byte* dataEndPtr = dataPtr + (count * source.PointSizeBytes);
+					var count = tileCounts.Data[tile.Row, tile.Col];
+					var dataPtr = segmentBuffer.PointDataPtr + (index * source.PointSizeBytes);
+					var dataEndPtr = dataPtr + (count * source.PointSizeBytes);
 
-					//m_pixelsOverRangeX = (double)m_grid.SizeX / m_source.QuantizedExtent.RangeX;
+					var tileQuantizedExtent = quantizedExtent.ComputeQuantizedTileExtent(tile, tileCounts);
+					var cellSizeX = (int)(tileQuantizedExtent.RangeX / lowResGrid.SizeX);
+					var cellSizeY = (int)(tileQuantizedExtent.RangeY / lowResGrid.SizeY);
 
 					byte* pb = dataPtr;
 					while (pb < dataEndPtr)
 					{
 						var p = (SQuantizedPoint3D*)pb;
 
-						//int pixelX = (int)(((*p).X - m_minX) * m_pixelsOverRangeX);
-						//int pixelY = (int)(((*p).Y - m_minY) * m_pixelsOverRangeY);
+						var cellX = (((*p).X - tileQuantizedExtent.MinX) / cellSizeX);
+						var cellY = (((*p).Y - tileQuantizedExtent.MinY) / cellSizeY);
 
-						//if ((*p).Z > m_gridQuantized.Data[pixelY, pixelX])
-						//	m_gridQuantized.Data[pixelY, pixelX] = (*p).Z;
+						// todo: make lowResGrid <long> to avoid cast?
+						var offset = lowResGrid.Data[cellY, cellX];
+						if (offset == -1)
+						{
+							lowResGrid.Data[cellY, cellX] = (int)(pb - dataPtr);
+						}
+						else
+						{
+							var pBest = (SQuantizedPoint3D*)(dataPtr + offset);
+							if ((*p).Z > (*pBest).Z)
+								lowResGrid.Data[cellY, cellX] = (int)(pb - dataPtr);
+						}
 
 						pb += source.PointSizeBytes;
+						++index;
 					}
+
+					var offsets = lowResGrid.Data.Cast<int>().Where(v => v != lowResGrid.FillVal).ToArray();
+					Array.Sort(offsets);
+
+					if (!process.Update((float)index / segmentBuffer.PointCount))
+						break;
 				}
 
 				//var group = new ChunkProcessSet(tileFilter, segmentBuffer);

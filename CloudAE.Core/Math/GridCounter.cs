@@ -113,7 +113,7 @@ namespace CloudAE.Core
 			// update index cells
 			var indexGrid = m_grid.Copy<GridIndexCell>();
 
-			for (int i = 0; i < m_chunkTiles.Count; i++)
+			for (var i = 0; i < m_chunkTiles.Count; i++)
 			{
 				foreach (var tileIndex in m_chunkTiles[i])
 				{
@@ -145,7 +145,9 @@ namespace CloudAE.Core
 				var startTile = tileOrder[tileOrderIndex];
 				var startTileIndex = new GridCoord(actualGridDef, startTile.Row, startTile.Col);
 
-				int segmentPointCount = 0;
+				var segmentProbableValidTileCount = 0;
+
+				var segmentPointCount = 0;
 
 				while (tileOrderIndex < tileOrder.Length)
 				{
@@ -161,28 +163,34 @@ namespace CloudAE.Core
 						.Where(c => !segmentTilesFromEstimation.Contains(c.Index))
 						.ToList();
 
-					var uniquePointCount = uniqueEstimatedCoords.Sum(c => m_grid.Data[c.Row, c.Col]);
+					// count probable valid tiles for low-res estimation
+					if (uniqueEstimatedCoords.Count > 0)
+					{
+						var uniquePointCount = uniqueEstimatedCoords.Sum(c => m_grid.Data[c.Row, c.Col]);
 
-					if (segmentPointCount + uniquePointCount > maxSegmentPointCount)
-						break;
+						if (segmentPointCount + uniquePointCount > maxSegmentPointCount)
+							break;
 
-					var uniqueChunks = uniqueEstimatedCoords
-						.Select(c => indexGrid.Data[c.Row, c.Col])
-						.SelectMany(c => c.Chunks)
-						.ToHashSet(segmentChunks);
+						var uniqueChunks = uniqueEstimatedCoords
+							.Select(c => indexGrid.Data[c.Row, c.Col])
+							.SelectMany(c => c.Chunks)
+							.ToHashSet(segmentChunks);
 
-					// this is safe, but it can create smaller segments than necessary
-					//if (segmentChunks.Count + uniqueChunks.Count > chunksPerSegment)
-					//	break;
+						// no longer limiting the chunks per segment to fit buffer.
+						// this means that the full chunk data will almost certainly 
+						// *not* fit in the segment buffer, but the filtered data will.
 
-					// merge tiles/chunks
-					foreach (var coord in uniqueEstimatedCoords)
-						segmentTilesFromEstimation.Add(coord.Index);
+						// merge tiles/chunks
+						foreach (var coord in uniqueEstimatedCoords)
+							segmentTilesFromEstimation.Add(coord.Index);
 
-					foreach (var index in uniqueChunks)
-						segmentChunks.Add(index);
+						foreach (var index in uniqueChunks)
+							segmentChunks.Add(index);
 
-					segmentPointCount += uniquePointCount;
+						segmentPointCount += uniquePointCount;
+
+						++segmentProbableValidTileCount;
+					}
 
 					++tileOrderIndex;
 				}
@@ -193,10 +201,10 @@ namespace CloudAE.Core
 					var endTileIndex = new GridCoord(actualGridDef, endTile.Row, endTile.Col);
 
 					// group by sequential regions
-					int[] sortedCellList = segmentChunks.ToArray();
+					var sortedCellList = segmentChunks.ToArray();
 					Array.Sort(sortedCellList);
 					var regions = new List<Range>();
-					int sequenceStartIndex = 0;
+					var sequenceStartIndex = 0;
 					while (sequenceStartIndex < sortedCellList.Length)
 					{
 						// find incremental sequence
@@ -209,11 +217,11 @@ namespace CloudAE.Core
 					}
 
 					regionSourcesBySegment.Add(regions);
-					tilesPerSegment.Add(new GridRange(startTileIndex, endTileIndex));
+					tilesPerSegment.Add(new GridRange(startTileIndex, endTileIndex, segmentProbableValidTileCount));
 				}
 			}
 
-			int chunkRangeSumForAllSegments = regionSourcesBySegment.Sum(r => r.Sum(r2 => r2.Count));
+			var chunkRangeSumForAllSegments = regionSourcesBySegment.Sum(r => r.Sum(r2 => r2.Count));
 			Context.WriteLine("chunkRangeSumForAllSegments: {0}", chunkRangeSumForAllSegments);
 			Context.WriteLine("  ratio: {0}", (double)chunkRangeSumForAllSegments * BufferManager.BUFFER_SIZE_BYTES / pointDataBytes);
 

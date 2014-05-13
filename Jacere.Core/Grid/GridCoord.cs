@@ -4,7 +4,13 @@ using System.Linq;
 
 namespace Jacere.Core
 {
-	public struct SimpleGridCoord// : ITileCoord
+	public interface IGridCoord
+	{
+		ushort Row { get; }
+		ushort Col { get; }
+	}
+
+	public struct SimpleGridCoord : IGridCoord
 	{
 		private readonly ushort m_row;
 		private readonly ushort m_col;
@@ -36,7 +42,7 @@ namespace Jacere.Core
 		}
 	}
 
-	public class GridCoord
+	public class GridCoord : IGridCoord
 	{
 		private readonly GridDefinition m_def;
 		private readonly ushort m_row;
@@ -88,6 +94,7 @@ namespace Jacere.Core
 	{
 		private readonly GridCoord m_start;
 		private readonly GridCoord m_end;
+		private readonly int m_valid;
 
 		public int StartPos
 		{
@@ -99,10 +106,16 @@ namespace Jacere.Core
 			get { return (m_end + 1).Index; }
 		}
 
-		public GridRange(GridCoord startIndex, GridCoord endIndex)
+		public int ValidCells
+		{
+			get { return m_valid; }
+		}
+
+		public GridRange(GridCoord startIndex, GridCoord endIndex, int validCells)
 		{
 			m_start = startIndex;
 			m_end = endIndex;
+			m_valid = validCells;
 		}
 
 		public IEnumerable<SimpleGridCoord> GetCellOrdering()

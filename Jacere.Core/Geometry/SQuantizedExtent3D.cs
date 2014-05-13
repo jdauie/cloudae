@@ -120,6 +120,23 @@ namespace Jacere.Core.Geometry
 			return new SQuantizedExtentGrid<T>(def, cellSizeX, cellSizeY, fillVal);
 		}
 
+		public SQuantizedExtent3D ComputeQuantizedTileExtent(IGridCoord tile, IQuantizedExtentGrid grid)
+		{
+			var min = new SQuantizedPoint3D(
+				(grid.CellSizeX * tile.Col + MinX),
+				(grid.CellSizeY * tile.Row + MinY),
+				MinZ
+			);
+
+			var max = new SQuantizedPoint3D(
+				(Math.Min(min.X + grid.CellSizeX, MaxX)),
+				(Math.Min(min.Y + grid.CellSizeY, MaxY)),
+				MaxZ
+			);
+
+			return new SQuantizedExtent3D(min, max);
+		}
+
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
 		/// </summary>

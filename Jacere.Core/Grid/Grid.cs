@@ -58,7 +58,7 @@ namespace Jacere.Core
 	//	}
 	//}
 
-	public class SQuantizedExtentGrid<T> : Grid<T>
+	public class SQuantizedExtentGrid<T> : Grid<T>, IQuantizedExtentGrid
 	{
 		//private readonly double m_cellSize;
 		private readonly int m_cellSizeX;

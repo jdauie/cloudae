@@ -10,7 +10,7 @@ using Jacere.Data.PointCloud;
 
 namespace CloudAE.Core
 {
-	public class PointCloudTileSet : IEnumerable<PointCloudTile>, ISerializeBinary
+	public class PointCloudTileSet : IEnumerable<PointCloudTile>, ISerializeBinary, IQuantizedExtentGrid
 	{
 		private PointCloudTileSource m_tileSource;
 
@@ -31,6 +31,16 @@ namespace CloudAE.Core
 		public readonly int TileSizeY;
 
 		public readonly int ValidTileCount;
+
+		public int CellSizeX
+		{
+			get { return TileSizeX; }
+		}
+
+		public int CellSizeY
+		{
+			get { return TileSizeY; }
+		}
 
 		public PointCloudTileSource TileSource
 		{
@@ -203,19 +213,7 @@ namespace CloudAE.Core
 
 		public SQuantizedExtent3D ComputeQuantizedTileExtent(PointCloudTile tile)
 		{
-			var min = new SQuantizedPoint3D(
-				(TileSizeX * tile.Col + QuantizedExtent.MinX),
-				(TileSizeY * tile.Row + QuantizedExtent.MinY),
-				QuantizedExtent.MinZ
-			);
-
-			var max = new SQuantizedPoint3D(
-				(Math.Min(min.X + TileSizeX, QuantizedExtent.MaxX)),
-				(Math.Min(min.Y + TileSizeY, QuantizedExtent.MaxY)),
-				QuantizedExtent.MaxZ
-			);
-
-			return new SQuantizedExtent3D(min, max);
+			return QuantizedExtent.ComputeQuantizedTileExtent(tile, this);
 		}
 
 		#region IEnumerable Members
