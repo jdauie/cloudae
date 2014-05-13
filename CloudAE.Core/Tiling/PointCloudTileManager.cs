@@ -59,6 +59,7 @@ namespace CloudAE.Core
 			var lowResTileSizePow = (ushort)Math.Pow(2, (int)Math.Log(lowResTileSize, 2));
 
 			var lowResGrid = Grid<int>.Create(lowResTileSizePow, lowResTileSizePow, true, -1);
+			var lowResCounts = tileCounts.Copy<int>();
 
 			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tiledFile.PointDataOffset))
 			{
@@ -73,7 +74,7 @@ namespace CloudAE.Core
 					var tileRegionFilter = new TileRegionFilter(tileCounts, quantizedExtent, segment.GridRange);
 
 					// this call will fill the buffer with points, add the counts, and sort
-					QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, lowResWrapper, lowResGrid, progressManager);
+					QuantTilePointsIndexed(sparseSegment, sparseSegmentWrapper, tileRegionFilter, tileCounts, lowResWrapper, lowResGrid, lowResCounts, progressManager);
 					var segmentFilteredPointCount = tileRegionFilter.GetCellOrdering().Sum(t => tileCounts.Data[t.Row, t.Col]);
 					var segmentFilteredBytes = segmentFilteredPointCount * sparseSegmentWrapper.PointSizeBytes;
 
@@ -81,24 +82,29 @@ namespace CloudAE.Core
 					using (var process = progressManager.StartProcess("WriteIndexSegment"))
 					{
 						var segmentBufferIndex = 0;
-						foreach (var tileCount in segment.GridRange.GetCellOrdering().Select(c => tileCounts.Data[c.Row, c.Col]).Where(count => count > 0))
+						foreach (var tile in segment.GridRange.GetCellOrdering())
 						{
-							var tileSize = tileCount * sparseSegmentWrapper.PointSizeBytes;
-							outputStream.Write(sparseSegmentWrapper.Data, segmentBufferIndex, tileSize);
-							segmentBufferIndex += tileSize;
+							var tileCount = tileCounts.Data[tile.Row, tile.Col];
+							if (tileCount > 0)
+							{
+								var tileSize = (tileCount - lowResCounts.Data[tile.Row, tile.Col]) * sparseSegmentWrapper.PointSizeBytes;
+								outputStream.Write(sparseSegmentWrapper.Data, segmentBufferIndex, tileSize);
+								segmentBufferIndex += tileSize;
 
-							if (!process.Update((float)segmentBufferIndex / segmentFilteredBytes))
-								break;
+								if (!process.Update((float)segmentBufferIndex / segmentFilteredBytes))
+									break;
+							}
 						}
 					}
 
 					if (progressManager.IsCanceled())
 						break;
 				}
-			}
 
-			// todo: get lowres counts
-			var lowResCounts = tileCounts.Copy<int>();
+				// write low-res
+				var lowResActualPointCount = lowResCounts.Data.Cast<int>().Sum();
+				outputStream.Write(lowResWrapper.Data, 0, lowResActualPointCount * lowResWrapper.PointSizeBytes);
+			}
 
 			var actualDensity = new PointCloudTileDensity(tileCounts, m_source.Quantization);
 			var tileSet = new PointCloudTileSet(m_source, actualDensity, tileCounts, lowResCounts);
@@ -142,7 +148,7 @@ namespace CloudAE.Core
 			return analysis;
 		}
 
-		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, SQuantizedExtentGrid<int> tileCounts, PointBufferWrapper lowResBuffer, Grid<int> lowResGrid, ProgressManager progressManager)
+		private static unsafe void QuantTilePointsIndexed(IPointCloudBinarySource source, PointBufferWrapper segmentBuffer, TileRegionFilter tileFilter, SQuantizedExtentGrid<int> tileCounts, PointBufferWrapper lowResBuffer, Grid<int> lowResGrid, Grid<int> lowResCounts, ProgressManager progressManager)
 		{
 			var quantizedExtent = source.QuantizedExtent;
 
@@ -197,6 +203,8 @@ namespace CloudAE.Core
 			// determine representative low-res points for each tile and swap them to a new buffer
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedExtractLowRes"))
 			{
+				var removedBytes = 0;
+				
 				var index = 0;
 				foreach (var tile in tileFilter.GetCellOrdering())
 				{
@@ -208,7 +216,9 @@ namespace CloudAE.Core
 					var cellSizeX = (int)(tileQuantizedExtent.RangeX / lowResGrid.SizeX);
 					var cellSizeY = (int)(tileQuantizedExtent.RangeY / lowResGrid.SizeY);
 
-					byte* pb = dataPtr;
+					lowResGrid.Reset();
+
+					var pb = dataPtr;
 					while (pb < dataEndPtr)
 					{
 						var p = (SQuantizedPoint3D*)pb;
@@ -220,28 +230,53 @@ namespace CloudAE.Core
 						var offset = lowResGrid.Data[cellY, cellX];
 						if (offset == -1)
 						{
-							lowResGrid.Data[cellY, cellX] = (int)(pb - dataPtr);
+							lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
 						}
 						else
 						{
 							var pBest = (SQuantizedPoint3D*)(dataPtr + offset);
 							if ((*p).Z > (*pBest).Z)
-								lowResGrid.Data[cellY, cellX] = (int)(pb - dataPtr);
+								lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
 						}
 
 						pb += source.PointSizeBytes;
 						++index;
 					}
 
+					// ignore boundary points
+					lowResGrid.ClearOverflow();
+
+					// sort valid cells
 					var offsets = lowResGrid.Data.Cast<int>().Where(v => v != lowResGrid.FillVal).ToArray();
 					Array.Sort(offsets);
+
+					// pack the remaining points
+					for (var i = 0; i < offsets.Length; i++)
+					{
+						var currentOffset = offsets[i];
+						//var currentPtr = segmentBuffer.PointDataPtr + currentOffset;
+
+						// copy point to buffer
+						lowResBuffer.Append(segmentBuffer.Data, currentOffset, source.PointSizeBytes);
+
+						// shift everything up to the next offset
+						var copyEnd = (i == offsets.Length - 1) ? (dataEndPtr - segmentBuffer.PointDataPtr) : (offsets[i + 1]);
+						var copySrc = (currentOffset + source.PointSizeBytes);
+						var copyDst = (currentOffset - removedBytes);
+						var copyLen = (int)(copyEnd - copySrc);
+
+						Buffer.BlockCopy(segmentBuffer.Data, copySrc, segmentBuffer.Data, copyDst, copyLen);
+						
+						removedBytes += source.PointSizeBytes;
+					}
+
+					lowResCounts.Data[tile.Row, tile.Col] = offsets.Length;
+
+					Context.WriteLine("[{1},{2}] extracted {0} low-res points", offsets.Length, tile.Row, tile.Col);
 
 					if (!process.Update((float)index / segmentBuffer.PointCount))
 						break;
 				}
-
-				//var group = new ChunkProcessSet(tileFilter, segmentBuffer);
-				//group.Process(source.GetBlockEnumerator(process));
 			}
 		}
 

@@ -208,7 +208,7 @@ namespace CloudAE.Core
 			}
 		}
 
-		public int ReadLowResTile(byte[] buffer, int position)
+		public int ReadLowResTile(PointCloudTile tile, byte[] buffer, int position)
 		{
 			// todo: get lowres points
 			return 0;

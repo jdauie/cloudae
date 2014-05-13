@@ -191,5 +191,19 @@ namespace Jacere.Core
 		{
 			return new Grid<TNew>(Def, fillVal);
 		}
+
+		public void ClearOverflow()
+		{
+			if (Def.UnderlyingSizeX == Def.SizeX)
+				throw new Exception("no overflow to clear");
+
+			var data = Data;
+
+			for (var x = 0; x <= SizeX; x++)
+				data[SizeY, x] = FillVal;
+
+			for (var y = 0; y < SizeY; y++)
+				data[y, SizeX] = FillVal;
+		}
 	}
 }

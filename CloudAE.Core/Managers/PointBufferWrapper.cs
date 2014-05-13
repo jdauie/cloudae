@@ -119,16 +119,21 @@ namespace CloudAE.Core
 			m_initialized = initialized;
 		}
 
-		public void Append(IPointDataChunk chunk)
+		public void Append(byte[] data, int offset, int length)
 		{
 			if (m_initialized)
 				throw new InvalidOperationException("Cannot append to initialized buffer");
 
-			if (m_bufferIndex + chunk.Length > m_buffer.Data.Length)
+			if (m_bufferIndex + length > m_buffer.Data.Length)
 				throw new Exception("Too much data");
 
-			Buffer.BlockCopy(chunk.Data, 0, m_buffer.Data, m_bufferIndex, chunk.Length);
-			m_bufferIndex += chunk.Length;
+			Buffer.BlockCopy(data, offset, m_buffer.Data, m_bufferIndex, length);
+			m_bufferIndex += length;
+		}
+
+		public void Append(IPointDataChunk chunk)
+		{
+			Append(chunk.Data, 0, chunk.Length);
 		}
 
 		public IPointDataChunk Process(IPointDataChunk chunk)

@@ -102,7 +102,7 @@ namespace CloudAE.Core
 			// read available points from main tile area and get low-res points from source
 			var localStorageSize = (PointCount - LowResCount) * TileSet.TileSource.PointSizeBytes;
 			var bytesRead = inputStream.Read(inputBuffer, index, localStorageSize);
-			bytesRead += TileSet.TileSource.ReadLowResTile(inputBuffer, index + bytesRead);
+			bytesRead += TileSet.TileSource.ReadLowResTile(this, inputBuffer, index + bytesRead);
 
 			return bytesRead;
 		}
