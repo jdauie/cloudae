@@ -134,11 +134,15 @@ function clearInfo(reset) {
 
 function onHeaderMessage(data) {
 	var header = data.header.readObject("LASHeader");
+	var tiles = null;
+	if (data.tiles && data.tiles.byteLength > 0) {
+		tiles = data.tiles.readObject("PointCloudTileSet");
+	}
 	var stats = null;
 	if (data.zstats && data.zstats.byteLength > 0) {
 		stats = data.zstats.readObject("Statistics");
 	}
-	current.setHeader(header, data.chunks, stats);
+	current.setHeader(header, data.chunks, tiles, stats);
 
 	updateFileInfo();
 
@@ -180,6 +184,7 @@ function updateComplete() {
 	settings.elements.status.text([
 		'points : ' + (~~(current.header.numberOfPointRecords / current.step)).toLocaleString(),
 		'chunks : ' + current.chunks,
+		'tiles  : ' + (current.tiles !== null),
 		'stats  : ' + (current.stats !== null),
 		'time   : ' + timeSpan.toLocaleString() + " ms",
 		'rate   : ' + bytesToSize(bps) + 'ps'

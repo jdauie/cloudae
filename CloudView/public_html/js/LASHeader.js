@@ -26,10 +26,12 @@ function LASGlobalEncoding(reader) {
     this.globalEncoding = reader.readUint16();
 }
 
-function SQuantization3D(reader) {
-	this.scale = reader.readVector3();
-	this.offset = reader.readVector3();
-}
+BinaryReader.prototype.readBox3 = function() {
+	
+	var min = new THREE.Vector3(this.readFloat64(), this.readFloat64(), this.readFloat64());
+	var max = new THREE.Vector3(this.readFloat64(), this.readFloat64(), this.readFloat64());
+	return new THREE.Box3(min, max);
+};
 
 BinaryReader.prototype.readBox3FromLAS = function() {
 	var maxX = this.readFloat64();

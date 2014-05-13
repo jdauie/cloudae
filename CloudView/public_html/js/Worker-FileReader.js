@@ -2,6 +2,7 @@ importScripts(
 	"libs/three.js/three.min.js",
 	'util.js',
 	'BinaryReader.js',
+	'SQuantization3D.js',
 	'LASHeader.js'
 );
 
@@ -19,6 +20,7 @@ function loadFile(file, chunkBytes) {
 	// read evlrs to find known records
 	var evlrPosition = header.startOfFirstExtendedVariableLengthRecord;
 	var evlrSizeBeforeData = 60;
+	var bufferTiles = new ArrayBuffer(0);
 	var bufferStats = new ArrayBuffer(0);
 	for (var i = 0; i < header.numberOfExtendedVariableLengthRecords; i++) {
 		var buffer2 = reader.readAsArrayBuffer(file.slice(evlrPosition, evlrPosition + evlrSizeBeforeData));
@@ -26,7 +28,10 @@ function loadFile(file, chunkBytes) {
 		var evlrPositionNext = evlrPosition + evlrSizeBeforeData + evlr.recordLengthAfterHeader;
 		if (evlr.userID === "Jacere") {
 			buffer2 = reader.readAsArrayBuffer(file.slice(evlrPosition + evlrSizeBeforeData, evlrPositionNext));
-			if (evlr.recordID === 1) {
+			if (evlr.recordID === 0) {
+				bufferTiles = buffer2;
+			}
+			else if (evlr.recordID === 1) {
 				bufferStats = buffer2;
 			}
 		}
@@ -43,8 +48,9 @@ function loadFile(file, chunkBytes) {
 	self.postMessage({
 		header: buffer,
 		chunks: chunks,
+		tiles: bufferTiles,
 		zstats: bufferStats
-	}, [buffer, bufferStats]);
+	}, [buffer, bufferTiles, bufferStats]);
 	
 	var endOfPointData = header.offsetToPointData + (header.numberOfPointRecords * header.pointDataRecordLength);
 	
