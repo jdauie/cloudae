@@ -204,6 +204,8 @@ namespace CloudAE.Core
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedExtractLowRes"))
 			{
 				var removedBytes = 0;
+
+				var templateQuantizedExtent = quantizedExtent.ComputeQuantizedTileExtent(new SimpleGridCoord(0, 0), tileCounts);
 				
 				var index = 0;
 				foreach (var tile in tileFilter.GetCellOrdering())
@@ -213,8 +215,8 @@ namespace CloudAE.Core
 					var dataEndPtr = dataPtr + (count * source.PointSizeBytes);
 
 					var tileQuantizedExtent = quantizedExtent.ComputeQuantizedTileExtent(tile, tileCounts);
-					var cellSizeX = (int)(tileQuantizedExtent.RangeX / lowResGrid.SizeX);
-					var cellSizeY = (int)(tileQuantizedExtent.RangeY / lowResGrid.SizeY);
+					var cellSizeX = (int)(templateQuantizedExtent.RangeX / lowResGrid.SizeX);
+					var cellSizeY = (int)(templateQuantizedExtent.RangeY / lowResGrid.SizeY);
 
 					lowResGrid.Reset();
 
