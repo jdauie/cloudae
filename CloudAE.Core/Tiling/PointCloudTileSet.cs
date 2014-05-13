@@ -68,9 +68,10 @@ namespace CloudAE.Core
 			//TileSize = tileCounts.CellSize;
 
 			PointCount = density.PointCount;
-			LowResCount = 0;
 			TileCount = density.TileCount;
 			ValidTileCount = density.ValidTileCount;
+
+			LowResCount = 0;
 
 			m_tileIndex = CreateTileIndex(ValidTileCount);
 			m_tiles = new PointCloudTile[density.ValidTileCount];
@@ -84,11 +85,11 @@ namespace CloudAE.Core
 				if (pointCount > 0)
 				{
 					var lowResCount = lowResCounts.Data[tile.Row, tile.Col];
-					LowResCount += lowResCount;
-					m_tiles[validTileIndex] = new PointCloudTile(this, tile.Col, tile.Row, validTileIndex, offset, pointCount, lowResCount);
+					m_tiles[validTileIndex] = new PointCloudTile(this, tile.Col, tile.Row, validTileIndex, offset, pointCount, LowResCount, lowResCount);
 					m_tileIndex.Add(tile.Index, validTileIndex);
 					++validTileIndex;
 					offset += (pointCount - lowResCount);
+					LowResCount += lowResCount;
 				}
 			}
 		}
@@ -123,6 +124,8 @@ namespace CloudAE.Core
 			PointCount = Density.PointCount;
 			ValidTileCount = Density.ValidTileCount;
 
+			LowResCount = 0;
+
 			m_tileIndex = CreateTileIndex(ValidTileCount);
 			m_tiles = new PointCloudTile[ValidTileCount];
 
@@ -135,10 +138,11 @@ namespace CloudAE.Core
 				var lowResCount = reader.ReadInt32();
 				if (pointCount > 0)
 				{
-					m_tiles[i] = new PointCloudTile(this, tile.Col, tile.Row, i, pointOffset, pointCount, lowResCount);
+					m_tiles[i] = new PointCloudTile(this, tile.Col, tile.Row, i, pointOffset, pointCount, LowResCount, lowResCount);
 					m_tileIndex.Add(tile.Index, i);
 
 					pointOffset += (pointCount - lowResCount);
+					LowResCount += lowResCount;
 					++i;
 				}
 			}
