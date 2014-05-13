@@ -234,7 +234,7 @@ namespace CloudAE.Core
 						}
 						else
 						{
-							var pBest = (SQuantizedPoint3D*)(dataPtr + offset);
+							var pBest = (SQuantizedPoint3D*)(segmentBuffer.PointDataPtr + offset);
 							if ((*p).Z > (*pBest).Z)
 								lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
 						}
