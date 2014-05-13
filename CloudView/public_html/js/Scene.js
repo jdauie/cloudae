@@ -53,6 +53,64 @@ var actions = {
 var worker = null;
 var current = null;
 
+
+function onDocumentMouseDown(event) {
+	if (!current || !current.tiles)
+		return;
+	
+	//event.preventDefault();
+	//centroidSphere.visible=true;mousedown=true;
+
+	// find intersections
+	var mousex = (event.clientX / window.innerWidth) * 2 - 1;
+	var mousey = -(event.clientY / window.innerHeight) * 2 + 1;
+
+	var vector = new THREE.Vector3(mousex, mousey, 1);
+	var raycaster = new THREE.Raycaster(viewport.camera.position, vector.sub(viewport.camera.position).normalize());
+	
+	var intersections = [];
+	var sphere = new THREE.Sphere();
+	for (var i = 0; i < current.geometry.chunks.length; i++) {
+		var object = current.geometry.chunks[i];
+		var boundingSphere = object.geometry.boundingSphere;
+		
+		sphere.copy(boundingSphere);
+		sphere.applyMatrix4(object.matrixWorld);
+
+		if (raycaster.ray.isIntersectionSphere(sphere) === true) {
+			intersections.push(current.tiles.getValidTile(i));
+		}
+	}
+	
+	$('#info-text').text(intersections.join('\n'));
+	
+	//var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
+	//projector.unprojectVector( vector, camera );
+	//var ray = new THREE.Ray( camera.position, vector.subSelf( camera.position ).normalize() );
+}
+
+/*
+// material parameters
+ambientLight = new THREE.AmbientLight( 0xffffff );
+scene.add( ambientLight );
+
+pointLight = new THREE.PointLight( 0xffffff );
+pointLight.intensity = 2;
+pointLight.position.z = 100;
+pointLight.position.y = 700;
+
+scene.add( pointLight );
+
+directionalLight = new THREE.DirectionalLight( 0xffffff );
+directionalLight.position.x = 1;
+directionalLight.position.y = -1;
+directionalLight.position.z = -1;
+directionalLight.position.normalize();
+scene.add( directionalLight );
+
+var ambient = 0x444444, diffuse = 0x888888, specular = 0x080810, shininess = 2;
+*/
+
 var viewport = Viewport3D.create(settings.elements.container[0], {
 	camera: settings.camera,
 	render: settings.render2
@@ -93,6 +151,8 @@ function init() {
 			startFile(e.target.files[0]);
 		}
 	});
+	
+	//document.addEventListener('mousedown', onDocumentMouseDown, false);
 }
 
 function startFile(file) {
@@ -184,15 +244,24 @@ function onChunkMessage(data) {
 		}
 		viewport.add(root);
 		updateComplete2();
+		
+		// TEST
+		/*var tile = current.tiles.getValidTile(current.tiles.validTileCount / 2);
+		worker.postMessage({
+			pointOffset: tile.pointOffset,
+			pointCount: tile.pointCount,
+			id: (current.tiles.validTileCount - 1)
+		});*/
+	}
+	else {
+		if (!loadLowResAsSingleGeometry)
+			requestNextTile();
 	}
 	
 	/*updateProgress(data);
 	if (data.index + 1 === current.chunks) {
 		updateComplete();
 	}*/
-	
-	if (!loadLowResAsSingleGeometry)
-		requestNextTile();
 }
 
 function requestNextTile() {

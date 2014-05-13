@@ -11,3 +11,7 @@ function PointCloudTile(tileSet, col, row, validIndex, offset, count, lowResOffs
 	this.pointOffset = offset;
 	this.validIndex = validIndex;
 }
+
+PointCloudTile.prototype.toString = function() {
+	return String.format('[{0}, {1}]', this.row, this.col);
+};
