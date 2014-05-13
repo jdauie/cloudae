@@ -3,6 +3,7 @@ function LASInfo(file) {
 	this.file = file;
 	this.startTime = Date.now();
 	this.texture = null;
+	this.tileIndex = 0;
 	
 	this.settings = {
 		loader: clone(settings.loader),
@@ -104,10 +105,12 @@ function LASInfo(file) {
 		context.rect(0, 0, size, 1);
 		var gradient = context.createLinearGradient(0, 0, size, 0);
 
-		var stops = map.ramp.colors.length;
+		//var stops = map.ramp.colors.length;
+		var stops = map.length;
 		for (var i = 0; i < stops; ++i) {
 			var ratio = i / (stops - 1);
-			gradient.addColorStop(ratio, '#' + map.ramp.getColor(ratio).getHexString());
+			//gradient.addColorStop(ratio, '#' + map.ramp.getColor(ratio).getHexString());
+			gradient.addColorStop(ratio, '#' + map.bins[i].getHexString());
 		}
 
 		context.fillStyle = gradient;
@@ -120,7 +123,8 @@ function LASInfo(file) {
 function PointReader(info, buffer) {
 	this.reader = new BinaryReader(buffer);
 	this.points = (buffer.byteLength / info.header.pointDataRecordLength);
-	this.filteredPoints = ~~Math.ceil(this.points / info.step);
+	//this.filteredPoints = ~~Math.ceil(this.points / info.step);
+	this.filteredPoints = this.points;
 	
 	this.currentPointIndex = 0;
 
@@ -132,7 +136,8 @@ function PointReader(info, buffer) {
 		this.reader.seek(this.currentPointIndex * info.header.pointDataRecordLength);
 		var point = this.reader.readUnquantizedPoint3D(info.header.quantization);
 		
-		this.currentPointIndex += info.step;
+		//this.currentPointIndex += info.step;
+		this.currentPointIndex += 1;
 		
 		return point;
 	};

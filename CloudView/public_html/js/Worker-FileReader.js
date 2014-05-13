@@ -8,14 +8,40 @@ importScripts(
 
 self.addEventListener('message', function(e) {
 	var data = e.data;
-	loadFile(data.file, data.chunkSize);
+	if (e.data.file) {
+		loadHeader(data.file, data.chunkSize);
+	}
+	else if (e.data.pointOffset) {
+		loadPoints(e.data.pointOffset, e.data.pointCount, e.data.id);
+	}
 }, false);
 
-function loadFile(file, chunkBytes) {
-	var reader = new FileReaderSync();
+var source;
+var reader;
+var header;
+var tiles;
+var stats;
+
+function loadPoints(offset, count, id) {
+	var start = header.offsetToPointData + (offset * header.pointDataRecordLength);
+	var end = start + (count * header.pointDataRecordLength);
+	
+	var slice = source.slice(start, end);
+	var buffer = reader.readAsArrayBuffer(slice);
+	self.postMessage({
+		chunk: buffer,
+		pointOffset: offset,
+		pointCount: count,
+		id: id
+	}, [buffer]);
+}
+
+function loadHeader(file, chunkBytes) {
+	source = file;
+	reader = new FileReaderSync();
 	
 	var buffer = reader.readAsArrayBuffer(file.slice(0, LAS_MAX_SUPPORTED_HEADER_SIZE));
-	var header = buffer.readObject("LASHeader");
+	header = buffer.readObject("LASHeader");
 	
 	// read evlrs to find known records
 	var evlrPosition = header.startOfFirstExtendedVariableLengthRecord;
@@ -52,7 +78,13 @@ function loadFile(file, chunkBytes) {
 		zstats: bufferStats
 	}, [buffer, bufferTiles, bufferStats]);
 	
+	// debug
+	return;
+	
 	var endOfPointData = header.offsetToPointData + (header.numberOfPointRecords * header.pointDataRecordLength);
+	
+	// jump to low-res
+	
 	
 	for (var i = 0; i < chunks; i++) {
 		

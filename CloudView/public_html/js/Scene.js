@@ -157,25 +157,82 @@ function onHeaderMessage(data) {
 		var es = header.extent.size();
 		viewport.camera.position.z = Math.max(es.x, es.y) * 2;
 	}
+	
+	if (current.tiles) {
+		requestNextTile();
+	}
+	else {
+		// ?
+	}
 }
+
+// DEBUG
+var loadLowResAsSingleGeometry = false;
 
 function onChunkMessage(data) {
 	var reader = current.getPointReader(data.chunk);
 	var object = actions.createChunk[current.settings.loader.colorMode](reader);
 	centerObject(object);
-	viewport.add(object);
 	
 	current.geometry.chunks.push(object);
-
-	updateProgress(data);
+	
+	updateProgress2(data);
+	if (data.id === current.tiles.validTileCount - 1) {
+		var root = new THREE.Object3D();
+		for (var i = 0; i < current.geometry.chunks.length; i++) {
+			root.add(current.geometry.chunks[i]);
+		}
+		viewport.add(root);
+		updateComplete2();
+	}
+	
+	/*updateProgress(data);
 	if (data.index + 1 === current.chunks) {
 		updateComplete();
+	}*/
+	
+	if (!loadLowResAsSingleGeometry)
+		requestNextTile();
+}
+
+function requestNextTile() {
+	if (current.tiles) {
+		if (loadLowResAsSingleGeometry) {
+			worker.postMessage({
+				pointOffset: current.tiles.lowResOffset,
+				pointCount: current.tiles.lowResCount,
+				id: (current.tiles.validTileCount - 1)
+			});
+		}
+		else {
+			var tile = current.tiles.getValidTile(current.tileIndex);
+			worker.postMessage({
+				pointOffset: current.tiles.lowResOffset + tile.lowResOffset,
+				pointCount: tile.lowResCount,
+				id: current.tileIndex++
+			});
+		}
 	}
+}
+
+function updateProgress2(data) {
+	var progress = (100 * (data.id + 1) / current.tiles.validTileCount);
+	settings.elements.status.text(String.format('{0}%', ~~progress));
 }
 
 function updateProgress(data) {
 	var progress = (100 * (data.index + 1) / current.chunks);
 	settings.elements.status.text(String.format('{0}%', ~~progress));
+}
+
+function updateComplete2() {
+	var timeSpan = Date.now() - current.startTime;
+	settings.elements.status.text([
+		'points : ' + current.tiles.lowResCount.toLocaleString(),
+		'tiles  : ' + current.tiles.validTileCount.toLocaleString(),
+		'stats  : ' + (current.stats !== null),
+		'time   : ' + timeSpan.toLocaleString() + " ms"
+	].join('\n'));
 }
 
 function updateComplete() {

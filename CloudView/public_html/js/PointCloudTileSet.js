@@ -38,5 +38,13 @@ function PointCloudTileSet(reader) {
 			}
 		}
 	}
+	
+	this.lowResOffset = this.pointCount - this.lowResCount;
+	
+	this.getValidTile = function(validIndex) {
+		if (validIndex < this.validTileCount) {
+			return this.tiles[validIndex];
+		}
+	};
 }
 
