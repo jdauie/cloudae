@@ -237,8 +237,18 @@ namespace CloudAE.Core
 						else
 						{
 							var pBest = (SQuantizedPoint3D*)(segmentBuffer.PointDataPtr + offset);
+							
 							if ((*p).Z > (*pBest).Z)
 								lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
+
+							//var cellCenterX = (cellX + 0.5) * cellSizeX;
+							//var cellCenterY = (cellY + 0.5) * cellSizeY;
+
+							//var bd2 = DistanceRatioFromPointToCellCenter2(pBest, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
+							//var cd2 = DistanceRatioFromPointToCellCenter2(p, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
+
+							//if (cd2 < bd2)
+							//	lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
 						}
 
 						pb += source.PointSizeBytes;
@@ -280,6 +290,18 @@ namespace CloudAE.Core
 						break;
 				}
 			}
+		}
+
+		private static unsafe double DistanceRatioFromPointToCellCenter2(SQuantizedPoint3D* pBest, double cellCenterX, double cellCenterY, int cellSizeX, int cellSizeY)
+		{
+			var ratioBestToCellCenterX = ((*pBest).X - cellCenterX) / cellSizeX;
+			var ratioBestToCellCenterX2 = ratioBestToCellCenterX * ratioBestToCellCenterX;
+
+			var ratioBestToCellCenterY = ((*pBest).Y - cellCenterY) / cellSizeY;
+			var ratioBestToCellCenterY2 = ratioBestToCellCenterY * ratioBestToCellCenterY;
+
+			var distance2 = ratioBestToCellCenterX2 + ratioBestToCellCenterY2;
+			return distance2;
 		}
 
 		private static PointCloudAnalysisResult QuantEstimateDensity(IPointCloudBinarySource source, int maxSegmentLength, SQuantizedExtentGrid<int> tileCounts, ProgressManager progressManager)
