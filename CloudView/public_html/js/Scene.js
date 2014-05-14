@@ -14,6 +14,7 @@ var settings = {
 	loader: {
 		chunkSize: 8*1024*1024,
 		maxPoints: 1000000,
+		mergeLowRes: true,
 		colorMode: 'texture'
 	},
 	render: {
@@ -125,6 +126,7 @@ function init() {
 	f2.add(settings.loader, 'chunkSize', createNamedSizes(256*1024, 10));
 	f2.add(settings.loader, 'maxPoints', createNamedMultiples(1000000, [0.5,1,2,3,4,5,6,8,10,12,14,16,18,20]));
 	f2.add(settings.loader, 'colorMode', Object.keys(actions.createChunk));
+	f2.add(settings.loader, 'mergeLowRes');
 	f2.open();
 	
 	var f1 = gui.addFolder('Rendering');
@@ -226,9 +228,6 @@ function onHeaderMessage(data) {
 	}
 }
 
-// DEBUG
-var loadLowResAsSingleGeometry = false;
-
 function onChunkMessage(data) {
 	var reader = current.getPointReader(data.chunk);
 	var object = actions.createChunk[current.settings.loader.colorMode](reader);
@@ -254,7 +253,7 @@ function onChunkMessage(data) {
 		});*/
 	}
 	else {
-		if (!loadLowResAsSingleGeometry)
+		if (!current.settings.loader.mergeLowRes)
 			requestNextTile();
 	}
 	
@@ -266,7 +265,7 @@ function onChunkMessage(data) {
 
 function requestNextTile() {
 	if (current.tiles) {
-		if (loadLowResAsSingleGeometry) {
+		if (current.settings.loader.mergeLowRes) {
 			worker.postMessage({
 				pointOffset: current.tiles.lowResOffset,
 				pointCount: current.tiles.lowResCount,

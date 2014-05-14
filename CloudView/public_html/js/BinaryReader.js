@@ -43,11 +43,11 @@ BinaryReader.prototype.readArrayBuffer = function(size) {
 };
 
 BinaryReader.prototype.readUint64 = function() {
-	var high = this.view.getUint32(this.position, this.littleEndian);
-	this.position += 4;
 	var low = this.view.getUint32(this.position, this.littleEndian);
 	this.position += 4;
-	return (high << 32) | low;
+	var high = this.view.getUint32(this.position, this.littleEndian);
+	this.position += 4;
+	return (high * Math.pow(2, 32)) + low;
 };
 
 BinaryReader.prototype.readUint64Array = function(size) {
