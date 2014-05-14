@@ -33,7 +33,7 @@ namespace Jacere.Core
 		{
 			stopwatch.Stop();
 			string eventNameFormat = String.Format(eventName, args);
-			Log("{1} in {0:0}s", stopwatch.ElapsedMilliseconds, eventNameFormat);
+			Log("{1} in {0:0,.}s", stopwatch.ElapsedMilliseconds, eventNameFormat);
 			stopwatch.Restart();
 		}
 

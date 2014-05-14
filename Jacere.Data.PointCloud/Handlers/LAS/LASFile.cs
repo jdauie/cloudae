@@ -60,7 +60,7 @@ namespace Jacere.Data.PointCloud
 
 		public static LASFile Create(string path, IPointCloudBinarySource source)
 		{
-			var pcbs = source as PointCloudBinarySource;
+			var pcbs = source as PointCloudSource;
 			if (pcbs != null)
 			{
 				var lasFile = pcbs.FileHandler as LASFile;

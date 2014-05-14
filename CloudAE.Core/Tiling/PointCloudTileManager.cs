@@ -284,7 +284,7 @@ namespace CloudAE.Core
 
 					lowResCounts.Data[tile.Row, tile.Col] = offsets.Length;
 
-					Context.WriteLine("[{1},{2}] extracted {0} low-res points", offsets.Length, tile.Row, tile.Col);
+					//Context.WriteLine("[{1},{2}] extracted {0} low-res points", offsets.Length, tile.Row, tile.Col);
 
 					if (!process.Update((float)index / segmentBuffer.PointCount))
 						break;
