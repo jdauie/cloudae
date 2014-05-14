@@ -15,9 +15,8 @@ function LASInfo(file) {
 		chunks: []
 	};
 	
-	this.setHeader = function(header, chunks, tiles, stats) {
+	this.setHeader = function(header, tiles, stats) {
 		this.header = header;
-		this.chunks = chunks;
 		this.tiles = tiles;
 		this.stats = stats;
 		this.step = Math.ceil(header.numberOfPointRecords / Math.min(this.settings.loader.maxPoints, header.numberOfPointRecords));

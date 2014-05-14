@@ -14,7 +14,6 @@ var settings = {
 	loader: {
 		chunkSize: 8*1024*1024,
 		maxPoints: 1000000,
-		mergeLowRes: true,
 		colorMode: 'texture'
 	},
 	render: {
@@ -126,13 +125,12 @@ function init() {
 	f2.add(settings.loader, 'chunkSize', createNamedSizes(256*1024, 10));
 	f2.add(settings.loader, 'maxPoints', createNamedMultiples(1000000, [0.5,1,2,3,4,5,6,8,10,12,14,16,18,20]));
 	f2.add(settings.loader, 'colorMode', Object.keys(actions.createChunk));
-	f2.add(settings.loader, 'mergeLowRes');
 	f2.open();
 	
 	var f1 = gui.addFolder('Rendering');
 	f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets)).onChange(function() {current.updateRenderSettings();});
 	f1.add(settings.render, 'invertRamp').onChange(function() {current.updateRenderSettings();});
-	f1.add(settings.render, 'useStats');
+	f1.add(settings.render, 'useStats').onChange(function() {current.updateRenderSettings();});
 	f1.add(settings.render, 'showBounds').onChange(function() {updateShowBounds();});
 	f1.add(settings.render, 'pointSize').min(1).max(20).onChange(function() {current.updateRenderSettings();});
 	f1.open();
@@ -165,8 +163,11 @@ function startFile(file) {
 			if (e.data.header) {
 				onHeaderMessage(e.data);
 			}
-			else if (e.data.chunk) {
+			else if (e.data.buffer) {
 				onChunkMessage(e.data);
+			}
+			else if (e.data.progress) {
+				onProgressMessage(e.data.progress);
 			}
 		}, false);
 	}
@@ -190,7 +191,7 @@ function clearInfo(reset) {
 		settings.elements.status.text('');
 	}
 	if (reset) {
-		viewport.camera.position.z = 0;
+		viewport.camera.position.set(0, 0, 0);
 	}
 }
 
@@ -201,10 +202,10 @@ function onHeaderMessage(data) {
 		tiles = data.tiles.readObject("PointCloudTileSet");
 	}
 	var stats = null;
-	if (data.zstats && data.zstats.byteLength > 0) {
-		stats = data.zstats.readObject("Statistics");
+	if (data.stats && data.stats.byteLength > 0) {
+		stats = data.stats.readObject("Statistics");
 	}
-	current.setHeader(header, data.chunks, tiles, stats);
+	current.setHeader(header, tiles, stats);
 
 	updateFileInfo();
 
@@ -221,96 +222,56 @@ function onHeaderMessage(data) {
 	}
 	
 	if (current.tiles) {
-		requestNextTile();
+		// request low-res points
+		worker.postMessage({
+			pointOffset: current.tiles.lowResOffset,
+			pointCount: current.tiles.lowResCount
+		});
 	}
 	else {
-		// ?
+		// request thinned points
+		worker.postMessage({
+			pointOffset: 0,
+			pointCount: current.header.numberOfPointRecords,
+			step: current.step
+		});
 	}
 }
 
+function onProgressMessage(ratio) {
+	settings.elements.status.text(String.format('{0}%', ~~(100 * ratio)));
+}
+
 function onChunkMessage(data) {
-	var reader = current.getPointReader(data.chunk);
+	var reader = current.getPointReader(data.buffer);
 	var object = actions.createChunk[current.settings.loader.colorMode](reader);
 	centerObject(object);
 	
 	current.geometry.chunks.push(object);
+	viewport.add(object);
 	
-	updateProgress2(data);
-	if (data.id === current.tiles.validTileCount - 1) {
-		var root = new THREE.Object3D();
-		for (var i = 0; i < current.geometry.chunks.length; i++) {
-			root.add(current.geometry.chunks[i]);
-		}
-		viewport.add(root);
-		updateComplete2();
-		
-		// TEST
-		/*var tile = current.tiles.getValidTile(current.tiles.validTileCount / 2);
-		worker.postMessage({
-			pointOffset: tile.pointOffset,
-			pointCount: tile.pointCount,
-			id: (current.tiles.validTileCount - 1)
-		});*/
+	if (current.tiles) {
+		updateCompleteTiled();
 	}
 	else {
-		if (!current.settings.loader.mergeLowRes)
-			requestNextTile();
-	}
-	
-	/*updateProgress(data);
-	if (data.index + 1 === current.chunks) {
-		updateComplete();
-	}*/
-}
-
-function requestNextTile() {
-	if (current.tiles) {
-		if (current.settings.loader.mergeLowRes) {
-			worker.postMessage({
-				pointOffset: current.tiles.lowResOffset,
-				pointCount: current.tiles.lowResCount,
-				id: (current.tiles.validTileCount - 1)
-			});
-		}
-		else {
-			var tile = current.tiles.getValidTile(current.tileIndex);
-			worker.postMessage({
-				pointOffset: current.tiles.lowResOffset + tile.lowResOffset,
-				pointCount: tile.lowResCount,
-				id: current.tileIndex++
-			});
-		}
+		updateCompleteThinned();
 	}
 }
 
-function updateProgress2(data) {
-	var progress = (100 * (data.id + 1) / current.tiles.validTileCount);
-	settings.elements.status.text(String.format('{0}%', ~~progress));
-}
-
-function updateProgress(data) {
-	var progress = (100 * (data.index + 1) / current.chunks);
-	settings.elements.status.text(String.format('{0}%', ~~progress));
-}
-
-function updateComplete2() {
+function updateCompleteTiled() {
 	var timeSpan = Date.now() - current.startTime;
 	settings.elements.status.text([
 		'points : ' + current.tiles.lowResCount.toLocaleString(),
 		'tiles  : ' + current.tiles.validTileCount.toLocaleString(),
-		'stats  : ' + (current.stats !== null),
 		'time   : ' + timeSpan.toLocaleString() + " ms"
 	].join('\n'));
 }
 
-function updateComplete() {
+function updateCompleteThinned() {
 	var timeSpan = Date.now() - current.startTime;
 	var bps = (current.header.numberOfPointRecords * current.header.pointDataRecordLength) / timeSpan * 1000;
 	settings.elements.status.text([
 		'points : ' + (~~(current.header.numberOfPointRecords / current.step)).toLocaleString(),
-		'chunks : ' + current.chunks,
-		'tiles  : ' + (current.tiles !== null),
-		'stats  : ' + (current.stats !== null),
 		'time   : ' + timeSpan.toLocaleString() + " ms",
 		'rate   : ' + bytesToSize(bps) + 'ps'
 	].join('\n'));
