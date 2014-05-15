@@ -56,9 +56,8 @@ namespace CloudAE.Core
 			var validTiles = analysis.GridIndex.Sum(r => r.GridRange.ValidCells);
 			var lowResPointsPerTile = lowResPointCountMax / validTiles;
 			var lowResTileSize = (ushort)Math.Sqrt(lowResPointsPerTile);
-			var lowResTileSizePow = (ushort)Math.Pow(2, (int)Math.Log(lowResTileSize, 2));
 
-			var lowResGrid = Grid<int>.Create(lowResTileSizePow, lowResTileSizePow, true, -1);
+			var lowResGrid = Grid<int>.Create(lowResTileSize, lowResTileSize, true, -1);
 			var lowResCounts = tileCounts.Copy<int>();
 
 			using (var outputStream = StreamManager.OpenWriteStream(tiledFile.FilePath, fileSize, tiledFile.PointDataOffset))
