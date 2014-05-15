@@ -5,15 +5,25 @@ body {
 #container {
     background: #000;
 }
-#file-input {
+#input {
 	position: fixed;
 	bottom: 0;
 	left: 0;
 	z-index: 100;
 }
+.input-group {
+	float:left;
+	border: 1px solid #aaa;
+	margin: 2px;
+	background-color: #222;
+}
+.input-group .title {
+	margin-left: 4px;
+	color: #aaa
+}
 pre {
-	margin:0;
-	padding:0;
+	margin: 0;
+	padding: 0;
 }
 #info {
 	position: absolute;
@@ -29,7 +39,6 @@ pre {
 	bottom: 30px;
 	z-index: 90;
 	color: #fff;
-	//text-shadow: 1px 1px #000;
 	background: rgba(0, 0, 0, 0.6);
 }
 #header {
@@ -37,7 +46,9 @@ pre {
 }
 #status {
 	right: 6px;
-	//text-align:right;
+}
+#status-progress {
+	font-size:500%;
 }
 a {
 	text-decoration:none;

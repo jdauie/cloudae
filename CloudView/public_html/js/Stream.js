@@ -16,6 +16,7 @@ function HttpStream(url) {
 	this.read = function(start, end) {
 		var xhr = new XMLHttpRequest();
 		xhr.open('GET', this.url, false);
+		// should this be (end - 1)?
 		xhr.setRequestHeader('Range', String.format('bytes={0}-{1}', start, end));
 		xhr.responseType = 'arraybuffer';
 		xhr.send(null);

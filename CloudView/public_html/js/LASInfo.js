@@ -24,8 +24,8 @@ function LASInfo(file) {
 		this.update();
 	};
 	
-	this.getPointReader = function(buffer) {
-		return new PointReader(this, buffer);
+	this.getPointReader = function(buffer, points) {
+		return new PointReader(this, buffer, points);
 	};
 	
 	this.updateRenderSettings = function() {
@@ -119,11 +119,9 @@ function LASInfo(file) {
 	};
 }
 
-function PointReader(info, buffer) {
+function PointReader(info, buffer, points) {
 	this.reader = new BinaryReader(buffer);
-	this.points = (buffer.byteLength / info.header.pointDataRecordLength);
-	//this.filteredPoints = ~~Math.ceil(this.points / info.step);
-	this.filteredPoints = this.points;
+	this.points = points;
 	
 	this.currentPointIndex = 0;
 
@@ -135,8 +133,11 @@ function PointReader(info, buffer) {
 		this.reader.seek(this.currentPointIndex * info.header.pointDataRecordLength);
 		var point = this.reader.readUnquantizedPoint3D(info.header.quantization);
 		
-		//this.currentPointIndex += info.step;
-		this.currentPointIndex += 1;
+		// debug
+		//if (point.x === 0 && point.y === 0 && point.z === 0)
+		//	throw "zero point";
+		
+		this.currentPointIndex++;
 		
 		return point;
 	};

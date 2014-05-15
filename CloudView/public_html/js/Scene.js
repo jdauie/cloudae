@@ -23,7 +23,9 @@ var settings = {
 	elements: {
 		loader:    $('#loader'),
 		container: $('#container'),
-		input:     $('#file-input'),
+		files:     $('#file-input'),
+		//url:       $('#url-input'),
+		//urlCmd:    $('#url-cmd'),
 		about:     $('#info-text'),
 		header:    $('#header-text'),
 		status:    $('#status-text')
@@ -173,11 +175,22 @@ function init() {
 	f4.add(settings.display, 'status').onChange(function() {settings.elements.status.toggle();});
 	//f2.open();
 
-	settings.elements.input[0].addEventListener('change', function(e) {
+	settings.elements.files[0].addEventListener('change', function(e) {
 		if (e.target.files.length > 0) {
 			startFile(e.target.files[0]);
 		}
 	});
+	
+	/*settings.elements.urlCmd[0].addEventListener('click', function(e) {
+		var url = settings.elements.url.val();
+		if (url) {
+			startFile(url);
+		}
+	});
+	
+	var sampleListener = function(e) {
+		startFile(String.format('../data/{0}', e.target.value));
+	};*/
 	
 	//document.addEventListener('mousedown', onDocumentMouseDown, false);
 }
@@ -264,11 +277,11 @@ function onHeaderMessage(data) {
 }
 
 function onProgressMessage(ratio) {
-	settings.elements.status.text(String.format('{0}%', ~~(100 * ratio)));
+	settings.elements.status.html(String.format('<span id="status-progress">{0}%</span>', ~~(100 * ratio)));
 }
 
 function onChunkMessage(data) {
-	var reader = current.getPointReader(data.buffer);
+	var reader = current.getPointReader(data.buffer, data.filteredCount);
 	var object = actions.createChunk[current.settings.loader.colorMode](reader);
 	centerObject(object);
 	
@@ -279,7 +292,7 @@ function onChunkMessage(data) {
 		updateCompleteTiled();
 	}
 	else {
-		updateCompleteThinned();
+		updateCompleteThinned(data.filteredCount);
 	}
 }
 
@@ -292,11 +305,11 @@ function updateCompleteTiled() {
 	].join('\n'));
 }
 
-function updateCompleteThinned() {
+function updateCompleteThinned(count) {
 	var timeSpan = Date.now() - current.startTime;
 	var bps = (current.header.numberOfPointRecords * current.header.pointDataRecordLength) / timeSpan * 1000;
 	settings.elements.status.text([
-		'points : ' + (~~(current.header.numberOfPointRecords / current.step)).toLocaleString(),
+		'points : ' + count.toLocaleString(),
 		'time   : ' + timeSpan.toLocaleString() + " ms",
 		'rate   : ' + bytesToSize(bps) + 'ps'
 	].join('\n'));
@@ -381,7 +394,7 @@ function createChunkTexture(reader) {
 		});
 	}
 	
-	var points = reader.filteredPoints;
+	var points = reader.points;
 	
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute('position', Float32Array, points, 3);
@@ -423,7 +436,7 @@ function createChunkPackedColor(reader) {
 		});
 	}
 	
-	var points = reader.filteredPoints;
+	var points = reader.points;
 	
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute('position', Float32Array, points, 3);
@@ -465,7 +478,7 @@ function createChunkOld(reader) {
 		});
 	}
 	
-	var points = reader.filteredPoints;
+	var points = reader.points;
 	
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute('position', Float32Array, points, 3);

@@ -20,6 +20,11 @@ function CachedColorMap(ramp, stretch, desiredDestinationBins)
 	
 	this.getColor = function(value) {
 		var index = ~~this.map.getInterval(value);
+		
+		// debug
+		//if (index < 0 || index > this.bins.length)
+		//	throw "color index out of bounds";
+		
 		return this.bins[index];
 	};
 }
