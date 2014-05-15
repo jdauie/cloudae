@@ -1,6 +1,7 @@
 importScripts(
 	"libs/three.js/three.min.js",
 	'util.js',
+	'Stream.js',
 	'BinaryReader.js',
 	'SQuantization3D.js',
 	'LASHeader.js'
@@ -19,38 +20,48 @@ self.addEventListener('message', function(e) {
 	}
 }, false);
 
-function FileSource(file, reader, header, chunkSize) {
-	this.file = file;
-	this.reader = reader;
+function FileSource(stream, header, chunkSize) {
+	this.stream = stream;
 	this.header = header;
 	this.chunkSizeMax = chunkSize;
 }
 
+function createReadStream(file) {
+	if (file.constructor.name === "File") {
+		return new FileStream(file);
+	}
+	else {
+		return new HttpStream(file);
+	}
+}
+
 function loadPoints(offset, count, step) {
 	
+	var pointOffset = current.header.offsetToPointData;
+	var pointCount = current.header.numberOfPointRecords;
+	var pointLength = current.header.pointDataRecordLength;
+	
 	var filteredCount = count;
-	var start = current.header.offsetToPointData + (offset * current.header.pointDataRecordLength);
-	var end = start + (count * current.header.pointDataRecordLength);
+	var start = pointOffset + (offset * pointLength);
+	var end = start + (count * pointLength);
 	
 	var buffer;
 	
 	if (step === 1) {
-		// read all the points at once
-		// maybe break it up for progress reasons
-		var slice = current.file.slice(start, end);
-		buffer = current.reader.readAsArrayBuffer(slice);
+		// read all the points at once (maybe break it up for progress reasons?)
+		buffer = current.stream.read(start, end);
 	}
 	else {
 		// calculate chunks
-		var chunkPoints = ~~Math.floor(current.chunkSizeMax / current.header.pointDataRecordLength);
-		var chunkBytes = chunkPoints * current.header.pointDataRecordLength;
-		var chunks = Math.ceil(current.header.numberOfPointRecords / chunkPoints);
+		var chunkPoints = ~~Math.floor(current.chunkSizeMax / pointLength);
+		var chunkBytes = chunkPoints * pointLength;
+		var chunks = Math.ceil(pointCount / chunkPoints);
 		
 		// allocate adequate space for thinned points
 		var filteredPointsPerChunk = ~~Math.ceil(chunkPoints / step);
-		var filterStep = (step * current.header.pointDataRecordLength);
+		var filterStep = (step * pointLength);
 		filteredCount = (filteredPointsPerChunk * chunks);
-		buffer = new ArrayBuffer(filteredCount * current.header.pointDataRecordLength);
+		buffer = new ArrayBuffer(filteredCount * pointLength);
 		var bufferView = new Uint8Array(buffer);
 		var bufferIndex = 0;
 		
@@ -61,15 +72,14 @@ function loadPoints(offset, count, step) {
 			if (chunkEnd > end)
 				chunkEnd = end;
 			
-			var slice = current.file.slice(chunkStart, chunkEnd);
-			var chunkBuffer = current.reader.readAsArrayBuffer(slice);
+			var chunkBuffer = current.stream.read(chunkStart, chunkEnd);
 			var chunkBufferView = new Uint8Array(chunkBuffer);
 			
 			// filter points
 			var chunkSize = (chunkEnd - chunkStart);
-			for (var chunkIndex = 0; chunkIndex < chunkSize; chunkIndex += filterStep, bufferIndex += current.header.pointDataRecordLength) {
+			for (var chunkIndex = 0; chunkIndex < chunkSize; chunkIndex += filterStep, bufferIndex += pointLength) {
 				// copy point
-				var pointView = chunkBufferView.subarray(chunkIndex, chunkIndex + current.header.pointDataRecordLength);
+				var pointView = chunkBufferView.subarray(chunkIndex, chunkIndex + pointLength);
 				bufferView.set(pointView, bufferIndex);
 			}
 			
@@ -78,7 +88,7 @@ function loadPoints(offset, count, step) {
 			});
 		}
 		
-		filteredCount = (bufferIndex / current.header.pointDataRecordLength);
+		filteredCount = (bufferIndex / pointLength);
 	}
 	
 	self.postMessage({
@@ -91,11 +101,12 @@ function loadPoints(offset, count, step) {
 }
 
 function loadHeader(file, chunkSize) {
-	var reader = new FileReaderSync();
-	var buffer = reader.readAsArrayBuffer(file.slice(0, LAS_MAX_SUPPORTED_HEADER_SIZE));
+	var stream = createReadStream(file);
+	
+	var buffer = stream.read(0, LAS_MAX_SUPPORTED_HEADER_SIZE);
 	var header = buffer.readObject("LASHeader");
 	
-	current = new FileSource(file, reader, header, chunkSize);
+	current = new FileSource(stream, header, chunkSize);
 	
 	// read evlrs to find known records
 	var evlrPosition = header.startOfFirstExtendedVariableLengthRecord;
@@ -103,11 +114,11 @@ function loadHeader(file, chunkSize) {
 	var bufferTiles = new ArrayBuffer(0);
 	var bufferStats = new ArrayBuffer(0);
 	for (var i = 0; i < header.numberOfExtendedVariableLengthRecords; i++) {
-		var buffer2 = reader.readAsArrayBuffer(file.slice(evlrPosition, evlrPosition + evlrSizeBeforeData));
+		var buffer2 = stream.read(evlrPosition, evlrPosition + evlrSizeBeforeData);
 		var evlr = buffer2.readObject("LASEVLR");
 		var evlrPositionNext = evlrPosition + evlrSizeBeforeData + evlr.recordLengthAfterHeader;
 		if (evlr.userID === "Jacere") {
-			buffer2 = reader.readAsArrayBuffer(file.slice(evlrPosition + evlrSizeBeforeData, evlrPositionNext));
+			buffer2 = stream.read(evlrPosition + evlrSizeBeforeData, evlrPositionNext);
 			if (evlr.recordID === 0) {
 				bufferTiles = buffer2;
 			}
