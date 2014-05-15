@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2014, Joshua Morey <josh@joshmorey.com>
+ * 
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * 
+ * @package CloudView
+ * @author Joshua Morey <josh@joshmorey.com>
+ * @copyright 2014 Joshua Morey <josh@joshmorey.com>
+ * @license http://opensource.org/licenses/ISC
+ */
 
 var settings = {
 	elements: {
@@ -52,6 +72,7 @@ var actions = {
 
 var worker = null;
 var current = null;
+var reset = true;
 
 
 function onDocumentMouseDown(event) {
@@ -118,6 +139,12 @@ var viewport = Viewport3D.create(settings.elements.container[0], {
 settings.elements.loader.hide();
 
 function init() {
+	//»«
+	settings.elements.about.html([
+		'<a href="https://github.com/mrdoob/three.js">three.js</a> — <a href="http://blog.jacere.net/2014/05/webgl-las-viewer">WebGL LAS Viewer DEMO</a> — <a href="http://blog.jacere.net">jdauie</a>',
+		'Supports <a href="http://blog.jacere.net/cloudae">CloudAE</a> SATR2 records for instant low-res.',
+		'( <a href="data/CloudAE.7z">download</a> » process » %temp%\\jacere\\cache )'
+	].join('\n'));
 	
 	var gui = new dat.GUI();
 	
@@ -126,6 +153,10 @@ function init() {
 	f2.add(settings.loader, 'maxPoints', createNamedMultiples(1000000, [0.5,1,2,3,4,5,6,8,10,12,14,16,18,20]));
 	f2.add(settings.loader, 'colorMode', Object.keys(actions.createChunk));
 	f2.open();
+	
+	var f3 = gui.addFolder('Actions');
+	f3.add(actions, 'update');
+	f3.open();
 	
 	var f1 = gui.addFolder('Rendering');
 	f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets)).onChange(function() {current.updateRenderSettings();});
@@ -141,10 +172,6 @@ function init() {
 	f4.add(settings.display, 'header').onChange(function() {settings.elements.header.toggle();});
 	f4.add(settings.display, 'status').onChange(function() {settings.elements.status.toggle();});
 	//f2.open();
-	
-	var f3 = gui.addFolder('Actions');
-	f3.add(actions, 'update');
-	f3.open();
 
 	settings.elements.input[0].addEventListener('change', function(e) {
 		if (e.target.files.length > 0) {
@@ -172,8 +199,8 @@ function startFile(file) {
 		}, false);
 	}
 	
-	var reset = (current === null || current.file !== file);
-	clearInfo(reset);
+	reset = (current === null || current.file !== file);
+	clearInfo();
 
 	current = new LASInfo(file);
 
@@ -189,9 +216,6 @@ function clearInfo(reset) {
 		viewport.clearScene();
 		settings.elements.header.text('');
 		settings.elements.status.text('');
-	}
-	if (reset) {
-		viewport.camera.position.set(0, 0, 0);
 	}
 }
 
@@ -216,9 +240,10 @@ function onHeaderMessage(data) {
 	
 	current.geometry.bounds = bounds;
 
-	if (viewport.camera.position.z === 0) {
+	if (reset) {
 		var es = header.extent.size();
-		viewport.camera.position.z = Math.max(es.x, es.y) * 2;
+		viewport.controls.reset();
+		viewport.camera.position.set(0, 0, Math.max(es.x, es.y) * 2);
 	}
 	
 	if (current.tiles) {
@@ -314,16 +339,16 @@ function centerObject(obj, centered) {
 
 function createBounds() {
 	var es = current.header.extent.size();
-	var cube = new THREE.BoxHelper();
-	cube.material.color.setRGB(1, 0, 0);
-	cube.scale.set(
+	var box = new THREE.BoxHelper();
+	box.material.color.setRGB(1, 0, 0);
+	box.scale.set(
 		(es.x / 2),
 		(es.y / 2),
 		(es.z / 2)
 	);
-	centerObject(cube, true);
+	centerObject(box, true);
 	
-	return cube;
+	return box;
 }
 
 function packColor(c) {
