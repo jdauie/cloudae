@@ -223,7 +223,7 @@ function startFile(file) {
 	});
 }
 
-function clearInfo(reset) {
+function clearInfo() {
 	if (current) {
 		current = null;
 		viewport.clearScene();
@@ -282,17 +282,24 @@ function onProgressMessage(ratio) {
 
 function onChunkMessage(data) {
 	var reader = current.getPointReader(data.buffer, data.filteredCount);
-	var object = actions.createChunk[current.settings.loader.colorMode](reader);
-	centerObject(object);
-	
-	current.geometry.chunks.push(object);
-	viewport.add(object);
+	var pointsRemaining = reader.points;
+	var group = new THREE.Object3D();
+	while (pointsRemaining > 0) {
+		var points = Math.min(2000000, pointsRemaining);
+		pointsRemaining -= points;
+		
+		var node = actions.createChunk[current.settings.loader.colorMode](reader, points);
+		group.add(node);
+		current.geometry.chunks.push(node);
+	}
+	centerObject(group);
+	viewport.add(group);
 	
 	if (current.tiles) {
 		updateCompleteTiled();
 	}
 	else {
-		updateCompleteThinned(data.filteredCount);
+		updateCompleteThinned(reader.points);
 	}
 }
 
@@ -377,7 +384,7 @@ function updateShowBounds() {
 		viewport.remove(current.geometry.bounds);
 }
 
-function createChunkTexture(reader) {
+function createChunkTexture(reader, points) {
 
 	if (!current.material) {
 		var uniforms = {
@@ -394,8 +401,6 @@ function createChunkTexture(reader) {
 		});
 	}
 	
-	var points = reader.points;
-	
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute('position', Float32Array, points, 3);
 
@@ -403,21 +408,21 @@ function createChunkTexture(reader) {
 
 	var kpi = geometry.attributes.position.itemSize;
 	var kp = 0;
-	
+
 	for (var i = 0; i < points; ++i, kp += kpi) {
 		var point = reader.readPoint();
-		
+
 		positions[kp + 0] = point.x;
 		positions[kp + 1] = point.y;
 		positions[kp + 2] = point.z;
 	}
 
 	geometry.computeBoundingSphere();
-	
+
 	return new THREE.ParticleSystem(geometry, current.material);
 }
 
-function createChunkPackedColor(reader) {
+function createChunkPackedColor(reader, points) {
 
 	if (!current.material) {
 		var uniforms = {
@@ -435,8 +440,6 @@ function createChunkPackedColor(reader) {
 			fragmentShader: document.getElementById('fragmentshader').textContent
 		});
 	}
-	
-	var points = reader.points;
 	
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute('position', Float32Array, points, 3);
@@ -468,7 +471,7 @@ function createChunkPackedColor(reader) {
 	return new THREE.ParticleSystem(geometry, current.material);
 }
 
-function createChunkOld(reader) {
+function createChunkOld(reader, points) {
 
 	if (!current.material) {
 		current.material = new THREE.ParticleSystemMaterial({
@@ -477,8 +480,6 @@ function createChunkOld(reader) {
 			//sizeAttentuation: false
 		});
 	}
-	
-	var points = reader.points;
 	
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute('position', Float32Array, points, 3);
