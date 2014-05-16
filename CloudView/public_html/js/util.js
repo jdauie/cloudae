@@ -5,6 +5,12 @@ THREE.Vector3.prototype.toString = function() {
 	}).join(', '));
 };
 
+THREE.Vector3.prototype.toStringLong = function() {
+	return String.format('[{0}]', this.toArray().map(function(n) {
+		return +n;
+	}).join(', '));
+};
+
 if (!String.format) {
 	String.format = function(format) {
 		var args = Array.prototype.slice.call(arguments, 1);

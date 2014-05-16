@@ -134,6 +134,15 @@ function PointReader(info, buffer, points) {
 		this.reader.seek(this.currentPointIndex * info.header.pointDataRecordLength);
 		var point = this.reader.readUnquantizedPoint3D(info.header.quantization);
 		
+		if (current.header.pointDataRecordFormat === 2) {
+			this.reader.skip(8);
+			// this should be (256*256) according to the spec
+			var scale = (256*256);
+			point.r = this.reader.readUint16() / scale;
+			point.g = this.reader.readUint16() / scale;
+			point.b = this.reader.readUint16() / scale;
+		}
+		
 		// debug
 		//if (point.x === 0 && point.y === 0 && point.z === 0)
 		//	throw "zero point";

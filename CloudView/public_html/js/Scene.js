@@ -333,7 +333,7 @@ function updateFileInfo() {
 		'format : ' + header.pointDataRecordFormat,
 		'length : ' + header.pointDataRecordLength,
 		'offset : ' + header.quantization.offset,
-		'scale  : ' + header.quantization.scale,
+		'scale  : ' + header.quantization.scale.toStringLong(),
 		'extent : ' + header.extent.size()
 	].join('\n'));
 }
@@ -470,7 +470,9 @@ function createChunkPackedColor(reader, points) {
 	
 	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
 		var point = reader.readPoint();
-		var c = current.colorMap.getColor(point.z);
+		var c = point.r
+			? new THREE.Color(point.r, point.g, point.b)
+			: current.colorMap.getColor(point.z);
 		
 		positions[kp + 0] = point.x;
 		positions[kp + 1] = point.y;
@@ -509,7 +511,9 @@ function createChunkOld(reader, points) {
 	var kp = 0, kc = 0;
 	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
 		var point = reader.readPoint();
-		var c = current.colorMap.getColor(point.z);
+		var c = point.r
+			? new THREE.Color(point.r, point.g, point.b)
+			: current.colorMap.getColor(point.z);
 		
 		positions[kp + 0] = point.x;
 		positions[kp + 1] = point.y;
@@ -527,6 +531,9 @@ function createChunkOld(reader, points) {
 
 function updateChunkOld(obj) {
 
+	if (current.header.pointDataRecordFormat === 2)
+		return;
+	
 	var geometry = obj.geometry;
 	
 	var points = (geometry.attributes.position.array.length / 3);
