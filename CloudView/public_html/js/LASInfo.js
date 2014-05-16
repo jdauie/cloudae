@@ -12,6 +12,7 @@ function LASInfo(file) {
 
 	this.geometry = {
 		bounds: null,
+		progress: null,
 		chunks: []
 	};
 	

@@ -112,28 +112,6 @@ function onDocumentMouseDown(event) {
 	//var ray = new THREE.Ray( camera.position, vector.subSelf( camera.position ).normalize() );
 }
 
-/*
-// material parameters
-ambientLight = new THREE.AmbientLight( 0xffffff );
-scene.add( ambientLight );
-
-pointLight = new THREE.PointLight( 0xffffff );
-pointLight.intensity = 2;
-pointLight.position.z = 100;
-pointLight.position.y = 700;
-
-scene.add( pointLight );
-
-directionalLight = new THREE.DirectionalLight( 0xffffff );
-directionalLight.position.x = 1;
-directionalLight.position.y = -1;
-directionalLight.position.z = -1;
-directionalLight.position.normalize();
-scene.add( directionalLight );
-
-var ambient = 0x444444, diffuse = 0x888888, specular = 0x080810, shininess = 2;
-*/
-
 var viewport = Viewport3D.create(settings.elements.container[0], {
 	camera: settings.camera,
 	render: settings.render2
@@ -193,6 +171,20 @@ function init() {
 	};*/
 	
 	//document.addEventListener('mousedown', onDocumentMouseDown, false);
+	
+	/*var ambientLight = new THREE.AmbientLight(0xffffff);
+	viewport.add(ambientLight);
+
+	var pointLight = new THREE.PointLight(0xffffff);
+	pointLight.intensity = 2;
+	pointLight.position.z = 100;
+	pointLight.position.y = 700;
+	viewport.add(pointLight);
+
+	var directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+	directionalLight.position.set(1, 1, 2);
+	directionalLight.position.normalize();
+	viewport.add(directionalLight);*/
 }
 
 function startFile(file) {
@@ -246,13 +238,12 @@ function onHeaderMessage(data) {
 
 	updateFileInfo();
 
-	var bounds = createBounds();
-	if (current.settings.render.showBounds) {
-		viewport.add(bounds);
-	}
-	
-	current.geometry.bounds = bounds;
+	current.geometry.bounds = createBounds();
+	viewport.add(current.geometry.bounds);
 
+	current.geometry.progress = createProgress();
+	viewport.add(current.geometry.progress);
+	
 	if (reset) {
 		var es = header.extent.size();
 		viewport.controls.reset();
@@ -278,6 +269,7 @@ function onHeaderMessage(data) {
 
 function onProgressMessage(ratio) {
 	settings.elements.status.html(String.format('<span id="status-progress">{0}%</span>', ~~(100 * ratio)));
+	updateProgress(ratio);
 }
 
 function onChunkMessage(data) {
@@ -294,6 +286,10 @@ function onChunkMessage(data) {
 	}
 	centerObject(group);
 	viewport.add(group);
+	
+	viewport.remove(current.geometry.progress);
+	current.geometry.progress = null;
+	updateShowBounds();
 	
 	if (current.tiles) {
 		updateCompleteTiled();
@@ -357,6 +353,23 @@ function centerObject(obj, centered) {
 	}
 }
 
+function updateProgress(ratio) {
+	current.geometry.progress.scale.set(ratio, ratio, ratio);
+}
+
+function createProgress() {
+	var es = current.header.extent.size();
+	var geometry = new THREE.CubeGeometry(es.x, es.y, es.z);
+	var material = new THREE.MeshBasicMaterial({
+		color: 0x0099ff
+	});
+	var box = new THREE.Mesh(geometry, material);
+	box.scale.set(0, 0, 0);
+	centerObject(box, true);
+	
+	return box;
+}
+
 function createBounds() {
 	var es = current.header.extent.size();
 	var box = new THREE.BoxHelper();
@@ -376,6 +389,9 @@ function packColor(c) {
 }
 
 function updateShowBounds() {
+	if (current.geometry.progress)
+		return;
+	
 	current.updateRenderSettings();
 	
 	if (current.settings.render.showBounds)
