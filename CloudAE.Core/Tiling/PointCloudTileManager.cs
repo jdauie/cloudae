@@ -236,18 +236,18 @@ namespace CloudAE.Core
 						else
 						{
 							var pBest = (SQuantizedPoint3D*)(segmentBuffer.PointDataPtr + offset);
-							
-							//if ((*p).Z > (*pBest).Z)
-							//	lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
 
-							var cellCenterX = (cellX + 0.5) * cellSizeX;
-							var cellCenterY = (cellY + 0.5) * cellSizeY;
-
-							var bd2 = DistanceRatioFromPointToCellCenter2(pBest, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
-							var cd2 = DistanceRatioFromPointToCellCenter2(p, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
-
-							if (cd2 < bd2)
+							if ((*p).Z > (*pBest).Z)
 								lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
+
+							//var cellCenterX = (cellX + 0.5) * cellSizeX;
+							//var cellCenterY = (cellY + 0.5) * cellSizeY;
+
+							//var bd2 = DistanceRatioFromPointToCellCenter2(pBest, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
+							//var cd2 = DistanceRatioFromPointToCellCenter2(p, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
+
+							//if (cd2 < bd2)
+							//	lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
 						}
 
 						pb += source.PointSizeBytes;
