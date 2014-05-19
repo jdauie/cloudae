@@ -14,7 +14,7 @@ self.addEventListener('message', function(e) {
 	if (e.data.file) {
 		loadHeader(data.file, data.chunkSize);
 	}
-	else if (e.data.pointCount) {
+	else {
 		var step = (e.data.step ? e.data.step : 1);
 		loadPoints(e.data.pointOffset, e.data.pointCount, step);
 	}

@@ -29,10 +29,10 @@ function PointCloudTileSet(reader) {
 			var lowResCount = reader.readInt32();
 			if (pointCount > 0)
 			{
-				this.tiles.push(new PointCloudTile(this, x, y, i, pointOffset, this.pointCount, this.lowResCount, lowResCount));
+				this.tiles.push(new PointCloudTile(this, x, y, i, pointOffset, pointCount, this.lowResCount, lowResCount));
 				//this.tileIndex.Add(tile.Index, i);
 
-				pointOffset += (this.pointCount - lowResCount);
+				pointOffset += (pointCount - lowResCount);
 				this.lowResCount += lowResCount;
 				++i;
 			}

@@ -313,8 +313,27 @@ function onChunkMessage(data) {
 	centerObject(group);
 	viewport.add(group);
 	
-	viewport.remove(current.geometry.progress);
-	current.geometry.progress = null;
+	if (current.geometry.progress) {
+		viewport.remove(current.geometry.progress);
+		current.geometry.progress = null;
+		
+		// testing!
+		/*if (true) {
+			//viewport.remove(group);
+			var testTileCount = 40;
+			var startingTileIndex = ~~(current.tiles.validTileCount / 2) - ~~(testTileCount / 2);
+			var regionPointOffset = current.tiles.getValidTile(startingTileIndex).pointOffset;
+			var regionPointCount = 0;
+			for (var i = 0; i < testTileCount; i++) {
+				var tile = current.tiles.getValidTile(startingTileIndex + i);
+				regionPointCount += (tile.pointCount - tile.lowResCount);
+			}
+			worker.postMessage({
+				pointOffset: regionPointOffset,
+				pointCount: regionPointCount
+			});
+		}*/
+	}
 	updateShowBounds();
 	
 	if (current.tiles) {
@@ -380,7 +399,8 @@ function centerObject(obj, centered) {
 }
 
 function updateProgress(ratio) {
-	current.geometry.progress.scale.set(ratio, ratio, ratio);
+	if (current.geometry.progress)
+		current.geometry.progress.scale.set(ratio, ratio, ratio);
 }
 
 function createProgress() {
