@@ -237,17 +237,17 @@ namespace CloudAE.Core
 						{
 							var pBest = (SQuantizedPoint3D*)(segmentBuffer.PointDataPtr + offset);
 							
-							if ((*p).Z > (*pBest).Z)
-								lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
-
-							//var cellCenterX = (cellX + 0.5) * cellSizeX;
-							//var cellCenterY = (cellY + 0.5) * cellSizeY;
-
-							//var bd2 = DistanceRatioFromPointToCellCenter2(pBest, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
-							//var cd2 = DistanceRatioFromPointToCellCenter2(p, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
-
-							//if (cd2 < bd2)
+							//if ((*p).Z > (*pBest).Z)
 							//	lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
+
+							var cellCenterX = (cellX + 0.5) * cellSizeX;
+							var cellCenterY = (cellY + 0.5) * cellSizeY;
+
+							var bd2 = DistanceRatioFromPointToCellCenter2(pBest, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
+							var cd2 = DistanceRatioFromPointToCellCenter2(p, cellCenterX, cellCenterY, cellSizeX, cellSizeY);
+
+							if (cd2 < bd2)
+								lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
 						}
 
 						pb += source.PointSizeBytes;
@@ -259,31 +259,35 @@ namespace CloudAE.Core
 
 					// sort valid cells
 					var offsets = lowResGrid.Data.Cast<int>().Where(v => v != lowResGrid.FillVal).ToArray();
-					Array.Sort(offsets);
-
-					// pack the remaining points
-					for (var i = 0; i < offsets.Length; i++)
+					if (offsets.Length > 0)
 					{
-						var currentOffset = offsets[i];
-						//var currentPtr = segmentBuffer.PointDataPtr + currentOffset;
+						Array.Sort(offsets);
 
-						// copy point to buffer
-						lowResBuffer.Append(segmentBuffer.Data, currentOffset, source.PointSizeBytes);
+						// shift the data up to the first offset
+						var tileSrc = (int)(dataPtr - segmentBuffer.PointDataPtr);
+						Buffer.BlockCopy(segmentBuffer.Data, tileSrc, segmentBuffer.Data, (tileSrc - removedBytes), (offsets[0] - tileSrc));
 
-						// shift everything up to the next offset
-						var copyEnd = (i == offsets.Length - 1) ? (dataEndPtr - segmentBuffer.PointDataPtr) : (offsets[i + 1]);
-						var copySrc = (currentOffset + source.PointSizeBytes);
-						var copyDst = (currentOffset - removedBytes);
-						var copyLen = (int)(copyEnd - copySrc);
+						// pack the remaining points
+						for (var i = 0; i < offsets.Length; i++)
+						{
+							var currentOffset = offsets[i];
 
-						Buffer.BlockCopy(segmentBuffer.Data, copySrc, segmentBuffer.Data, copyDst, copyLen);
-						
-						removedBytes += source.PointSizeBytes;
+							// copy point to buffer
+							lowResBuffer.Append(segmentBuffer.Data, currentOffset, source.PointSizeBytes);
+
+							// shift everything between here and the next offset
+							var copyEnd = (i == offsets.Length - 1) ? (dataEndPtr - segmentBuffer.PointDataPtr) : (offsets[i + 1]);
+							var copySrc = (currentOffset + source.PointSizeBytes);
+							var copyDst = (currentOffset - removedBytes);
+							var copyLen = (int)(copyEnd - copySrc);
+
+							Buffer.BlockCopy(segmentBuffer.Data, copySrc, segmentBuffer.Data, copyDst, copyLen);
+
+							removedBytes += source.PointSizeBytes;
+						}
+
+						lowResCounts.Data[tile.Row, tile.Col] = offsets.Length;
 					}
-
-					lowResCounts.Data[tile.Row, tile.Col] = offsets.Length;
-
-					//Context.WriteLine("[{1},{2}] extracted {0} low-res points", offsets.Length, tile.Row, tile.Col);
 
 					if (!process.Update((float)index / segmentBuffer.PointCount))
 						break;

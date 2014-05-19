@@ -123,7 +123,7 @@ namespace CloudAE.Core
 		/// </returns>
 		public override string ToString()
 		{
-			return String.Format("Tile [{0},{1}] {2}", Col, Row, PointCount);
+			return String.Format("Tile [{0},{1}] {2}", Row, Col, PointCount);
 		}
 
 		public override bool Equals(object obj)
