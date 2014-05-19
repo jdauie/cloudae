@@ -6,8 +6,9 @@ function Viewport3D(container, settings) {
 	var HEIGHT = window.innerHeight;
 	var WIDTH  = window.innerWidth;
 
-	this.renderer = new THREE.WebGLRenderer();
+	this.renderer = new THREE.WebGLRenderer({antialias: false});
 	this.renderer.setSize(WIDTH, HEIGHT);
+	this.renderer.autoClear = false;
 	//this.renderer.setFaceCulling(0);
 	this.container.appendChild(this.renderer.domElement);
 
@@ -104,6 +105,7 @@ Viewport3D.animate = function() {
 	requestAnimationFrame(Viewport3D.animate);
 	for(var i = 0; i < Viewport3D.viewports.length; i++) {
 		var viewport = Viewport3D.viewports[i];
+		updateFrustrumRange();
 		viewport.render();
 		viewport.update();
 	}

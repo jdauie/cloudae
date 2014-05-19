@@ -21,6 +21,7 @@ function LASInfo(file) {
 		this.tiles = tiles;
 		this.stats = stats;
 		this.step = Math.ceil(header.numberOfPointRecords / Math.min(this.settings.loader.maxPoints, header.numberOfPointRecords));
+		this.radius = header.extent.size().length() / 2;
 		
 		this.update();
 	};

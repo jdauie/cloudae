@@ -34,7 +34,7 @@ var settings = {
 		path: 'js/Worker-FileReader.js'
 	},
 	loader: {
-		chunkSize: 8*1024*1024,
+		chunkSize: 4*1024*1024,
 		maxPoints: 1000000,
 		colorMode: 'texture'
 	},
@@ -44,7 +44,8 @@ var settings = {
 		colorValues: 256,
 		invertRamp: false,
 		pointSize: 1,
-		showBounds: true
+		showBounds: true,
+		chunkVertices: 1000000
 	},
 	display: {
 		stats: true,
@@ -267,6 +268,31 @@ function onHeaderMessage(data) {
 	}
 }
 
+function updateFrustrumRange() {
+	if (!current || !current.geometry.bounds)
+		return;
+	
+	// is the center always the origin?
+	/*current.geometry.bounds.geometry.computeBoundingSphere();
+	var sphereCenter = current.geometry.bounds.geometry.boundingSphere.center;
+	sphereCenter.applyMatrix4(current.geometry.bounds.matrixWorld);
+	
+	var point1 = viewport.camera.position.clone();
+	//point1.applyMatrix4(viewport.camera.matrixWorld);
+	var point2 = sphereCenter;
+	var distance = point1.distanceTo(point2);
+	
+	//var sphereRadius = current.geometry.bounds.geometry.boundingSphere.radius;
+	//var sphereRadius = current.geometry.bounds.scale.length();
+	var radius = current.header.extent.size().length() / 2;*/
+	
+	var distance = viewport.camera.position.distanceTo(new THREE.Vector3());
+	
+	viewport.camera.near = Math.max(1, distance - current.radius);
+	viewport.camera.far = distance + current.radius;
+	viewport.camera.updateProjectionMatrix();
+}
+
 function onProgressMessage(ratio) {
 	settings.elements.status.html(String.format('<span id="status-progress">{0}%</span>', ~~(100 * ratio)));
 	updateProgress(ratio);
@@ -277,7 +303,7 @@ function onChunkMessage(data) {
 	var pointsRemaining = reader.points;
 	var group = new THREE.Object3D();
 	while (pointsRemaining > 0) {
-		var points = Math.min(2000000, pointsRemaining);
+		var points = Math.min(current.settings.render.chunkVertices, pointsRemaining);
 		pointsRemaining -= points;
 		
 		var node = actions.createChunk[current.settings.loader.colorMode](reader, points);

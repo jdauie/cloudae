@@ -47,49 +47,49 @@ function loadPoints(offset, count, step) {
 	
 	var buffer;
 	
-	if (step === 1) {
+	/*if (step === 1) {
 		// read all the points at once (maybe break it up for progress reasons?)
 		buffer = current.stream.read(start, end);
 	}
-	else {
-		// calculate chunks
-		var chunkPoints = ~~Math.floor(current.chunkSizeMax / pointLength);
-		var chunkBytes = chunkPoints * pointLength;
-		var chunks = Math.ceil(pointCount / chunkPoints);
-		
-		// allocate adequate space for thinned points
-		var filteredPointsPerChunk = ~~Math.ceil(chunkPoints / step);
-		var filterStep = (step * pointLength);
-		filteredCount = (filteredPointsPerChunk * chunks);
-		buffer = new ArrayBuffer(filteredCount * pointLength);
-		var bufferView = new Uint8Array(buffer);
-		var bufferIndex = 0;
-		
-		// read file, copy thinned points, and report progress
-		var chunkStart = start;
-		var chunkEnd = start + chunkBytes;
-		for (var i = 0; i < chunks; i++, chunkStart += chunkBytes, chunkEnd += chunkBytes) {
-			if (chunkEnd > end)
-				chunkEnd = end;
-			
-			var chunkBuffer = current.stream.read(chunkStart, chunkEnd);
-			var chunkBufferView = new Uint8Array(chunkBuffer);
-			
-			// filter points
-			var chunkSize = (chunkEnd - chunkStart);
-			for (var chunkIndex = 0; chunkIndex < chunkSize; chunkIndex += filterStep, bufferIndex += pointLength) {
-				// copy point
-				var pointView = chunkBufferView.subarray(chunkIndex, chunkIndex + pointLength);
-				bufferView.set(pointView, bufferIndex);
-			}
-			
-			self.postMessage({
-				progress: (i + 1) / chunks
-			});
+	else {*/
+	
+	// calculate chunks
+	var chunkPoints = ~~Math.floor(current.chunkSizeMax / pointLength);
+	var chunkBytes = chunkPoints * pointLength;
+	var chunks = Math.ceil(pointCount / chunkPoints);
+
+	// allocate adequate space for thinned points
+	var filteredPointsPerChunk = ~~Math.ceil(chunkPoints / step);
+	var filterStep = (step * pointLength);
+	filteredCount = (filteredPointsPerChunk * chunks);
+	buffer = new ArrayBuffer(filteredCount * pointLength);
+	var bufferView = new Uint8Array(buffer);
+	var bufferIndex = 0;
+
+	// read file, copy thinned points, and report progress
+	var chunkStart = start;
+	var chunkEnd = start + chunkBytes;
+	for (var i = 0; i < chunks; i++, chunkStart += chunkBytes, chunkEnd += chunkBytes) {
+		if (chunkEnd > end)
+			chunkEnd = end;
+
+		var chunkBuffer = current.stream.read(chunkStart, chunkEnd);
+		var chunkBufferView = new Uint8Array(chunkBuffer);
+
+		// filter points
+		var chunkSize = (chunkEnd - chunkStart);
+		for (var chunkIndex = 0; chunkIndex < chunkSize; chunkIndex += filterStep, bufferIndex += pointLength) {
+			// copy point
+			var pointView = chunkBufferView.subarray(chunkIndex, chunkIndex + pointLength);
+			bufferView.set(pointView, bufferIndex);
 		}
-		
-		filteredCount = (bufferIndex / pointLength);
+
+		self.postMessage({
+			progress: (i + 1) / chunks
+		});
 	}
+
+	filteredCount = (bufferIndex / pointLength);
 	
 	self.postMessage({
 		buffer: buffer,
