@@ -113,7 +113,7 @@ function onDocumentMouseDown(event) {
 	//var ray = new THREE.Ray( camera.position, vector.subSelf( camera.position ).normalize() );
 }
 
-var viewport = Viewport3D.create(settings.elements.container[0], {
+var viewport = JACERE.Viewport3D.create(settings.elements.container[0], {
 	camera: settings.camera,
 	render: settings.render2
 });
@@ -130,8 +130,8 @@ function init() {
 	var gui = new dat.GUI();
 	
 	var f2 = gui.addFolder('Loading');
-	f2.add(settings.loader, 'chunkSize', createNamedSizes(256*1024, 10));
-	f2.add(settings.loader, 'maxPoints', createNamedMultiples(1000000, [0.5,1,2,3,4,5,6,8,10,12,14,16,18,20]));
+	f2.add(settings.loader, 'chunkSize', JACERE.Util.createNamedSizes(256*1024, 10));
+	f2.add(settings.loader, 'maxPoints', JACERE.Util.createNamedMultiples(1000000, [0.5,1,2,3,4,5,6,8,10,12,14,16,18,20]));
 	f2.add(settings.loader, 'colorMode', Object.keys(actions.createChunk));
 	f2.open();
 	
@@ -140,7 +140,7 @@ function init() {
 	f3.open();
 	
 	var f1 = gui.addFolder('Rendering');
-	f1.add(settings.render, 'colorRamp', Object.keys(ColorRamp.presets)).onChange(function() {current.updateRenderSettings();});
+	f1.add(settings.render, 'colorRamp', Object.keys(JACERE.ColorRamp.presets)).onChange(function() {current.updateRenderSettings();});
 	f1.add(settings.render, 'invertRamp').onChange(function() {current.updateRenderSettings();});
 	f1.add(settings.render, 'useStats').onChange(function() {current.updateRenderSettings();});
 	f1.add(settings.render, 'showBounds').onChange(function() {updateShowBounds();});
@@ -208,7 +208,7 @@ function startFile(file) {
 	reset = (current === null || current.file !== file);
 	clearInfo();
 
-	current = new LASInfo(file);
+	current = new JACERE.LASInfo(file);
 
 	worker.postMessage({
 		file: file,
@@ -226,14 +226,14 @@ function clearInfo() {
 }
 
 function onHeaderMessage(data) {
-	var header = data.header.readObject("LASHeader");
+	var header = data.header.readObject("LASHeader", JACERE);
 	var tiles = null;
 	if (data.tiles && data.tiles.byteLength > 0) {
-		tiles = data.tiles.readObject("PointCloudTileSet");
+		tiles = data.tiles.readObject("PointCloudTileSet", JACERE);
 	}
 	var stats = null;
 	if (data.stats && data.stats.byteLength > 0) {
-		stats = data.stats.readObject("Statistics");
+		stats = data.stats.readObject("Statistics", JACERE);
 	}
 	current.setHeader(header, tiles, stats);
 
@@ -386,7 +386,7 @@ function updateCompleteThinned(count) {
 	settings.elements.status.text([
 		'points : ' + count.toLocaleString(),
 		'time   : ' + timeSpan.toLocaleString() + " ms",
-		'rate   : ' + bytesToSize(bps) + 'ps'
+		'rate   : ' + JACERE.Util.bytesToSize(bps) + 'ps'
 	].join('\n'));
 }
 
@@ -397,7 +397,7 @@ function updateFileInfo() {
 		'file   : ' + file.name,
 		'system : ' + header.systemIdentifier,
 		'gensw  : ' + header.generatingSoftware,
-		'size   : ' + bytesToSize(file.size),
+		'size   : ' + JACERE.Util.bytesToSize(file.size),
 		'points : ' + header.numberOfPointRecords.toLocaleString(),
 		'lasv   : ' + header.version,
 		'vlrs   : ' + header.numberOfVariableLengthRecords,

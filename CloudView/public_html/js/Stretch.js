@@ -1,43 +1,47 @@
-
-function StretchBase(/*actualMin, actualMax*/) {
+(function(JACERE) {
 	
-	//this.actualMin = actualMin;
-	//this.actualMax = actualMax;
+	JACERE.StretchBase = function(actualMin, actualMax, stretchMin, stretchMax) {
+		this.actualMin = actualMin;
+		this.actualMax = actualMax;
 	
-	this.stretchRatio = function() {
-		return (this.stretchRange() / this.actualRange());
+		this.stretchMin = stretchMin;
+		this.stretchMax = stretchMax;
 	};
 
-	this.actualRange = function() {
-		return (this.actualMax - this.actualMin + 1);
+	JACERE.StretchBase.prototype = {
+		
+		constructor: JACERE.StretchBase,
+		
+		stretchRatio: function() {
+			return (this.stretchRange() / this.actualRange());
+		},
+
+		actualRange: function() {
+			return (this.actualMax - this.actualMin + 1);
+		},
+
+		stretchRange: function() {
+			return (this.stretchMax - this.stretchMin + 1);
+		}
 	};
+	
+	JACERE.StdDevStretch = function(actualMin, actualMax, stats, numDeviationsFromMean) {
+		this.stats = stats;
+		this.deviations = numDeviationsFromMean;
 
-	this.stretchRange = function() {
-		return (this.stretchMax - this.stretchMin + 1);
+		var totalDeviationFromMean = (this.deviations * stats.stdDev);
+		var stretchMin = Math.max(actualMin, stats.mean - totalDeviationFromMean);
+		var stretchMax = Math.min(actualMax, stats.mean + totalDeviationFromMean);
+		
+		JACERE.StretchBase.call(this, actualMin, actualMax, stretchMin, stretchMax);
 	};
-}
-
-StdDevStretch.prototype = new StretchBase();
-StdDevStretch.prototype.constructor = StdDevStretch;
-
-function StdDevStretch(actualMin, actualMax, stats, numDeviationsFromMean) {
-	this.actualMin = actualMin;
-	this.actualMax = actualMax;
-	this.stats = stats;
-	this.deviations = numDeviationsFromMean;
 	
-	var totalDeviationFromMean = (this.deviations * stats.stdDev);
-	this.stretchMin = Math.max(this.actualMin, stats.mean - totalDeviationFromMean);
-	this.stretchMax = Math.min(this.actualMax, stats.mean + totalDeviationFromMean);
-}
-
-MinMaxStretch.prototype = new StretchBase();
-MinMaxStretch.prototype.constructor = MinMaxStretch;
-
-function MinMaxStretch(actualMin, actualMax) {
-	this.actualMin = actualMin;
-	this.actualMax = actualMax;
+	JACERE.StdDevStretch.prototype = Object.create(JACERE.StretchBase.prototype);
 	
-	this.stretchMin = this.actualMin;
-	this.stretchMax = this.actualMax;
-}
+	JACERE.MinMaxStretch = function(actualMin, actualMax) {
+		JACERE.StretchBase.call(this, actualMin, actualMax, actualMin, actualMax);
+	};
+	
+	JACERE.MinMaxStretch.prototype = Object.create(JACERE.StretchBase.prototype);
+	
+}(self.JACERE = self.JACERE || {}));
