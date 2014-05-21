@@ -20,10 +20,33 @@ self.addEventListener('message', function(e) {
 	}
 }, false);
 
+function PointBufferWrapper(buffer, recordLength) {
+	this.buffer = buffer;
+	this.bufferView = new Uint8Array(buffer);
+	this.recordLength = recordLength;
+	this.index = 0;
+	
+	this.append = function(data, offset) {
+		var dataView = new Uint8Array(data, offset, this.recordLength);
+		this.bufferView.set(dataView, this.index);
+		this.index += this.recordLength;
+	};
+	
+	this.count = function() {
+		return (this.index / this.recordLength);
+	};
+	
+	this.progress = function() {
+		return (this.index / this.buffer.byteLength);
+	};
+}
+
 function FileSource(stream, header, chunkSize) {
 	this.stream = stream;
 	this.header = header;
 	this.chunkSizeMax = chunkSize;
+	this.chunkPoints = Math.floor(this.chunkSizeMax / this.header.pointDataRecordLength);
+	this.chunkSize = this.chunkPoints * this.header.pointDataRecordLength;
 }
 
 function createReadStream(file) {
@@ -35,68 +58,65 @@ function createReadStream(file) {
 	}
 }
 
+function updateProgress(ratio) {
+	self.postMessage({
+		progress: ratio
+	});
+}
+
 function loadPoints(offset, count, step) {
 	
-	var pointOffset = current.header.offsetToPointData;
-	var pointCount = current.header.numberOfPointRecords;
 	var pointLength = current.header.pointDataRecordLength;
 	
 	var filteredCount = count;
-	var start = pointOffset + (offset * pointLength);
+	var start = current.header.offsetToPointData + (offset * pointLength);
 	var end = start + (count * pointLength);
 	
 	var buffer;
 	
-	/*if (step === 1) {
-		// read all the points at once (maybe break it up for progress reasons?)
-		buffer = current.stream.read(start, end);
+	if (step === 1) {
+		buffer = current.stream.read(start, end, current.chunkSize, updateProgress);
 	}
-	else {*/
-	
-	// calculate chunks
-	var chunkPoints = ~~Math.floor(current.chunkSizeMax / pointLength);
-	var chunkBytes = chunkPoints * pointLength;
-	var chunks = Math.ceil(pointCount / chunkPoints);
+	else {
+		var chunks = Math.ceil(count / current.chunkPoints);
 
-	// allocate adequate space for thinned points
-	var filteredPointsPerChunk = ~~Math.ceil(chunkPoints / step);
-	var filterStep = (step * pointLength);
-	filteredCount = (filteredPointsPerChunk * chunks);
-	buffer = new ArrayBuffer(filteredCount * pointLength);
-	var bufferView = new Uint8Array(buffer);
-	var bufferIndex = 0;
+		// allocate adequate space for thinned points
+		var filteredPointsPerChunk = ~~Math.ceil(current.chunkPoints / step);
+		var filterStep = (step * pointLength);
+		filteredCount = (filteredPointsPerChunk * chunks);
+		buffer = new ArrayBuffer(filteredCount * pointLength);
+		var wrapper = new PointBufferWrapper(buffer, pointLength);
 
-	// read file, copy thinned points, and report progress
-	var chunkStart = start;
-	var chunkEnd = start + chunkBytes;
-	for (var i = 0; i < chunks; i++, chunkStart += chunkBytes, chunkEnd += chunkBytes) {
-		if (chunkEnd > end)
-			chunkEnd = end;
+		// read file, copy thinned points, and report progress
+		var chunkStart = start;
+		var chunkEnd = start + current.chunkSize;
+		for (var i = 0; i < chunks; i++, chunkStart += current.chunkSize, chunkEnd += current.chunkSize) {
+			if (chunkEnd > end)
+				chunkEnd = end;
 
-		var chunkBuffer = current.stream.read(chunkStart, chunkEnd);
-		var chunkBufferView = new Uint8Array(chunkBuffer);
+			var chunkBuffer = current.stream.read(chunkStart, chunkEnd);
 
-		// filter points
-		var chunkSize = (chunkEnd - chunkStart);
-		for (var chunkIndex = 0; chunkIndex < chunkSize; chunkIndex += filterStep, bufferIndex += pointLength) {
-			// copy point
-			var pointView = chunkBufferView.subarray(chunkIndex, chunkIndex + pointLength);
-			bufferView.set(pointView, bufferIndex);
+			// copy filtered points
+			var chunkSize = (chunkEnd - chunkStart);
+			for (var chunkIndex = 0; chunkIndex < chunkSize; chunkIndex += filterStep) {
+				wrapper.append(chunkBuffer, chunkIndex);
+			}
+
+			updateProgress(wrapper.progress());
 		}
 
-		self.postMessage({
-			progress: (i + 1) / chunks
-		});
+		filteredCount = wrapper.count();
 	}
-
-	filteredCount = (bufferIndex / pointLength);
 	
 	self.postMessage({
 		buffer: buffer,
-		pointOffset: offset,
-		pointCount: count,
-		filteredCount: filteredCount,
-		step: step
+		pointCount: filteredCount,
+		// debugging?
+		request: {
+			pointOffset: offset,
+			pointCount: count,
+			step: step
+		}
 	}, [buffer]);
 }
 
@@ -108,26 +128,13 @@ function loadHeader(file, chunkSize) {
 	
 	current = new FileSource(stream, header, chunkSize);
 	
-	// read evlrs to find known records
-	var evlrPosition = header.startOfFirstExtendedVariableLengthRecord;
-	var evlrSizeBeforeData = 60;
-	var bufferTiles = new ArrayBuffer(0);
-	var bufferStats = new ArrayBuffer(0);
-	for (var i = 0; i < header.numberOfExtendedVariableLengthRecords; i++) {
-		var buffer2 = stream.read(evlrPosition, evlrPosition + evlrSizeBeforeData);
-		var evlr = buffer2.readObject("LASEVLR");
-		var evlrPositionNext = evlrPosition + evlrSizeBeforeData + evlr.recordLengthAfterHeader;
-		if (evlr.userID === "Jacere") {
-			buffer2 = stream.read(evlrPosition + evlrSizeBeforeData, evlrPositionNext);
-			if (evlr.recordID === 0) {
-				bufferTiles = buffer2;
-			}
-			else if (evlr.recordID === 1) {
-				bufferStats = buffer2;
-			}
-		}
-		evlrPosition = evlrPositionNext;
-	}
+	var records = current.header.readEVLRs(stream, {
+		tiles: new LASRecordIdentifier("Jacere", 0),
+		stats: new LASRecordIdentifier("Jacere", 1)
+	});
+	
+	var bufferTiles = records.tiles || new ArrayBuffer(0);
+	var bufferStats = records.stats || new ArrayBuffer(0);
 	
 	self.postMessage({
 		header: buffer,

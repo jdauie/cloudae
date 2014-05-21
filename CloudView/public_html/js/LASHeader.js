@@ -102,6 +102,31 @@ function LASHeader(reader) {
 		for (var i = 0; i < this.legacyNumberOfPointsByReturn.length; i++)
 			this.numberOfPointsByReturn[i] = this.legacyNumberOfPointsByReturn[i];
 	}
+	
+	this.readEVLRs = function(stream, recordIDs) {
+		var matches = {};
+		var keys = Object.keys(recordIDs);
+		
+		// read evlrs to find known records
+		var evlrPosition = this.startOfFirstExtendedVariableLengthRecord;
+		var evlrSizeBeforeData = 60;
+		for (var i = 0; i < this.numberOfExtendedVariableLengthRecords; i++) {
+			var buffer = stream.read(evlrPosition, evlrPosition + evlrSizeBeforeData);
+			var evlr = buffer.readObject("LASEVLR");
+			var evlrPositionNext = evlrPosition + evlrSizeBeforeData + evlr.recordLengthAfterHeader;
+			
+			for (var j = 0; j < keys.length; j++) {
+				var key = keys[j];
+				var recordID = recordIDs[key];
+				if (evlr.userID === recordID.userID && evlr.recordID === recordID.recordID) {
+					buffer = stream.read(evlrPosition + evlrSizeBeforeData, evlrPositionNext);
+					matches[key] = buffer;
+				}
+			}
+			evlrPosition = evlrPositionNext;
+		}
+		return matches;
+	};
 }
 
 function LASEVLR(reader) {
@@ -113,4 +138,9 @@ function LASEVLR(reader) {
 
 	//reader.BaseStream.Seek((long)m_recordLengthAfterHeader, SeekOrigin.Current);
 	//this.data = reader.ReadBytes(this.recordLengthAfterHeader);
+}
+
+function LASRecordIdentifier(userID, recordID) {
+	this.userID = userID;
+	this.recordID = recordID;
 }

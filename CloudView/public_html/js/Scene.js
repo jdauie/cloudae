@@ -299,7 +299,7 @@ function onProgressMessage(ratio) {
 }
 
 function onChunkMessage(data) {
-	var reader = current.getPointReader(data.buffer, data.filteredCount);
+	var reader = current.getPointReader(data.buffer, data.pointCount);
 	var pointsRemaining = reader.points;
 	var group = new THREE.Object3D();
 	while (pointsRemaining > 0) {
@@ -318,7 +318,7 @@ function onChunkMessage(data) {
 		current.geometry.progress = null;
 		
 		// testing!
-		/*if (true) {
+		if (false) {
 			//viewport.remove(group);
 			var testTileCount = 40;
 			var startingTileIndex = ~~(current.tiles.validTileCount / 2) - ~~(testTileCount / 2);
@@ -332,7 +332,34 @@ function onChunkMessage(data) {
 				pointOffset: regionPointOffset,
 				pointCount: regionPointCount
 			});
-		}*/
+		}
+		if (false) {
+			//viewport.remove(group);
+			var testTileCount = 40;
+			var startingTileIndex = ~~(current.tiles.validTileCount / 2) - ~~(testTileCount / 2);
+			for (var i = 0; i < testTileCount; i++) {
+				var tile = current.tiles.getValidTile(startingTileIndex + i);
+				worker.postMessage({
+					pointOffset: tile.pointOffset,
+					pointCount: (tile.pointCount - tile.lowResCount)
+				});
+			}
+		}
+		if (false) {
+			viewport.remove(group);
+			var testTileCount = 20;
+			for (var i = 0; i < current.tiles.validTileCount; i++) {
+				var tile = current.tiles.getValidTile(i);
+				worker.postMessage({
+					pointOffset: tile.pointOffset,
+					pointCount: (tile.pointCount - tile.lowResCount)
+				});
+			}
+		}
+	}
+	else {
+		//viewport.clearScene();
+		//viewport.add(group);
 	}
 	updateShowBounds();
 	
