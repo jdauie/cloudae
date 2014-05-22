@@ -31,6 +31,8 @@ var settings = {
 		status:    $('#status-text'),
 		ramp:      $('#ramp')
 	},
+	shaders: {
+	},
 	worker: {
 		path: 'js/Worker-FileReader.js'
 	},
@@ -115,8 +117,8 @@ function onDocumentMouseDown(event) {
 }
 
 var viewport = JACERE.Viewport3D.create(settings.elements.container[0], {
-	camera: settings.camera,
-	render: settings.render2
+	camera: settings.camera//,
+	//render: settings.render2
 });
 settings.elements.loader.hide();
 
@@ -187,6 +189,35 @@ function init() {
 	directionalLight.position.set(1, 1, 2);
 	directionalLight.position.normalize();
 	viewport.add(directionalLight);*/
+	
+	var fragmentShaders = $('script[type="x-shader/x-fragment"]');
+	var vertexShaders	= $('script[type="x-shader/x-vertex"]');
+	
+	var shaders = [];
+	
+	for (var i = 0; i < fragmentShaders.length; i++) {
+		shaders.push(fragmentShaders[i]);
+	}
+	for (var i = 0; i < vertexShaders.length; i++) {
+		shaders.push(vertexShaders[i]);
+	}
+	
+	var loadedShaders = shaders.map(function(shader) {
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', shader.src, false);
+		xhr.send(null);
+		return {
+			src: shader.src,
+			name: shader.src.replace(/^.*[\\\/]/, ''),
+			type: shader.type.replace(/^.*[\-]/, ''),
+			shader: xhr.response
+		};
+	});
+	
+	for (var i = 0; i < loadedShaders.length; i++) {
+		var shader = loadedShaders[i];
+		settings.shaders[shader.name] = shader;
+	}
 }
 
 function startFile(file) {
@@ -490,8 +521,8 @@ function createChunkTexture(reader, points) {
 
 		current.material = new THREE.ShaderMaterial( {
 			uniforms: 		uniforms,
-			vertexShader:   document.getElementById('vertexshader2').textContent,
-			fragmentShader: document.getElementById('fragmentshader').textContent
+			vertexShader:   settings.shaders['texture.vert'].shader,
+			fragmentShader: settings.shaders['color.frag'].shader
 		});
 	}
 	
@@ -530,8 +561,8 @@ function createChunkPackedColor(reader, points) {
 		current.material = new THREE.ShaderMaterial({
 			uniforms:       uniforms,
 			attributes:     attributes,
-			vertexShader:   document.getElementById('vertexshader').textContent,
-			fragmentShader: document.getElementById('fragmentshader').textContent
+			vertexShader:   settings.shaders['packed.vert'].shader,
+			fragmentShader: settings.shaders['color.frag'].shader
 		});
 	}
 	
