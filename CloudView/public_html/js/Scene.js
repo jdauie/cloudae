@@ -28,7 +28,8 @@ var settings = {
 		//urlCmd:    $('#url-cmd'),
 		about:     $('#info-text'),
 		header:    $('#header-text'),
-		status:    $('#status-text')
+		status:    $('#status-text'),
+		ramp:      $('#ramp')
 	},
 	worker: {
 		path: 'js/Worker-FileReader.js'
@@ -299,6 +300,11 @@ function onProgressMessage(ratio) {
 }
 
 function onChunkMessage(data) {
+	// testing
+	if (false && viewport.scene.children.length > 40) {
+		viewport.clearScene();
+	}
+	
 	var reader = current.getPointReader(data.buffer, data.pointCount);
 	var pointsRemaining = reader.points;
 	var group = new THREE.Object3D();
@@ -347,7 +353,6 @@ function onChunkMessage(data) {
 		}
 		if (false) {
 			viewport.remove(group);
-			var testTileCount = 20;
 			for (var i = 0; i < current.tiles.validTileCount; i++) {
 				var tile = current.tiles.getValidTile(i);
 				worker.postMessage({
@@ -479,7 +484,7 @@ function createChunkTexture(reader, points) {
 		var uniforms = {
 			size:     { type: "f", value: current.settings.render.pointSize },
 			zmin:     { type: "f", value: current.header.extent.min.z },
-			zmax:     { type: "f", value: current.header.extent.max.z },
+			zscale:   { type: "f", value: 1 / current.header.extent.size().z },
 			texture:  { type: "t", value: current.texture }
 		};
 

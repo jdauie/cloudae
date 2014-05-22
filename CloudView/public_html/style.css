@@ -25,6 +25,17 @@ pre {
 	margin: 0;
 	padding: 0;
 }
+#ramp {
+	position: fixed;
+	padding: 0;
+	top: 60px;
+	left: 4px;
+	z-index: 90;
+}
+#ramp canvas {
+	height:200px;
+	width:6px;
+}
 #info {
 	position: absolute;
 	top: 10px;

@@ -23,6 +23,7 @@
 	<div id="info"><pre id="info-text"></pre></div>
 	<div id="header"><pre id="header-text"></pre></div>
 	<div id="status"><pre id="status-text"></pre></div>
+	<div id="ramp"></div>
 	
 	<script type="x-shader/x-vertex" id="vertexshader3">
 		precision mediump float;
@@ -48,13 +49,13 @@
 		uniform float size;
 		uniform sampler2D texture;
 		uniform float zmin;
-		uniform float zmax;
+		uniform float zscale;
 		varying vec3 vColor;
 		
 		void main() {
 			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 			gl_PointSize = size;
-			vColor = texture2D(texture, vec2((position.z - zmin) / (zmax - zmin), 0)).xyz;
+			vColor = texture2D(texture, vec2(0, (position.z - zmin) * zscale)).xyz;
 		}
 	</script>
 
@@ -89,6 +90,12 @@
 		}
 	</script>
 
+	<!--
+	<script type="x-shader/x-vertex" id="vertexShader1" src="shader1.vert"></script>
+	<script type="x-shader/x-vertex" id="vertexShader2" src="shader2.vert"></script>
+	<script type="x-shader/x-vertex" id="vertexShader3" src="shader3.vert"></script>
+	<script type="x-shader/x-fragment" id="fragmentShader" src="shader.frag"></script>
+	-->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 	<script src="js/libs/three.js/three.min.js"></script>
 	<script src="js/libs/stats.min.js"></script>

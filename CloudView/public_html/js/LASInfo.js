@@ -93,6 +93,7 @@
 		updateTexture: function() {
 			if (!this.texture) {
 				this.texture = new THREE.Texture(this.createGradient(this.colorMap));
+				settings.elements.ramp.append(this.texture.image);
 			}
 			else {
 				this.createGradient(this.colorMap, this.texture.image);
@@ -105,14 +106,14 @@
 
 			if (!canvas) {
 				canvas = document.createElement('canvas');
-				canvas.width = size;
-				canvas.height = 1;
+				canvas.width = 1;
+				canvas.height = size;
 			}
 
 			var context = canvas.getContext('2d');
 
-			context.rect(0, 0, size, 1);
-			var gradient = context.createLinearGradient(0, 0, size, 0);
+			context.rect(0, 0, 1, size);
+			var gradient = context.createLinearGradient(0, size, 0, 0);
 
 			//var stops = map.ramp.colors.length;
 			var stops = map.length;
