@@ -60,7 +60,6 @@ namespace Jacere.Core
 
 	public class SQuantizedExtentGrid<T> : Grid<T>, IQuantizedExtentGrid
 	{
-		//private readonly double m_cellSize;
 		private readonly int m_cellSizeX;
 		private readonly int m_cellSizeY;
 		private readonly double m_inverseCellSizeX;
@@ -98,11 +97,32 @@ namespace Jacere.Core
 		public SQuantizedExtentGrid(GridDefinition def, int cellSizeX, int cellSizeY, T fillVal)
 			: base(def, fillVal)
 		{
-			//_cellSize = cellSize;
 			m_cellSizeX = cellSizeX;
 			m_cellSizeY = cellSizeY;
 			m_inverseCellSizeX = 1.0 / m_cellSizeX;
 			m_inverseCellSizeY = 1.0 / m_cellSizeY;
+		}
+
+		public override Grid<TNew> Copy<TNew>(TNew fillVal)
+		{
+			return new SQuantizedExtentGrid<TNew>(Def, CellSizeX, CellSizeY, fillVal);
+		}
+
+		public IEnumerable<SimpleGridCoord> GetCellCoordsInScaledRange(int scaledX, int scaledY, IQuantizedExtentGrid scaledGrid)
+		{
+			var startX = (ushort)Math.Floor(scaledX * scaledGrid.CellSizeX / (double)CellSizeX);
+			var startY = (ushort)Math.Floor(scaledY * scaledGrid.CellSizeY / (double)CellSizeY);
+
+			var endX = (ushort)Math.Ceiling((scaledX + 1) * scaledGrid.CellSizeX / (double)CellSizeX);
+			var endY = (ushort)Math.Ceiling((scaledY + 1) * scaledGrid.CellSizeY / (double)CellSizeY);
+
+			if (endX > SizeX) endX = SizeX;
+			if (endY > SizeY) endY = SizeY;
+
+			for (var y = startY; y < endY; y++)
+				for (var x = startX; x < endX; x++)
+					if (!EqualityComparer<T>.Default.Equals(Data[y, x], default(T)))
+						yield return new SimpleGridCoord(y, x);
 		}
 	}
 
@@ -139,7 +159,7 @@ namespace Jacere.Core
 		protected Grid(GridDefinition def, T fillVal)
 			: base(def)
 		{
-			bool fillValIsDefault = EqualityComparer<T>.Default.Equals(fillVal, default(T));
+			var fillValIsDefault = EqualityComparer<T>.Default.Equals(fillVal, default(T));
 
 			m_fillVal = fillVal;
 
@@ -151,35 +171,13 @@ namespace Jacere.Core
 
 		public void Reset()
 		{
-			T fillVal = FillVal;
+			var fillVal = FillVal;
 			int sizeY = Def.UnderlyingSizeY;
 			int sizeX = Def.UnderlyingSizeX;
 
-			for (int y = 0; y < sizeY; y++)
-				for (int x = 0; x < sizeX; x++)
+			for (var y = 0; y < sizeY; y++)
+				for (var x = 0; x < sizeX; x++)
 					Data[y, x] = fillVal;
-		}
-
-		public IEnumerable<SimpleGridCoord> GetCellCoordsInScaledRange(int scaledX, int scaledY, IGrid scaledGrid)
-		{
-			var startX = (ushort)Math.Floor(((double)scaledX / scaledGrid.SizeX) * SizeX);
-			var startY = (ushort)Math.Floor(((double)scaledY / scaledGrid.SizeY) * SizeY);
-
-			var endX = (ushort)Math.Ceiling(((double)(scaledX + 1) / scaledGrid.SizeX) * SizeX);
-			var endY = (ushort)Math.Ceiling(((double)(scaledY + 1) / scaledGrid.SizeY) * SizeY);
-
-			for (var y = startY; y < endY; y++)
-				for (var x = startX; x < endX; x++)
-					if (!EqualityComparer<T>.Default.Equals(Data[y, x], default(T)))
-						yield return new SimpleGridCoord(y, x);
-		}
-
-		public IEnumerable<T> GetCellsInScaledRange(int scaledX, int scaledY, IGrid scaledGrid)
-		{
-			foreach (var coord in GetCellCoordsInScaledRange(scaledX, scaledY, scaledGrid))
-			{
-				yield return Data[coord.Row, coord.Col];
-			}
 		}
 
 		public Grid<TNew> Copy<TNew>()
@@ -187,7 +185,7 @@ namespace Jacere.Core
 			return Copy(default(TNew));
 		}
 
-		public Grid<TNew> Copy<TNew>(TNew fillVal)
+		public virtual Grid<TNew> Copy<TNew>(TNew fillVal)
 		{
 			return new Grid<TNew>(Def, fillVal);
 		}

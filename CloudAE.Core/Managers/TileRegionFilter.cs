@@ -34,7 +34,7 @@ namespace CloudAE.Core
 			var startIndex = m_range.StartPos;
 			var endIndex = m_range.EndPos;
 
-			ushort rowCount = m_grid.Def.SizeY;
+			var rowCount = m_grid.Def.SizeY;
 
 			var pb = chunk.PointDataPtr;
 			var pbDestination = pb;
@@ -50,7 +50,7 @@ namespace CloudAE.Core
 				if (row == rowCount)
 					--row;
 
-				int index = m_grid.Def.GetIndex(row, col);
+				var index = m_grid.Def.GetIndex(row, col);
 				if (index >= startIndex && index < endIndex)
 				{
                     // make copy faster?
@@ -58,7 +58,7 @@ namespace CloudAE.Core
                     // assume that most points will be shifted?
                     //if(pb != pbDestination)
                     //{
-						for (int i = 0; i < chunk.PointSizeBytes; i++)
+						for (var i = 0; i < chunk.PointSizeBytes; i++)
 							pbDestination[i] = pb[i];
 					//}
 
@@ -88,34 +88,23 @@ namespace CloudAE.Core
 
 		public GridBufferPosition[,] CreatePositionGrid(IPointDataChunk segmentBuffer, short entrySize)
 		{
-			// make sure it will fit!
-
-			// since this is only a segment, I have to buffer next to the points 
-			// one at a time, rather than at the outside edge.
-
 			// create tile position counters (always buffer)
 			var tilePositions = new GridBufferPosition[m_grid.SizeY + 1, m_grid.SizeX + 1];
 			{
-				int index = 0;
+				var index = 0;
 				foreach (var tile in GetCellOrdering())
 				{
-					int count = m_grid.Data[tile.Row, tile.Col];
+					var count = m_grid.Data[tile.Row, tile.Col];
 					var pos = new GridBufferPosition(segmentBuffer, index, count, entrySize);
 					tilePositions[tile.Row, tile.Col] = pos;
-
-					// assign the overflow (this is naive/slow -- most will get overwritten).
-					// THIS IS WRONG!  I ONLY WANT TO CATCH OVERFLOW ALONG THE EDGE.
-					//tilePositions[tile.Row + 1, tile.Col] = pos;
-					//tilePositions[tile.Row, tile.Col + 1] = pos;
-					//tilePositions[tile.Row + 1, tile.Col + 1] = pos;
 
 					index += count;
 				}
 
 				// buffer the edges for overflow
-				for (int x = 0; x < m_grid.SizeX; x++)
+				for (var x = 0; x < m_grid.SizeX; x++)
 					tilePositions[m_grid.SizeY, x] = tilePositions[m_grid.SizeY - 1, x];
-				for (int y = 0; y <= m_grid.SizeY; y++)
+				for (var y = 0; y <= m_grid.SizeY; y++)
 					tilePositions[y, m_grid.SizeX] = tilePositions[y, m_grid.SizeX - 1];
 			}
 

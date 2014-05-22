@@ -93,7 +93,7 @@ namespace CloudAE.Core
 			return m_tileCountsForInitialization;
 		}
 
-		public GridDefinition CreateTileCountsForInitialization(IPointCloudBinarySource source)
+		public SQuantizedExtentGrid<int> CreateTileCountsForInitialization(IPointCloudBinarySource source)
 		{
 			if (m_tileCountsForInitialization == null)
 			{
@@ -107,7 +107,7 @@ namespace CloudAE.Core
 
 				m_tileCountsForInitialization = source.QuantizedExtent.CreateGridFromCellSize<int>(tileSize, source.Quantization, true);
 			}
-			return m_tileCountsForInitialization.Def;
+			return m_tileCountsForInitialization;
 		}
 
 		public override string ToString()

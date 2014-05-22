@@ -111,7 +111,7 @@ namespace CloudAE.Core
 			var maxSegmentPointCount = (maxSegmentLength / m_source.PointSizeBytes);
 
 			// update index cells
-			var indexGrid = m_grid.Copy<GridIndexCell>();
+			var indexGrid = (SQuantizedExtentGrid<GridIndexCell>)m_grid.Copy<GridIndexCell>();
 
 			for (var i = 0; i < m_chunkTiles.Count; i++)
 			{
@@ -129,13 +129,13 @@ namespace CloudAE.Core
 			}
 			indexGrid.CorrectCountOverflow();
 
-			var actualGridDef = density.CreateTileCountsForInitialization(m_source);
+			var actualGrid = density.CreateTileCountsForInitialization(m_source);
 
 			var regionSourcesBySegment = new List<List<Range>>();
 			var tilesPerSegment = new List<GridRange>();
 			var pointDataBytes = m_source.PointSizeBytes * m_source.Count;
 
-			var tileOrder = PointCloudTileSet.GetTileOrdering(actualGridDef.SizeY, actualGridDef.SizeX).ToArray();
+			var tileOrder = PointCloudTileSet.GetTileOrdering(actualGrid.SizeY, actualGrid.SizeX).ToArray();
 			var tileOrderIndex = 0;
 			while (tileOrderIndex < tileOrder.Length)
 			{
@@ -143,7 +143,7 @@ namespace CloudAE.Core
 				var segmentChunks = new HashSet<int>();
 
 				var startTile = tileOrder[tileOrderIndex];
-				var startTileIndex = new GridCoord(actualGridDef, startTile.Row, startTile.Col);
+				var startTileIndex = new GridCoord(actualGrid.Def, startTile.Row, startTile.Col);
 
 				var segmentProbableValidTileCount = 0;
 
@@ -159,7 +159,7 @@ namespace CloudAE.Core
 					// get unique tiles/chunks
 
 					var uniqueEstimatedCoords = indexGrid
-						.GetCellCoordsInScaledRange(tile.Col, tile.Row, actualGridDef)
+						.GetCellCoordsInScaledRange(tile.Col, tile.Row, actualGrid)
 						.Where(c => !segmentTilesFromEstimation.Contains(c.Index))
 						.ToList();
 
@@ -198,7 +198,7 @@ namespace CloudAE.Core
 				if (segmentChunks.Count > 0)
 				{
 					var endTile = tileOrder[tileOrderIndex - 1];
-					var endTileIndex = new GridCoord(actualGridDef, endTile.Row, endTile.Col);
+					var endTileIndex = new GridCoord(actualGrid.Def, endTile.Row, endTile.Col);
 
 					// group by sequential regions
 					var sortedCellList = segmentChunks.ToArray();
