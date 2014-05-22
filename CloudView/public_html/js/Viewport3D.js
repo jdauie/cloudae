@@ -20,23 +20,24 @@
 		this.container.appendChild(this.stats.domElement);
 
 		this.camera = new THREE.PerspectiveCamera(settings.camera.fov, WIDTH / HEIGHT, settings.camera.near, settings.camera.far);
-		//this.camera.position.z = 1000;
+		
 
-		this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+		//this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
 
-		/*this.controls = new THREE.TrackballControls(this.camera);
 
-		this.controls.rotateSpeed = 1.0;
-		this.controls.zoomSpeed = 1.2;
-		this.controls.panSpeed = 0.8;
+		this.controls = new THREE.TrackballControls(this.camera, this.renderer.domElement);
 
-		this.controls.noZoom = false;
-		this.controls.noPan = false;
+		//this.controls.rotateSpeed = 1.0;
+		//this.controls.zoomSpeed = 1.2;
+		//this.controls.panSpeed = 0.8;
 
-		this.controls.staticMoving = true;
-		this.controls.dynamicDampingFactor = 0.3;
+		//this.controls.noZoom = false;
+		//this.controls.noPan = false;
 
-		this.controls.keys = [65, 83, 68];*/
+		//this.controls.staticMoving = true;
+		this.controls.dynamicDampingFactor = 0.5;
+
+		this.controls.keys = [65, 83, 68];
 
 
 		this.scene = new THREE.Scene();
