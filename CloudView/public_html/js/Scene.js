@@ -250,6 +250,7 @@ function startFile(file) {
 
 function clearInfo() {
 	if (current) {
+		current.dispose();
 		current = null;
 		viewport.clearScene();
 		settings.elements.header.text('');
@@ -380,6 +381,43 @@ function onChunkMessage(data) {
 					pointOffset: tile.pointOffset,
 					pointCount: (tile.pointCount - tile.lowResCount)
 				});
+			}
+		}
+		if (true) {
+			//viewport.remove(group);
+			var testTileRadius = 3;
+			var midX = ~~(current.tiles.cols / 2);
+			var midY = ~~(current.tiles.rows / 2);
+			var startX = midX - testTileRadius;
+			var startY = midY - testTileRadius;
+			var endX = midX + testTileRadius;
+			var endY = midY + testTileRadius;
+			for (var y = startY; y < endY; y++) {
+				for (var x = startX; x < endX; x++) {
+					//if (Math.sqrt((x-midX)*(x-midX)+(y-midY)*(y-midY)) > testTileRadius)
+					//	continue;
+					var tile = current.tiles.getTile(y, x);
+					if (tile) {
+						worker.postMessage({
+							pointOffset: tile.pointOffset,
+							pointCount: (tile.pointCount - tile.lowResCount)
+						});
+					}
+				}
+			}
+		}
+		if (false) {
+			//viewport.remove(group);
+			for (var y = 0; y < current.tiles.rows; y+=2) {
+				for (var x = 0; x < current.tiles.cols; x+=2) {
+					var tile = current.tiles.getTile(y, x);
+					if (tile) {
+						worker.postMessage({
+							pointOffset: tile.pointOffset,
+							pointCount: (tile.pointCount - tile.lowResCount)
+						});
+					}
+				}
 			}
 		}
 		if (false) {

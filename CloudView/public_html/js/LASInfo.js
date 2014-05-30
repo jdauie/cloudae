@@ -18,6 +18,7 @@
 			progress: null,
 			chunks: []
 		};
+		
 	};
 	
 	JACERE.LASInfo.prototype = {
@@ -127,6 +128,10 @@
 			context.fill();
 
 			return canvas;
+		},
+		
+		dispose: function() {
+			settings.elements.ramp.empty();
 		}
 	};
 
@@ -135,6 +140,38 @@
 		this.info = info;
 		this.points = points;
 		this.currentPointIndex = 0;
+		
+		// z
+		// intensity
+		// return num
+		// num returns
+		// return num / num returns ? (maybe a generic way of operating on fields)?
+		// classification
+		// scan angle rank
+		// user data
+		// point source id
+		// gps time
+		// rgb
+		
+		//this.fields = JACERE.GetPointFormatFields(this.info.header.pointDataRecordFormat);
+		
+		this.hasRGB = false;
+		this.offsetToRGB = 0;
+		
+		switch (this.info.header.pointDataRecordFormat) {
+			case 2:
+			case 3:
+			case 5:
+				this.hasRGB = true;
+				this.offsetToRGB = 8;
+				break;
+			case 7:
+			case 8:
+			case 10:
+				this.hasRGB = true;
+				this.offsetToRGB = 18;
+				break;
+		}
 	};
 	
 	JACERE.PointReader.prototype = {
@@ -147,20 +184,23 @@
 			}
 
 			this.reader.seek(this.currentPointIndex * this.info.header.pointDataRecordLength);
-			var point = this.reader.readUnquantizedPoint3D(this.info.header.quantization);
+			//var point = this.reader.readUnquantizedPoint3D(this.info.header.quantization);
+			
+			var q = this.info.header.quantization;
+			var point = {
+				x: this.reader.readInt32() * q.scale.x + q.offset.x,
+				y: this.reader.readInt32() * q.scale.y + q.offset.y,
+				z: this.reader.readInt32() * q.scale.z + q.offset.z
+			};
 
-			if (this.info.header.pointDataRecordFormat === 2) {
-				this.reader.skip(8);
-				// this should be (256*256) according to the spec
+			if (this.hasRGB) {
+				this.reader.skip(this.offsetToRGB);
+				// rgb should be scaled to (256^2) according to the spec
 				var scale = (256*256);
 				point.r = this.reader.readUint16() / scale;
 				point.g = this.reader.readUint16() / scale;
 				point.b = this.reader.readUint16() / scale;
 			}
-
-			// debug
-			//if (point.x === 0 && point.y === 0 && point.z === 0)
-			//	throw "zero point";
 
 			this.currentPointIndex++;
 

@@ -20,13 +20,13 @@
 		return new THREE.Box3(min, max);
 	};
 
-	JACERE.BinaryReader.prototype.readUnquantizedPoint3D = function(quantization) {
+	/*JACERE.BinaryReader.prototype.readUnquantizedPoint3D = function(quantization) {
 		return new THREE.Vector3(
 			this.readInt32() * quantization.scale.x + quantization.offset.x,
 			this.readInt32() * quantization.scale.y + quantization.offset.y,
 			this.readInt32() * quantization.scale.z + quantization.offset.z
 		);
-	};
+	};*/
 
 	JACERE.LASVersion = {
 		LAS_1_0: (1 << 8) | 0,

@@ -52,6 +52,16 @@
 			if (validIndex < this.validTileCount) {
 				return this.tiles[validIndex];
 			}
+		},
+		
+		getTile: function(y, x) {
+			for (var i = 0; i < this.validTileCount; i++) {
+				var tile = this.tiles[i];
+				if (tile.row === y && tile.col === x) {
+					return tile;
+				}
+			}
+			return null;
 		}
 	};
 	
