@@ -13,13 +13,25 @@
 	
 	function FieldGroup(name, fields, tuple) {
 		this.name = name;
-		this.fields = fields;
+		this.fields = [];
 		this.tuple = (tuple === true);
 		
 		this.append = function(field) {
+			if (typeof field === 'string') {
+				field = getCommonPointFormatField(field);
+			}
 			this.fields.push(field);
+			return this;
 		};
+		
+		for (var i = 0; i < fields.length; i++) {
+			this.append(fields[i]);
+		}
 	}
+	
+	/*FieldGroup.prototype.toString = function() {
+		return this.name ? this.name : '[group]';
+	};*/
 	
 	function getCommonPointFormatField(name) {
 		switch(name) {
@@ -129,147 +141,6 @@
 		}
 	}
 	
-	var sharedFields = {
-		XYZ: {
-			X: new ByteField(4),
-			Y: new ByteField(4),
-			Z: new ByteField(4)
-		},
-
-		Intensity: new ByteField(2),
-
-		UserData: new ByteField(1),
-		PointSourceID: new ByteField(2),
-
-		GPSTime: new ByteField(8),
-
-		RGB: {
-			R: new ByteField(2),
-			G: new ByteField(2),
-			B: new ByteField(2)
-		},
-
-		WavePackets: {
-			WavePacketDescriptorIndex:   new ByteField(1),
-			ByteOffsetToWaveFormData:    new ByteField(8),
-			WaveformPacketSizeInBytes:   new ByteField(4),
-			ReturnPointWaveformLocation: new ByteField(4),
-			ParametricLineEquation: {
-				Xt: new ByteField(4),
-				Yt: new ByteField(4),
-				Zt: new ByteField(4)
-			}
-		}
-	};
-	
-	var pointFormats = [];
-	
-	pointFormats[0] = {
-		XYZ:       sharedFields.XYZ,
-		Intensity: sharedFields.Intensity,
-
-		ReturnInfo: {
-			ReturnNumber:     new BitField(3),
-			NumberOfReturns:  new BitField(3),
-			ScanDirection:    new BitField(1),
-			EdgeOfFlightline: new BitField(1)
-		},
-
-		Classification: {
-			Classification: new BitField(5),
-			Synthetic:      new BitField(1),
-			KeyPoint:       new BitField(1),
-			WithHeld:       new BitField(1)
-		},
-
-		ScanAngleRank:  new ByteField(1),
-		UserData:       sharedFields.UserData,
-		PointSourceID:  sharedFields.PointSourceID
-	};
-	
-	pointFormats[1] = {
-		Core:    pointFormats[0],
-		GPSTime: sharedFields.GPSTime
-	};
-	
-	pointFormats[2] = {
-		Core: pointFormats[0],
-		RGB:  sharedFields.RGB
-	};
-	
-	pointFormats[3] = {
-		Core:    pointFormats[2],
-		GPSTime: sharedFields.GPSTime
-	};
-	
-	pointFormats[4] = {
-		Core:        pointFormats[1],
-		Wavepackets: sharedFields.WavePackets
-	};
-	
-	pointFormats[5] = {
-		Core:        pointFormats[3],
-		Wavepackets: sharedFields.WavePackets
-	};
-	
-	pointFormats[6] = {
-		XYZ:       sharedFields.XYZ,
-		Intensity: sharedFields.Intensity,
-
-		ReturnInfo: {
-			ReturnNumber:    new BitField(4),
-			NumberOfReturns: new BitField(4)
-		},
-
-		ClassificationFlags: {
-			Synthetic: new BitField(1),
-			KeyPoint:  new BitField(1),
-			WithHeld:  new BitField(1),
-			Overlap:   new BitField(1)
-		},
-		
-		ScannerChannel:    new BitField(2),
-		ScanDirectionFlag: new BitField(1),
-		EdgeOfFlightLine:  new BitField(1),
-		
-		Classification: new ByteField(1),
-		UserData:       sharedFields.UserData,
-		ScanAngle:      new ByteField(2),
-		PointSourceID:  sharedFields.PointSourceID,
-		GPSTime:        sharedFields.GPSTime
-	};
-	
-	pointFormats[7] = {
-		Core: pointFormats[6],
-		RGB:  sharedFields.RGB
-	};
-	
-	pointFormats[8] = {
-		Core: pointFormats[7],
-		NIR:  new ByteField(2)
-	};
-	
-	pointFormats[9] = {
-		Core:        pointFormats[6],
-		Wavepackets: sharedFields.WavePackets
-	};
-	
-	pointFormats[10] = {
-		Core:        pointFormats[7],
-		Wavepackets: sharedFields.WavePackets
-	};
-	
-	/*function GetPointFormatFields(format) {
-		if (format >= 0 && format <= 10) {
-			var fields = pointFormats[format];
-			
-			//var keys = Object.keys(fields);
-			
-			return fields;
-		}
-		return null;
-	}
-	
-	JACERE.GetPointFormatFields = GetPointFormatFields;*/
+	JACERE.getPointFormatFields = getPointFormatFields;
 	
 }(self.JACERE = self.JACERE || {}));
