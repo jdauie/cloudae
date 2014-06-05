@@ -24,8 +24,8 @@ var settings = {
 		loader:    $('#loader'),
 		container: $('#container'),
 		files:     $('#file-input'),
-		//url:       $('#url-input'),
-		//urlCmd:    $('#url-cmd'),
+		url:       $('#url-input'),
+		urlCmd:    $('#url-cmd'),
 		about:     $('#info-text'),
 		header:    $('#header-text'),
 		status:    $('#status-text'),
@@ -38,11 +38,11 @@ var settings = {
 	},
 	loader: {
 		chunkSize: 4*1024*1024,
-		maxPoints: 1000000,
-		colorMode: 'texture'
+		maxPoints: 1000000
 	},
 	render: {
 		useStats: true,
+		colorMode: 'rgb',
 		colorRamp: 'Elevation1',
 		colorValues: 256,
 		invertRamp: false,
@@ -68,11 +68,6 @@ var actions = {
 		if (current) {
 			startFile(current.file);
 		}
-	},
-	createChunk: {
-		'float(3)': createChunkOld,
-		'float(1)': createChunkPackedColor,
-		'texture': createChunkTexture
 	}
 };
 
@@ -135,7 +130,6 @@ function init() {
 	var f2 = gui.addFolder('Loading');
 	f2.add(settings.loader, 'chunkSize', JACERE.Util.createNamedSizes(256*1024, 10));
 	f2.add(settings.loader, 'maxPoints', JACERE.Util.createNamedMultiples(1000000, [0.5,1,2,3,4,5,6,8,10,12,14,16,18,20]));
-	f2.add(settings.loader, 'colorMode', Object.keys(actions.createChunk));
 	f2.open();
 	
 	var f3 = gui.addFolder('Actions');
@@ -143,6 +137,7 @@ function init() {
 	f3.open();
 	
 	var f1 = gui.addFolder('Rendering');
+	f1.add(settings.render, 'colorMode', ['rgb','height']).onChange(function() {current.updateRenderSettings();});
 	f1.add(settings.render, 'colorRamp', Object.keys(JACERE.ColorRamp.presets)).onChange(function() {current.updateRenderSettings();});
 	f1.add(settings.render, 'invertRamp').onChange(function() {current.updateRenderSettings();});
 	f1.add(settings.render, 'useStats').onChange(function() {current.updateRenderSettings();});
@@ -163,16 +158,16 @@ function init() {
 		}
 	});
 	
-	/*settings.elements.urlCmd[0].addEventListener('click', function(e) {
+	settings.elements.urlCmd[0].addEventListener('click', function(e) {
 		var url = settings.elements.url.val();
 		if (url) {
 			startFile(url);
 		}
 	});
 	
-	var sampleListener = function(e) {
-		startFile(String.format('../data/{0}', e.target.value));
-	};*/
+	$('.data-sample').on('click', function(e) {
+		startFile(String.format('../data/{0}', $(e.target).data('src')));
+	});
 	
 	//document.addEventListener('mousedown', onDocumentMouseDown, false);
 	
@@ -268,7 +263,7 @@ function onHeaderMessage(data) {
 	if (data.stats && data.stats.byteLength > 0) {
 		stats = data.stats.readObject("Statistics", JACERE);
 	}
-	current.setHeader(header, tiles, stats);
+	current.setHeader(header, data.length, tiles, stats);
 
 	updateFileInfo();
 
@@ -332,24 +327,32 @@ function onProgressMessage(ratio) {
 }
 
 function onChunkMessage(data) {
+	
 	// testing
 	if (false && viewport.scene.children.length > 40) {
 		viewport.clearScene();
 	}
 	
-	var reader = current.getPointReader(data.buffer, data.pointCount);
-	var pointsRemaining = reader.points;
+	current.setTime();
+	
+	var render1 = Date.now();
+	
+	var pointsRemaining = data.pointCount;
 	var group = new THREE.Object3D();
 	while (pointsRemaining > 0) {
 		var points = Math.min(current.settings.render.chunkVertices, pointsRemaining);
+		var reader = current.getPointReader(data.buffer, data.pointCount - pointsRemaining, points);
+		
 		pointsRemaining -= points;
 		
-		var node = actions.createChunk[current.settings.loader.colorMode](reader, points);
+		var node = createChunkPackedColor(reader, points);
 		group.add(node);
 		current.geometry.chunks.push(node);
 	}
 	centerObject(group);
 	viewport.add(group);
+	
+	console.log(String.format('time[geometry]: {0} ms', (Date.now() - render1).toLocaleString()));
 	
 	if (current.geometry.progress) {
 		viewport.remove(current.geometry.progress);
@@ -383,7 +386,7 @@ function onChunkMessage(data) {
 				});
 			}
 		}
-		if (true) {
+		if (false) {
 			//viewport.remove(group);
 			var testTileRadius = 3;
 			var midX = ~~(current.tiles.cols / 2);
@@ -446,7 +449,7 @@ function onChunkMessage(data) {
 }
 
 function updateCompleteTiled() {
-	var timeSpan = Date.now() - current.startTime;
+	var timeSpan = current.getLoadTime();
 	settings.elements.status.text([
 		'points : ' + current.tiles.lowResCount.toLocaleString(),
 		'tiles  : ' + current.tiles.validTileCount.toLocaleString(),
@@ -455,7 +458,7 @@ function updateCompleteTiled() {
 }
 
 function updateCompleteThinned(count) {
-	var timeSpan = Date.now() - current.startTime;
+	var timeSpan = current.getLoadTime();
 	var bps = (current.header.numberOfPointRecords * current.header.pointDataRecordLength) / timeSpan * 1000;
 	settings.elements.status.text([
 		'points : ' + count.toLocaleString(),
@@ -465,13 +468,12 @@ function updateCompleteThinned(count) {
 }
 
 function updateFileInfo() {
-	var file = current.file;
 	var header = current.header;
 	settings.elements.header.text([
-		'file   : ' + file.name,
+		'file   : ' + current.name,
 		'system : ' + header.systemIdentifier,
 		'gensw  : ' + header.generatingSoftware,
-		'size   : ' + JACERE.Util.bytesToSize(file.size),
+		'size   : ' + JACERE.Util.bytesToSize(current.fileSize),
 		'points : ' + header.numberOfPointRecords.toLocaleString(),
 		'lasv   : ' + header.version,
 		'vlrs   : ' + header.numberOfVariableLengthRecords,
@@ -539,7 +541,7 @@ function updateShowBounds() {
 	if (current.geometry.progress)
 		return;
 	
-	current.updateRenderSettings();
+	current.updateRenderSettings(false);
 	
 	if (current.settings.render.showBounds)
 		viewport.add(current.geometry.bounds);
@@ -547,165 +549,84 @@ function updateShowBounds() {
 		viewport.remove(current.geometry.bounds);
 }
 
-function createChunkTexture(reader, points) {
+function createChunkPackedColor(reader) {
 
-	if (!current.material) {
-		var uniforms = {
-			size:     { type: "f", value: current.settings.render.pointSize },
-			zmin:     { type: "f", value: current.header.extent.min.z },
-			zscale:   { type: "f", value: 1 / current.header.extent.size().z },
-			texture:  { type: "t", value: current.texture }
-		};
+	if (current.settings.render.colorMode === 'rgb' && reader.hasRGB) {
+		//if (!current.material) {
+			var uniforms = {
+				size: { type: "f", value: current.settings.render.pointSize }
+			};
 
-		current.material = new THREE.ShaderMaterial( {
-			uniforms: 		uniforms,
-			vertexShader:   settings.shaders['texture.vert'].shader,
-			fragmentShader: settings.shaders['color.frag'].shader
-		});
+			var attributes = {
+				color: {type: 'f', value: null}
+			};
+
+			current.material = new THREE.ShaderMaterial({
+				uniforms:       uniforms,
+				attributes:     attributes,
+				vertexShader:   settings.shaders['packed.vert'].shader,
+				fragmentShader: settings.shaders['color.frag'].shader
+			});
+		//}
+	}
+	else {
+		//if (!current.material) {
+			var uniforms = {
+				size:     { type: "f", value: current.settings.render.pointSize },
+				zmin:     { type: "f", value: current.header.extent.min.z },
+				zscale:   { type: "f", value: 1 / current.header.extent.size().z },
+				texture:  { type: "t", value: current.texture }
+			};
+
+			current.material = new THREE.ShaderMaterial( {
+				uniforms: 		uniforms,
+				vertexShader:   settings.shaders['texture.vert'].shader,
+				fragmentShader: settings.shaders['color.frag'].shader
+			});
+		//}
 	}
 	
+	var points = reader.points;
 	var geometry = new THREE.BufferGeometry();
-	geometry.addAttribute('position', Float32Array, points, 3);
+	
+	var positions = new Float32Array(points * 3);
+	var colors = new Float32Array(points * 1);
+	
+	geometry.attributes = {
+		position: { itemSize: 3, array: positions },
+		color:    { itemSize: 1, array: colors }
+	};
 
-	var positions = geometry.attributes.position.array;
-
-	var kpi = geometry.attributes.position.itemSize;
 	var kp = 0;
-
-	for (var i = 0; i < points; ++i, kp += kpi) {
-		var point = reader.readPoint();
-
-		positions[kp + 0] = point.x;
-		positions[kp + 1] = point.y;
-		positions[kp + 2] = point.z;
-	}
-
-	geometry.computeBoundingSphere();
-
-	return new THREE.ParticleSystem(geometry, current.material);
-}
-
-function createChunkPackedColor(reader, points) {
-
-	if (!current.material) {
-		var uniforms = {
-			size: { type: "f", value: current.settings.render.pointSize }
-		};
-
-		var attributes = {
-			color: {type: 'i', value: null}
-		};
-
-		current.material = new THREE.ShaderMaterial({
-			uniforms:       uniforms,
-			attributes:     attributes,
-			vertexShader:   settings.shaders['packed.vert'].shader,
-			fragmentShader: settings.shaders['color.frag'].shader
-		});
-	}
 	
-	var geometry = new THREE.BufferGeometry();
-	geometry.addAttribute('position', Float32Array, points, 3);
-	geometry.addAttribute('color', Float32Array, points, 1);
-
-	var positions = geometry.attributes.position.array;
-	var colors = geometry.attributes.color.array;
-
-	var kpi = geometry.attributes.position.itemSize;
-	var kci = geometry.attributes.color.itemSize;
-	var kp = 0, kc = 0;
-	
-	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
+	// if we are in texture mode, don't bother setting the colors, just allocate them?
+	for (var i = 0; i < points; ++i, kp += 3) {
 		var point = reader.readPoint();
-		var c = point.r
-			? new THREE.Color(point.r, point.g, point.b)
-			: current.colorMap.getColor(point.z);
 		
 		positions[kp + 0] = point.x;
 		positions[kp + 1] = point.y;
 		positions[kp + 2] = point.z;
-
-		colors[kc] = 
-			(~~(255 * c.r) << 0) | 
-			(~~(255 * c.g) << 8) | 
-			(~~(255 * c.b) << 16);
-	}
-
-	geometry.computeBoundingSphere();
-	
-	return new THREE.ParticleSystem(geometry, current.material);
-}
-
-function createChunkOld(reader, points) {
-
-	if (!current.material) {
-		current.material = new THREE.ParticleSystemMaterial({
-			vertexColors: true,
-			size: current.settings.render.pointSize
-			//sizeAttentuation: false
-		});
-	}
-	
-	var geometry = new THREE.BufferGeometry();
-	geometry.addAttribute('position', Float32Array, points, 3);
-	geometry.addAttribute('color', Float32Array, points, 3);
-
-	var positions = geometry.attributes.position.array;
-	var colors = geometry.attributes.color.array;
-
-	var kpi = geometry.attributes.position.itemSize;
-	var kci = geometry.attributes.color.itemSize;
-	var kp = 0, kc = 0;
-	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
-		var point = reader.readPoint();
-		var c = point.r
-			? new THREE.Color(point.r, point.g, point.b)
-			: current.colorMap.getColor(point.z);
 		
-		positions[kp + 0] = point.x;
-		positions[kp + 1] = point.y;
-		positions[kp + 2] = point.z;
-
-		colors[kc + 0] = c.r;
-		colors[kc + 1] = c.g;
-		colors[kc + 2] = c.b;
+		colors[i] = point.color;
 	}
 
 	geometry.computeBoundingSphere();
 	
-	return new THREE.ParticleSystem(geometry, current.material);
+	var obj = new THREE.ParticleSystem(geometry, current.material);
+	obj.sourceReader = reader;
+	return obj;
 }
 
-function updateChunkOld(obj) {
+function updateChunkPackedColor(obj) {
 
-	if (current.header.pointDataRecordFormat === 2)
-		return;
-	
 	var geometry = obj.geometry;
-	
-	var points = (geometry.attributes.position.array.length / 3);
-
-	var positions = geometry.attributes.position.array;
 	var colors = geometry.attributes.color.array;
+	
+	var reader = obj.sourceReader;
+	reader.reset();
 
-	var kpi = geometry.attributes.position.itemSize;
-	var kci = geometry.attributes.color.itemSize;
-	var kp = 0, kc = 0;
-	for (var i = 0; i < points; ++i, kp += kpi, kc += kci) {
-		var z = positions[kp + 2];
-		var c = current.colorMap.getColor(z);
-		
-		if (kci === 1) {
-			colors[kc] = 
-				(~~(255 * c.r) << 0) | 
-				(~~(255 * c.g) << 8) | 
-				(~~(255 * c.b) << 16);
-		}
-		else {
-			colors[kc + 0] = c.r;
-			colors[kc + 1] = c.g;
-			colors[kc + 2] = c.b;
-		}
+	for (var i = 0; i < reader.points; ++i) {
+		colors[i] = reader.readPointColor();
 	}
 
 	geometry.attributes.color.needsUpdate = true;

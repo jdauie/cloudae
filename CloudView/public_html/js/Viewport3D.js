@@ -95,6 +95,13 @@
 			throw "viewport already created";
 
 		document.addEventListener("visibilitychange", JACERE.Viewport3D.handleVisibilityChange, false);
+		
+		// hack
+		$('body').mouseenter(function() {
+			JACERE.Viewport3D.setVisible(true);
+		}).mouseleave(function(e) {
+			JACERE.Viewport3D.setVisible(false);
+		});
 
 		this.viewport = new JACERE.Viewport3D(container, settings);
 
@@ -104,15 +111,19 @@
 	};
 
 	JACERE.Viewport3D.animate = function() {
-		if (JACERE.Viewport3D.paused)
-			return;
+		if (!JACERE.Viewport3D.paused) {
+			updateFrustrumRange();
 
-		requestAnimationFrame(JACERE.Viewport3D.animate);
+			JACERE.Viewport3D.viewport.render();
+		}
 		
-		updateFrustrumRange();
-		
-		JACERE.Viewport3D.viewport.render();
 		JACERE.Viewport3D.viewport.update();
+		
+		requestAnimationFrame(JACERE.Viewport3D.animate);
+	};
+
+	JACERE.Viewport3D.setVisible = function(visible) {
+		JACERE.Viewport3D.paused = !visible;
 	};
 
 	JACERE.Viewport3D.onWindowResize = function() {
@@ -120,14 +131,7 @@
 	};
 
 	JACERE.Viewport3D.handleVisibilityChange = function() {
-		if (document["hidden"]) {
-			JACERE.Viewport3D.paused = true;
-			//console.log("paused");
-		} else {
-			JACERE.Viewport3D.paused = false;
-			Viewport3D.animate();
-			//console.log("resumed");
-		}
+		JACERE.Viewport3D.setVisible(!document["hidden"]);
 	};
 	
 }(self.JACERE = self.JACERE || {}));

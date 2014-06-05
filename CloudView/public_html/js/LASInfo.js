@@ -3,10 +3,17 @@
 	
 	JACERE.LASInfo = function(file) {
 		this.file = file;
-		this.startTime = Date.now();
-		//this.endTime = null;
 		this.texture = null;
 		this.tileIndex = 0;
+		this.fileSize = 0;
+		this.time = [Date.now()];
+		
+		if (file.constructor.name === "File") {
+			this.name = file.name;
+		}
+		else {
+			this.name = file.replace(/^.*[\\\/]/, '');
+		}
 
 		this.settings = {
 			loader: JACERE.Util.clone(settings.loader),
@@ -25,23 +32,53 @@
 		
 		constructor: JACERE.LASInfo,
 		
-		setHeader: function(header, tiles, stats) {
+		setHeader: function(header, length, tiles, stats) {
 			this.header = header;
 			this.tiles = tiles;
 			this.stats = stats;
+			this.fileSize = length;
 			this.step = Math.ceil(header.numberOfPointRecords / Math.min(this.settings.loader.maxPoints, header.numberOfPointRecords));
 			this.radius = header.extent.size().length() / 2;
+			
+			this.time.push(Date.now());
 
 			this.update();
 		},
-
-		getPointReader: function(buffer, points) {
-			return new JACERE.PointReader(this, buffer, points);
+		
+		setTime: function() {
+			this.time.push(Date.now());
 		},
 
-		updateRenderSettings: function() {
+		getHeaderTime: function() {
+			return (this.time[1] - this.time[0]);
+		},
+
+		getLoadTime: function() {
+			return (this.time[2] - this.time[1]);
+		},
+
+		getPointReader: function(buffer, pointIndex, pointCount) {
+			return new JACERE.PointReader(this, buffer, pointIndex, pointCount);
+		},
+		
+		settingsChanged: function(s1, s2, keys) {
+			for (var i = 0; i < keys.length; i++) {
+				if (s1[keys[i]] !== s2[keys[i]])
+					return true;
+			}
+			return false;
+		},
+
+		updateRenderSettings: function(silent) {
+			
+			// I should remove 'showBounds' from the things that matter for updating
+			var changed = this.settingsChanged(this.settings.render, settings.render, Object.keys(settings.render));
+			
 			this.settings.render = JACERE.Util.clone(settings.render);
-			this.update();
+			
+			if (!silent && changed) {
+				this.update();
+			}
 		},
 
 		update: function() {
@@ -50,7 +87,9 @@
 			this.updateMaterial();
 
 			// update attributes if necessary
-			this.forceColorUpdate();
+			if (this.material && this.material.attributes) {
+				this.forceColorUpdate();
+			}
 		},
 
 		forceColorUpdate: function() {
@@ -59,7 +98,7 @@
 
 			for (var i = 0; i < this.geometry.chunks.length; i++) {
 				var obj = this.geometry.chunks[i];
-				updateChunkOld(obj);
+				updateChunkPackedColor(obj);
 			}
 		},
 
@@ -132,79 +171,6 @@
 		
 		dispose: function() {
 			settings.elements.ramp.empty();
-		}
-	};
-
-	JACERE.PointReader = function(info, buffer, points) {
-		this.reader = new JACERE.BinaryReader(buffer);
-		this.info = info;
-		this.points = points;
-		this.currentPointIndex = 0;
-		
-		// z
-		// intensity
-		// return num
-		// num returns
-		// return num / num returns ? (maybe a generic way of operating on fields)?
-		// classification
-		// scan angle rank
-		// user data
-		// point source id
-		// gps time
-		// rgb
-		
-		//this.fields = JACERE.GetPointFormatFields(this.info.header.pointDataRecordFormat);
-		
-		this.hasRGB = false;
-		this.offsetToRGB = 0;
-		
-		switch (this.info.header.pointDataRecordFormat) {
-			case 2:
-			case 3:
-			case 5:
-				this.hasRGB = true;
-				this.offsetToRGB = 8;
-				break;
-			case 7:
-			case 8:
-			case 10:
-				this.hasRGB = true;
-				this.offsetToRGB = 18;
-				break;
-		}
-	};
-	
-	JACERE.PointReader.prototype = {
-		
-		constructor: JACERE.PointReader,
-		
-		readPoint: function() {
-			if (this.currentPointIndex >= this.points) {
-				return null;
-			}
-
-			this.reader.seek(this.currentPointIndex * this.info.header.pointDataRecordLength);
-			//var point = this.reader.readUnquantizedPoint3D(this.info.header.quantization);
-			
-			var q = this.info.header.quantization;
-			var point = {
-				x: this.reader.readInt32() * q.scale.x + q.offset.x,
-				y: this.reader.readInt32() * q.scale.y + q.offset.y,
-				z: this.reader.readInt32() * q.scale.z + q.offset.z
-			};
-
-			if (this.hasRGB) {
-				this.reader.skip(this.offsetToRGB);
-				// rgb should be scaled to (256^2) according to the spec
-				var scale = (256*256);
-				point.r = this.reader.readUint16() / scale;
-				point.g = this.reader.readUint16() / scale;
-				point.b = this.reader.readUint16() / scale;
-			}
-
-			this.currentPointIndex++;
-
-			return point;
 		}
 	};
 	

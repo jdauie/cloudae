@@ -11,13 +11,14 @@
 		<div class="input-group">
 			<input type="file" id="file-input">
 		</div>
-		<!--<div class="input-group">
-			<input type="text" id="url-input"><input type="button" id="url-cmd" value="Load URL">
+		<div class="input-group">
+			<input type="text" id="url-input"><input type="button" id="url-cmd" value="Load URL (CORS)">
 		</div>
 		<div class="input-group"><span style="margin-left:4px;color:#aaa">Samples:</span>
-			<input type="button" id="sample1" value="City.las" 
-			/><input type="button" id="sample2" value="Stadium.las" />
-		</div>-->
+			<input type="button" class="data-sample" value="serra" data-src="mission-dolores-statue-junipero-serra.las" 
+			/><input type="button" class="data-sample" value="tikal" data-src="tikal9m.tiled.las"
+			/><input type="button" class="data-sample" value="toronto" data-src="TO_core_last.tiled.las" />
+		</div>
 	</div>
 	<div id="loader">Loading...</div>
 	<div id="info"><pre id="info-text"></pre></div>
@@ -52,6 +53,7 @@
 	<script src="js/PointCloudTile.js"></script>
 	<script src="js/PointCloudTileSet.js"></script>
 	<script src="js/Viewport3D.js"></script>
+	<script src="js/PointReader.js"></script>
 	<script src="js/LASInfo.js"></script>
 	<script src="js/Scene.js"></script>
 </body>

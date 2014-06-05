@@ -6,10 +6,18 @@
 		this.bytes = bytes;
 	}
 	
+	ByteField.prototype.toString = function() {
+		return String.format('{0} ({1} bytes)', this.name, this.bytes);
+	};
+	
 	function BitField(bits, name) {
 		this.name = name;
 		this.bits = bits;
 	}
+	
+	BitField.prototype.toString = function() {
+		return String.format('{0} ({1} bits)', this.name, this.bits);
+	};
 	
 	function FieldGroup(name, fields, tuple) {
 		this.name = name;
@@ -141,6 +149,21 @@
 		}
 	}
 	
-	JACERE.getPointFormatFields = getPointFormatFields;
+	function getLeafFields(node) {
+		return node.fields ? node.fields : [node];
+	}
+	
+	function getPointFormatFieldsFlat(format) {
+		var tree = getPointFormatFields(format);
+		var fields = [];
+		
+		for (var i = 0; i < tree.fields.length; i++) {
+			var leaves = getLeafFields(tree.fields[i]);
+			[].push.apply(fields, leaves);
+		}
+		return fields;
+	}
+	
+	JACERE.getPointFormatFields = getPointFormatFieldsFlat;
 	
 }(self.JACERE = self.JACERE || {}));
