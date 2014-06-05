@@ -87,13 +87,13 @@
 			this.updateMaterial();
 
 			// update attributes if necessary
-			if (this.material && this.material.attributes) {
+			if (this.material) {// && this.material.attributes) {
 				this.forceColorUpdate();
 			}
 		},
 
 		forceColorUpdate: function() {
-			if (!this.material || this.geometry.chunks.length === 0 || !this.geometry.chunks[0].geometry.attributes.color)
+			if (!this.material || this.geometry.chunks.length === 0)// || !this.geometry.chunks[0].geometry.attributes.color)
 				return;
 
 			for (var i = 0; i < this.geometry.chunks.length; i++) {
@@ -103,6 +103,42 @@
 		},
 
 		updateMaterial: function() {
+			if (this.settings.render.colorMode === 'rgb' && JACERE.PointReader.hasColor(this.header.pointDataRecordFormat)) {
+				//if (!current.material) {
+					var uniforms = {
+						size: { type: "f", value: this.settings.render.pointSize }
+					};
+
+					var attributes = {
+						color: {type: 'f', value: null}
+					};
+
+					this.material = new THREE.ShaderMaterial({
+						uniforms:       uniforms,
+						attributes:     attributes,
+						vertexShader:   settings.shaders['packed.vert'].shader,
+						fragmentShader: settings.shaders['color.frag'].shader
+					});
+				//}
+			}
+			else {
+				//if (!current.material) {
+					var uniforms = {
+						size:     { type: "f", value: this.settings.render.pointSize },
+						zmin:     { type: "f", value: this.header.extent.min.z },
+						zscale:   { type: "f", value: 1 / this.header.extent.size().z },
+						texture:  { type: "t", value: this.texture }
+					};
+
+					this.material = new THREE.ShaderMaterial( {
+						uniforms: 		uniforms,
+						vertexShader:   settings.shaders['texture.vert'].shader,
+						fragmentShader: settings.shaders['color.frag'].shader
+					});
+				//}
+			}
+			
+			// this is old code from when I didn't change between materials
 			if (this.material) {
 				if (!this.material.vertexColors) {
 					this.material.uniforms.size.value = this.settings.render.pointSize;

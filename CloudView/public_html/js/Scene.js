@@ -551,41 +551,6 @@ function updateShowBounds() {
 
 function createChunkPackedColor(reader) {
 
-	if (current.settings.render.colorMode === 'rgb' && reader.hasRGB) {
-		//if (!current.material) {
-			var uniforms = {
-				size: { type: "f", value: current.settings.render.pointSize }
-			};
-
-			var attributes = {
-				color: {type: 'f', value: null}
-			};
-
-			current.material = new THREE.ShaderMaterial({
-				uniforms:       uniforms,
-				attributes:     attributes,
-				vertexShader:   settings.shaders['packed.vert'].shader,
-				fragmentShader: settings.shaders['color.frag'].shader
-			});
-		//}
-	}
-	else {
-		//if (!current.material) {
-			var uniforms = {
-				size:     { type: "f", value: current.settings.render.pointSize },
-				zmin:     { type: "f", value: current.header.extent.min.z },
-				zscale:   { type: "f", value: 1 / current.header.extent.size().z },
-				texture:  { type: "t", value: current.texture }
-			};
-
-			current.material = new THREE.ShaderMaterial( {
-				uniforms: 		uniforms,
-				vertexShader:   settings.shaders['texture.vert'].shader,
-				fragmentShader: settings.shaders['color.frag'].shader
-			});
-		//}
-	}
-	
 	var points = reader.points;
 	var geometry = new THREE.BufferGeometry();
 	
@@ -619,12 +584,15 @@ function createChunkPackedColor(reader) {
 
 function updateChunkPackedColor(obj) {
 
-	var geometry = obj.geometry;
-	var colors = geometry.attributes.color.array;
-	
 	var reader = obj.sourceReader;
 	reader.reset();
 
+	// check whether it needs to be updated?
+	obj.material = current.material;
+	
+	var geometry = obj.geometry;
+	var colors = geometry.attributes.color.array;
+	
 	for (var i = 0; i < reader.points; ++i) {
 		colors[i] = reader.readPointColor();
 	}

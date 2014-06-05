@@ -27,50 +27,53 @@
 			console.log(String(this.fields[i]));
 		}*/
 		
-		this.offsetToRGB = 0;
-		switch (this.info.header.pointDataRecordFormat) {
-			case 2:
-			case 3:
-			case 5:
-				this.offsetToRGB = 20;//8;
-				break;
-			case 7:
-			case 8:
-			case 10:
-				this.offsetToRGB = 30;//18;
-				break;
-		}
+		this.offsetToRGB = JACERE.PointReader.getRgbOffset(this.info.header.pointDataRecordFormat);
 		this.hasRGB = (this.offsetToRGB > 0);
 		
-		
-		this.readPointInternal = function(view, position) {
-			var q = this.info.header.quantization;
-			/*var point = {
-				x: info.header.extent.min.x,
-				y: info.header.extent.min.y,
-				z: info.header.extent.min.z
-			};*/
-			var point = {
-				x: view.getInt32(position + 0, true) * q.scale.x + q.offset.x,
-				y: view.getInt32(position + 4, true) * q.scale.y + q.offset.y,
-				z: view.getInt32(position + 8, true) * q.scale.z + q.offset.z
+		if (this.hasRGB) {
+			this.readPoint = function() {
+				var position = this.info.header.pointDataRecordLength * this.currentPointIndex++;
+				var view = this.reader.view;
+				var q = this.info.header.quantization;
+				return {
+					x: view.getInt32(position + 0, true) * q.scale.x + q.offset.x,
+					y: view.getInt32(position + 4, true) * q.scale.y + q.offset.y,
+					z: view.getInt32(position + 8, true) * q.scale.z + q.offset.z,
+					color:
+						(~~((255/(256*256)) * view.getUint16(position + this.offsetToRGB + 0, true)) << 0) | 
+						(~~((255/(256*256)) * view.getUint16(position + this.offsetToRGB + 2, true)) << 8) | 
+						(~~((255/(256*256)) * view.getUint16(position + this.offsetToRGB + 4, true)) << 16)
+				};
 			};
-			
-			/*var color = this.info.colorMap.getColor(point.z);
-			point.color = 
-				(~~(255 * color.r) << 0) | 
-				(~~(255 * color.g) << 8) | 
-				(~~(255 * color.b) << 16);*/
-			
-			if (this.hasRGB) {
-				point.color = 
-					(~~((255/(256*256)) * view.getUint16(position + this.offsetToRGB + 0, true)) << 0) | 
-					(~~((255/(256*256)) * view.getUint16(position + this.offsetToRGB + 2, true)) << 8) | 
-					(~~((255/(256*256)) * view.getUint16(position + this.offsetToRGB + 4, true)) << 16);
-			}
+		}
+		else {
+			this.readPoint = function() {
+				var position = this.info.header.pointDataRecordLength * this.currentPointIndex++;
+				var view = this.reader.view;
+				var q = this.info.header.quantization;
+				return {
+					x: view.getInt32(position + 0, true) * q.scale.x + q.offset.x,
+					y: view.getInt32(position + 4, true) * q.scale.y + q.offset.y,
+					z: view.getInt32(position + 8, true) * q.scale.z + q.offset.z
+					
+					/*var color = this.info.colorMap.getColor(point.z);
+					point.color = 
+						(~~(255 * color.r) << 0) | 
+						(~~(255 * color.g) << 8) | 
+						(~~(255 * color.b) << 16);*/
+				};
+			};
+			/*this.readPoint = function() {
+				// performance baseline
+				var point = {
+					x: this.info.header.extent.min.x,
+					y: this.info.header.extent.min.y,
+					z: this.info.header.extent.min.z
+				};
 
-			return point;
-		};
+				return point;
+			};*/
+		}
 	};
 	
 	JACERE.PointReader.prototype = {
@@ -85,15 +88,15 @@
 			return this.readPoint().color;
 		},
 		
-		readPoint: function() {
-			/*if (this.currentPointIndex >= this.endIndex) {
-				return null;
-			}*/
+		/*readPoint: function() {
+			//if (this.currentPointIndex >= this.endIndex) {
+			//	return null;
+			//}
 
 			return this.readPointInternal(this.reader.view, this.info.header.pointDataRecordLength * this.currentPointIndex++);
-		},
+		},*/
 		
-		readPoint4: function() {
+		readPointOld: function() {
 			if (this.currentPointIndex >= this.points) {
 				return null;
 			}
@@ -121,6 +124,27 @@
 
 			return point;
 		}
+	};
+	
+	JACERE.PointReader.getRgbOffset = function(format) {
+		var offsetToRGB = 0;
+		switch (format) {
+			case 2:
+			case 3:
+			case 5:
+				offsetToRGB = 20;
+				break;
+			case 7:
+			case 8:
+			case 10:
+				offsetToRGB = 30;
+				break;
+		}
+		return offsetToRGB;
+	};
+	
+	JACERE.PointReader.hasColor = function(format) {
+		return (JACERE.PointReader.getRgbOffset(format) > 0);
 	};
 	
 }(self.JACERE = self.JACERE || {}));

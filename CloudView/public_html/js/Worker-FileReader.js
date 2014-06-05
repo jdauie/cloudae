@@ -119,11 +119,11 @@ function loadPoints(offset, count, step) {
 		buffer: buffer,
 		pointCount: filteredCount,
 		// debugging?
-		request: {
+		/*request: {
 			pointOffset: offset,
 			pointCount: count,
 			step: step
-		}
+		}*/
 	}, [buffer]);
 }
 
