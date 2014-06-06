@@ -579,7 +579,8 @@ function createChunkPackedColor(reader) {
 	
 	// if we are in texture mode, don't bother setting the colors, just allocate them?
 	for (var i = 0; i < points; ++i, kp += 3) {
-		var point = reader.readPoint();
+		//var point = reader.readPoint();
+		var point = reader.readPoint(i);
 		
 		positions[kp + 0] = point.x;
 		positions[kp + 1] = point.y;

@@ -27,6 +27,16 @@
 			console.log(String(this.fields[i]));
 		}*/
 		
+		this.format = JACERE.getPointFormat(this, {
+			X: 'x',
+			Y: 'y',
+			Z: 'z'
+		});
+		//console.log('----------');
+		//console.log(this.format);
+		
+		
+		
 		this.offsetToRGB = JACERE.PointReader.getRgbOffset(this.info.header.pointDataRecordFormat);
 		this.hasRGB = (this.offsetToRGB > 0);
 		
@@ -54,7 +64,7 @@
 				var position = this.info.header.pointDataRecordLength * this.currentPointIndex++;
 				var view = this.reader.view;
 				var q = this.info.header.quantization;
-				var intensity = view.getInt32(position + 0, true);
+				var intensity = view.getUint16(position + this.offsetToInt, true);
 				var color = this.info.colorMap.ramp.getColor(intensity / (256));
 				return {
 					x: view.getInt32(position + 0, true) * q.scale.x + q.offset.x,
@@ -84,6 +94,7 @@
 						(~~(255 * color.b) << 16);*/
 				};
 			};
+			this.readPoint = this.format;
 			/*this.readPoint = function() {
 				// performance baseline
 				var point = {
