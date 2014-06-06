@@ -94,7 +94,7 @@
 		},
 
 		forceColorUpdate: function() {
-			if (!this.material || this.geometry.chunks.length === 0)// || !this.geometry.chunks[0].geometry.attributes.color)
+			if (this.geometry.chunks.length === 0 || !this.material || !this.material.attributes || !this.material.attributes.color)// || !this.geometry.chunks[0].geometry.attributes.color)
 				return;
 
 			for (var i = 0; i < this.geometry.chunks.length; i++) {
@@ -105,7 +105,7 @@
 
 		updateMaterial: function() {
 			if (this.settings.render.colorMode === 'rgb' && JACERE.PointReader.hasColor(this.header.pointDataRecordFormat)) {
-				//if (!current.material) {
+				if (!this.material || !this.material.attributes || !this.material.attributes.color) {
 					var uniforms = {
 						size: { type: "f", value: this.settings.render.pointSize }
 					};
@@ -120,10 +120,14 @@
 						vertexShader:   settings.shaders['packed.vert'].shader,
 						fragmentShader: settings.shaders['color.frag'].shader
 					});
-				//}
+				}
+				else {
+					this.material.uniforms.size.value = this.settings.render.pointSize;
+					this.material.needsUpdate = true;
+				}
 			}
 			else {
-				//if (!current.material) {
+				if (!this.material || (this.material.attributes && this.material.attributes.color)) {
 					var uniforms = {
 						size:     { type: "f", value: this.settings.render.pointSize },
 						zmin:     { type: "f", value: this.header.extent.min.z },
@@ -136,18 +140,11 @@
 						vertexShader:   settings.shaders['texture.vert'].shader,
 						fragmentShader: settings.shaders['color.frag'].shader
 					});
-				//}
-			}
-			
-			// this is old code from when I didn't change between materials
-			if (this.material) {
-				if (!this.material.vertexColors) {
-					this.material.uniforms.size.value = this.settings.render.pointSize;
 				}
 				else {
-					this.material.size = this.settings.render.pointSize;
+					this.material.uniforms.size.value = this.settings.render.pointSize;
+					this.material.needsUpdate = true;
 				}
-				this.material.needsUpdate = true;
 			}
 		},
 
