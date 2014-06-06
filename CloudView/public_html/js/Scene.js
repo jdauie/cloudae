@@ -171,19 +171,22 @@ function init() {
 	
 	//document.addEventListener('mousedown', onDocumentMouseDown, false);
 	
+	
+	
 	/*var ambientLight = new THREE.AmbientLight(0xffffff);
-	viewport.add(ambientLight);
+	viewport.add(ambientLight);*/
 
-	var pointLight = new THREE.PointLight(0xffffff);
+	/*var pointLight = new THREE.PointLight(0xffffff);
 	pointLight.intensity = 2;
 	pointLight.position.z = 100;
 	pointLight.position.y = 700;
-	viewport.add(pointLight);
+	viewport.add(pointLight);*/
 
-	var directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-	directionalLight.position.set(1, 1, 2);
-	directionalLight.position.normalize();
+	/*var directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+	directionalLight.position.set(1, 1, 1).normalize();
 	viewport.add(directionalLight);*/
+	
+	
 	
 	var fragmentShaders = $('script[type="x-shader/x-fragment"]');
 	var vertexShaders	= $('script[type="x-shader/x-vertex"]');
@@ -444,7 +447,7 @@ function onChunkMessage(data) {
 		updateCompleteTiled();
 	}
 	else {
-		updateCompleteThinned(reader.points);
+		updateCompleteThinned(data.pointCount);
 	}
 }
 

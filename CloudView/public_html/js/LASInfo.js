@@ -37,7 +37,8 @@
 			this.tiles = tiles;
 			this.stats = stats;
 			this.fileSize = length;
-			this.step = Math.ceil(header.numberOfPointRecords / Math.min(this.settings.loader.maxPoints, header.numberOfPointRecords));
+			//this.step = Math.ceil(header.numberOfPointRecords / Math.min(this.settings.loader.maxPoints, header.numberOfPointRecords));
+			this.step = (header.numberOfPointRecords / Math.min(this.settings.loader.maxPoints, header.numberOfPointRecords));
 			this.radius = header.extent.size().length() / 2;
 			
 			this.time.push(Date.now());

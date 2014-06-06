@@ -88,10 +88,12 @@ function loadPoints(offset, count, step) {
 
 		// allocate adequate space for thinned points
 		var filteredPointsPerChunk = ~~Math.ceil(current.chunkPoints / step);
-		var filterStep = (step * pointLength);
 		filteredCount = (filteredPointsPerChunk * chunks);
 		buffer = new ArrayBuffer(filteredCount * pointLength);
 		var wrapper = new PointBufferWrapper(buffer, pointLength);
+		
+		// keep track of chunk overlap so that thinned count is accurate
+		var pointIndex = 0;
 
 		// read file, copy thinned points, and report progress
 		var chunkStart = start;
@@ -105,9 +107,13 @@ function loadPoints(offset, count, step) {
 
 			// copy filtered points
 			var chunkSize = (chunkEnd - chunkStart);
-			for (var chunkIndex = 0; chunkIndex < chunkSize; chunkIndex += filterStep) {
+			//for (var pointIndex = 0, chunkIndex = 0; chunkIndex < chunkSize; pointIndex += step, chunkIndex = (~~pointIndex) * pointLength) {
+			for (var chunkIndex = (~~pointIndex) * pointLength; chunkIndex < chunkSize; pointIndex += step, chunkIndex = (~~pointIndex) * pointLength) {
 				wrapper.append(chunkBufferView, chunkIndex);
 			}
+			
+			// remainder
+			pointIndex -= current.chunkPoints;
 
 			updateProgress(wrapper.progress());
 		}
@@ -117,7 +123,7 @@ function loadPoints(offset, count, step) {
 
 	self.postMessage({
 		buffer: buffer,
-		pointCount: filteredCount,
+		pointCount: filteredCount//,
 		// debugging?
 		/*request: {
 			pointOffset: offset,
