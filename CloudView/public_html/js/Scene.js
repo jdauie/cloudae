@@ -152,11 +152,21 @@ function init() {
 	f4.add(settings.display, 'status').onChange(function() {settings.elements.status.toggle();});
 	//f2.open();
 
-	settings.elements.files[0].addEventListener('change', function(e) {
+	settings.elements.files.on('change', function(e) {
 		if (e.target.files.length > 0) {
 			startFile(e.target.files[0]);
 		}
 	});
+	
+	var container = settings.elements.container[0];
+	container.ondragover = function() {return false;};
+	container.ondragend = function() {return false;};
+	container.ondrop = function(e) {
+		e.preventDefault();
+		startFile(e.dataTransfer.files[0]);
+		return false;
+	};
+
 	
 	settings.elements.urlCmd[0].addEventListener('click', function(e) {
 		var url = settings.elements.url.val();

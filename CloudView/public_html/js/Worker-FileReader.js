@@ -65,10 +65,10 @@ function updateProgress(ratio) {
 	});
 }
 
-function chunk(start, end) {
+/*function chunk(start, end) {
 	this.start = start;
 	this.end = end;
-}
+}*/
 
 function loadPoints(offset, count, step) {
 
@@ -123,13 +123,7 @@ function loadPoints(offset, count, step) {
 
 	self.postMessage({
 		buffer: buffer,
-		pointCount: filteredCount//,
-		// debugging?
-		/*request: {
-			pointOffset: offset,
-			pointCount: count,
-			step: step
-		}*/
+		pointCount: filteredCount
 	}, [buffer]);
 }
 
