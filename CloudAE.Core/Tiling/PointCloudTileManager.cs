@@ -199,13 +199,98 @@ namespace CloudAE.Core
 				}
 			}
 
+			// TEST
+			/*using (var process = progressManager.StartProcess("QuantTilePointsIndexedTEST"))
+			{
+				//var templateQuantizedExtent = quantizedExtent.ComputeQuantizedTileExtent(new SimpleGridCoord(0, 0), tileCounts);
+				//var cellSizeX = (int)(templateQuantizedExtent.RangeX / lowResGrid.SizeX);
+				//var cellSizeY = (int)(templateQuantizedExtent.RangeY / lowResGrid.SizeY);
+
+				var sX2 = Math.Pow(source.Quantization.ScaleFactorX, 2);
+				var sY2 = Math.Pow(source.Quantization.ScaleFactorY, 2);
+				var sZ2 = Math.Pow(source.Quantization.ScaleFactorZ, 2);
+
+				var index = 0;
+				foreach (var tile in tileFilter.GetCellOrdering())
+				{
+					var count = tileCounts.Data[tile.Row, tile.Col];
+					var dataPtr = segmentBuffer.PointDataPtr + (index * source.PointSizeBytes);
+					var dataEndPtr = dataPtr + (count * source.PointSizeBytes);
+
+					//var tileQuantizedExtent = quantizedExtent.ComputeQuantizedTileExtent(tile, tileCounts);
+
+					//lowResGrid.Reset();
+
+
+					//var grid = Grid<int>.Create();
+
+
+					var pb = dataPtr;
+					while (pb < dataEndPtr)
+					{
+						var p = (SQuantizedPoint3D*)pb;
+
+						// meters?
+						var searchRadius = 1;
+						var pointsWithinRadius = 0;
+
+						var pb2 = dataPtr;
+						//while (pb2 < dataEndPtr)
+						while (pb2 < (byte*)Math.Min((long)dataEndPtr, (long)(dataPtr + 20 * source.PointSizeBytes)))
+						{
+							var p2 = (SQuantizedPoint3D*)pb2;
+
+							//var d2 = 
+							//	sX2 * Math.Pow((*p2).X - (*p).X, 2) +
+							//	sY2 * Math.Pow((*p2).Y - (*p).Y, 2) +
+							//	sZ2 * Math.Pow((*p2).Z - (*p).Z, 2);
+
+							//if (Math.Sqrt(d2) < searchRadius)
+							//{
+							//	++pointsWithinRadius;
+							//}
+
+							pb2 += source.PointSizeBytes;
+						}
+
+						//(*p).Z = (int)(quantizedExtent.MinX + (pointsWithinRadius * 100) / source.Quantization.ScaleFactorZ);
+
+
+
+						//var cellX = (((*p).X - tileQuantizedExtent.MinX) / cellSizeX);
+						//var cellY = (((*p).Y - tileQuantizedExtent.MinY) / cellSizeY);
+
+						//var offset = lowResGrid.Data[cellY, cellX];
+						//if (offset == -1)
+						//{
+						//	lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
+						//}
+						//else
+						//{
+						//	var pBest = (SQuantizedPoint3D*)(segmentBuffer.PointDataPtr + offset);
+
+						//	if ((*p).Z < (*pBest).Z)
+						//		lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
+						//}
+
+						pb += source.PointSizeBytes;
+						++index;
+					}
+
+					if (!process.Update((float)index / segmentBuffer.PointCount))
+						break;
+				}
+			}*/
+
 			// determine representative low-res points for each tile and swap them to a new buffer
 			using (var process = progressManager.StartProcess("QuantTilePointsIndexedExtractLowRes"))
 			{
 				var removedBytes = 0;
 
 				var templateQuantizedExtent = quantizedExtent.ComputeQuantizedTileExtent(new SimpleGridCoord(0, 0), tileCounts);
-				
+				var cellSizeX = (int)(templateQuantizedExtent.RangeX / lowResGrid.SizeX);
+				var cellSizeY = (int)(templateQuantizedExtent.RangeY / lowResGrid.SizeY);
+
 				var index = 0;
 				foreach (var tile in tileFilter.GetCellOrdering())
 				{
@@ -214,8 +299,6 @@ namespace CloudAE.Core
 					var dataEndPtr = dataPtr + (count * source.PointSizeBytes);
 
 					var tileQuantizedExtent = quantizedExtent.ComputeQuantizedTileExtent(tile, tileCounts);
-					var cellSizeX = (int)(templateQuantizedExtent.RangeX / lowResGrid.SizeX);
-					var cellSizeY = (int)(templateQuantizedExtent.RangeY / lowResGrid.SizeY);
 
 					lowResGrid.Reset();
 
@@ -237,7 +320,8 @@ namespace CloudAE.Core
 						{
 							var pBest = (SQuantizedPoint3D*)(segmentBuffer.PointDataPtr + offset);
 
-							if ((*p).Z > (*pBest).Z)
+							//if ((*p).Z > (*pBest).Z)
+							if ((*p).Z < (*pBest).Z)
 								lowResGrid.Data[cellY, cellX] = (int)(pb - segmentBuffer.PointDataPtr);
 
 							//var cellCenterX = (cellX + 0.5) * cellSizeX;

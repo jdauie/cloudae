@@ -51,7 +51,7 @@ function FileSource(stream, header, chunkSize) {
 }
 
 function createReadStream(file) {
-	if (file.constructor.name === "File") {
+	if (file instanceof File) {
 		return new JACERE.FileStream(file);
 	}
 	else {

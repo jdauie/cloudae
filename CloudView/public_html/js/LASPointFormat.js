@@ -194,6 +194,7 @@
 	
 	JACERE.getPointFormatFields = getPointFormatFieldsFlat;
 	JACERE.getPointFormat = getPointFormat;
+	JACERE.getGeometryLoop = createGeometryLoop;
 	
 	function createPointFormatFromFlatFields(header, fields, map) {
 		var code = [];
@@ -328,6 +329,86 @@
 		].join('\n'));
 		
 		return new Function('pointOffset', code);
+	}
+	
+	function createGeometryLoop(reader, assignments) {
+		
+		var format = reader.info.header.pointDataRecordFormat;
+		var fields = getPointFormatFieldsFlat(format);
+		
+		var map = {};
+		var arrayMax = 0;
+		var assignmentKeys = Object.keys(assignments);
+		for (var i = 0; i < assignmentKeys.length; i++) {
+			var a = assignments[assignmentKeys[i]];
+			map[a.name] = a;
+			arrayMax = Math.max(arrayMax, a.array);
+		}
+		
+		var code = [];
+		
+		code.push('var view = reader.reader.view;');
+		code.push(String.format('var offset = {0} * {1};', reader.pointIndex, reader.info.header.pointDataRecordLength));
+		
+		for (var i = 0; i <= arrayMax; i++) {
+			code.push(String.format('var array{0} = arrays[{0}];', i));
+		}
+		
+		code.push(String.format('for (var i = 0; i < {0}; ++i, offset += {1}) {', reader.points, reader.info.header.pointDataRecordLength));
+		
+		var offset = 0;
+		for (var i = 0; i < fields.length; i++) {
+			var field = fields[i];
+			if (field.bits) {
+				// group into byte
+				var bitFields = [field];
+				var bits = field.bits;
+				var readByte = false;
+				while (bits < 8) {
+					var bitField = fields[++i];
+					bitFields.push(bitField);
+					bits += bitField.bits;
+					readByte = readByte || map[bitField.name];
+				}
+				
+				if (readByte) {
+					code.push(String.format('var byte{0} = view.getUint8(offset + {0}, true);', offset));
+				}
+				
+				var bitOffset = 0;
+				for (var j = 0; j < bitFields.length; j++) {
+					var bitField = bitFields[j];
+					var name = bitField.name;
+					
+					if (map[name]) {
+						code.push(String.format('array{0}[(i * {1}) + {2}] = (byte{5} & {3}) >> {4}', a.array, a.multiple, a.offset, (((1 << bitField.bits) - 1) << bitOffset), bitOffset, offset));
+					}
+					
+					bitOffset += bitField.bits;
+				}
+				
+				offset += 1;
+			}
+			else {
+				var transform = '';
+				var name = field.name;
+				if (name === 'X' || name === 'Y' || name === 'Z') {
+					var key = field.name.toLowerCase();
+					transform = String.format(' * {0} + {1}', reader.info.header.quantization.scale[key], reader.info.header.quantization.offset[key]);
+				}
+				
+				if (map[name]) {
+					var a = map[name];
+					code.push(String.format('array{0}[(i * {1}) + {2}] = view.get{3}(offset + {4}, true){5};', a.array, a.multiple, a.offset, field.type, offset, transform));
+				}
+				
+				offset += field.bytes;
+			}
+		}
+		
+		code.push('}');
+		
+		return new Function('reader', 'arrays', code.join('\n'));
 	}
 	
 	/*function PointFormat1(view, offset) {

@@ -578,7 +578,7 @@ function createChunkPackedColor(reader) {
 	var kp = 0;
 	
 	// if we are in texture mode, don't bother setting the colors, just allocate them?
-	for (var i = 0; i < points; ++i, kp += 3) {
+	/*for (var i = 0; i < points; ++i, kp += 3) {
 		//var point = reader.readPoint();
 		var point = reader.readPoint(i);
 		
@@ -587,7 +587,17 @@ function createChunkPackedColor(reader) {
 		positions[kp + 2] = point.z;
 		
 		colors[i] = point.color;
-	}
+	}*/
+	
+	
+	
+	(JACERE.getGeometryLoop(reader, [
+		{array:0, multiple:3, offset:0, name:'X'},
+		{array:0, multiple:3, offset:1, name:'Y'},
+		{array:0, multiple:3, offset:2, name:'Z'}
+	])(reader, [positions]));
+	
+	
 
 	geometry.computeBoundingSphere();
 	

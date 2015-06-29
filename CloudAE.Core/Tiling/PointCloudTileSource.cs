@@ -372,9 +372,12 @@ namespace CloudAE.Core
 
 		public BitmapSource GeneratePreviewImage(ColorRamp ramp, bool useStdDevStretch, int quality)
 		{
+			//if (m_pixelGridSet == null)
+			//	GeneratePreviewGrid();
+
 			if (Preview == null || Preview.ColorHandler != ramp || Preview.UseStdDevStretch != useStdDevStretch || Preview.Quality != quality)
 			{
-				BitmapSource source = GeneratePreviewImage(m_pixelGridSet.GridQuantized, ramp, useStdDevStretch, quality);
+				var source = GeneratePreviewImage(m_pixelGridSet.GridQuantized, ramp, useStdDevStretch, quality);
 				Preview = new PreviewImage(source, ramp, useStdDevStretch, quality);
 
 				//using (var fileStream = new FileStream(Path.Combine(Cache.APP_CACHE_DIR, "preview.jpg"), FileMode.Create))
@@ -390,7 +393,7 @@ namespace CloudAE.Core
 
 		private BitmapSource GeneratePreviewImage(Grid<int> grid, ColorRamp ramp, bool useStdDevStretch, int quality)
 		{
-			BitmapSource bmp = CreateBitmapSource(grid, QuantizedExtent, StatisticsQuantizedZ, useStdDevStretch, ramp, quality);
+			var bmp = CreateBitmapSource(grid, QuantizedExtent, StatisticsQuantizedZ, useStdDevStretch, ramp, quality);
 			//BitmapSource bmp = CreateSegmentationBitmap(grid);
 			//BitmapSource bmp = CreatePlaneFittingBitmap(grid);
 

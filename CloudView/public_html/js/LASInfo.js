@@ -8,7 +8,7 @@
 		this.fileSize = 0;
 		this.time = [Date.now()];
 		
-		if (file.constructor.name === "File") {
+		if (file instanceof File) {
 			this.name = file.name;
 		}
 		else {

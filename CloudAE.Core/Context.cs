@@ -129,12 +129,14 @@ namespace CloudAE.Core
 		public delegate void ProcessingCompletedHandler(PointCloudTileSource tileSource);
 		public delegate void ProcessingProgressChangedHandler(int progressPercentage);
 		public delegate void ProcessingProcessChangedHandler(string process);
+		public delegate void ProcessingQueueEmptyHandler();
 
 		public static event LogHandler Log;
 		public static event ProcessingStartedHandler ProcessingStarted;
 		public static event ProcessingCompletedHandler ProcessingCompleted;
 		public static event ProcessingProgressChangedHandler ProcessingProgressChanged;
 		public static event ProcessingProcessChangedHandler ProcessingProcessChanged;
+		public static event ProcessingQueueEmptyHandler ProcessingQueueEmpty;
 
 		private static void OnLog(string value)
 		{
@@ -159,6 +161,9 @@ namespace CloudAE.Core
 			var handler = ProcessingCompleted;
 			if (handler != null)
 				handler(tileSource);
+
+			if (IsProcessingQueueEmpty)
+				OnProcessingQueueEmpty();
 		}
 
 		private static void OnProcessingProgressChanged(int progressPercentage)
@@ -173,6 +178,13 @@ namespace CloudAE.Core
 			var handler = ProcessingProcessChanged;
 			if (handler != null)
 				handler(process);
+		}
+
+		private static void OnProcessingQueueEmpty()
+		{
+			var handler = ProcessingQueueEmpty;
+			if (handler != null)
+				handler();
 		}
 
 		#endregion
@@ -218,7 +230,7 @@ namespace CloudAE.Core
 
 			if (tileSource != null)
 			{
-				tileSource.GeneratePreviewGrid(progressManager);
+				//tileSource.GeneratePreviewGrid(progressManager);
 
 				e.Result = tileSource;
 			}
