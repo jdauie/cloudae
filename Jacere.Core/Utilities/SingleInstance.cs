@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -40,7 +41,8 @@ namespace Jacere.Core.Util
 		/// <returns>True if this is the first instance of the application.</returns>
 		public static bool InitializeAsFirstInstance(Action<string[]> signalExternalCommandLineArgs)
 		{
-			var appName = Application.Current.GetType().Assembly.ManifestModule.ScopeName;
+			//var appName = Application.Current.GetType().Assembly.ManifestModule.ScopeName;
+			var appName = Assembly.GetEntryAssembly().ManifestModule.ScopeName;
 			var windowsIdentity = System.Security.Principal.WindowsIdentity.GetCurrent();
 			var keyUserName = windowsIdentity != null ? windowsIdentity.User.ToString() : String.Empty;
 
@@ -58,7 +60,7 @@ namespace Jacere.Core.Util
 			{
 				SignalFirstInstance(channelName, GetCommandLineArgs());
 			}
-
+			
 			return firstInstance;
 		}
 

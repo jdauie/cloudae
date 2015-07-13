@@ -183,6 +183,7 @@ namespace CloudAE.Core
 		private static void OnProcessingQueueEmpty()
 		{
 			var handler = ProcessingQueueEmpty;
+			Console.WriteLine("ProcessingCompleted");
 			if (handler != null)
 				handler();
 		}
