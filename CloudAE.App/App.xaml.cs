@@ -28,7 +28,7 @@ namespace CloudAE.App
 			}
 			appSplash.Close(TimeSpan.FromMilliseconds(300));
 
-			if (true)
+			if (false)
 			{
 				ShutdownMode = ShutdownMode.OnExplicitShutdown;
 				Context.ProcessingQueueEmpty += Shutdown;
@@ -77,7 +77,7 @@ namespace CloudAE.App
 
 		protected override void OnExit(ExitEventArgs e)
 		{
-			if (true)
+			if (false)
 			{
 				Console.ReadKey();
 			}

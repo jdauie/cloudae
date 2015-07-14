@@ -75,7 +75,7 @@ namespace Jacere.Core
 				}
 
 				//if (Config.ShowAbstractTypesDuringDiscovery || result != '-')
-				//    ContextManager.WriteLine("{0} {1} {2}", padding, result, type.Name);
+				    ContextManager.WriteLine("{0} {1} {2}", padding, result, type.Name);
 			}
 		}
 

@@ -16,7 +16,9 @@ namespace CloudAE.Cmd
 		static void Main(string[] args)
 		{
 			if (!SingleInstance.InitializeAsFirstInstance(SignalExternalCommandLineArgs))
+			{
 				Environment.Exit(0);
+			}
 
 			Context.Startup();
 

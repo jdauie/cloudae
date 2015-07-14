@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using Jacere.Core;
 using Jacere.Core.Windows;
 using Jacere.Core.Util;
+using System.Globalization;
 
 namespace CloudAE.Core
 {
@@ -27,6 +28,7 @@ namespace CloudAE.Core
 			AllDrives   = 1 << 5
 		}
 
+		private const string DATE_FORMAT = "yyyy-MM-dd";
 		private const string DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
 		private static readonly Process m_process;
@@ -44,7 +46,7 @@ namespace CloudAE.Core
 
 		public static void Write()
 		{
-			DebugInfo flags =
+			var flags =
 				DebugInfo.Environment |
 				DebugInfo.Memory |
 				DebugInfo.Context |
@@ -179,6 +181,7 @@ namespace CloudAE.Core
 					case "OS":                    return GetOSInfo();
 					case "CLR":                   return Environment.Version.ToString();
 					case "Processors":            return GetProcessorInfo();
+					case "Memory":                return GetMemoryInfo();
 					case "Graphics":              return GetVideoInfo();
 
 					case "Types":                 return ExtensionManager.LoadedTypes.Length.ToString();
@@ -204,7 +207,10 @@ namespace CloudAE.Core
 					default: return null;
 				}
 			}
-			catch { }
+			catch
+			{
+				throw;
+			}
 
 			return null;
 		}
@@ -223,6 +229,7 @@ namespace CloudAE.Core
 				templateLines.Add(@"  OS Version : $OS");
 				templateLines.Add(@"  CLR Version: $CLR");
 				templateLines.Add(@"  Processors : $Processors");
+				templateLines.Add(@"  Memory     : $Memory");
 				templateLines.Add(@"  Graphics   : $Graphics");
 				templateLines.Add(@"  Drive $DriveLetter    : $DriveDetails");
 			}
@@ -267,11 +274,21 @@ namespace CloudAE.Core
 
 		private static string GetProcessorInfo()
 		{
-			var query = new SelectQuery("SELECT Name, MaxClockSpeed, AddressWidth FROM Win32_Processor");
+			var query = new SelectQuery("SELECT Name, AddressWidth FROM Win32_Processor");
 			using (var searcher = new ManagementObjectSearcher(query))
 			{
 				var cpu = searcher.Get().Cast<ManagementObject>().First();
-				return string.Format("{0}, {1}, {2}Mhz, {3}-bit", Environment.ProcessorCount, (string)cpu["Name"], (uint)cpu["MaxClockSpeed"], (ushort)cpu["AddressWidth"]);
+				return string.Format("{1}, {2}-bit ({0})", Environment.ProcessorCount, (string)cpu["Name"], (ushort)cpu["AddressWidth"]);
+			}
+		}
+
+		private static string GetMemoryInfo()
+		{
+			var query = new SelectQuery("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem");
+			using (var searcher = new ManagementObjectSearcher(query))
+			{
+				var cpu = searcher.Get().Cast<ManagementObject>().First();
+				return string.Format("{0} GiB", Math.Round((double)(ulong)cpu["TotalPhysicalMemory"] / (1 << 30)));
 			}
 		}
 
@@ -287,11 +304,11 @@ namespace CloudAE.Core
 
 		private static string GetVideoInfo()
 		{
-			var query = new SelectQuery("SELECT Name, DriverVersion, AdapterRAM, VideoModeDescription FROM Win32_VideoController");
+			var query = new SelectQuery("SELECT Name, AdapterRAM, DriverDate FROM Win32_VideoController");
 			var searcher = new ManagementObjectSearcher(query);
 			var os = searcher.Get().Cast<ManagementObject>().First();
 
-			return string.Format("{0}, {1}, {2}, {3}", (string)os["Name"], (string)os["DriverVersion"], ((uint)os["AdapterRAM"]).ToSize(), (string)os["VideoModeDescription"]); ;
+			return string.Format("{0}, {1}, {2}", (string)os["Name"], ((uint)os["AdapterRAM"]).ToSize(), DateTime.ParseExact(((string)os["DriverDate"]).Substring(0, 8), "yyyyMMdd", CultureInfo.InvariantCulture).ToString(DATE_FORMAT));
 		}
 
 		#endregion
