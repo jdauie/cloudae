@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using CloudAE.Core;
 using Jacere.Core.Util;
+using Mono.Options;
 
 namespace CloudAE.Cmd
 {
@@ -25,10 +26,42 @@ namespace CloudAE.Cmd
 			Context.ProcessingProcessChanged += OnProcessingProcessChanged;
 			Context.ProcessingProgressChanged += OnProcessingProgressChanged;
 
-			HandleArgs(args);
+			bool show_help = false;
+			bool clean_cache = false;
 
-			c_event = new AutoResetEvent(false);
-			c_event.WaitOne();
+			var p = new OptionSet() {
+				{"h|help", "show this message and exit.", v => show_help = (v != null)},
+				{"clean", "clean cache.", v => clean_cache = true},
+			};
+
+			var extra = p.Parse(args);
+
+			if (show_help)
+			{
+				ShowHelp(p);
+				Shutdown();
+			}
+			else
+			{
+				if (clean_cache)
+				{
+					Cache.Clear();
+				}
+
+				HandleArgs(extra);
+
+				c_event = new AutoResetEvent(false);
+				c_event.WaitOne();
+			}
+		}
+
+		static void ShowHelp(OptionSet p)
+		{
+			Console.WriteLine("Usage: app [OPTIONS] files");
+			Console.WriteLine("description.");
+			Console.WriteLine();
+			Console.WriteLine("Options:");
+			p.WriteOptionDescriptions(Console.Out);
 		}
 
 		private static void Shutdown()
@@ -53,7 +86,7 @@ namespace CloudAE.Cmd
 			Console.Write("{0}%\r".PadRight(4), progressPercentage);
 		}
 
-		private static void HandleArgs(string[] args)
+		private static void HandleArgs(IEnumerable<string> args)
 		{
 			var paths = args.Where(File.Exists).ToArray();
 			if (paths.Length > 0)
