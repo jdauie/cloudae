@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudAE.App", "CloudAE.App\CloudAE.App.csproj", "{2A1C3795-3288-4ACE-AEC5-7EB039AFC800}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudAE.Core", "CloudAE.Core\CloudAE.Core.csproj", "{3AE0AF74-13AE-46F9-89FD-7BFE60F985ED}"
