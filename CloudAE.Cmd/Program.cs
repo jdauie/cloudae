@@ -50,10 +50,18 @@ namespace CloudAE.Cmd
 					Cache.Clear();
 				}
 
-				HandleArgs(extra);
-
 				c_event = new AutoResetEvent(false);
-				c_event.WaitOne();
+				
+				if (extra.Count > 0)
+				{
+					HandleArgs(extra);
+
+					c_event.WaitOne();
+				}
+				else
+				{
+					Shutdown();
+				}
 			}
 		}
 
