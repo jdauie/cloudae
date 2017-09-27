@@ -20,7 +20,7 @@ namespace Jacere.Data.PointCloud.Server
         public double _maxX;
         public double _maxY;
 
-        private List<IndexedPoint3D> _initialPoints = new List<IndexedPoint3D>();
+        private readonly List<IndexedPoint3D> _initialPoints = new List<IndexedPoint3D>();
         private int _nodeCount;
 
         public void CollapseSmallNodes()
@@ -74,8 +74,13 @@ namespace Jacere.Data.PointCloud.Server
 
         public IEnumerable<QuadTreeNode> GetLeaves()
         {
+            return GetLeaves(_root);
+        }
+
+        public static IEnumerable<QuadTreeNode> GetLeaves(QuadTreeNode root)
+        {
             var stack = new Stack<QuadTreeNode>();
-            stack.Push(_root);
+            stack.Push(root);
 
             while (stack.Count > 0)
             {

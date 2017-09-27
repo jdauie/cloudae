@@ -6,30 +6,42 @@ using System.Linq;
 
 namespace Jacere.Data.PointCloud.Server
 {
-    class Program
+    internal class Program
     {
-        //--collapse-ratio=0.2
-        //--collapse-limit=50000
-        //--max-tree-depth=10
-        //--max-tree-nodes=1000000
-        //
+        [CommandOption("collapse-ratio", "r")]
+        private static double CollapseRatio { get; set; }
 
-        static void Main(string[] args)
+        [CommandOption("collapse-limit", "l")]
+        private static int CollapseLimit { get; set; }
+
+        [CommandOption("max-tree-depth", "d")]
+        private static int MaxTreeDepth { get; set; }
+
+        [CommandOption("max-tree-nodes", "n")]
+        private static int MaxTreeNodes { get; set; }
+
+        [CommandOption("draw-density-map", "q")]
+        private static bool DrawPoints { get; set; }
+
+        private static void Main()
         {
-            //foreach (var arg in args)
-            //{
-            //    Console.WriteLine(arg);
-            //}
-            //Console.WriteLine("----");
+            CommandOptionThing.ProcessStuff(typeof(Program));
 
-            var drawPoints = args.Contains("--draw-density-map");
+            //Console.WriteLine($"{nameof(CollapseRatio)} = {CollapseRatio}");
+            //Console.WriteLine($"{nameof(CollapseLimit)} = {CollapseLimit}");
+            //Console.WriteLine($"{nameof(MaxTreeDepth)} = {MaxTreeDepth}");
+            //Console.WriteLine($"{nameof(MaxTreeNodes)} = {MaxTreeNodes}");
+            //Console.WriteLine($"{nameof(DrawPoints)} = {DrawPoints}");
+            Console.WriteLine("----");
+
+            //var drawPoints = args.Contains("--draw-density-map");
 
             var testFiles = new []
             {
                 //@"C:\tmp\data\points.xyz",
                 //@"C:\tmp\data\Site_20_golden_bucket.pts",
                 //@"C:\tmp\data\old\45122D5116.txt",
-                @"C:\tmp\data\old\Hfx_Drtmth1_proj.las",
+                //@"C:\tmp\data\old\Hfx_Drtmth1_proj.las",
                 //@"C:\tmp\data\old\Hfx_Drtmth1_proj.txt",
                 //@"C:\tmp\data\old\points_a1_Kabul_tile15a.las",
                 //@"C:\tmp\data\old\points_a1_Kabul_tile15a.txt",
@@ -39,14 +51,18 @@ namespace Jacere.Data.PointCloud.Server
                 //@"C:\tmp\data\old\0207_stadium.txt",
                 //@"C:\tmp\data\old\519_223.las",
                 //@"C:\tmp\data\old\519_223.txt",
-                //@"C:\tmp\data\old\CRB-10-Jul_937m_f0.las",
+                @"C:\tmp\data\old\CRB-10-Jul_937m_f0.las",
             };
 
             var sw = Stopwatch.StartNew();
 
             foreach (var file in testFiles)
             {
-                IndexFile(file, drawPoints);
+                //ScanFileIndexed(file);
+                //ScanFile(file);
+                //ScanFileIndexed(file);
+                //ScanFile(file);
+                IndexFile(file, DrawPoints);
             }
 
             Console.WriteLine();
@@ -76,6 +92,50 @@ namespace Jacere.Data.PointCloud.Server
             //listener.Stop();
         }
 
+        private static void ScanFile(string file)
+        {
+            var sw = Stopwatch.StartNew();
+
+            using (var stream = new FileStreamUnbufferedSequentialRead(file))
+            {
+                var source = Path.GetExtension(file) == ".las"
+                    ? (IPointSource)new LasFile(stream)
+                    : new XyzFile(stream);
+
+                var max = 0.0;
+                var count = 0L;
+                foreach (var point in source.Points())
+                {
+                    ++count;
+                    max = Math.Max(point.Z, max);
+                }
+
+                Console.WriteLine($"read {count} in {sw.ElapsedMilliseconds}");
+            }
+        }
+
+        private static void ScanFileIndexed(string file)
+        {
+            var sw = Stopwatch.StartNew();
+
+            using (var stream = new FileStreamUnbufferedSequentialRead(file))
+            {
+                var source = Path.GetExtension(file) == ".las"
+                    ? (IPointSource)new LasFile(stream)
+                    : new XyzFile(stream);
+
+                var max = 0.0;
+                var count = 0L;
+                foreach (var point in source.Points())
+                {
+                    ++count;
+                    max = Math.Max(point.Z, max);
+                }
+
+                Console.WriteLine($"read {count} indexed in {sw.ElapsedMilliseconds}");
+            }
+        }
+
         private static void IndexFile(string file, bool drawPoints)
         {
             var sw = Stopwatch.StartNew();
@@ -88,13 +148,13 @@ namespace Jacere.Data.PointCloud.Server
                     ? (IPointSource) new LasFile(stream)
                     : new XyzFile(stream);
 
-                foreach (var point in source.Points())
+                foreach (var point in source.IndexedPoints())
                 {
                     tree.Add(point);
                 }
 
                 tree.CollapseSmallNodes();
-
+                
                 Console.WriteLine($"{tree._root.Count} in {sw.ElapsedMilliseconds}");
 
                 var leafNodes = tree.GetLeaves().ToList();
@@ -125,10 +185,10 @@ namespace Jacere.Data.PointCloud.Server
                     }
 
                     Console.WriteLine($"chunks: {hashset.Count}");
-                    foreach (var chunk in hashset.OrderBy(x => x))
-                    {
-                        Console.WriteLine(chunk);
-                    }
+                    //foreach (var chunk in hashset.OrderBy(x => x))
+                    //{
+                    //    Console.WriteLine(chunk);
+                    //}
                 }
             }
         }

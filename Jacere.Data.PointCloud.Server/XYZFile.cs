@@ -22,7 +22,15 @@ namespace Jacere.Data.PointCloud.Server
             _stream = stream;
         }
 
-        public IEnumerable<IndexedPoint3D> Points()
+        public IEnumerable<Point3D> Points()
+        {
+            foreach (var point in IndexedPoints())
+            {
+                yield return point;
+            }
+        }
+
+        public IEnumerable<IndexedPoint3D> IndexedPoints()
         {
             _stream.Seek(0, SeekOrigin.Begin);
 

@@ -17,7 +17,7 @@ namespace Jacere.Data.PointCloud.Server
 
         public bool IsFinal;
         
-        public int Count;
+        public long Count;
 
         public HashSet<long> Chunks = new HashSet<long>();
 
@@ -48,7 +48,7 @@ namespace Jacere.Data.PointCloud.Server
         {
             return NW == null && NE == null && SE == null && SW == null;
         }
-
+        
         public IEnumerable<QuadTreeNode> GetNodes()
         {
             if (NW != null) yield return NW;
@@ -59,10 +59,15 @@ namespace Jacere.Data.PointCloud.Server
 
         public void Collapse()
         {
-            if (NW != null) Chunks.UnionWith(NW.Chunks);
-            if (NE != null) Chunks.UnionWith(NE.Chunks);
-            if (SE != null) Chunks.UnionWith(SE.Chunks);
-            if (SW != null) Chunks.UnionWith(SW.Chunks);
+            if (IsLeaf())
+            {
+                return;
+            }
+
+            foreach (var node in QuadTree.GetLeaves(this))
+            {
+                Chunks.UnionWith(node.Chunks);
+            }
 
             NW = null;
             NE = null;
